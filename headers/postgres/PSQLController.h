@@ -23,5 +23,7 @@ class PSQLController
         ~PSQLController();
 };
 
+extern "C" PSQLController psqlController;
+// PSQLController psqlController;
 
 #endif

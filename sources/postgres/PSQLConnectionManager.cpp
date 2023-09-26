@@ -18,7 +18,6 @@ PSQLConnection * PSQLConnectionManager::getPSQLConnection(string data_source_nam
 {
     if (data_sources.find(data_source_name) != data_sources.end()) 
     {
-        printf ("%p\n",data_sources[data_source_name]);
         return data_sources[data_source_name]->getPSQLConnection();
     }
     else return NULL;

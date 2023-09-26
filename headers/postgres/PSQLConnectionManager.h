@@ -15,6 +15,4 @@ class PSQLConnectionManager
 };
 
 
-
-
 #endif

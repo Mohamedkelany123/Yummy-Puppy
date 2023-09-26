@@ -4,23 +4,23 @@
 void PSQLConnection::load_table_names()
 {
     AbstractDBQuery *psqlQuery = this->executeQuery("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'");
-    do
+    for (;psqlQuery->fetchNextRow();)
     {
         for (int c = 0; c < psqlQuery->getColumnCount(); c++)
         {
             this->table_names.push_back(psqlQuery->getResultField(c));
         }
-    } while (psqlQuery->fetchNextRow());
+    } 
     delete (psqlQuery);
 }
 
 void PSQLConnection::load_column_types()
 {
     AbstractDBQuery *psqlQuery = this->executeQuery("SELECT oid,typname from pg_type");
-    do
+    for (;psqlQuery->fetchNextRow();)
     {
         this->column_types[psqlQuery->getResultField(0)] = psqlQuery->getResultField(1);
-    } while (psqlQuery->fetchNextRow());
+    }
     delete (psqlQuery);
 }
 
@@ -72,6 +72,7 @@ string PSQLConnection::getTypeFromOID (string oid)
 }
 AbstractDBQuery *PSQLConnection::executeQuery(string psql_query)
 {
+    cout << psql_query << endl;
     return new PSQLQuery(this, psql_query);
 }
 

@@ -2,106 +2,19 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <PSQLConnection.h>
 #include <PSQLPrimitiveORMGenerator.h>
-#include <PSQLAbstractORM.h>
-#include <PSQLConnectionManager.h>
+#include <PSQLController.h>
 // #include <crm_app_customer_primitive_orm.h>
 // #include <loan_app_loan_primitive_orm.h>
 // #include <auth_group_primitive_orm.h>
 //g++ -shared -fPIC -std=c++20 ./factory/db_primitive_orm/sources/crm_app_customer_primitive_orm.cpp $(ls ./objects | grep -v orm_c++|awk '{print "./objects/" $1}') -o ./dso/crm_app_customer_primitive_orm.so -I./headers/postgres/ -I ./ -I./headers/abstract -I /usr/local/Cellar/libpq/16.0/include/ -I ./factory/db_primitive_orm/headers/ -L/usr/local/Cellar/libpq/16.0/lib -lpthread -ldl -lpq
 
-enum unary_operator { eq, gt, lt, gte,lte,ne,nand };
 
-class Expression{
-
-    private:
-    public:
-        Expression(){}
-        virtual string generate () = 0 ;
-        virtual ~Expression(){}
-};
-
-class LogicalOperator : public Expression {
-    protected:
-        vector <Expression *> expressions;
-        string op;
-
-    public:
-        LogicalOperator(): Expression() {}
-        LogicalOperator(string _op,Expression * expression, ...): Expression() {
-            op = _op;
-            expressions.push_back(expression);
-            va_list expression_list;
-            va_start (expression_list, expression);
-            while (true) {
-                Expression * e = va_arg (expression_list, Expression *);
-                if (e == NULL) break;
-                expressions.push_back (e);
-            }
-            va_end(expression_list);
-        }
-        string generate(){
-            string exp = "";
-            for (Expression * e:expressions)
-            {
-                if (exp == "") exp = "(";
-                else exp += " "+op+" ";
-                exp += e->generate();
-            }
-            if (exp != "") exp += ")";
-            return exp;
-        }
-        virtual ~LogicalOperator()
-        {
-            for (Expression * e:expressions)
-                delete(e);
-        }
-};
-
-class OROperator : public LogicalOperator {
-    private:
-    public:
-        template<typename ... Args>
-        OROperator(Expression * e,Args&& ... args) : LogicalOperator("OR",e,std::forward<Args>(args) ...,NULL){}
-        virtual ~OROperator(){}
-};
-
-class ANDOperator : public LogicalOperator {
-    private:
-    public:
-        template<typename ... Args>
-        ANDOperator(Expression * e,Args&& ... args) : LogicalOperator("AND",e,std::forward<Args>(args) ...,NULL){}
-        virtual ~ANDOperator() {}
-};
-
-class UnaryOperator : public Expression {
-    private:
-        string name;
-        unary_operator op;
-        string value;
-    public:
-        UnaryOperator(string _name,unary_operator _op,string _value){
-            name = _name;
-            op = _op;
-            value = _value;
-        }
-        string generate()
-        {
-            if ( op == eq ) return name+" = "+value;
-            else return "";
-        }
-        virtual ~UnaryOperator(){}
-};
 
 typedef PSQLAbstractORM * create_object_routine();
 
 int main (int argc, char ** argv)
 {
-
-
-
-
 /*
 select * from (
     SELECT conrelid::regclass AS "FK_Table"
@@ -115,6 +28,18 @@ select * from (
     ORDER  BY pg_get_constraintdef(c.oid), conrelid::regclass::text, contype DESC) as t
 where "PK_Table" = 'ledger_entry';
 
+SELECT               
+  pg_attribute.attname, 
+  format_type(pg_attribute.atttypid, pg_attribute.atttypmod) 
+FROM pg_index, pg_class, pg_attribute, pg_namespace 
+WHERE 
+  pg_class.oid = 'new_lms_installmentextension'::regclass AND 
+  indrelid = pg_class.oid AND 
+  nspname = 'public' AND 
+  pg_class.relnamespace = pg_namespace.oid AND 
+  pg_attribute.attrelid = pg_class.oid AND 
+  pg_attribute.attnum = any(pg_index.indkey)
+ AND indisprimary
 
 
 SELECT c.conname                                 AS constraint_name,
@@ -142,10 +67,10 @@ ORDER BY "self_schema", "self_table";
 
     if (argc==6)
     {
-        PSQLConnectionManager * psqlConnectionManager = new PSQLConnectionManager();
-        psqlConnectionManager->addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
+        // PSQLConnectionManager * psqlConnectionManager = new PSQLConnectionManager();
+        psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
         printf ("Datasource created\n"); 
-        PSQLConnection * psqlConnection = psqlConnectionManager->getPSQLConnection("main");
+        PSQLConnection * psqlConnection = psqlController.getPSQLConnection("main");
         printf ("PsqlConnection created: %p\n",psqlConnection);
         vector<string> tables = psqlConnection->getTableNames();
         PSQLPrimitiveORMGenerator * psqlPrimitiveORMGenerator = new PSQLPrimitiveORMGenerator();
@@ -154,14 +79,13 @@ ORDER BY "self_schema", "self_table";
             cout << "Generating " << tables[i] << endl;
             psqlPrimitiveORMGenerator->generate(tables[i]);
         }
-        // for ( int i = 0 ; i  < tables.size() && i < 20 ; i ++)
-        // {
-        //     cout << "Compiling " << tables[i] << endl;
-        //     psqlPrimitiveORMGenerator->compile(tables[i]);
-        // }
-        psqlConnectionManager->releaseConnection("main",psqlConnection);
+        for ( int i = 0 ; i  < tables.size() && i < 20 ; i ++)
+        {
+            cout << "Compiling " << tables[i] << endl;
+            psqlPrimitiveORMGenerator->compile(tables[i]);
+        }
+        psqlController.releaseConnection("main",psqlConnection);
         delete (psqlPrimitiveORMGenerator);
-        delete (psqlConnectionManager);
     }
     else 
     {

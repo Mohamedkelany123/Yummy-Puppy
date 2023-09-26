@@ -27,15 +27,18 @@ class PSQLPrimitiveORMGenerator
         string constructor_destructor_def;
         string constructor_destructor;
         string includes;
+        string primary_key;
         char * template_h;
         char * template_cpp;
         char * h_file;
         char * cpp_file;
         PSQLConnection * psqlConnection;
         map <string,AbstractDatabaseColumn *> databaseColumnFactory;
+        void get_primary_key(string table_name);
         void generateDecl_Setters_Getters (string class_name,map<string, vector<string>> columns_definition);
         void generateFromString (string class_name,map<string, vector<string>> columns_definition);
         void generateAssignResults (string class_name,map<string, vector<string>> columns_definition);
+        void generateGetIdentifier(string class_name);
         void generateExternDSOEntryPoint (string class_name,string table_name);
         void generateConstructorAndDestructor(string class_name,string table_name);
         void fetch_templates();

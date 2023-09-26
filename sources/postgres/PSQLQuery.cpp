@@ -6,7 +6,7 @@ PSQLQuery::PSQLQuery(PSQLConnection *_psqlConnection, string query)
     pgresult = NULL;
     result_count = 0;
     column_count = 0;
-    result_index = 0;
+    result_index = -1;
     psqlConnection=_psqlConnection;
 
     if (psqlConnection != NULL && psqlConnection->isAlive())
@@ -155,7 +155,7 @@ int PSQLQuery::getColumnSize(int index)
 
 string PSQLQuery::getResultField(int index)
 {
-    if (index >=0 && index < column_count )
+    if (index >=0 && result_index >=0 && index < column_count )
     {
         return PQgetvalue(pgresult, result_index, index);
     }

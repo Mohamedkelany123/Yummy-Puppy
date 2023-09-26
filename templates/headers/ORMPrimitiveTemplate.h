@@ -2,6 +2,7 @@
 #define %s
 
 #include <PSQLAbstractORM.h>
+#include <PSQLAbstractQueryIterator.h>
 
 %s
 
@@ -14,5 +15,16 @@ class %s : public PSQLAbstractORM
     public:
 %s
 };
+
+class %s : public PSQLAbstractQueryIterator
+{
+    public:
+    %s(string _data_source_name);
+    %s * operator [] (long index);
+    %s * next ();
+    %s * back ();
+    ~%s ();
+};
+
 
 #endif

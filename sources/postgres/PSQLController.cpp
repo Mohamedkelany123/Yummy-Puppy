@@ -4,6 +4,7 @@ PSQLController::PSQLController()
 {
     psqlConnectionManager = new PSQLConnectionManager();
     psqlORMCache = new PSQLORMCache();
+    printf ("PSQL Controller Initialized\n");
 }
 bool PSQLController::addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password)
 {
@@ -51,3 +52,6 @@ PSQLController::~PSQLController()
     delete (psqlORMCache);
 
 }
+
+
+PSQLController psqlController;
