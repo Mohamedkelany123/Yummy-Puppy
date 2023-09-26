@@ -1,0 +1,3 @@
+#include <%s.h>
+
+%s

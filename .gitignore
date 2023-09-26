@@ -1,0 +1,6 @@
+objects/*
+bin/*
+dso/*
+temp/*
+test/*
+factory/db_primitive_orm/*
