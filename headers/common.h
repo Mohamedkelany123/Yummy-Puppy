@@ -22,8 +22,9 @@
 #include <thread>
 #include <dlfcn.h>
 #include <stdarg.h>
+#include <json.hpp>
 
 
 using namespace std;
-
+using json = nlohmann::json;
 #endif

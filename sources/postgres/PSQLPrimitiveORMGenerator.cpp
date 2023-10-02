@@ -49,8 +49,20 @@ void PSQLPrimitiveORMGenerator::write_headers_and_sources(string class_name)
 PSQLPrimitiveORMGenerator::PSQLPrimitiveORMGenerator()
 {
     psqlConnection = new PSQLConnection ("localhost",5432,"django_ostaz_15082023_old","postgres","postgres");
-    databaseColumnFactory[PSQLInt4::get_native_type()] = new PSQLInt4();
-    databaseColumnFactory[PSQLInt8::get_native_type()] = new PSQLInt8();
+    for ( int i = 0 ; PSQLInt2::get_native_type(i) != "" ; i ++)
+        databaseColumnFactory[PSQLInt2::get_native_type(i)] = new PSQLInt2();
+    for ( int i = 0 ; PSQLInt4::get_native_type(i) != "" ; i ++)
+        databaseColumnFactory[PSQLInt4::get_native_type(i)] = new PSQLInt4();
+    for ( int i = 0 ; PSQLInt8::get_native_type(i) != "" ; i ++)
+        databaseColumnFactory[PSQLInt8::get_native_type(i)] = new PSQLInt8();
+    for ( int i = 0 ; PSQLBool::get_native_type(i) != "" ; i ++)
+        databaseColumnFactory[PSQLBool::get_native_type(i)] = new PSQLBool();
+    for ( int i = 0 ; PSQLText::get_native_type(i) != "" ; i ++)
+        databaseColumnFactory[PSQLText::get_native_type(i)] = new PSQLText();
+    for ( int i = 0 ; PSQLJson::get_native_type(i) != "" ; i ++)
+        databaseColumnFactory[PSQLJson::get_native_type(i)] = new PSQLJson();
+    for ( int i = 0 ; PSQLNumeric::get_native_type(i) != "" ; i ++)
+        databaseColumnFactory[PSQLNumeric::get_native_type(i)] = new PSQLNumeric();
     template_h = NULL;
     template_cpp = NULL;
     h_file = (char *) calloc (MAX_SOURCE_FILE_SIZE,sizeof(char));
@@ -98,6 +110,7 @@ void PSQLPrimitiveORMGenerator::generateDecl_Setters_Getters (string class_name,
             getters_def += abstractDatabaseColumn->genGetterDef();
             delete(abstractDatabaseColumn);
         }
+        else cout << "TYPE: " << columns_definition["udt_name"][i] << " - " << columns_definition["numeric_precision"][i] << " - " << columns_definition["numeric_precision_radix"][i] << " - "<< columns_definition["numeric_scale"][i] << endl;
     }
 }
 
@@ -122,8 +135,10 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,map<str
     {
         if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
             AbstractDatabaseColumn * abstractDatabaseColumn = databaseColumnFactory[columns_definition["udt_name"][i]]->clone(columns_definition["column_name"][i]);
-            extra_methods += "\t\t\t"+columns_definition["column_name"][i];
-            extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getValue(\"" + columns_definition["column_name"][i]+"\")")+ ";\n";
+            extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
+            if ( columns_definition["udt_name"][i] == "jsonb")
+                extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getJSONValue(\"" + columns_definition["column_name"][i]+"\")")+ ";\n";            
+            else extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getValue(\"" + columns_definition["column_name"][i]+"\")")+ ";\n";
             delete(abstractDatabaseColumn);
         }
     }
@@ -133,7 +148,7 @@ void PSQLPrimitiveORMGenerator::generateGetIdentifier(string class_name)
 {
     extra_methods_def += "\t\tlong getIdentifier ();\n";
     extra_methods += "\t\tlong "+class_name+"::getIdentifier (){\n";
-    extra_methods += "\t\t\treturn "+primary_key+";\n";
+    extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
     extra_methods += "\t\t}\n";
 }
 
@@ -171,9 +186,20 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
         constructor_destructor += "\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = NULL;\n";
         includes += "#include <"+psqlQuery->getValue("fk_table")+"_primitive_orm.h>\n";
         temp += "\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"!= NULL)delete ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+");\n";   
-        getters += "vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * "+class_name+"::get_"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"(){ \n";
-        getters += "\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"== NULL)\n\t\t\t "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = new vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> ();\n";
-        getters += "\t\treturn "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+";\n}\n";
+        getters += "vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * "+class_name+"::get_"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"(){\n";
+        getters += "\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"== NULL) {\n";
+        getters += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = new vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> ();\n";
+        getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm_iterator * i = new "+psqlQuery->getValue("fk_table")+"_primitive_orm_iterator(\"main\");\n";
+
+        getters += "\t\t\ti->filter (ANDOperator(new UnaryOperator(\""+psqlQuery->getValue("fk_column")+"\",eq,get_"+primary_key+"())));\n";
+        getters += "\t\t\ti->execute();\n";
+        getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm * orm = new "+psqlQuery->getValue("fk_table")+"_primitive_orm();\n";
+        getters += "\t\t\tdo {\n";
+		getters += "\t\t\t\torm = i->next();\n";
+		getters += "\t\t\t\tif (orm!= NULL) "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"->push_back(orm);\n";
+		getters += "\t\t\t} while (orm != NULL);\n";
+        getters += "\t\t\t}\n";
+        getters += "\t\t\treturn "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +";\n}\n";
         getters_def +=  "\t\tvector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * get_"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"();\n";
     }
     delete (psqlQuery);
@@ -185,8 +211,6 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor_def += "\t\t virtual ~"+class_name+"();\n";
 
 }
-
-
 
 void PSQLPrimitiveORMGenerator::generate(string table_name)
 {
@@ -208,12 +232,13 @@ void PSQLPrimitiveORMGenerator::generate(string table_name)
         generateGetIdentifier(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
         generateConstructorAndDestructor(class_name,table_name);
-        snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,class_name_upper.c_str(),class_name_upper.c_str(),includes.c_str(),class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str());
+        snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,class_name_upper.c_str(),class_name_upper.c_str(),includes.c_str(),class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str());
         snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,class_name.c_str(),(setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),table_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str()
         ,class_name.c_str()
         ,class_name.c_str()
-        ,class_name.c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str());
-
+        ,class_name.c_str(),query_iterator_class_name.c_str()
+        ,query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str()
+        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str());
         write_headers_and_sources(class_name);
     }
     delete (psqlQuery);

@@ -24,6 +24,27 @@
 {
     return NULL;
 }
+
+void %s::process(std::function<void(%s * orm)> f)
+{
+    if (this->execute())
+    {
+        vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(10);
+        AbstractDBQuery * temp = this->psqlQuery;
+        this->psqlQuery = (*p)[5];
+        %s * orm = NULL;
+        do {
+            orm =this->next();
+            if (orm != NULL) 
+            {
+                f(orm);
+            }
+        } while (orm != NULL);
+        this->psqlQuery = temp;
+    }
+}
+
+
 %s::~%s ()
 {
     

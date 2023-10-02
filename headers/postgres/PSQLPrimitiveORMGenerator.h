@@ -2,8 +2,13 @@
 #define PSQLPRIMITIVEORMGENERATOR_H
 
 #include <PSQLConnection.h>
+#include <PSQLInt2.h>
 #include <PSQLInt4.h>
 #include <PSQLInt8.h>
+#include <PSQLBool.h>
+#include <PSQLText.h>
+#include <PSQLJson.h>
+#include <PSQLNumeric.h>
 
 #define TEMPLATE_H_FILENAME "./templates/headers/ORMPrimitiveTemplate.h"
 #define TEMPLATE_CPP_FILENAME "./templates/sources/ORMPrimitiveTemplate.cpp"

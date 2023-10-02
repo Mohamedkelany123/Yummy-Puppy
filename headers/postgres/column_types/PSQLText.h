@@ -1,12 +1,12 @@
-#ifndef PSQLINT4_H
-#define PSQLINT4_H
+#ifndef PSQLTEXT_H
+#define PSQLTEXT_H
 
 #include <AbstractDatabaseColumn.h>
 
-class PSQLInt4: public AbstractDatabaseColumn{
+class PSQLText: public AbstractDatabaseColumn{
     public:
-        PSQLInt4();
-        PSQLInt4(string _column_name);
+        PSQLText();
+        PSQLText(string _column_name);
         static string get_native_type(int index =0);
         string genDeclaration ();
         string genSetter (string class_name);
@@ -15,7 +15,7 @@ class PSQLInt4: public AbstractDatabaseColumn{
         string genGetterDef ();
         string genFieldConversion (string field);
         AbstractDatabaseColumn * clone (string _column_name);
-        ~PSQLInt4();
+        ~PSQLText();
 };
 
 #endif

@@ -7,7 +7,6 @@ PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,st
     table_name = _table_name;
     psqlConnection = psqlController.getPSQLConnection(data_source_name);
     sql = "select * from "+_table_name;
-    cout << sql << endl;
     conditions = "";
 }
 void PSQLAbstractQueryIterator::setNativeSQL(string _sql)

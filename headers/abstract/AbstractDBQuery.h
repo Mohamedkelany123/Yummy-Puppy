@@ -16,6 +16,8 @@ class AbstractDBQuery{
         virtual int getColumnSize(int index) = 0;
         virtual string getResultField(int index) = 0;
         virtual string getValue(string column_name) = 0;
+        virtual string getJSONValue(string column_name)=0;
+        virtual string getValue(int col_index, int row_index)=0;
         virtual int getColumnIndex(string column_name) = 0;
         virtual map<string, vector<string>> getResultAsString() = 0;
         virtual ~AbstractDBQuery(){}

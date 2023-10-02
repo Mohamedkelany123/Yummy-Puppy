@@ -3,10 +3,12 @@
 
 PSQLQuery::PSQLQuery(PSQLConnection *_psqlConnection, string query)
 {
+    is_partition= false;
     pgresult = NULL;
+    start_index = 0;
     result_count = 0;
     column_count = 0;
-    result_index = -1;
+    result_index = start_index-1;
     psqlConnection=_psqlConnection;
 
     if (psqlConnection != NULL && psqlConnection->isAlive())
@@ -45,7 +47,7 @@ bool PSQLQuery::fetchNextRow()
 
 bool PSQLQuery::fetchPrevRow()
 {
-    if (result_index > 0 )
+    if (result_index > start_index )
     {
         result_index--;
         return true;
@@ -166,13 +168,76 @@ string PSQLQuery::getValue(string column_name)
 {
     return getResultField (getColumnIndex(column_name));
 }
+string PSQLQuery::getJSONValue(string column_name)
+{
+    string s = getResultField (getColumnIndex(column_name));
+    if ( s == "") s = "{}";
+    s.erase(std::remove(s.begin(), s.end(), '/'), s.end());
+    s.erase(std::remove(s.begin(), s.end(), '\\'), s.end());
+    if ( s[0] == '"')
+    {
+        s.erase(0, 1);
+        s.erase(s.size() - 1);
+    }
+    return s;
+}
 string PSQLQuery::getValue(int row_index, int col_index)
 {
     return PQgetvalue(pgresult, row_index, col_index);
 }
+vector <PSQLQueryPartition * > * PSQLQuery::partitionResults (int partition_count)
+{
+    if ( result_count < partition_count ) partition_count = result_count;
+    int partition_size = result_count/partition_count;
+    int last_partition_size = result_count-(partition_size*(partition_count-1));
+
+    vector <PSQLQueryPartition * > * partitions = new vector <PSQLQueryPartition * >();
+    for ( int i = 0 ; i < partition_count ; i ++)
+    {
+        if ( i == partition_count - 1)
+        {
+            PSQLQueryPartition * p = new PSQLQueryPartition(pgresult,i,partition_size);
+            partitions->push_back(p);
+        }
+        else
+        {
+            PSQLQueryPartition * p = new PSQLQueryPartition(pgresult,i,last_partition_size);
+            partitions->push_back(p);
+        }
+    }
+    return partitions;
+}
 
 PSQLQuery::~PSQLQuery()
 {
-    if (pgresult != NULL)
+    if (pgresult != NULL && !is_partition)
         PQclear(pgresult);
+}
+
+
+PSQLQueryPartition::PSQLQueryPartition (PGresult * _pgresult,int _start_index,int _result_count) : PSQLQuery (NULL,"")
+{
+    is_partition= true;
+    pgresult = _pgresult;
+    if (pgresult != NULL )
+    {
+        start_index = _start_index;
+        result_count = _result_count;
+        column_count = 0;
+        result_index = start_index-1;
+        total_result_count = 0 ;
+        if (PQresultStatus(pgresult) == PGRES_TUPLES_OK)
+        {
+            column_count = PQnfields(pgresult);
+            total_result_count = PQntuples(pgresult);
+        }
+    }
+}
+vector <PSQLQueryPartition * > * PSQLQueryPartition::partitionResults (int partition_count)
+{
+    return NULL;
+}
+PSQLQueryPartition::~PSQLQueryPartition()
+{
+
 }

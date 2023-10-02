@@ -23,6 +23,7 @@ class %s : public PSQLAbstractQueryIterator
     %s * operator [] (long index);
     %s * next ();
     %s * back ();
+    void process(std::function<void(%s * orm)> f);
     ~%s ();
 };
 

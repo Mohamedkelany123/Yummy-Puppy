@@ -4,26 +4,27 @@ PSQLInt8::PSQLInt8():AbstractDatabaseColumn()
 {
 
 }
-PSQLInt8::PSQLInt8(string column_name):AbstractDatabaseColumn (column_name)
+PSQLInt8::PSQLInt8(string _column_name):AbstractDatabaseColumn (_column_name)
 {
 
 }
-string PSQLInt8::get_native_type()
+string PSQLInt8::get_native_type(int index)
 {
-    return "int8";
+    if (index == 0 ) return "int8";
+    else return "";
 }
 
 string PSQLInt8::genDeclaration ()
 {
-    return "\t\tlong "+column_name+";\n";
+    return "\t\tlong "+field_name+";\n";
 }
 string PSQLInt8::genSetter (string class_name)
 {
-    return "\t\tvoid "+class_name+"::set_"+column_name+"( long _value) { "+column_name+"=_value;} \n";
+    return "\t\tvoid "+class_name+"::set_"+column_name+"( long _value) { "+field_name+"=_value;} \n";
 }
 string PSQLInt8::genGetter (string class_name)
 {
-    return "\t\tlong "+class_name+"::get_"+column_name+"() { return "+column_name+";} \n";
+    return "\t\tlong "+class_name+"::get_"+column_name+"() { return "+field_name+";} \n";
 }
 string PSQLInt8::genSetterDef ()
 {
@@ -38,9 +39,9 @@ string PSQLInt8::genFieldConversion (string field)
     return "("+field+" == \"\" ? : stoi("+field+"))";
 }
 
-AbstractDatabaseColumn * PSQLInt8::clone (string column_name)
+AbstractDatabaseColumn * PSQLInt8::clone (string _column_name)
 {
-    return new PSQLInt8 (column_name);
+    return new PSQLInt8 (_column_name);
 }
 
 PSQLInt8::~PSQLInt8()

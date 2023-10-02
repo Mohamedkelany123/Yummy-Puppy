@@ -65,7 +65,7 @@ ORDER BY "self_schema", "self_table";
 
 */
 
-    if (argc==6)
+    if (argc == 6 || argc == 7)
     {
         // PSQLConnectionManager * psqlConnectionManager = new PSQLConnectionManager();
         psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
@@ -79,10 +79,13 @@ ORDER BY "self_schema", "self_table";
             cout << "Generating " << tables[i] << endl;
             psqlPrimitiveORMGenerator->generate(tables[i]);
         }
-        for ( int i = 0 ; i  < tables.size() && i < 20 ; i ++)
+        if (argc == 7)
         {
-            cout << "Compiling " << tables[i] << endl;
-            psqlPrimitiveORMGenerator->compile(tables[i]);
+            for ( int i = 0 ; i  < tables.size() && i < 20 ; i ++)
+            {
+                cout << "Compiling " << tables[i] << endl;
+                psqlPrimitiveORMGenerator->compile(tables[i]);
+            }
         }
         psqlController.releaseConnection("main",psqlConnection);
         delete (psqlPrimitiveORMGenerator);

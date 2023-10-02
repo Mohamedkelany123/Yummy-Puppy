@@ -72,7 +72,6 @@ string PSQLConnection::getTypeFromOID (string oid)
 }
 AbstractDBQuery *PSQLConnection::executeQuery(string psql_query)
 {
-    cout << psql_query << endl;
     return new PSQLQuery(this, psql_query);
 }
 
