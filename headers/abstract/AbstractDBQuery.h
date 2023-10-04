@@ -20,6 +20,8 @@ class AbstractDBQuery{
         virtual string getValue(int col_index, int row_index)=0;
         virtual int getColumnIndex(string column_name) = 0;
         virtual map<string, vector<string>> getResultAsString() = 0;
+
+
         virtual ~AbstractDBQuery(){}
 };
 

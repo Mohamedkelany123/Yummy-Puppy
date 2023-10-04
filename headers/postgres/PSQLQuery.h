@@ -47,4 +47,6 @@ class PSQLQueryPartition : public PSQLQuery
         virtual vector <PSQLQueryPartition * > * partitionResults (int partition_count);
         ~PSQLQueryPartition();
 };
+
+
 #endif

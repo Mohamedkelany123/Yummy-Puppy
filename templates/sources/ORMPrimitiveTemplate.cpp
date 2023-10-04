@@ -4,7 +4,7 @@
 
 
 %s::%s(string _data_source_name):PSQLAbstractQueryIterator(_data_source_name,"%s"){
-
+    from_string = %s().getFromString();
 }
 %s * %s::operator [] (long index)
 {
@@ -25,22 +25,38 @@
     return NULL;
 }
 
-void %s::process(std::function<void(%s * orm)> f)
+void  %s::process_internal(PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f)
+{
+        PSQLQueryPartitionIterator <%s> psqlQueryPartitionIterator (psqlQueryPartition);
+        %s * orm = NULL;
+        do {
+            orm =psqlQueryPartitionIterator.next();
+            if (orm != NULL) 
+            {
+                f(orm,partition_number,shared_lock);
+            }
+        } while (orm != NULL);
+    
+}
+
+void %s::process(int partitions_count,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f)
 {
     if (this->execute())
     {
-        vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(10);
-        AbstractDBQuery * temp = this->psqlQuery;
-        this->psqlQuery = (*p)[5];
-        %s * orm = NULL;
-        do {
-            orm =this->next();
-            if (orm != NULL) 
-            {
-                f(orm);
-            }
-        } while (orm != NULL);
-        this->psqlQuery = temp;
+        vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
+        vector <thread *> threads;
+        mutex shared_lock;
+        for ( int i  = 0 ; i < p->size() ; i ++)
+        {
+            thread * t = new thread(process_internal,(*p)[i],i,&shared_lock,f);
+            threads.push_back(t);
+        }
+        for ( int i  = 0 ; i < p->size() ; i ++)
+        {
+                thread * t = threads[i];
+                t->join();
+                delete (t);
+        }
     }
 }
 

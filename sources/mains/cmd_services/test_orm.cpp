@@ -36,16 +36,49 @@ void process_query(crm_app_customer_primitive_orm_iterator * crm_app_customer,st
     }
 }
 
+void func (vector <pair<pair<string,string>,pair<string,string>>>)
+{
+    printf ("This is a test");
+
+}
+
+#define ORM(T,O) ((T##_primitive_orm *)((*O)[#T]))
+
 int main (int argc, char ** argv)
 {
+
+    //ORM(crm_app_customer,orms)
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
+
+    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",{new crm_app_customer_primitive_orm(),new loan_app_loan_primitive_orm()},{{{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}});
+
+
+    psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+        shared_lock->lock();
+        cout << ORM(crm_app_customer,orms)->get_first_name() << " - "<<  ORM(loan_app_loan,orms)->get_principle() << endl;
+        shared_lock->unlock();
+    });
+    // for (;psqlQueryJoin->fetchNextRow();)
+    // {
+    //     cout << psqlQueryJoin->getValue("crm_app_customer_first_name") << ": "<< psqlQueryJoin->getValue("loan_app_loan_id") <<  endl;
+    // }
+    delete (psqlQueryJoin);
+    return 0;
+
     loan_app_loan_primitive_orm_iterator * loan_app_loan  = new loan_app_loan_primitive_orm_iterator("main");
     crm_app_customer_primitive_orm_iterator * crm_app_customer  = new crm_app_customer_primitive_orm_iterator("main");
     crm_app_customer->filter(ANDOperator (
-        new UnaryOperator ("id",gt,"50000"),new UnaryOperator ("id",lt,"100000")
+        new UnaryOperator ("id",gt,"0"),new UnaryOperator ("id",lt,"1000000")
     ));
-    crm_app_customer->process([](crm_app_customer_primitive_orm * orm) {
-            cout << "Customer Name ["<< orm->get_id() <<"]:  "<< orm->get_first_name() << endl;
+    loan_app_loan->filter(ANDOperator 
+    (
+        new UnaryOperator ("customer_id",gt,"100000"),new UnaryOperator ("customer_id",lt,"110000")
+    ));
+
+    crm_app_customer->process(10,[](crm_app_customer_primitive_orm * orm,int partition_number,mutex * shared_lock) {
+            shared_lock->lock();
+            cout << "(" << partition_number <<  ") Customer Name ["<< orm->get_id() <<"]:  "<< orm->get_first_name() << endl;
+            shared_lock->unlock();
     });
 
     // if (crm_app_customer->execute())

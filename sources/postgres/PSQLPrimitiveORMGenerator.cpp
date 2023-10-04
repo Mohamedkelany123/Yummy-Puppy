@@ -114,19 +114,19 @@ void PSQLPrimitiveORMGenerator::generateDecl_Setters_Getters (string class_name,
     }
 }
 
-void PSQLPrimitiveORMGenerator::generateFromString (string class_name,map<string, vector<string>> columns_definition)
+void PSQLPrimitiveORMGenerator::generateFromString (string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
     extra_methods_def += "\t\tstring getFromString ();\n";
     extra_methods += "\t\tstring "+class_name+"::getFromString (){\n\t\t\treturn \"";
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         if ( i > 0 )  extra_methods  += ",";
-        extra_methods += "\\\""+columns_definition["column_name"][i]+"\\\"";
+        extra_methods += "\\\""+table_name+"\\\".\\\""+columns_definition["column_name"][i]+"\\\" as \\\""+table_name+"_"+columns_definition["column_name"][i]+"\\\"";
     }
     extra_methods += "\";\n\t\t}\n";
 }
 
-void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,map<string, vector<string>> columns_definition)
+void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
     extra_methods_def += "\t\tvoid assignResults (AbstractDBQuery * psqlQuery);\n";
     extra_methods += "\t\tvoid "+class_name+"::assignResults (AbstractDBQuery * psqlQuery){\n";
@@ -137,8 +137,8 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,map<str
             AbstractDatabaseColumn * abstractDatabaseColumn = databaseColumnFactory[columns_definition["udt_name"][i]]->clone(columns_definition["column_name"][i]);
             extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
             if ( columns_definition["udt_name"][i] == "jsonb")
-                extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getJSONValue(\"" + columns_definition["column_name"][i]+"\")")+ ";\n";            
-            else extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getValue(\"" + columns_definition["column_name"][i]+"\")")+ ";\n";
+                extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getJSONValue(\"" +table_name+"_"+ columns_definition["column_name"][i]+"\")")+ ";\n";            
+            else extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getValue(\"" +table_name+"_"+ columns_definition["column_name"][i]+"\")")+ ";\n";
             delete(abstractDatabaseColumn);
         }
     }
@@ -151,6 +151,15 @@ void PSQLPrimitiveORMGenerator::generateGetIdentifier(string class_name)
     extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
     extra_methods += "\t\t}\n";
 }
+void PSQLPrimitiveORMGenerator::generateCloner(string class_name)
+{
+    extra_methods_def += "\t\tPSQLAbstractORM * clone ();\n";
+    extra_methods += "\t\tPSQLAbstractORM * "+class_name+"::clone (){\n";
+    extra_methods += "\t\t\treturn new "+class_name+"();\n";
+    extra_methods += "\t\t}\n";
+
+}
+
 
 
 void PSQLPrimitiveORMGenerator::generateExternDSOEntryPoint (string class_name,string table_name)
@@ -227,17 +236,24 @@ void PSQLPrimitiveORMGenerator::generate(string table_name)
     if (primary_key != "" )
     {
         generateDecl_Setters_Getters(class_name,results);
-        generateFromString(class_name,results);
-        generateAssignResults(class_name,results);
+        generateFromString(class_name,table_name,results);
+        generateAssignResults(class_name,table_name,results);
         generateGetIdentifier(class_name);
+        generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
         generateConstructorAndDestructor(class_name,table_name);
-        snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,class_name_upper.c_str(),class_name_upper.c_str(),includes.c_str(),class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str());
-        snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,class_name.c_str(),(setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),table_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str()
-        ,class_name.c_str()
-        ,class_name.c_str()
+        snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,
+        class_name_upper.c_str(),class_name_upper.c_str(),includes.c_str(),
+        class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),
+        query_iterator_class_name.c_str(),class_name.c_str(),
+        query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str());
+        snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,class_name.c_str(),(setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str()
+        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),table_name.c_str(),class_name.c_str()
         ,class_name.c_str(),query_iterator_class_name.c_str()
-        ,query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str()
+        ,class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str()
+        ,class_name.c_str(),query_iterator_class_name.c_str()
+        ,query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str()
+        ,query_iterator_class_name.c_str(),class_name.c_str()
         ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str());
         write_headers_and_sources(class_name);
     }

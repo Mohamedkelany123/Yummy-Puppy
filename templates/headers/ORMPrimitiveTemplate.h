@@ -18,13 +18,15 @@ class %s : public PSQLAbstractORM
 
 class %s : public PSQLAbstractQueryIterator
 {
+    private:
+        static void  process_internal(PSQLQueryPartition * psqlQueryPartition,int partitions_count,mutex * shared_lock,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f);
     public:
-    %s(string _data_source_name);
-    %s * operator [] (long index);
-    %s * next ();
-    %s * back ();
-    void process(std::function<void(%s * orm)> f);
-    ~%s ();
+        %s(string _data_source_name);
+        %s * operator [] (long index);
+        %s * next ();
+        %s * back ();
+        void process(int partitions_count,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f);
+        ~%s ();
 };
 
 

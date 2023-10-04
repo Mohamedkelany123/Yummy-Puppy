@@ -110,6 +110,7 @@ class PSQLAbstractQueryIterator {
         string table_name;
         string conditions;
         string sql;
+        string from_string;
     public:
         PSQLAbstractQueryIterator(string _data_source_name,string _table_name);
         void setNativeSQL(string _sql);
@@ -117,5 +118,71 @@ class PSQLAbstractQueryIterator {
         bool execute();
         ~PSQLAbstractQueryIterator();
 };
+
+
+class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
+
+    protected:
+        string column_names = "";
+        string join_string = "";
+        vector <PSQLAbstractORM *> * orm_objects;
+        static void process_internal(PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f);
+    public:
+        PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields);
+        map <string,PSQLAbstractORM *> * next ();
+        void process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f);
+        // void setNativeSQL(string _sql);
+        // void filter ( Expression const & e);
+        // bool execute();
+        ~PSQLJoinQueryIterator();
+};
+
+
+template <class T>
+class PSQLQueryPartitionIterator {
+    private:
+        AbstractDBQuery * psqlQuery;
+    public:
+        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery){ psqlQuery = _psqlQuery;}
+        T * next ()
+        {
+            if (psqlQuery->fetchNextRow())
+            {
+                T * obj = new T();
+                obj->assignResults(psqlQuery);
+                return obj;
+            }
+            else return NULL;
+        }
+        ~PSQLQueryPartitionIterator (){}
+};
+
+class PSQLJoinQueryPartitionIterator {
+    private:
+        AbstractDBQuery * psqlQuery;
+        vector <PSQLAbstractORM *> * orm_objects;
+    public:
+        PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects){ 
+                psqlQuery = _psqlQuery;
+                orm_objects = _orm_objects;
+        }
+        map <string,PSQLAbstractORM *> * next ()
+        {
+            if (psqlQuery->fetchNextRow())
+            {
+                map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
+                for (auto orm_object: *orm_objects) 
+                {
+                    PSQLAbstractORM * orm = orm_object->clone();
+                    orm->assignResults(psqlQuery);
+                    (*results)[orm->getTableName()] = orm;
+                }
+                return results;
+            }
+            else return NULL;
+        }
+        ~PSQLJoinQueryPartitionIterator (){}
+};
+
 
 #endif
