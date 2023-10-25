@@ -13,6 +13,8 @@ string PSQLText::get_native_type(int index)
     else if ( index == 1 ) return "varchar";
     else if ( index == 2 ) return "_varchar";
     else if ( index == 3 ) return "uuid";
+    else if ( index == 4 ) return "date";
+    else if ( index == 5 ) return "timestamptz";
     else return "";
 }
 
@@ -20,9 +22,9 @@ string PSQLText::genDeclaration ()
 {
     return "\t\tstring "+field_name+";\n";
 }
-string PSQLText::genSetter (string class_name)
+string PSQLText::genSetter (string class_name,int col_index)
 {
-    return  "\t\tvoid "+class_name+"::set_"+column_name+"( string _value) { "+field_name+"=_value;} \n";
+    return  "\t\tvoid "+class_name+"::set_"+column_name+"( string _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value;} \n";
 }
 string PSQLText::genGetter (string class_name)
 {

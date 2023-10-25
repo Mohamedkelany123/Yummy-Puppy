@@ -17,10 +17,10 @@ string PSQLJson::genDeclaration ()
 {
     return "\t\tjson "+field_name+";\n";
 }
-string PSQLJson::genSetter (string class_name)
+string PSQLJson::genSetter (string class_name,int col_index)
 {
-    return  "\t\tvoid "+class_name+"::set_"+column_name+"( json _value) { "+field_name+"=_value;} \n"+
-        "\t\tvoid "+class_name+"::set_"+column_name+"( string _value) { "+field_name+"=json::parse(_value);} \n";
+    return  "\t\tvoid "+class_name+"::set_"+column_name+"( json _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value;} \n"+
+        "\t\tvoid "+class_name+"::set_"+column_name+"( string _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=json::parse(_value);} \n";
 }
 string PSQLJson::genGetter (string class_name)
 {

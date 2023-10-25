@@ -18,9 +18,9 @@ string PSQLInt8::genDeclaration ()
 {
     return "\t\tlong "+field_name+";\n";
 }
-string PSQLInt8::genSetter (string class_name)
+string PSQLInt8::genSetter (string class_name,int col_index)
 {
-    return "\t\tvoid "+class_name+"::set_"+column_name+"( long _value) { "+field_name+"=_value;} \n";
+    return "\t\tvoid "+class_name+"::set_"+column_name+"( long _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value;} \n";
 }
 string PSQLInt8::genGetter (string class_name)
 {

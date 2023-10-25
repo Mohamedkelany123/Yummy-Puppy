@@ -5,6 +5,7 @@ PSQLAbstractORM::PSQLAbstractORM (string _table_name,string _identifier_name)
 {
     table_name = _table_name;
     identifier_name = _identifier_name;
+    loaded = false;
     // psqlConnection = new PSQLConnection ("localhost",5432,"django_ostaz_15082023_old","postgres","postgres");
     // psqlQuery = NULL;
     // map<string, vector<string>> results  = psqlQuery->getResultAsString();
@@ -25,9 +26,13 @@ string PSQLAbstractORM::getTableName()
     return table_name;
 }
 
+bool PSQLAbstractORM::isLoaded ()
+{
+    return loaded;
+}
 PSQLAbstractORM::~PSQLAbstractORM()
 {
-    cout << "PSQLAbstractORM::~PSQLAbstractORM()" << endl;
+    // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << endl;
     // if (psqlConnection != NULL) delete (psqlConnection);
     // if (psqlQuery != NULL) delete (psqlQuery);
 }

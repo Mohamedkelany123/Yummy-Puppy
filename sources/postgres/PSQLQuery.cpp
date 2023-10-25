@@ -37,7 +37,7 @@ bool PSQLQuery::hasResults()
 
 bool PSQLQuery::fetchNextRow()
 {
-    if (result_index < result_count - 1)
+    if (result_index-start_index < result_count - 1)
     {
         result_index++;
         return true;
@@ -194,14 +194,14 @@ vector <PSQLQueryPartition * > * PSQLQuery::partitionResults (int partition_coun
     vector <PSQLQueryPartition * > * partitions = new vector <PSQLQueryPartition * >();
     for ( int i = 0 ; i < partition_count ; i ++)
     {
-        if ( i == partition_count - 1)
+        if ( i != partition_count - 1)
         {
-            PSQLQueryPartition * p = new PSQLQueryPartition(pgresult,i,partition_size);
+            PSQLQueryPartition * p = new PSQLQueryPartition(pgresult,i*partition_size,partition_size);
             partitions->push_back(p);
         }
         else
         {
-            PSQLQueryPartition * p = new PSQLQueryPartition(pgresult,i,last_partition_size);
+            PSQLQueryPartition * p = new PSQLQueryPartition(pgresult,i*partition_size,last_partition_size);
             partitions->push_back(p);
         }
     }

@@ -11,7 +11,14 @@ void PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractORM)
 }
 void PSQLORMCache::commit()
 {
-
+    cout << "Staring to commit " << endl;
+    for (auto orm_cache: cache)
+        for (auto orm_cache_item:orm_cache.second) 
+            if (orm_cache_item.second->isUpdated())
+            {
+                cout << "I have one object updated here :)" << endl;
+                orm_cache_item.second->update();
+            }
 }
 void PSQLORMCache::commit(string name)
 {

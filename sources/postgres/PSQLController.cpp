@@ -20,15 +20,15 @@ bool PSQLController::releaseConnection (string data_source_name,PSQLConnection *
 }
 void PSQLController::addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM)
 {
-
+    psqlORMCache->add(name,psqlAbstractORM);
 }
 void PSQLController::ORMCommit()
 {
-
+    psqlORMCache->commit();
 }
 void PSQLController::ORMCommit(string name)
 {
-
+    psqlORMCache->commit(name);
 }
 void PSQLController::ORMCommit(string name,long id)
 {
@@ -48,9 +48,8 @@ void PSQLController::ORMFlush(string name,long id)
 }
 PSQLController::~PSQLController()
 {
-    delete (psqlConnectionManager);
     delete (psqlORMCache);
-
+    delete (psqlConnectionManager);
 }
 
 

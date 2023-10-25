@@ -11,12 +11,16 @@ class PSQLAbstractORM
         // AbstractDBQuery * psqlQuery;
         map <string,map<string, string>> relatives_def;
         string identifier_name;
+        bool loaded ;
     public:
         virtual string getFromString () = 0;
         virtual void assignResults (AbstractDBQuery * psqlQuery) = 0;
         virtual long getIdentifier() = 0;
+        virtual bool isUpdated() = 0;
+        virtual bool update() = 0;
         virtual string getIdentifierName();
         virtual string getTableName();
+        virtual bool isLoaded();
         PSQLAbstractORM (string _table_name,string _identifier);
         virtual PSQLAbstractORM * clone ()=0;
         virtual ~PSQLAbstractORM();

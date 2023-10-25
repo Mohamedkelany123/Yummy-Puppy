@@ -75,6 +75,20 @@ AbstractDBQuery *PSQLConnection::executeQuery(string psql_query)
     return new PSQLQuery(this, psql_query);
 }
 
+bool PSQLConnection::executeUpdateQuery(string psql_query)
+{
+    PGresult * pgresult = PQexec(this->getPGConnection(), psql_query.c_str());
+    if (PQresultStatus(pgresult) == 7 || PQresultStatus(pgresult) == 6)
+    {
+
+        cout << "Query ERROR: " << psql_query << endl;
+        cout << PQresultErrorMessage(pgresult) << endl
+                << "----------------------------\n";
+        return false;
+    }
+    else return true;
+}
+
 vector<string> PSQLConnection::getTableNames()
 {
 

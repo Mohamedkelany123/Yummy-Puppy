@@ -47,17 +47,39 @@ void func (vector <pair<pair<string,string>,pair<string,string>>>)
 int main (int argc, char ** argv)
 {
 
+// select principle from loan_app_loan where id in (100,200,300);
+//  principle 
+// -----------
+//    1234.00
+//   23899.00
+//   22000.00
+
+
+// django_ostaz_15082023_old=# select principle from loan_app_loan where id=100;
+//  principle 
+// -----------
+//    7943.00
+// (1 row)
     //ORM(crm_app_customer,orms)
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
-
-    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",{new crm_app_customer_primitive_orm(),new loan_app_loan_primitive_orm()},{{{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}});
+    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+    {new crm_app_customer_primitive_orm(),new loan_app_loan_primitive_orm()},{{{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}});
 
 
     psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
         shared_lock->lock();
-        cout << ORM(crm_app_customer,orms)->get_first_name() << " - "<<  ORM(loan_app_loan,orms)->get_principle() << endl;
+        if (ORM(loan_app_loan,orms)->get_id() == 100 || ORM(loan_app_loan,orms)->get_id() == 200 || ORM(loan_app_loan,orms)->get_id() == 300)
+        {
+            cout << ORM(crm_app_customer,orms)->get_first_name() << " - "<<  ORM(loan_app_loan,orms)->get_principle() << endl;
+//            ORM(loan_app_loan,orms)->set_principle(7943.00);
+            ORM(loan_app_loan,orms)->set_principle(1234.00);
+            // ORM(loan_app_loan,orms)->update();
+        }
+//        else cout << "____________" << ORM(loan_app_loan,orms)->get_id() << endl;
         shared_lock->unlock();
     });
+    sleep(10);
+    psqlController.ORMCommit();
     // for (;psqlQueryJoin->fetchNextRow();)
     // {
     //     cout << psqlQueryJoin->getValue("crm_app_customer_first_name") << ": "<< psqlQueryJoin->getValue("loan_app_loan_id") <<  endl;

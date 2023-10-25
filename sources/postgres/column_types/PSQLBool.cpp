@@ -17,10 +17,10 @@ string PSQLBool::genDeclaration ()
 {
     return "\t\tbool "+field_name+";\n";
 }
-string PSQLBool::genSetter (string class_name)
+string PSQLBool::genSetter (string class_name,int col_index)
 {
-    return  "\t\tvoid "+class_name+"::set_"+column_name+"( bool _value) { "+field_name+"=_value;} \n"+
-            "\t\tvoid "+class_name+"::set_"+column_name+"( string _value) { if (_value == \"f\") "+field_name+"=true; else if (_value == \"t\") "+field_name+"= false;} \n";
+    return  "\t\tvoid "+class_name+"::set_"+column_name+"( bool _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value;} \n"+
+            "\t\tvoid "+class_name+"::set_"+column_name+"( string _value) { update_flag.set("+std::to_string(col_index)+"); if (_value == \"f\") "+field_name+"=true; else if (_value == \"t\") "+field_name+"= false;} \n";
 }
 string PSQLBool::genGetter (string class_name)
 {

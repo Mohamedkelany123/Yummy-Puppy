@@ -46,7 +46,10 @@ class PSQLPrimitiveORMGenerator
         void generateGetIdentifier(string class_name);
         void generateExternDSOEntryPoint (string class_name,string table_name);
         void generateConstructorAndDestructor(string class_name,string table_name);
+        void generateAddToCache(string class_name);
+        void generateIsUpdated(string class_name);
         void generateCloner(string class_name);
+        void generateUpdateQuery(string class_name,string table_name,map<string, vector<string>> columns_definition);
         void fetch_templates();
         void write_headers_and_sources(string class_name);
     public:

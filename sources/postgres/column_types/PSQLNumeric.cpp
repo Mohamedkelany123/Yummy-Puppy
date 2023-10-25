@@ -16,23 +16,23 @@ string PSQLNumeric::get_native_type(int index)
 
 string PSQLNumeric::genDeclaration ()
 {
-    return "\t\tint "+field_name+";\n";
+    return "\t\tdouble "+field_name+";\n";
 }
-string PSQLNumeric::genSetter (string class_name)
+string PSQLNumeric::genSetter (string class_name,int col_index)
 {
-    return "\t\tvoid "+class_name+"::set_"+column_name+"( int _value) { "+field_name+"=_value;} \n";
+    return "\t\tvoid "+class_name+"::set_"+column_name+"( double _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value;} \n";
 }
 string PSQLNumeric::genGetter (string class_name)
 {
-    return "\t\tint "+class_name+"::get_"+column_name+"() { return "+field_name+";} \n";
+    return "\t\tdouble "+class_name+"::get_"+column_name+"() { return "+field_name+";} \n";
 }
 string PSQLNumeric::genSetterDef ()
 {
-    return "\t\tvoid set_"+column_name+"( int _value); \n";
+    return "\t\tvoid set_"+column_name+"( double _value); \n";
 }
 string PSQLNumeric::genGetterDef ()
 {
-    return "\t\tint get_"+column_name+"(); \n";
+    return "\t\tdouble get_"+column_name+"(); \n";
 }
 string PSQLNumeric::genFieldConversion (string field)
 {

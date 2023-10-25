@@ -99,12 +99,16 @@ void PSQLPrimitiveORMGenerator::generateDecl_Setters_Getters (string class_name,
     getters = "";
     setters_def = "";
     getters_def = "";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    int col_count = columns_definition["column_name"].size();
+    declaration += "\t\tbitset<";
+    declaration +=std::to_string(col_count);
+    declaration += "> update_flag;\n";
+    for (int i  = 0 ; i  < col_count; i++) 
     {
         if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
             AbstractDatabaseColumn * abstractDatabaseColumn = databaseColumnFactory[columns_definition["udt_name"][i]]->clone(columns_definition["column_name"][i]);
             declaration += abstractDatabaseColumn->genDeclaration();
-            setters += abstractDatabaseColumn->genSetter(class_name);
+            setters += abstractDatabaseColumn->genSetter(class_name,i);
             getters += abstractDatabaseColumn->genGetter(class_name);
             setters_def += abstractDatabaseColumn->genSetterDef();
             getters_def += abstractDatabaseColumn->genGetterDef();
@@ -142,6 +146,8 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string 
             delete(abstractDatabaseColumn);
         }
     }
+    extra_methods += "\t\t\tloaded=true;\n";
+    extra_methods += "\t\t\taddToCache();\n";
     extra_methods += "\t\t}\n";
 }
 void PSQLPrimitiveORMGenerator::generateGetIdentifier(string class_name)
@@ -173,7 +179,7 @@ void PSQLPrimitiveORMGenerator::generateExternDSOEntryPoint (string class_name,s
 
 void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name)
 {
-    includes = "";
+    includes = "#include <PSQLController.h>\n";
     constructor_destructor = "\t\t"+class_name+"::"+class_name+"():PSQLAbstractORM(\""+table_name+"\",\""+primary_key+"\"){\n";
     // constructor_destructor +="\t\t\tpsqlQuery = psqlConnection->executeQuery(\"select \"+this->getFromString()+\" from "+table_name+"\");\n";
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery(R""""(select * from ( 
@@ -220,6 +226,65 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor_def += "\t\t virtual ~"+class_name+"();\n";
 
 }
+void PSQLPrimitiveORMGenerator::generateAddToCache(string class_name)
+{
+    extra_methods_def += "\t\tvoid addToCache ();\n";
+    extra_methods += "\t\tvoid "+class_name+"::addToCache (){\n";
+    extra_methods += "\t\t\tpsqlController.addToORMCache(\""+class_name+"\",this);\n";
+    extra_methods += "\t\t}\n";
+
+}
+void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name)
+{
+    extra_methods_def += "\t\tbool isUpdated ();\n";
+    extra_methods += "\t\tbool "+class_name+"::isUpdated (){\n";
+    extra_methods += "\t\t\treturn update_flag.any();\n";
+    extra_methods += "\t\t}\n";
+}
+
+void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string table_name,map<string, vector<string>> columns_definition)
+{
+
+    extra_methods_def += "\t\tbool update ();\n";
+    extra_methods += "\t\tbool "+class_name+"::update (){\n";
+    extra_methods += "\t\t\tstring update_string = \"\";\n";
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        string db_field_name = columns_definition["column_name"][i];
+        string orm_field_name = "orm_"+columns_definition["column_name"][i];
+        bool string_flag = false;
+        for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
+            if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
+
+        bool json_flag = false;
+        for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
+            if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
+
+        if ( db_field_name != primary_key)
+        {
+            extra_methods += "\t\t\tif (update_flag.test("+std::to_string(i)+")) {\n";
+            extra_methods += "\t\t\t\tif (update_string != \"\")  update_string += \",\";\n";
+            if (string_flag )
+                extra_methods += "\t\t\t\t\tupdate_string += \""+db_field_name+"='\"+"+orm_field_name+"+\"'\";\n";
+            else if (json_flag )
+                extra_methods += "\t\t\t\t\tupdate_string += \""+db_field_name+"='\"+"+orm_field_name+".dump()+\"'\";\n";                
+            else extra_methods += "\t\t\t\tupdate_string += \""+db_field_name+"='\"+std::to_string("+orm_field_name+")+\"'\";\n";
+            extra_methods += "\t\t\t}\n";
+        }
+    }
+
+    extra_methods += "\t\t\tif (update_string != \"\")  {\n";
+    extra_methods += "\t\t\t\tupdate_string = \"update "+table_name+" set \"+update_string+\" where "+primary_key+"= '\"+std::to_string(orm_"+primary_key+")+\"'\";\n";
+    extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = psqlController.getPSQLConnection(\"main\");\n";
+    extra_methods += "\t\t\t\tpsqlConnection->executeUpdateQuery(update_string);\n";
+    extra_methods += "\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
+    extra_methods += "\t\t\t}\n";
+
+
+    extra_methods += "\t\t\treturn true;\n";
+    extra_methods += "\t\t}\n";
+}
+
 
 void PSQLPrimitiveORMGenerator::generate(string table_name)
 {
@@ -242,6 +307,9 @@ void PSQLPrimitiveORMGenerator::generate(string table_name)
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
         generateConstructorAndDestructor(class_name,table_name);
+        generateUpdateQuery(class_name,table_name,results);
+        generateAddToCache(class_name);
+        generateIsUpdated(class_name);
         snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,
         class_name_upper.c_str(),class_name_upper.c_str(),includes.c_str(),
         class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),
@@ -266,6 +334,8 @@ void PSQLPrimitiveORMGenerator::compile(string table_name)
     cout << sys_cmd << endl;
     system (sys_cmd.c_str());
 }
+
+
 
 PSQLPrimitiveORMGenerator::~PSQLPrimitiveORMGenerator()
 {

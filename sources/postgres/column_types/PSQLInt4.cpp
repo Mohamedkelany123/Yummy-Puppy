@@ -19,9 +19,9 @@ string PSQLInt4::genDeclaration ()
 {
     return "\t\tint "+field_name+";\n";
 }
-string PSQLInt4::genSetter (string class_name)
+string PSQLInt4::genSetter (string class_name,int col_index)
 {
-    return "\t\tvoid "+class_name+"::set_"+column_name+"( int _value) { "+field_name+"=_value;} \n";
+    return "\t\tvoid "+class_name+"::set_"+column_name+"( int _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value;} \n";
 }
 string PSQLInt4::genGetter (string class_name)
 {

@@ -9,7 +9,7 @@ class PSQLInt2: public AbstractDatabaseColumn{
         PSQLInt2(string _column_name);
         static string get_native_type(int index =0);
         string genDeclaration ();
-        string genSetter (string class_name);
+        string genSetter (string class_name,int col_index);
         string genGetter (string class_name);
         string genSetterDef ();
         string genGetterDef ();

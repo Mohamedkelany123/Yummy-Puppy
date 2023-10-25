@@ -14,14 +14,13 @@ string PSQLInt2::get_native_type(int index)
     else if (index == 2) return "int2range";
     else return "";
 }
-
 string PSQLInt2::genDeclaration ()
 {
     return "\t\tshort "+field_name+";\n";
 }
-string PSQLInt2::genSetter (string class_name)
+string PSQLInt2::genSetter (string class_name,int col_index)
 {
-    return "\t\tvoid "+class_name+"::set_"+column_name+"( short _value) { "+field_name+"=_value;} \n";
+    return "\t\tvoid "+class_name+"::set_"+column_name+"( short _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value;} \n";
 }
 string PSQLInt2::genGetter (string class_name)
 {
@@ -39,12 +38,10 @@ string PSQLInt2::genFieldConversion (string field)
 {
     return "("+field+" == \"\" ? : stoi("+field+"))";
 }
-
 AbstractDatabaseColumn * PSQLInt2::clone (string _column_name)
 {
     return new PSQLInt2 (_column_name);
 }
-
 PSQLInt2::~PSQLInt2()
 {
 

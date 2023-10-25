@@ -26,6 +26,7 @@ public:
     void *getConnection();
     string getTypeFromOID (string oid);
     AbstractDBQuery *executeQuery(string psql_query);
+    bool executeUpdateQuery(string psql_query);
     vector<string> getTableNames();
     ~PSQLConnection();
 };
