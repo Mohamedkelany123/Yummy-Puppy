@@ -48,7 +48,7 @@ void PSQLPrimitiveORMGenerator::write_headers_and_sources(string class_name)
 
 PSQLPrimitiveORMGenerator::PSQLPrimitiveORMGenerator()
 {
-    psqlConnection = new PSQLConnection ("localhost",5432,"django_ostaz_15082023_old","postgres","postgres");
+    psqlConnection = psqlController.getPSQLConnection("main");
     for ( int i = 0 ; PSQLInt2::get_native_type(i) != "" ; i ++)
         databaseColumnFactory[PSQLInt2::get_native_type(i)] = new PSQLInt2();
     for ( int i = 0 ; PSQLInt4::get_native_type(i) != "" ; i ++)
@@ -341,7 +341,7 @@ PSQLPrimitiveORMGenerator::~PSQLPrimitiveORMGenerator()
 {
     for (auto psql_type: databaseColumnFactory) 
         delete (psql_type.second);
-    delete (psqlConnection);
+    psqlController.releaseConnection ("main",psqlConnection);
     if (template_h != NULL) free (template_h);
     if (template_cpp != NULL) free (template_cpp);
     free (h_file);

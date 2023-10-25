@@ -1,7 +1,7 @@
 #ifndef PSQLPRIMITIVEORMGENERATOR_H
 #define PSQLPRIMITIVEORMGENERATOR_H
 
-#include <PSQLConnection.h>
+#include <PSQLController.h>
 #include <PSQLInt2.h>
 #include <PSQLInt4.h>
 #include <PSQLInt8.h>
