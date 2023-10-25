@@ -65,7 +65,7 @@ int main (int argc, char ** argv)
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
     {new crm_app_customer_primitive_orm(),new loan_app_loan_primitive_orm()},{{{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}});
 
-
+    psqlQueryJoin->filter(UnaryOperator ("loan_app_loan.id",lt,"500"));
     psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
         shared_lock->lock();
         if (ORM(loan_app_loan,orms)->get_id() == 100 || ORM(loan_app_loan,orms)->get_id() == 200 || ORM(loan_app_loan,orms)->get_id() == 300)
