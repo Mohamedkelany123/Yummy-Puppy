@@ -78,7 +78,6 @@ int main (int argc, char ** argv)
 //        else cout << "____________" << ORM(loan_app_loan,orms)->get_id() << endl;
         shared_lock->unlock();
     });
-    sleep(10);
     psqlController.ORMCommit();
     // for (;psqlQueryJoin->fetchNextRow();)
     // {
