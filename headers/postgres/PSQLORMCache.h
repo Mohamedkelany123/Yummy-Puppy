@@ -5,7 +5,8 @@
 class PSQLORMCache
 {
     private:
-        map <string,map <long,PSQLAbstractORM *>> cache;
+        map <string,map <long,PSQLAbstractORM *>> update_cache;
+        map <string,vector <PSQLAbstractORM *>> insert_cache;
         std::mutex lock;
     public:
         PSQLORMCache();

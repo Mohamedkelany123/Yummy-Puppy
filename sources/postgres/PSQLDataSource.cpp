@@ -20,9 +20,9 @@ PSQLConnection * PSQLDataSource::getPSQLConnection()
     else
     {
         map<uint64_t,PSQLConnection *>::iterator  victim = available_connections.begin();
-        available_connections.erase(victim->first);
         reserved_connections[victim->first] = victim->second;
         psqlConnection = victim->second;
+        available_connections.erase(victim->first); // erase will fuck up the victim on mac, logically it should not :)
     }
     return psqlConnection;
 }

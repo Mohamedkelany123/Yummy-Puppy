@@ -77,7 +77,7 @@ ORDER BY "self_schema", "self_table";
         for ( int i = 0 ; i  < tables.size() ; i ++)
         {
             cout << "Generating " << tables[i] << endl;
-            psqlPrimitiveORMGenerator->generate(tables[i]);
+            psqlPrimitiveORMGenerator->generate(tables[i],std::to_string(i));
         }
         if (argc == 7)
         {

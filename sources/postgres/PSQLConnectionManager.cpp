@@ -17,10 +17,9 @@ bool PSQLConnectionManager::addDataSource(string data_source_name,string _hostna
 PSQLConnection * PSQLConnectionManager::getPSQLConnection(string data_source_name)
 {
     if (data_sources.find(data_source_name) != data_sources.end()) 
-    {
         return data_sources[data_source_name]->getPSQLConnection();
-    }
-    else return NULL;
+    else 
+        return NULL;
 }
 bool PSQLConnectionManager::releaseConnection (string data_source_name,PSQLConnection * psqlConnection)
 {

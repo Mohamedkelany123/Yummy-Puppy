@@ -27,4 +27,7 @@
 
 using namespace std;
 using json = nlohmann::json;
+
+#define ORM(T,O) ((T##_primitive_orm *)((*O)[#T]))
+
 #endif

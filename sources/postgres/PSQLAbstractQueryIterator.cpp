@@ -24,6 +24,7 @@ void PSQLAbstractQueryIterator::filter (const Expression & e)
 bool PSQLAbstractQueryIterator::execute()
 {
     sql = "select "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
+    cout << sql << endl;
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;
@@ -85,14 +86,14 @@ void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQue
         PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects);
         map <string,PSQLAbstractORM *> *  orms = NULL;
         do {
-            shared_lock->lock();
-            shared_lock->unlock();
+            if ( orms!= NULL) delete(orms);
             orms =psqlJoinQueryPartitionIterator.next();
             if (orms != NULL) 
             {
                f(orms,partition_number,shared_lock);
             }
         } while (orms != NULL);
+
 }
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
@@ -102,7 +103,6 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
         vector <thread *> threads;
         mutex shared_lock;
-        cout << p->size() << endl;
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
             thread * t = new thread(process_internal,this,(*p)[i],i,&shared_lock,f);
@@ -116,7 +116,6 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
                 delete((*p)[i]);
         }
     }
-    cout << "Finidhed Mutithresed Join execution " << endl;
 }
 
 PSQLJoinQueryIterator::~PSQLJoinQueryIterator()

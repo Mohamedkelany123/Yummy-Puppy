@@ -118,14 +118,14 @@ void PSQLPrimitiveORMGenerator::generateDecl_Setters_Getters (string class_name,
     }
 }
 
-void PSQLPrimitiveORMGenerator::generateFromString (string class_name,string table_name,map<string, vector<string>> columns_definition)
+void PSQLPrimitiveORMGenerator::generateFromString (string class_name,string table_name,string table_index,map<string, vector<string>> columns_definition)
 {
     extra_methods_def += "\t\tstring getFromString ();\n";
     extra_methods += "\t\tstring "+class_name+"::getFromString (){\n\t\t\treturn \"";
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         if ( i > 0 )  extra_methods  += ",";
-        extra_methods += "\\\""+table_name+"\\\".\\\""+columns_definition["column_name"][i]+"\\\" as \\\""+table_name+"_"+columns_definition["column_name"][i]+"\\\"";
+        extra_methods += "\\\""+table_name+"\\\".\\\""+columns_definition["column_name"][i]+"\\\" as \\\""+table_index+"_"+columns_definition["column_name"][i]+"\\\"";
     }
     extra_methods += "\";\n\t\t}\n";
 }
@@ -180,11 +180,13 @@ void PSQLPrimitiveORMGenerator::generateExternDSOEntryPoint (string class_name,s
 void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name)
 {
     includes = "#include <PSQLController.h>\n";
-    constructor_destructor = "\t\t"+class_name+"::"+class_name+"():PSQLAbstractORM(\""+table_name+"\",\""+primary_key+"\"){\n";
+    constructor_destructor = "\t\t"+class_name+"::"+class_name+"(bool add_to_cache):PSQLAbstractORM(\""+table_name+"\",\""+primary_key+"\"){\n";
+    constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
+    constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
     // constructor_destructor +="\t\t\tpsqlQuery = psqlConnection->executeQuery(\"select \"+this->getFromString()+\" from "+table_name+"\");\n";
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery(R""""(select * from ( 
     SELECT replace(conrelid::regclass::text,'"','') AS "fk_table"
-        ,CASE WHEN pg_get_constraintdef(c.oid) LIKE 'FOREIGN KEY %' THEN substring(pg_get_constraintdef(c.oid), 14, position(')' in pg_get_constraintdef(c.oid))-14) END AS "fk_column"
+        ,replace(CASE WHEN pg_get_constraintdef(c.oid) LIKE 'FOREIGN KEY %' THEN substring(pg_get_constraintdef(c.oid), 14, position(')' in pg_get_constraintdef(c.oid))-14) END,'"','') AS "fk_column"
         ,CASE WHEN pg_get_constraintdef(c.oid) LIKE 'FOREIGN KEY %' THEN substring(pg_get_constraintdef(c.oid), position(' REFERENCES ' in pg_get_constraintdef(c.oid))+12, position('(' in substring(pg_get_constraintdef(c.oid), 14))-position(' REFERENCES ' in pg_get_constraintdef(c.oid))+1) END AS "pk_table"
         ,CASE WHEN pg_get_constraintdef(c.oid) LIKE 'FOREIGN KEY %' THEN substring(pg_get_constraintdef(c.oid), position('(' in substring(pg_get_constraintdef(c.oid), 14))+14, position(')' in substring(pg_get_constraintdef(c.oid), position('(' in substring(pg_get_constraintdef(c.oid), 14))+14))-1) END AS "pk_column" 
     FROM   pg_constraint c 
@@ -196,11 +198,11 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     string temp = "";
     for (;psqlQuery->fetchNextRow();)
     {
-        constructor_destructor += "\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
+        constructor_destructor += "\t\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
         declaration += "\t\tvector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+";\n";
-        constructor_destructor += "\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = NULL;\n";
+        constructor_destructor += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = NULL;\n";
         includes += "#include <"+psqlQuery->getValue("fk_table")+"_primitive_orm.h>\n";
-        temp += "\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"!= NULL)delete ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+");\n";   
+        temp += "\t\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"!= NULL) delete ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+");\n";   
         getters += "vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * "+class_name+"::get_"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"(){\n";
         getters += "\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"== NULL) {\n";
         getters += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = new vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> ();\n";
@@ -222,7 +224,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor += "\t\t "+class_name+"::~"+class_name+"(){\n";
     constructor_destructor += temp+"}\n";
 
-    constructor_destructor_def = "\t\t"+class_name+"();\n";
+    constructor_destructor_def = "\t\t"+class_name+"(bool add_to_cache=false);\n";
     constructor_destructor_def += "\t\t virtual ~"+class_name+"();\n";
 
 }
@@ -287,7 +289,54 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
 }
 
 
-void PSQLPrimitiveORMGenerator::generate(string table_name)
+void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string table_name,map<string, vector<string>> columns_definition)
+{
+
+    extra_methods_def += "\t\tbool insert ();\n";
+    extra_methods += "\t\tbool "+class_name+"::insert (){\n";
+    extra_methods += "\t\t\tstring insert_string = \"\";\n";
+    string columns_string = "";
+    string values_string = "";
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        string db_field_name = columns_definition["column_name"][i];
+        string orm_field_name = "orm_"+columns_definition["column_name"][i];
+        bool string_flag = false;
+        for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
+            if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
+
+        bool json_flag = false;
+        for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
+            if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
+
+        if ( db_field_name != primary_key)
+        {
+            if ( columns_string != "") columns_string+= ",";
+            if ( values_string != "") values_string+= "+string(\",\")+";
+            columns_string += db_field_name;
+            if (string_flag )
+                values_string += "string(\"'\")+"+orm_field_name+"+string(\"'\")";
+            else if (json_flag )
+                values_string += "string(\"'\")+"+orm_field_name+".dump()+string(\"'\")";
+            else values_string += "string(\"'\")+std::to_string("+orm_field_name+")+string(\"'\")";
+
+        }
+    }
+
+    if ( columns_string !="")
+    {
+        extra_methods += "\t\t\t\tinsert_string = \"insert into "+table_name+" set ("+columns_string+") values (\"+"+values_string+"+\") returning id\";\n";
+        extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = psqlController.getPSQLConnection(\"main\");\n";
+        extra_methods += "\t\t\t\torm_"+primary_key+"=psqlConnection->executeInsertQuery(insert_string);\n";
+        extra_methods += "\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
+        extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
+    }
+    else extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
+    extra_methods += "\t\t}\n";
+}
+
+
+void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
 {
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery("select table_name,column_name,data_type,numeric_precision,numeric_precision_radix,numeric_scale,is_nullable,is_generated,identity_generation,is_identity,column_default,identity_increment,udt_name from information_schema.COLUMNS where table_name='"+table_name+"'");
     string class_name = table_name+"_primitive_orm";
@@ -302,13 +351,14 @@ void PSQLPrimitiveORMGenerator::generate(string table_name)
     if (primary_key != "" )
     {
         generateDecl_Setters_Getters(class_name,results);
-        generateFromString(class_name,table_name,results);
-        generateAssignResults(class_name,table_name,results);
+        generateFromString(class_name,table_name,table_index,results);
+        generateAssignResults(class_name,table_index,results);
         generateGetIdentifier(class_name);
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
         generateConstructorAndDestructor(class_name,table_name);
         generateUpdateQuery(class_name,table_name,results);
+        generateInsertQuery(class_name,table_name,results);
         generateAddToCache(class_name);
         generateIsUpdated(class_name);
         snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,

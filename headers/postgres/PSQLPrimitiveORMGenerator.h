@@ -41,7 +41,7 @@ class PSQLPrimitiveORMGenerator
         map <string,AbstractDatabaseColumn *> databaseColumnFactory;
         void get_primary_key(string table_name);
         void generateDecl_Setters_Getters (string class_name,map<string, vector<string>> columns_definition);
-        void generateFromString (string class_name,string table_name,map<string, vector<string>> columns_definition);
+        void generateFromString (string class_name,string table_name,string table_index,map<string, vector<string>> columns_definition);
         void generateAssignResults (string class_name,string table_name,map<string, vector<string>> columns_definition);
         void generateGetIdentifier(string class_name);
         void generateExternDSOEntryPoint (string class_name,string table_name);
@@ -50,11 +50,12 @@ class PSQLPrimitiveORMGenerator
         void generateIsUpdated(string class_name);
         void generateCloner(string class_name);
         void generateUpdateQuery(string class_name,string table_name,map<string, vector<string>> columns_definition);
+        void generateInsertQuery(string class_name,string table_name,map<string, vector<string>> columns_definition);
         void fetch_templates();
         void write_headers_and_sources(string class_name);
     public:
         PSQLPrimitiveORMGenerator();
-        void generate(string table_name);
+        void generate(string table_name,string table_index);
         void compile(string table_name);
         ~PSQLPrimitiveORMGenerator();
 };

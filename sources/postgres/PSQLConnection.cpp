@@ -89,6 +89,24 @@ bool PSQLConnection::executeUpdateQuery(string psql_query)
     else return true;
 }
 
+int PSQLConnection::executeInsertQuery(string psql_query)
+{
+    PGresult * pgresult = PQexec(this->getPGConnection(), psql_query.c_str());
+    if (PQresultStatus(pgresult) == 7 || PQresultStatus(pgresult) == 6)
+    {
+
+        cout << "Query ERROR: " << psql_query << endl;
+        cout << PQresultErrorMessage(pgresult) << endl
+                << "----------------------------\n";
+        return -1;
+    }
+    else 
+    {
+        string s = PQgetvalue(pgresult, 0, 0);
+        return atol(s.c_str());
+    }
+}
+
 vector<string> PSQLConnection::getTableNames()
 {
 

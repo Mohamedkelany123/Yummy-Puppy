@@ -42,7 +42,6 @@ void func (vector <pair<pair<string,string>,pair<string,string>>>)
 
 }
 
-#define ORM(T,O) ((T##_primitive_orm *)((*O)[#T]))
 
 int main (int argc, char ** argv)
 {
@@ -65,25 +64,27 @@ int main (int argc, char ** argv)
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
     {new crm_app_customer_primitive_orm(),new loan_app_loan_primitive_orm()},{{{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}});
 
-    psqlQueryJoin->filter(UnaryOperator ("loan_app_loan.id",lt,"500"));
-    psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+    psqlQueryJoin->filter(UnaryOperator ("loan_app_loan.id",lt,"10000"));
+    psqlQueryJoin->process (6,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
         shared_lock->lock();
         if (ORM(loan_app_loan,orms)->get_id() == 100 || ORM(loan_app_loan,orms)->get_id() == 200 || ORM(loan_app_loan,orms)->get_id() == 300)
         {
             cout << ORM(crm_app_customer,orms)->get_first_name() << " - "<<  ORM(loan_app_loan,orms)->get_principle() << endl;
-//            ORM(loan_app_loan,orms)->set_principle(7943.00);
-            ORM(loan_app_loan,orms)->set_principle(1234.00);
+            ORM(loan_app_loan,orms)->set_principle(7943.00);
+            // ORM(loan_app_loan,orms)->set_principle(1234.00);
             // ORM(loan_app_loan,orms)->update();
         }
 //        else cout << "____________" << ORM(loan_app_loan,orms)->get_id() << endl;
         shared_lock->unlock();
     });
+
+    cout << "I m done with the lambda" << endl;
     psqlController.ORMCommit();
     // for (;psqlQueryJoin->fetchNextRow();)
     // {
     //     cout << psqlQueryJoin->getValue("crm_app_customer_first_name") << ": "<< psqlQueryJoin->getValue("loan_app_loan_id") <<  endl;
     // }
-    delete (psqlQueryJoin);
+    // delete (psqlQueryJoin);
     return 0;
 
     loan_app_loan_primitive_orm_iterator * loan_app_loan  = new loan_app_loan_primitive_orm_iterator("main");
@@ -96,7 +97,7 @@ int main (int argc, char ** argv)
         new UnaryOperator ("customer_id",gt,"100000"),new UnaryOperator ("customer_id",lt,"110000")
     ));
 
-    crm_app_customer->process(10,[](crm_app_customer_primitive_orm * orm,int partition_number,mutex * shared_lock) {
+    crm_app_customer->process(11,[](crm_app_customer_primitive_orm * orm,int partition_number,mutex * shared_lock) {
             shared_lock->lock();
             cout << "(" << partition_number <<  ") Customer Name ["<< orm->get_id() <<"]:  "<< orm->get_first_name() << endl;
             shared_lock->unlock();

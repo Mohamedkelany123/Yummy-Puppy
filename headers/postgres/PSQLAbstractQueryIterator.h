@@ -2,7 +2,7 @@
 #define PSQLABSTRACTQUERYITERATOR_H
 
 #include <PSQLAbstractORM.h>
-enum unary_operator { eq, gt, lt, gte,lte,ne,nand };
+enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin };
 
 class Expression{
 
@@ -66,6 +66,8 @@ class ANDOperator : public LogicalOperator {
         virtual ~ANDOperator() {}
 };
 
+
+
 class UnaryOperator : public Expression {
     private:
         string name;
@@ -95,6 +97,12 @@ class UnaryOperator : public Expression {
             else if ( op == lt ) return name+" < '"+value+"'";
             else if ( op == lte ) return name+" <= '"+value+"'";
             else if ( op == ne ) return name+" <> '"+value+"'";
+            else if ( op == in ) return name+" in ("+value+")";
+            else if ( op == nin ) 
+            {
+                cout << value << endl;
+                return name+" not in ("+value+")";
+            }
             else return "";
         }
         virtual ~UnaryOperator(){}
