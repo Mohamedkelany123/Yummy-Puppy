@@ -17,6 +17,7 @@ class PSQLDataSource
         PSQLDataSource(string _hostname,int _port,string _database,string _username,string _password);
         PSQLConnection * getPSQLConnection();
         bool releaseConnection (PSQLConnection * psqlConnection);
+        int getConnectionCount();
         ~PSQLDataSource();
 };
 

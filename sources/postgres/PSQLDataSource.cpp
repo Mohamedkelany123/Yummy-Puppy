@@ -37,6 +37,10 @@ bool PSQLDataSource::releaseConnection (PSQLConnection * psqlConnection)
     }
     return false;
 }
+int PSQLDataSource::getConnectionCount()
+{
+    return available_connections.size()+reserved_connections.size();
+}
 PSQLDataSource::~PSQLDataSource()
 {
     std::lock_guard<std::mutex> guard(lock);

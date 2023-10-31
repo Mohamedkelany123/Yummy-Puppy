@@ -21,7 +21,15 @@ void PSQLORMCache::commit()
         for (auto orm_cache_item:orm_cache.second) 
             if (orm_cache_item.second->isUpdated())
                 orm_cache_item.second->update();
+
+    for (auto orm_cache: insert_cache)
+    {
+        for (auto orm_cache_item:orm_cache.second) 
+                delete (orm_cache_item);
+        insert_cache[orm_cache.first].clear();
+    }
     lock.unlock();
+    cout << "Exiting commit" << endl;
 
 }
 void PSQLORMCache::commit(string name)
@@ -50,5 +58,8 @@ PSQLORMCache::~PSQLORMCache()
     for (auto orm_cache: update_cache)
         for (auto orm_cache_item:orm_cache.second) 
             delete (orm_cache_item.second);
+    for (auto orm_cache: insert_cache)
+        for (auto orm_cache_item:orm_cache.second) 
+                delete (orm_cache_item);
     lock.unlock();
 }

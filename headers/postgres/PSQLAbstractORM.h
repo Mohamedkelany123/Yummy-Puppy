@@ -18,6 +18,7 @@ class PSQLAbstractORM
         virtual long getIdentifier() = 0;
         virtual bool isUpdated() = 0;
         virtual bool update() = 0;
+        virtual long insert() = 0;
         virtual string getIdentifierName();
         virtual string getTableName();
         virtual bool isLoaded();

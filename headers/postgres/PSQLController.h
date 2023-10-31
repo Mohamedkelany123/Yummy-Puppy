@@ -20,6 +20,7 @@ class PSQLController
         void ORMFlush();
         void ORMFlush(string name);
         void ORMFlush(string name,long id);
+        int getDataSourceConnectionCount(string data_source_name);
         ~PSQLController();
 };
 

@@ -29,6 +29,7 @@ PSQLQuery::PSQLQuery(PSQLConnection *_psqlConnection, string query)
             result_count = PQntuples(pgresult);
         }
     }
+    else cout << "Error connection went dead" << endl;
 }
 bool PSQLQuery::hasResults()
 {

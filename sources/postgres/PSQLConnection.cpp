@@ -27,6 +27,11 @@ void PSQLConnection::load_column_types()
 
 bool PSQLConnection::connect()
 {
+    if ( psql_connection != NULL )
+    {
+        PQfinish(psql_connection);
+        psql_connection = NULL;
+    }
     string connection_string = "postgresql://" + username + ":" + password + "@" + host + ":" + to_string(port) + "/" + database_name;
     psql_connection = PQconnectdb(connection_string.c_str());
     return (psql_connection != NULL);
@@ -53,7 +58,14 @@ PSQLConnection::PSQLConnection(string p_host,
 }
 bool PSQLConnection::isAlive()
 {
-    return (PQstatus(psql_connection) == CONNECTION_OK);
+    if (PQstatus(psql_connection) == CONNECTION_OK) return true;
+    else
+    {
+        cout << "Reconnecting ................"<< endl;
+        if (!this->connect() || PQstatus(psql_connection) != CONNECTION_OK)
+            cout <<"Reconnecting failed "<< endl;
+        return (PQstatus(psql_connection) == CONNECTION_OK);
+    }
 }
 
 PGconn *PSQLConnection::getPGConnection()
@@ -89,7 +101,7 @@ bool PSQLConnection::executeUpdateQuery(string psql_query)
     else return true;
 }
 
-int PSQLConnection::executeInsertQuery(string psql_query)
+long PSQLConnection::executeInsertQuery(string psql_query)
 {
     PGresult * pgresult = PQexec(this->getPGConnection(), psql_query.c_str());
     if (PQresultStatus(pgresult) == 7 || PQresultStatus(pgresult) == 6)
@@ -102,7 +114,14 @@ int PSQLConnection::executeInsertQuery(string psql_query)
     }
     else 
     {
+        // if (PQresultStatus(pgresult) == PGRES_TUPLES_OK)
+        // {
+        //     int column_count = PQnfields(pgresult);
+        //     int result_count = PQntuples(pgresult);
+        // }
         string s = PQgetvalue(pgresult, 0, 0);
+        // cout << s << endl;
+        // printf ("%lu\n",atol(s.c_str()));
         return atol(s.c_str());
     }
 }

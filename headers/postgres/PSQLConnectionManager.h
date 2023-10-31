@@ -5,12 +5,14 @@
 class PSQLConnectionManager 
 {
     private:
-        map <string,PSQLDataSource *> data_sources;        
+        map <string,PSQLDataSource *> data_sources;  
+        std::mutex lock;      
     public:
         PSQLConnectionManager();
         bool addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password);
         PSQLConnection * getPSQLConnection(string data_source_name);
         bool releaseConnection (string data_source_name,PSQLConnection * psqlConnection);
+        int getConnectionCount (string data_source_name);
         ~PSQLConnectionManager();
 };
 

@@ -9,6 +9,7 @@ PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,st
     // sql = "select * from "+_table_name;
     from_string = " * ";
     conditions = "";
+    orderby_string = "";
     sql = "";
 }
 void PSQLAbstractQueryIterator::setNativeSQL(string _sql)
@@ -23,8 +24,10 @@ void PSQLAbstractQueryIterator::filter (const Expression & e)
 }
 bool PSQLAbstractQueryIterator::execute()
 {
-    sql = "select "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
-    cout << sql << endl;
+    if (orderby_string == "")
+        sql = "select "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
+    else sql = "select "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
+    // cout << sql << endl;
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;
@@ -33,7 +36,6 @@ PSQLAbstractQueryIterator::~PSQLAbstractQueryIterator()
 {
     psqlController.releaseConnection(data_source_name,psqlConnection);
     if ( psqlQuery != NULL) delete (psqlQuery);
-    
 }
 
 

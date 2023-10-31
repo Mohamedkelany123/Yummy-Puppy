@@ -210,11 +210,13 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
 
         getters += "\t\t\ti->filter (ANDOperator(new UnaryOperator(\""+psqlQuery->getValue("fk_column")+"\",eq,get_"+primary_key+"())));\n";
         getters += "\t\t\ti->execute();\n";
-        getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm * orm = new "+psqlQuery->getValue("fk_table")+"_primitive_orm();\n";
+        getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm * orm = NULL;\n";
+//        getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm * orm = new "+psqlQuery->getValue("fk_table")+"_primitive_orm();\n";
         getters += "\t\t\tdo {\n";
 		getters += "\t\t\t\torm = i->next();\n";
 		getters += "\t\t\t\tif (orm!= NULL) "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"->push_back(orm);\n";
 		getters += "\t\t\t} while (orm != NULL);\n";
+        getters += "\t\t\tdelete(i);\n";
         getters += "\t\t\t}\n";
         getters += "\t\t\treturn "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +";\n}\n";
         getters_def +=  "\t\tvector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * get_"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"();\n";
@@ -292,8 +294,8 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
 void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
 
-    extra_methods_def += "\t\tbool insert ();\n";
-    extra_methods += "\t\tbool "+class_name+"::insert (){\n";
+    extra_methods_def += "\t\tlong insert ();\n";
+    extra_methods += "\t\tlong "+class_name+"::insert (){\n";
     extra_methods += "\t\t\tstring insert_string = \"\";\n";
     string columns_string = "";
     string values_string = "";
@@ -308,27 +310,37 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
         bool json_flag = false;
         for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
             if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
+        
+        bool ts_flag = false;
+        if ( columns_definition["udt_name"][i] == "timestamptz") ts_flag=true;
 
         if ( db_field_name != primary_key)
         {
             if ( columns_string != "") columns_string+= ",";
             if ( values_string != "") values_string+= "+string(\",\")+";
             columns_string += db_field_name;
-            if (string_flag )
-                values_string += "string(\"'\")+"+orm_field_name+"+string(\"'\")";
-            else if (json_flag )
-                values_string += "string(\"'\")+"+orm_field_name+".dump()+string(\"'\")";
-            else values_string += "string(\"'\")+std::to_string("+orm_field_name+")+string(\"'\")";
 
+            if (ts_flag )
+                values_string += "(("+orm_field_name+" == \"\") ? \"now()\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
+            else{
+                values_string += "((update_flag.test("+std::to_string(i)+"))?";
+                if (string_flag )
+                    values_string += "string(\"'\")+"+orm_field_name+"+string(\"'\")";
+                else if (json_flag )
+                    values_string += "string(\"'\")+"+orm_field_name+".dump()+string(\"'\")";
+                else values_string += "string(\"'\")+std::to_string("+orm_field_name+")+string(\"'\")";
+                values_string += ":\"null\")";
+            }
         }
     }
 
     if ( columns_string !="")
     {
-        extra_methods += "\t\t\t\tinsert_string = \"insert into "+table_name+" set ("+columns_string+") values (\"+"+values_string+"+\") returning id\";\n";
+        extra_methods += "\t\t\t\tinsert_string = \"insert into "+table_name+" ("+columns_string+") values (\"+"+values_string+"+\") returning id\";\n";
         extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = psqlController.getPSQLConnection(\"main\");\n";
         extra_methods += "\t\t\t\torm_"+primary_key+"=psqlConnection->executeInsertQuery(insert_string);\n";
         extra_methods += "\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
+        extra_methods += "\t\t\t\tupdate_flag.reset();\n";
         extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
     }
     else extra_methods += "\t\t\treturn orm_"+primary_key+";\n";

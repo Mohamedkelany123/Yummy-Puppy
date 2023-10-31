@@ -46,6 +46,12 @@ void PSQLController::ORMFlush(string name,long id)
 {
 
 }
+
+int PSQLController::getDataSourceConnectionCount(string data_source_name)
+{
+    return psqlConnectionManager->getConnectionCount(data_source_name);
+
+}
 PSQLController::~PSQLController()
 {
     delete (psqlORMCache);

@@ -5,6 +5,7 @@
 #include <PSQLController.h>
 #include <loan_app_loan_primitive_orm.h>
 #include <crm_app_customer_primitive_orm.h>
+#include <new_lms_installmentpaymentstatushistory_primitive_orm.h>
 
 /*
 
@@ -46,6 +47,18 @@ void func (vector <pair<pair<string,string>,pair<string,string>>>)
 int main (int argc, char ** argv)
 {
 
+
+psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
+new_lms_installmentpaymentstatushistory_primitive_orm * orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
+orm->set_day("2023-10-30");
+orm->set_installment_extension_id(100);
+orm->set_status(100);
+psqlController.ORMCommit();
+
+// cout << orm->insert() << endl;
+
+// delete (orm);
+return 0;
 // select principle from loan_app_loan where id in (100,200,300);
 //  principle 
 // -----------

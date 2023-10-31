@@ -119,12 +119,13 @@ class PSQLAbstractQueryIterator {
         string conditions;
         string sql;
         string from_string;
+        string orderby_string;
     public:
         PSQLAbstractQueryIterator(string _data_source_name,string _table_name);
         void setNativeSQL(string _sql);
         void filter ( Expression const & e);
         bool execute();
-        ~PSQLAbstractQueryIterator();
+        virtual ~PSQLAbstractQueryIterator();
 };
 
 
