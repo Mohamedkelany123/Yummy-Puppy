@@ -21,6 +21,7 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
                 // cout << "replacing an ORM of type "<< name << endl;
             }
         update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
+        psqlAbstractORM->lock_me();
     }
     return orm;
 }

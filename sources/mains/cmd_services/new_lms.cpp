@@ -157,18 +157,18 @@ int main (int argc, char ** argv)
 
 
             shared_lock->lock();
-            // cout << ieorm->get_installment_ptr_id() << " -> " <<  lform_v->size() <<  "->";
+            cout << ieorm->get_installment_ptr_id() << " -> " <<  lform_v->size() <<  "->";
             if (lform_v->size() > 0 )
             {
                 reference_date.set_date(((*lform_v)[lform_v->size()-1])->get_day());
-                // cout << ((*lform_v)[lform_v->size()-1])->get_day();
+                cout << ((*lform_v)[lform_v->size()-1])->get_day();
             }
             else
             { 
                 reference_date.set_date(ieorm->get_due_to_overdue_date());
-                // cout << ieorm->get_due_to_overdue_date();
+                cout << ieorm->get_due_to_overdue_date();
             }
-            // cout << endl;
+            cout << endl;
             reference_date.inc_month();
             int seq = lform_v->size()+1;
             int initial_status_id = 1;
@@ -204,8 +204,10 @@ int main (int argc, char ** argv)
                 if (status_index < buckets.size()-1) status_index ++;
             } 
             // cout << "connection_count: " << psqlController.getDataSourceConnectionCount("main") << endl;
+            cout << "Finished iteration" << endl;
             shared_lock->unlock();
     });
+    cout << "will start commitig" << endl;
     psqlController.ORMCommit();   
     delete (psqlQueryJoin);
     cout << "Due to OverDue done" << endl;

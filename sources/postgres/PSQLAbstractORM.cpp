@@ -37,6 +37,7 @@ void PSQLAbstractORM::lock_me()
 }
 void PSQLAbstractORM::unlock_me()
 {
+    lock.try_lock();
     lock.unlock();
 }
 PSQLAbstractORM::~PSQLAbstractORM()
@@ -44,6 +45,7 @@ PSQLAbstractORM::~PSQLAbstractORM()
     // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << endl;
     // if (psqlConnection != NULL) delete (psqlConnection);
     // if (psqlQuery != NULL) delete (psqlQuery);
+    unlock_me();
 }
 
 
