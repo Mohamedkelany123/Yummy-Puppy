@@ -30,6 +30,15 @@ bool PSQLAbstractORM::isLoaded ()
 {
     return loaded;
 }
+
+void PSQLAbstractORM::lock_me()
+{
+    lock.lock();
+}
+void PSQLAbstractORM::unlock_me()
+{
+    lock.unlock();
+}
 PSQLAbstractORM::~PSQLAbstractORM()
 {
     // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << endl;

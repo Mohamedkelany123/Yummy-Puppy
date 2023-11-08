@@ -24,6 +24,7 @@ void PSQLAbstractQueryIterator::filter (const Expression & e)
 }
 bool PSQLAbstractQueryIterator::execute()
 {
+    if (psqlConnection == NULL ) return false;
     if (orderby_string == "")
         sql = "select "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
@@ -53,10 +54,10 @@ PSQLAbstractQueryIterator(_data_source_name,"")
     }
     for ( int i = 0 ; i < join_fields.size() ; i ++)
     {
-        cout << join_fields[i].first.first << endl;
-        cout << join_fields[i].first.second << endl;
-        cout << join_fields[i].second.first << endl;
-        cout << join_fields[i].second.second << endl;
+        // cout << join_fields[i].first.first << endl;
+        // cout << join_fields[i].first.second << endl;
+        // cout << join_fields[i].second.first << endl;
+        // cout << join_fields[i].second.second << endl;
         if ( join_string != "") join_string += " and ";
         join_string += "\""+join_fields[i].first.first+"\"."+
         "\""+join_fields[i].first.second+"\" = "+
@@ -83,6 +84,13 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next ()
     else return NULL;
 }
 
+void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
+{
+    for (auto orm_pair: (*orms))
+        orm_pair.second->unlock_me();
+
+}
+
 void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
 {
         PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects);
@@ -93,6 +101,7 @@ void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQue
             if (orms != NULL) 
             {
                f(orms,partition_number,shared_lock);
+               me->unlock_orms(orms);
             }
         } while (orms != NULL);
 
@@ -100,7 +109,7 @@ void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQue
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
 {
-    if (this->execute())
+    if (this->execute() && this->psqlQuery->getRowCount() > 0)
     {
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
         vector <thread *> threads;

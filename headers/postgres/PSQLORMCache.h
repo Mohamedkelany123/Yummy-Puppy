@@ -10,7 +10,9 @@ class PSQLORMCache
         std::mutex lock;
     public:
         PSQLORMCache();
-        void add(string name,PSQLAbstractORM * psqlAbstractORM);
+        PSQLAbstractORM * add(string name,PSQLAbstractORM * psqlAbstractORM);
+        bool release(string name,PSQLAbstractORM * psqlAbstractORM);
+        void release();
         void commit();
         void commit(string name);
         void commit(string name,long id);

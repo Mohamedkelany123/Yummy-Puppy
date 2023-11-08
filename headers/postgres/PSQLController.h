@@ -13,7 +13,7 @@ class PSQLController
         bool addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password);
         PSQLConnection * getPSQLConnection(string data_source_name);
         bool releaseConnection (string data_source_name,PSQLConnection * psqlConnection);
-        void addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM);
+        PSQLAbstractORM * addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM);
         void ORMCommit();
         void ORMCommit(string name);
         void ORMCommit(string name,long id);

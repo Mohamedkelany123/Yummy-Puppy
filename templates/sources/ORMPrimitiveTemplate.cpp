@@ -4,7 +4,9 @@
 
 
 %s::%s(string _data_source_name):PSQLAbstractQueryIterator(_data_source_name,"%s"){
-    from_string = %s().getFromString();
+    %s * orm = new %s();
+    from_string =orm->getFromString();
+    orderby_string = orm->getIdentifierName() + " asc";
 }
 %s * %s::operator [] (long index)
 {

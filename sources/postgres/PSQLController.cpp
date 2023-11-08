@@ -18,9 +18,9 @@ bool PSQLController::releaseConnection (string data_source_name,PSQLConnection *
 {
     return psqlConnectionManager->releaseConnection(data_source_name,psqlConnection);
 }
-void PSQLController::addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM)
+PSQLAbstractORM * PSQLController::addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM)
 {
-    psqlORMCache->add(name,psqlAbstractORM);
+    return psqlORMCache->add(name,psqlAbstractORM);
 }
 void PSQLController::ORMCommit()
 {

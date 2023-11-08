@@ -10,11 +10,9 @@ PSQLQuery::PSQLQuery(PSQLConnection *_psqlConnection, string query)
     column_count = 0;
     result_index = start_index-1;
     psqlConnection=_psqlConnection;
-
     if (psqlConnection != NULL && psqlConnection->isAlive())
     {
         pgresult = PQexec(psqlConnection->getPGConnection(), query.c_str());
-
         if (PQresultStatus(pgresult) == 7 || PQresultStatus(pgresult) == 6)
         {
 
@@ -29,7 +27,7 @@ PSQLQuery::PSQLQuery(PSQLConnection *_psqlConnection, string query)
             result_count = PQntuples(pgresult);
         }
     }
-    else cout << "Error connection went dead" << endl;
+    // else cout << "Error connection went dead" << endl;
 }
 bool PSQLQuery::hasResults()
 {

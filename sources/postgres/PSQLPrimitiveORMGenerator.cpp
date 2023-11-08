@@ -150,6 +150,23 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string 
     extra_methods += "\t\t\taddToCache();\n";
     extra_methods += "\t\t}\n";
 }
+void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,string table_name,map<string, vector<string>> columns_definition)
+{
+    extra_methods_def += "\t\tvoid operator = ("+class_name+" & orm);\n";
+    extra_methods += "\t\tvoid "+class_name+"::operator = ("+class_name+" & orm){\n";
+    // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
+            extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
+            extra_methods += " = orm.orm_" +columns_definition["column_name"][i]+ ";\n";            
+        }
+    }
+    extra_methods += "\t\t\tloaded=orm.loaded;\n";
+    extra_methods += "\t\t\tupdate_flag=orm.update_flag;\n";
+    extra_methods += "\t\t}\n";
+}
+
 void PSQLPrimitiveORMGenerator::generateGetIdentifier(string class_name)
 {
     extra_methods_def += "\t\tlong getIdentifier ();\n";
@@ -234,7 +251,11 @@ void PSQLPrimitiveORMGenerator::generateAddToCache(string class_name)
 {
     extra_methods_def += "\t\tvoid addToCache ();\n";
     extra_methods += "\t\tvoid "+class_name+"::addToCache (){\n";
-    extra_methods += "\t\t\tpsqlController.addToORMCache(\""+class_name+"\",this);\n";
+    extra_methods += "\t\t\t"+class_name+" * orm = ("+class_name+" *) psqlController.addToORMCache(\""+class_name+"\",this);\n";
+    extra_methods += "\t\t\tif (orm!= NULL) {\n";
+    extra_methods += "\t\t\t\t(*this) = (*orm);\n";
+    extra_methods += "\t\t\t\tdelete(orm);\n";
+    extra_methods += "\t\t\t}\n";
     extra_methods += "\t\t}\n";
 
 }
@@ -365,6 +386,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         generateDecl_Setters_Getters(class_name,results);
         generateFromString(class_name,table_name,table_index,results);
         generateAssignResults(class_name,table_index,results);
+        generateAssignmentOperator(class_name,table_index,results);
         generateGetIdentifier(class_name);
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
@@ -379,7 +401,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         query_iterator_class_name.c_str(),class_name.c_str(),
         query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str());
         snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,class_name.c_str(),(setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str()
-        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),table_name.c_str(),class_name.c_str()
+        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),table_name.c_str(),class_name.c_str(),class_name.c_str()
         ,class_name.c_str(),query_iterator_class_name.c_str()
         ,class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str()
         ,class_name.c_str(),query_iterator_class_name.c_str()

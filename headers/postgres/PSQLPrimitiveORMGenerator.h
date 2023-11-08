@@ -43,6 +43,7 @@ class PSQLPrimitiveORMGenerator
         void generateDecl_Setters_Getters (string class_name,map<string, vector<string>> columns_definition);
         void generateFromString (string class_name,string table_name,string table_index,map<string, vector<string>> columns_definition);
         void generateAssignResults (string class_name,string table_name,map<string, vector<string>> columns_definition);
+        void generateAssignmentOperator (string class_name,string table_name,map<string, vector<string>> columns_definition);
         void generateGetIdentifier(string class_name);
         void generateExternDSOEntryPoint (string class_name,string table_name);
         void generateConstructorAndDestructor(string class_name,string table_name);

@@ -20,7 +20,10 @@ PSQLConnection * PSQLConnectionManager::getPSQLConnection(string data_source_nam
     if (data_sources.find(data_source_name) != data_sources.end()) 
         return  data_sources[data_source_name]->getPSQLConnection();
     else 
+    {
+        cout << "Cannot find data source: " <<  data_source_name << endl;
         return NULL;
+    }
 }
 bool PSQLConnectionManager::releaseConnection (string data_source_name,PSQLConnection * psqlConnection)
 {

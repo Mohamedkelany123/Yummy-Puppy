@@ -12,6 +12,7 @@ class PSQLAbstractORM
         map <string,map<string, string>> relatives_def;
         string identifier_name;
         bool loaded ;
+        mutex lock;
     public:
         virtual string getFromString () = 0;
         virtual void assignResults (AbstractDBQuery * psqlQuery) = 0;
@@ -24,6 +25,8 @@ class PSQLAbstractORM
         virtual bool isLoaded();
         PSQLAbstractORM (string _table_name,string _identifier);
         virtual PSQLAbstractORM * clone ()=0;
+        virtual void lock_me();
+        virtual void unlock_me();        
         virtual ~PSQLAbstractORM();
 };
 

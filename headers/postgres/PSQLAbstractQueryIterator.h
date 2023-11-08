@@ -98,11 +98,7 @@ class UnaryOperator : public Expression {
             else if ( op == lte ) return name+" <= '"+value+"'";
             else if ( op == ne ) return name+" <> '"+value+"'";
             else if ( op == in ) return name+" in ("+value+")";
-            else if ( op == nin ) 
-            {
-                cout << value << endl;
-                return name+" not in ("+value+")";
-            }
+            else if ( op == nin ) return name+" not in ("+value+")";
             else return "";
         }
         virtual ~UnaryOperator(){}
@@ -135,6 +131,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         string column_names = "";
         string join_string = "";
         vector <PSQLAbstractORM *> * orm_objects;
+        void unlock_orms (map <string,PSQLAbstractORM *> *  orms);
         static void process_internal(PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f);
     public:
         PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields);
