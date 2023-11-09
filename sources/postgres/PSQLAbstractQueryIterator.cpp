@@ -102,15 +102,15 @@ void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQue
             {
                f(orms,partition_number,shared_lock);
                shared_lock->lock();
-               cout << "before unlock orms" << endl;
+            //    cout << "before unlock orms" << endl;
                me->unlock_orms(orms);
-               cout << "after unlock orms" << endl;
+            //    cout << "after unlock orms" << endl;
                shared_lock->unlock();
             }
         } while (orms != NULL);
-        shared_lock->lock();
-        cout << "Exiting process_internal" << endl;
-        me->unlock_orms(orms);
+        // shared_lock->lock();
+        // cout << "Exiting process_internal" << endl;
+        // me->unlock_orms(orms);
 }
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)

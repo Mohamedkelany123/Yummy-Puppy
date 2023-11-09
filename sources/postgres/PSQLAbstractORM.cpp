@@ -33,10 +33,16 @@ bool PSQLAbstractORM::isLoaded ()
 
 void PSQLAbstractORM::lock_me()
 {
+    std::ostringstream ss;
+    ss << std::this_thread::get_id() ;
+    // printf ("lock_me: %p  -   %s \n",this,ss.str().c_str()); 
     lock.lock();
 }
 void PSQLAbstractORM::unlock_me()
 {
+    std::ostringstream ss;
+    ss << std::this_thread::get_id() ;
+    // printf ("unlock_me: %p  -   %s \n",this,ss.str().c_str()); 
     lock.try_lock();
     lock.unlock();
 }
@@ -46,6 +52,9 @@ PSQLAbstractORM::~PSQLAbstractORM()
     // if (psqlConnection != NULL) delete (psqlConnection);
     // if (psqlQuery != NULL) delete (psqlQuery);
     unlock_me();
+    // std::ostringstream ss;
+    // ss << std::this_thread::get_id() ;
+    // printf ("deleting: %p  -   %s \n",this,ss.str().c_str()); 
 }
 
 

@@ -14,16 +14,25 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
         insert_cache[name].push_back(psqlAbstractORM);
     else
     { 
-        if (update_cache.find(name) != update_cache.end()) 
+        if (update_cache.find(name) != update_cache.end()) {
             if (update_cache[name].find(psqlAbstractORM->getIdentifier()) != update_cache[name].end()) {
-                lock.unlock();
-                update_cache[name][psqlAbstractORM->getIdentifier()]->lock_me();
-                lock.lock();
                 orm = update_cache[name][psqlAbstractORM->getIdentifier()];
+                update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
+                lock.unlock();
+                psqlAbstractORM->lock_me();
+                orm->lock_me();
+                lock.lock();
                 // cout << "replacing an ORM of type "<< name << endl;
             }
-        update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
-        psqlAbstractORM->lock_me();
+            else
+            {
+                psqlAbstractORM->lock_me();
+                std::ostringstream ss;
+                ss << std::this_thread::get_id() ;
+                // printf("assigning new %p for old %p   -   %s\n",psqlAbstractORM,orm,ss.str().c_str());
+                update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
+            }
+        }
     }
     return orm;
 }

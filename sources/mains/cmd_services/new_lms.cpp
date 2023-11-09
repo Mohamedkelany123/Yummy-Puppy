@@ -98,30 +98,30 @@ int main (int argc, char ** argv)
     // }
     // return 0; 
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
-    // PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    // {new new_lms_installmentextension_primitive_orm(),new loan_app_installment_primitive_orm(),new loan_app_loan_primitive_orm()},
-    // {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
-
-    // psqlQueryJoin->filter(
-    //     ANDOperator 
-    //     (
-    //         new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,"2023-11-15"),
-    //         new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
-    //         new UnaryOperator ("loan_app_loan.lms_closure_status",eq,"0"),
-    //         new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
-    //     )
-    // );
-    // psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
-    //         ORM(new_lms_installmentextension,orms)->set_payment_status(4);
-    //         new_lms_installmentpaymentstatushistory_primitive_orm * orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
-    //         orm->set_day(ORM(loan_app_installment,orms)->get_day());
-    //         orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
-    //         orm->set_status(4); // 4
-    // });
-    // psqlController.ORMCommit();   
-    // delete (psqlQueryJoin);
-    // cout << "Undue to Due done" << endl;
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+    {new new_lms_installmentextension_primitive_orm(),new loan_app_installment_primitive_orm(),new loan_app_loan_primitive_orm()},
+    {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+
+    psqlQueryJoin->filter(
+        ANDOperator 
+        (
+            new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,"2023-11-15"),
+            new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
+            new UnaryOperator ("loan_app_loan.lms_closure_status",eq,"0"),
+            new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
+        )
+    );
+    psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+            ORM(new_lms_installmentextension,orms)->set_payment_status(4);
+            new_lms_installmentpaymentstatushistory_primitive_orm * orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
+            orm->set_day(ORM(loan_app_installment,orms)->get_day());
+            orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
+            orm->set_status(4); // 4
+    });
+    psqlController.ORMCommit();   
+    delete (psqlQueryJoin);
+    cout << "Undue to Due done" << endl;
+    /*PSQLJoinQueryIterator */ psqlQueryJoin = new PSQLJoinQueryIterator ("main",
     {new new_lms_installmentextension_primitive_orm(),new loan_app_installment_primitive_orm(),new loan_app_loan_primitive_orm()},
     {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
 
@@ -157,18 +157,18 @@ int main (int argc, char ** argv)
 
 
             shared_lock->lock();
-            cout << ieorm->get_installment_ptr_id() << " -> " <<  lform_v->size() <<  "->";
+            // cout << ieorm->get_installment_ptr_id() << " -> " <<  lform_v->size() <<  "->";
             if (lform_v->size() > 0 )
             {
                 reference_date.set_date(((*lform_v)[lform_v->size()-1])->get_day());
-                cout << ((*lform_v)[lform_v->size()-1])->get_day();
+                // cout << ((*lform_v)[lform_v->size()-1])->get_day();
             }
             else
             { 
                 reference_date.set_date(ieorm->get_due_to_overdue_date());
-                cout << ieorm->get_due_to_overdue_date();
+                // cout << ieorm->get_due_to_overdue_date();
             }
-            cout << endl;
+            // cout << endl;
             reference_date.inc_month();
             int seq = lform_v->size()+1;
             int initial_status_id = 1;
@@ -204,10 +204,10 @@ int main (int argc, char ** argv)
                 if (status_index < buckets.size()-1) status_index ++;
             } 
             // cout << "connection_count: " << psqlController.getDataSourceConnectionCount("main") << endl;
-            cout << "Finished iteration" << endl;
+            // cout << "Finished iteration" << endl;
             shared_lock->unlock();
     });
-    cout << "will start commitig" << endl;
+    // cout << "will start commitig" << endl;
     psqlController.ORMCommit();   
     delete (psqlQueryJoin);
     cout << "Due to OverDue done" << endl;

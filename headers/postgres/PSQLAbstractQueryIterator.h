@@ -180,9 +180,9 @@ class PSQLJoinQueryPartitionIterator {
                 for (auto orm_object: *orm_objects) 
                 {
                     PSQLAbstractORM * orm = orm_object->clone();
-                    cout << "before assignresults" << endl;
+                    // cout << "before assignresults" << endl;
                     orm->assignResults(psqlQuery);
-                    cout << "after assignresults" << endl;
+                    // cout << "after assignresults" << endl;
                     (*results)[orm->getTableName()] = orm;
                 }
                 return results;
