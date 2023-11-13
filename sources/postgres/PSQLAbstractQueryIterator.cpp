@@ -11,6 +11,7 @@ PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,st
     conditions = "";
     orderby_string = "";
     sql = "";
+    psqlQuery= NULL;
 }
 void PSQLAbstractQueryIterator::setNativeSQL(string _sql)
 {
@@ -32,6 +33,12 @@ bool PSQLAbstractQueryIterator::execute()
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;
+}
+
+long PSQLAbstractQueryIterator::getResultCount()
+{
+        if (psqlQuery ==NULL) return 0;
+        else return psqlQuery->getRowCount();
 }
 PSQLAbstractQueryIterator::~PSQLAbstractQueryIterator()
 {

@@ -22,9 +22,9 @@ PSQLAbstractORM * PSQLController::addToORMCache(string name,PSQLAbstractORM * ps
 {
     return psqlORMCache->add(name,psqlAbstractORM);
 }
-void PSQLController::ORMCommit()
+void PSQLController::ORMCommit(bool parallel,bool transaction)
 {
-    psqlORMCache->commit();
+    psqlORMCache->commit(parallel,transaction);
 }
 void PSQLController::ORMCommit(string name)
 {
@@ -52,6 +52,11 @@ int PSQLController::getDataSourceConnectionCount(string data_source_name)
     return psqlConnectionManager->getConnectionCount(data_source_name);
 
 }
+void PSQLController::setORMCacheThreads (int _threads_count)
+{
+    psqlORMCache->set_threads_count(_threads_count);
+}
+
 PSQLController::~PSQLController()
 {
     delete (psqlORMCache);

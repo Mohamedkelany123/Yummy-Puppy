@@ -14,13 +14,14 @@ class PSQLController
         PSQLConnection * getPSQLConnection(string data_source_name);
         bool releaseConnection (string data_source_name,PSQLConnection * psqlConnection);
         PSQLAbstractORM * addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM);
-        void ORMCommit();
+        void ORMCommit(bool parallel=false,bool transaction=false);
         void ORMCommit(string name);
         void ORMCommit(string name,long id);
         void ORMFlush();
         void ORMFlush(string name);
         void ORMFlush(string name,long id);
         int getDataSourceConnectionCount(string data_source_name);
+        void setORMCacheThreads (int _threads_count);
         ~PSQLController();
 };
 

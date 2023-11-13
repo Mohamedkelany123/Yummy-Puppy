@@ -73,33 +73,52 @@ class UnaryOperator : public Expression {
         string name;
         unary_operator op;
         string value;
+        bool value_is_field_name;
     public:
-        UnaryOperator(string _name,unary_operator _op,string _value){
+        UnaryOperator(string _name,unary_operator _op,string _value,bool _value_is_field_name=false){
             name = _name;
             op = _op;
             value = _value;
+            value_is_field_name = _value_is_field_name;
         }
-        UnaryOperator(string _name,unary_operator _op,int _value){
+        UnaryOperator(string _name,unary_operator _op,int _value,bool _value_is_field_name=false){
             name = _name;
             op = _op;
             value = to_string(_value);
+            value_is_field_name = _value_is_field_name;
         }
-        UnaryOperator(string _name,unary_operator _op,long _value){
+        UnaryOperator(string _name,unary_operator _op,long _value,bool _value_is_field_name=false){
             name = _name;
             op = _op;
             value = _value;
+            value_is_field_name = _value_is_field_name;
         }
         string const generate() const
         {
-            if ( op == eq ) return name+" = '"+value+"'";
-            else if ( op == gt ) return name+" > '"+value+"'";
-            else if ( op == gte ) return name+" >= '"+value+"'";
-            else if ( op == lt ) return name+" < '"+value+"'";
-            else if ( op == lte ) return name+" <= '"+value+"'";
-            else if ( op == ne ) return name+" <> '"+value+"'";
-            else if ( op == in ) return name+" in ("+value+")";
-            else if ( op == nin ) return name+" not in ("+value+")";
-            else return "";
+            if ( value_is_field_name)
+            {
+                if ( op == eq ) return name+" = "+value;
+                else if ( op == gt ) return name+" > "+value;
+                else if ( op == gte ) return name+" >= "+value;
+                else if ( op == lt ) return name+" < "+value;
+                else if ( op == lte ) return name+" <= "+value;
+                else if ( op == ne ) return name+" <> "+value;
+                else if ( op == in ) return name+" in ("+value+")";
+                else if ( op == nin ) return name+" not in ("+value+")";
+                else return "";
+            }
+            else
+            {
+                if ( op == eq ) return name+" = '"+value+"'";
+                else if ( op == gt ) return name+" > '"+value+"'";
+                else if ( op == gte ) return name+" >= '"+value+"'";
+                else if ( op == lt ) return name+" < '"+value+"'";
+                else if ( op == lte ) return name+" <= '"+value+"'";
+                else if ( op == ne ) return name+" <> '"+value+"'";
+                else if ( op == in ) return name+" in ("+value+")";
+                else if ( op == nin ) return name+" not in ("+value+")";
+                else return "";
+            }
         }
         virtual ~UnaryOperator(){}
 };
@@ -121,6 +140,7 @@ class PSQLAbstractQueryIterator {
         void setNativeSQL(string _sql);
         void filter ( Expression const & e);
         bool execute();
+        long getResultCount();
         virtual ~PSQLAbstractQueryIterator();
 };
 

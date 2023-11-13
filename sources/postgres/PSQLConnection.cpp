@@ -128,8 +128,17 @@ long PSQLConnection::executeInsertQuery(string psql_query)
 
 vector<string> PSQLConnection::getTableNames()
 {
-
     return (this->table_names);
+}
+
+
+void PSQLConnection::startTransaction ()
+{
+    PQexec(psql_connection,"BEGIN");
+}
+void PSQLConnection::commitTransaction()
+{
+    PQexec(psql_connection,"COMMIT");
 }
 PSQLConnection::~PSQLConnection()
 {

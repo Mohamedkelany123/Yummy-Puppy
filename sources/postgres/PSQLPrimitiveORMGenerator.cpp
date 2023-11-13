@@ -270,8 +270,8 @@ void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name)
 void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
 
-    extra_methods_def += "\t\tbool update ();\n";
-    extra_methods += "\t\tbool "+class_name+"::update (){\n";
+    extra_methods_def += "\t\tbool update (PSQLConnection * _psqlConnection=NULL);\n";
+    extra_methods += "\t\tbool "+class_name+"::update (PSQLConnection * _psqlConnection){\n";
     extra_methods += "\t\t\tstring update_string = \"\";\n";
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
@@ -300,11 +300,15 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
 
     extra_methods += "\t\t\tif (update_string != \"\")  {\n";
     extra_methods += "\t\t\t\tupdate_string = \"update "+table_name+" set \"+update_string+\" where "+primary_key+"= '\"+std::to_string(orm_"+primary_key+")+\"'\";\n";
-    extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = psqlController.getPSQLConnection(\"main\");\n";
+    extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = _psqlConnection;\n";
+    extra_methods += "\t\t\t\tif (_psqlConnection == NULL )\n";
+    extra_methods += "\t\t\t\t\tpsqlConnection = psqlController.getPSQLConnection(\"main\");\n";
     extra_methods += "\t\t\t\tpsqlConnection->executeUpdateQuery(update_string);\n";
     extra_methods += "\t\t\t\tupdate_flag.reset();\n";
-    extra_methods += "\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
+    extra_methods += "\t\t\t\tif (_psqlConnection == NULL )\n";
+    extra_methods += "\t\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
     extra_methods += "\t\t\t}\n";
+    extra_methods += "\t\t\telse return false;\n";
 
 
     extra_methods += "\t\t\treturn true;\n";
@@ -315,8 +319,8 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
 void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
 
-    extra_methods_def += "\t\tlong insert ();\n";
-    extra_methods += "\t\tlong "+class_name+"::insert (){\n";
+    extra_methods_def += "\t\tlong insert (PSQLConnection * _psqlConnection=NULL);\n";
+    extra_methods += "\t\tlong "+class_name+"::insert (PSQLConnection * _psqlConnection){\n";
     extra_methods += "\t\t\tstring insert_string = \"\";\n";
     string columns_string = "";
     string values_string = "";
@@ -358,9 +362,12 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
     if ( columns_string !="")
     {
         extra_methods += "\t\t\t\tinsert_string = \"insert into "+table_name+" ("+columns_string+") values (\"+"+values_string+"+\") returning id\";\n";
-        extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = psqlController.getPSQLConnection(\"main\");\n";
+        extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = _psqlConnection;\n";
+        extra_methods += "\t\t\t\tif (psqlConnection == NULL )\n";
+        extra_methods += "\t\t\t\t\tpsqlConnection = psqlController.getPSQLConnection(\"main\");\n";
         extra_methods += "\t\t\t\torm_"+primary_key+"=psqlConnection->executeInsertQuery(insert_string);\n";
-        extra_methods += "\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
+        extra_methods += "\t\t\t\tif (_psqlConnection == NULL )\n";
+        extra_methods += "\t\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
         extra_methods += "\t\t\t\tupdate_flag.reset();\n";
         extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
     }

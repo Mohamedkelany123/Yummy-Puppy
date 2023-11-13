@@ -29,6 +29,8 @@ public:
     bool executeUpdateQuery(string psql_query);
     long executeInsertQuery(string psql_query);
     vector<string> getTableNames();
+    void startTransaction ();
+    void commitTransaction();
     ~PSQLConnection();
 };
 
