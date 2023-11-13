@@ -60,6 +60,8 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     if (psqlAbstractORM->getIdentifier() == -1 )
     {
         insert_cache[name].push_back(psqlAbstractORM);
+        for ( int i  = insert_thread_cache.size() ; i < insert_cache_items_count%threads_count +1 ; i++)
+            insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
         insert_thread_cache[insert_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
         insert_cache_items_count++;
     }
@@ -78,6 +80,8 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
                 }
                 else
                 {  
+                    for ( int i  = update_thread_cache.size() ; i < update_cache_items_count%threads_count +1 ; i++)
+                        update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
                     update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
                     update_cache_items_count++;
                 }
@@ -94,6 +98,8 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
                 // std::ostringstream ss;
                 // ss << std::this_thread::get_id() ;
                 update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
+                for ( int i  = update_thread_cache.size() ; i < update_cache_items_count%threads_count +1 ; i++)
+                    update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
                 update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
                 update_cache_items_count++;
             }
@@ -105,6 +111,8 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
             // ss << std::this_thread::get_id() ;
             // printf("assigning new %p for old %p   -   %s\n",psqlAbstractORM,orm,ss.str().c_str());
             update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
+            for ( int i  = update_thread_cache.size() ; i < update_cache_items_count%threads_count +1 ; i++)
+                update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
             update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
             update_cache_items_count++;
         }
