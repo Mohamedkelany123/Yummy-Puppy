@@ -13,6 +13,7 @@ class PSQLAbstractORM
         string identifier_name;
         bool loaded ;
         mutex lock;
+        string locking_thread;
     public:
         virtual string getFromString () = 0;
         virtual void assignResults (AbstractDBQuery * psqlQuery) = 0;
@@ -26,7 +27,7 @@ class PSQLAbstractORM
         PSQLAbstractORM (string _table_name,string _identifier);
         virtual PSQLAbstractORM * clone ()=0;
         virtual void lock_me();
-        virtual void unlock_me();        
+        virtual void unlock_me(bool restrict_to_owner = false);        
         virtual ~PSQLAbstractORM();
 };
 

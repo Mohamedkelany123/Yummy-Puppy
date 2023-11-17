@@ -6,6 +6,7 @@ PSQLAbstractORM::PSQLAbstractORM (string _table_name,string _identifier_name)
     table_name = _table_name;
     identifier_name = _identifier_name;
     loaded = false;
+    locking_thread = "";
     // psqlConnection = new PSQLConnection ("localhost",5432,"django_ostaz_15082023_old","postgres","postgres");
     // psqlQuery = NULL;
     // map<string, vector<string>> results  = psqlQuery->getResultAsString();
@@ -35,14 +36,19 @@ void PSQLAbstractORM::lock_me()
 {
     std::ostringstream ss;
     ss << std::this_thread::get_id() ;
-    // printf ("lock_me: %p  -   %s \n",this,ss.str().c_str()); 
+//    printf ("lock_me: %p  -   %s \n",this,ss.str().c_str()); 
     lock.lock();
+    locking_thread = ss.str();
 }
-void PSQLAbstractORM::unlock_me()
+void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
 {
+    if ( locking_thread == "") return ;
     std::ostringstream ss;
     ss << std::this_thread::get_id() ;
-    // printf ("unlock_me: %p  -   %s \n",this,ss.str().c_str()); 
+//    printf ("unlock_me: %p  -   %s \n",this,ss.str().c_str()); 
+    if (restrict_to_owner)
+        if (ss.str() != locking_thread) return;
+    locking_thread = "";
     lock.try_lock();
     lock.unlock();
 }

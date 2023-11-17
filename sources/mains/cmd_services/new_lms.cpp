@@ -11,6 +11,9 @@
 #include <loan_app_loanstatushistroy_primitive_orm.h>
 #include <new_lms_installmentstatushistory_primitive_orm.h>
 
+enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
+
+
 
 class BDate
 {
@@ -73,23 +76,22 @@ int main (int argc, char ** argv)
             (
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,"2023-11-15"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,"0"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::UNDUE_TO_DUE)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
             )
         );
         psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
-                shared_lock->lock();
-                cout << ieorm->get_installment_ptr_id() << endl;
-                shared_lock->unlock();
+                loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
                 ieorm->set_payment_status(4);
                 new_lms_installmentpaymentstatushistory_primitive_orm * orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
                 orm->set_day(ORM(loan_app_installment,orms)->get_day());
                 orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
                 orm->set_status(4); // 4
+                lal_orm->set_lms_closure_status(closure_status::UNDUE_TO_DUE);
         });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(false,true);   
+        psqlController.ORMCommit(true,true);   
         delete (psqlQueryJoin);
         cout << "Undue to Due done" << endl;
     }
@@ -107,7 +109,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte,"2023-11-15"),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,"0"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::DUE_TO_OVERDUE)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
                 // new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",eq,"1373603")
             )
@@ -120,6 +122,8 @@ int main (int argc, char ** argv)
                 BDate reference_date; 
                 new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
                 vector <new_lms_installmentlatefees_primitive_orm *> * lform_v = ORM(new_lms_installmentextension,orms)->get_new_lms_installmentlatefees_installment_extension_id();
+                loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
+
                 int late_fees_count = lform_v->size();
                 if ( ieorm->get_payment_status() != 0 )
                 {
@@ -131,7 +135,7 @@ int main (int argc, char ** argv)
                 }
 
 
-                shared_lock->lock();
+                // shared_lock->lock();
                 // cout << ieorm->get_installment_ptr_id() << " -> " <<  lform_v->size() <<  "->";
                 if (lform_v->size() > 0 )
                 {
@@ -178,12 +182,14 @@ int main (int argc, char ** argv)
                     reference_date.inc_month();
                     if (status_index < buckets.size()-1) status_index ++;
                 } 
+                lal_orm->set_lms_closure_status(closure_status::DUE_TO_OVERDUE);
+
                 // cout << "connection_count: " << psqlController.getDataSourceConnectionCount("main") << endl;
                 // cout << "Finished iteration" << endl;
-                shared_lock->unlock();
+                // shared_lock->unlock();
         });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit();   
+        psqlController.ORMCommit(true,true);   
         delete (psqlQueryJoin);
         cout << "Due to OverDue done" << endl;
     }
@@ -199,7 +205,7 @@ int main (int argc, char ** argv)
             (
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_yesterday.getDateString()),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",nin,"1,2,3,6"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,"0"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::UPDATE_LOAN_STATUS)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
             )
         );
@@ -279,9 +285,11 @@ int main (int argc, char ** argv)
                     fb = fra_buckets[bucket_index];
                     reference_date.inc_month();
                 }
+                lal_orm->set_lms_closure_status(closure_status::UPDATE_LOAN_STATUS);
+
         });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit();   
+        psqlController.ORMCommit(true,true);   
         delete (psqlQueryJoin);
         cout << "Loan Status done" << endl;
     }
@@ -302,7 +310,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,"0"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::MARGINALIZE_INCOME)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
             )
@@ -314,7 +322,7 @@ int main (int argc, char ** argv)
                 shared_lock->unlock();
             });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit();   
+        psqlController.ORMCommit(true,true);   
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 1" << endl;
 
@@ -332,7 +340,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,"0"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::MARGINALIZE_INCOME)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
             )
@@ -346,7 +354,7 @@ int main (int argc, char ** argv)
             });
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit();   
+        psqlController.ORMCommit(true,true);   
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 2" << endl;
 
@@ -360,14 +368,13 @@ int main (int argc, char ** argv)
             ANDOperator 
             (
                 new UnaryOperator ("new_lms_installmentextension.is_marginalized",eq,"f"),
-                new UnaryOperator ("new_lms_installmentextension.is_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,"2023-11-15"),
                 new UnaryOperator ("loan_app_loan.loan_booking_day",lte,"2023-11-15"),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,"0"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::MARGINALIZE_INCOME)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"), // check this
                 new UnaryOperator ("loan_app_installment.day",lte,"2023-11-15"), // check this
@@ -389,9 +396,9 @@ int main (int argc, char ** argv)
             });
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit();   
+        psqlController.ORMCommit(true,true);   
         delete (psqlQueryJoin);
-        cout << "Marginalization Setp 2" << endl;
+        cout << "Marginalization Setp 3" << endl;
 
     }
 

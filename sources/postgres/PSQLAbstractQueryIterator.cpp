@@ -118,6 +118,8 @@ void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQue
         // shared_lock->lock();
         // cout << "Exiting process_internal" << endl;
         // me->unlock_orms(orms);
+        cout << "Start freeing relative resources" << endl;
+        psqlController.unlock_current_thread_orms();
 }
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)

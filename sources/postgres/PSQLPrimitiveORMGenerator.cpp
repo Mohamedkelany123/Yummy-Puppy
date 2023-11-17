@@ -298,20 +298,21 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
         }
     }
 
+    extra_methods += "\t\t\tbool return_flag=true;\n";
     extra_methods += "\t\t\tif (update_string != \"\")  {\n";
     extra_methods += "\t\t\t\tupdate_string = \"update "+table_name+" set \"+update_string+\" where "+primary_key+"= '\"+std::to_string(orm_"+primary_key+")+\"'\";\n";
     extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = _psqlConnection;\n";
     extra_methods += "\t\t\t\tif (_psqlConnection == NULL )\n";
     extra_methods += "\t\t\t\t\tpsqlConnection = psqlController.getPSQLConnection(\"main\");\n";
-    extra_methods += "\t\t\t\tpsqlConnection->executeUpdateQuery(update_string);\n";
+    extra_methods += "\t\t\t\treturn_flag=psqlConnection->executeUpdateQuery(update_string);\n";
     extra_methods += "\t\t\t\tupdate_flag.reset();\n";
     extra_methods += "\t\t\t\tif (_psqlConnection == NULL )\n";
     extra_methods += "\t\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
     extra_methods += "\t\t\t}\n";
-    extra_methods += "\t\t\telse return false;\n";
+    extra_methods += "\t\t\telse return return_flag;\n";
 
 
-    extra_methods += "\t\t\treturn true;\n";
+    extra_methods += "\t\t\treturn return_flag;\n";
     extra_methods += "\t\t}\n";
 }
 

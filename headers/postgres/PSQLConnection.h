@@ -31,6 +31,7 @@ public:
     vector<string> getTableNames();
     void startTransaction ();
     void commitTransaction();
+    void rollbackTransaction();
     ~PSQLConnection();
 };
 

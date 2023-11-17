@@ -15,7 +15,7 @@ class PSQLORMCache
         int update_cache_items_count;
         
         std::mutex lock;
-        static bool commit_parallel_internal (PSQLORMCache * me,int t_index,mutex * shared_lock,PSQLConnection * _psqlConnection);
+        static bool commit_parallel_internal (PSQLORMCache * me,int t_index,mutex * shared_lock,PSQLConnection * _psqlConnection,vector <bool> * threads_results);
     public:
         PSQLORMCache();
         void set_threads_count (int _threads_count);
@@ -23,14 +23,15 @@ class PSQLORMCache
         PSQLAbstractORM * add(string name,PSQLAbstractORM * psqlAbstractORM);
         bool release(string name,PSQLAbstractORM * psqlAbstractORM);
         void release();
-        void commit_parallel (PSQLConnection * _psqlConnection);
-        void commit_sequential (PSQLConnection * _psqlConnection);
+        void commit_parallel (bool transaction=false);
+        void commit_sequential (bool transaction=false);
         void commit(bool parallel=false,bool transaction=false);
         void commit(string name);
         void commit(string name,long id);
         void flush();
         void flush(string name);
         void flush(string name,long id);
+        void unlock_current_thread_orms();
         ~PSQLORMCache();
 };
 

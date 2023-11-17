@@ -22,6 +22,7 @@ class PSQLController
         void ORMFlush(string name,long id);
         int getDataSourceConnectionCount(string data_source_name);
         void setORMCacheThreads (int _threads_count);
+        void unlock_current_thread_orms();
         ~PSQLController();
 };
 

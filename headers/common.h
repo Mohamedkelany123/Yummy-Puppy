@@ -24,6 +24,7 @@
 #include <stdarg.h>
 #include <json.hpp>
 #include <bitset>
+#include <future>
 
 using namespace std;
 using json = nlohmann::json;

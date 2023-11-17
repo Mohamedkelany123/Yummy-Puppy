@@ -134,12 +134,18 @@ vector<string> PSQLConnection::getTableNames()
 
 void PSQLConnection::startTransaction ()
 {
+    PQexec(psql_connection,"SET AUTOCOMMIT OFF");
     PQexec(psql_connection,"BEGIN");
 }
 void PSQLConnection::commitTransaction()
 {
     PQexec(psql_connection,"COMMIT");
 }
+void PSQLConnection::rollbackTransaction()
+{
+    PQexec(psql_connection,"ROLLBACK");
+}
+
 PSQLConnection::~PSQLConnection()
 {
     if (psql_connection != NULL)

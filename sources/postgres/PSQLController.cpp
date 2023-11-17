@@ -57,6 +57,11 @@ void PSQLController::setORMCacheThreads (int _threads_count)
     psqlORMCache->set_threads_count(_threads_count);
 }
 
+void PSQLController::unlock_current_thread_orms()
+{
+    psqlORMCache->unlock_current_thread_orms();
+}
+
 PSQLController::~PSQLController()
 {
     delete (psqlORMCache);

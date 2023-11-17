@@ -175,6 +175,7 @@ class PSQLQueryPartitionIterator {
             if (psqlQuery->fetchNextRow())
             {
                 T * obj = new T();
+                // printf ("----- cloning ORM %p \n",obj);
                 obj->assignResults(psqlQuery);
                 return obj;
             }
@@ -200,6 +201,7 @@ class PSQLJoinQueryPartitionIterator {
                 for (auto orm_object: *orm_objects) 
                 {
                     PSQLAbstractORM * orm = orm_object->clone();
+                    // printf ("cloning ORM %p from %p\n",orm,orm_object);
                     // cout << "before assignresults" << endl;
                     orm->assignResults(psqlQuery);
                     // cout << "after assignresults" << endl;
