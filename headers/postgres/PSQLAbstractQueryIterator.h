@@ -138,7 +138,7 @@ class PSQLAbstractQueryIterator {
     public:
         PSQLAbstractQueryIterator(string _data_source_name,string _table_name);
         void setNativeSQL(string _sql);
-        void filter ( Expression const & e);
+        void filter ( Expression const & e,bool print_sql=false);
         bool execute();
         long getResultCount();
         virtual ~PSQLAbstractQueryIterator();

@@ -23,7 +23,7 @@ class %s : public PSQLAbstractQueryIterator
     public:
         %s(string _data_source_name);
         %s * operator [] (long index);
-        %s * next ();
+        %s * next (bool _read_only=false);
         %s * back ();
         void process(int partitions_count,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f);
         ~%s ();

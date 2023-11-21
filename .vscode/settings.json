@@ -92,6 +92,8 @@
         "cinttypes": "cpp",
         "source_location": "cpp",
         "valarray": "cpp",
-        "__availability": "cpp"
+        "__availability": "cpp",
+        "any": "cpp",
+        "forward_list": "cpp"
     }
 }

@@ -24,7 +24,7 @@ string PSQLNumeric::genSetter (string class_name,int col_index)
 }
 string PSQLNumeric::genGetter (string class_name)
 {
-    return "\t\tdouble "+class_name+"::get_"+column_name+"() { return "+field_name+";} \n";
+    return "\t\tdouble  "+class_name+"::get_"+column_name+"() { return "+field_name+";} \n";
 }
 string PSQLNumeric::genSetterDef ()
 {

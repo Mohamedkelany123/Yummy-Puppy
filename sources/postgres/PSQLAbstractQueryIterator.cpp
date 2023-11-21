@@ -17,11 +17,18 @@ void PSQLAbstractQueryIterator::setNativeSQL(string _sql)
 {
     sql=_sql;
 }
-void PSQLAbstractQueryIterator::filter (const Expression & e)
+void PSQLAbstractQueryIterator::filter (const Expression & e,bool print_sql)
 {
     if ( conditions == "")
         conditions = " where " + e.generate();
     else conditions += " and "+ e.generate();
+    if ( print_sql)
+    {
+        if (orderby_string == "")
+            sql = "select "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
+        else sql = "select "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
+        cout << sql << endl;
+    }
 }
 bool PSQLAbstractQueryIterator::execute()
 {
@@ -118,8 +125,9 @@ void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQue
         // shared_lock->lock();
         // cout << "Exiting process_internal" << endl;
         // me->unlock_orms(orms);
-        cout << "Start freeing relative resources" << endl;
+        // cout << "Start freeing relative resources" << endl;
         psqlController.unlock_current_thread_orms();
+        // cout << "After psqlController.unlock_current_thread_orms()" << endl;
 }
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
@@ -136,10 +144,15 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         }
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
+                // cout << "Start freeing thread # " << i << endl;
                 thread * t = threads[i];
                 t->join();
+                // cout << "Out of Join thread # " << i << endl;
                 delete (t);
+                // cout << "After Delete thread # " << i << endl;
                 delete((*p)[i]);
+                // cout << "After Delete partition of thread # " << i << endl;
+
         }
     }
 }

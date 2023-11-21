@@ -12,12 +12,12 @@
 {
     return NULL;
 }
-%s * %s::next ()
+%s * %s::next (bool _read_only)
 {
     if (psqlQuery->fetchNextRow())
     {
         %s * obj = new %s();
-        obj->assignResults(psqlQuery);
+        obj->assignResults(psqlQuery,_read_only);
         return obj;
     }
     else return NULL;

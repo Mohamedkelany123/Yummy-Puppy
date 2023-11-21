@@ -25,10 +25,14 @@
 #include <json.hpp>
 #include <bitset>
 #include <future>
+#include <list>
 
 using namespace std;
 using json = nlohmann::json;
 
 #define ORM(T,O) ((T##_primitive_orm *)((*O)[#T]))
+
+
+#define force_inline 
 
 #endif

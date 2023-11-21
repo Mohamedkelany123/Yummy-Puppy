@@ -132,8 +132,8 @@ void PSQLPrimitiveORMGenerator::generateFromString (string class_name,string tab
 
 void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
-    extra_methods_def += "\t\tvoid assignResults (AbstractDBQuery * psqlQuery);\n";
-    extra_methods += "\t\tvoid "+class_name+"::assignResults (AbstractDBQuery * psqlQuery){\n";
+    extra_methods_def += "\t\tvoid assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false);\n";
+    extra_methods += "\t\tvoid "+class_name+"::assignResults (AbstractDBQuery * psqlQuery,bool _read_only){\n";
     // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
@@ -147,7 +147,7 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string 
         }
     }
     extra_methods += "\t\t\tloaded=true;\n";
-    extra_methods += "\t\t\taddToCache();\n";
+    extra_methods += "\t\t\tif (!_read_only) addToCache();\n";
     extra_methods += "\t\t}\n";
 }
 void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,string table_name,map<string, vector<string>> columns_definition)
@@ -215,13 +215,22 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     string temp = "";
     for (;psqlQuery->fetchNextRow();)
     {
+        declaration += "\t\t\tbool "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only;\n";
         constructor_destructor += "\t\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
         declaration += "\t\tvector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+";\n";
         constructor_destructor += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = NULL;\n";
+        constructor_destructor += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only=false;\n";
+
         includes += "#include <"+psqlQuery->getValue("fk_table")+"_primitive_orm.h>\n";
-        temp += "\t\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"!= NULL) delete ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+");\n";   
-        getters += "vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * "+class_name+"::get_"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"(){\n";
+        temp += "\t\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"!= NULL){\n"; 
+
+        temp += "\t\t\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only)\n";   
+        temp += "\t\t\t\t\tfor (auto orm :(*"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+")) delete (orm);\n";   
+        temp += "\t\t\t\tdelete ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+");\n";   
+        temp += "\t\t\t}\n";   
+        getters += "vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * "+class_name+"::get_"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"(bool _read_only){\n";
         getters += "\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"== NULL) {\n";
+        getters += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only = _read_only;\n";
         getters += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = new vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> ();\n";
         getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm_iterator * i = new "+psqlQuery->getValue("fk_table")+"_primitive_orm_iterator(\"main\");\n";
 
@@ -230,13 +239,13 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
         getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm * orm = NULL;\n";
 //        getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm * orm = new "+psqlQuery->getValue("fk_table")+"_primitive_orm();\n";
         getters += "\t\t\tdo {\n";
-		getters += "\t\t\t\torm = i->next();\n";
+		getters += "\t\t\t\torm = i->next(_read_only);\n";
 		getters += "\t\t\t\tif (orm!= NULL) "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"->push_back(orm);\n";
 		getters += "\t\t\t} while (orm != NULL);\n";
         getters += "\t\t\tdelete(i);\n";
         getters += "\t\t\t}\n";
         getters += "\t\t\treturn "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +";\n}\n";
-        getters_def +=  "\t\tvector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * get_"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"();\n";
+        getters_def +=  "\t\tvector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * get_"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"(bool _read_only=false);\n";
     }
     delete (psqlQuery);
     constructor_destructor +="\t\t}\n";

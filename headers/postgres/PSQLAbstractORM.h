@@ -16,7 +16,7 @@ class PSQLAbstractORM
         string locking_thread;
     public:
         virtual string getFromString () = 0;
-        virtual void assignResults (AbstractDBQuery * psqlQuery) = 0;
+        virtual void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) = 0;
         virtual long getIdentifier() = 0;
         virtual bool isUpdated() = 0;
         virtual bool update(PSQLConnection * _psqlConnection=NULL) = 0;
