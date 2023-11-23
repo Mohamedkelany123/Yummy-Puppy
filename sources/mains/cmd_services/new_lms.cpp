@@ -36,7 +36,13 @@ class BDate
                 strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S",&tm);    
                 tm.tm_hour +=TIME_ZONE_OFFEST;
             }
-            else is_null = true;
+            else
+            {
+                is_null = true;
+                date_string = "1970-01-01 00:00:00";
+                strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S",&tm);    
+                tm.tm_hour +=TIME_ZONE_OFFEST;
+            }
         }
         BDate(string date_string="")
         {
@@ -156,8 +162,6 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
 
 int main (int argc, char ** argv)
 {
-
-
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
     psqlController.setORMCacheThreads(10);
     BDate closure_date("2023-11-15");
@@ -187,7 +191,7 @@ int main (int argc, char ** argv)
                 lal_orm->set_lms_closure_status(closure_status::UNDUE_TO_DUE);
         });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true);   
+        psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
         cout << "Undue to Due done" << endl;
     }
@@ -288,7 +292,7 @@ int main (int argc, char ** argv)
                 // shared_lock->unlock();
         });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true);   
+        psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
         cout << "Due to OverDue done" << endl;
     }
@@ -388,7 +392,7 @@ int main (int argc, char ** argv)
 
         });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true);   
+        psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
         cout << "Loan Status done" << endl;
     }
@@ -440,7 +444,7 @@ int main (int argc, char ** argv)
             });
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true);   
+        psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 1" << endl;
 
@@ -483,7 +487,7 @@ int main (int argc, char ** argv)
                 // shared_lock->unlock();
             });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true);   
+        psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 2" << endl;
 
@@ -608,19 +612,120 @@ int main (int argc, char ** argv)
             });
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true);   
+        psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 3" << endl;
 
     }
 
+    if ( strcmp (argv[6],"long_to_short") == 0 || strcmp (argv[6],"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+        {new new_lms_installmentextension_primitive_orm(),new loan_app_installment_primitive_orm(),new loan_app_loan_primitive_orm()},
+        {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
+        {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}
+        });
+
+        psqlQueryJoin->filter(
+            ANDOperator 
+            (
+                new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.is_long_term",eq,"t"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::LONG_TO_SHORT_TERM)),
+                new UnaryOperator ("loan_app_loan.status_id",nin,"12, 13"),
+                new OROperator (
+                    new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,"f"),
+                    new ANDOperator (
+                        new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,"t"),
+                        new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date::date",lte,"new_lms_installmentextension.principal_paid_at::date",true)
+                    )
+                )
+            )
+        );
+
+        psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+                new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
+                loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
+                ie_orm->set_is_long_term(true);
+                lal_orm->set_lms_closure_status(closure_status::LONG_TO_SHORT_TERM);
+                // shared_lock->lock();
+                //     cout << ie_orm->get_installment_ptr_id() << " : " << ie_orm->get_is_principal_paid() << " : " << ie_orm->get_principal_paid_at() << endl;
+                // shared_lock->unlock();
+            });
+        cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
+        psqlController.ORMCommit(true,true,true);   
+        delete (psqlQueryJoin);
+        cout << "Long to short term" << endl;
+
+    }
+
+
+    if ( strcmp (argv[6],"last_accrual_interest_date") == 0 || strcmp (argv[6],"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+        {new new_lms_installmentextension_primitive_orm(),new loan_app_installment_primitive_orm(),new loan_app_loan_primitive_orm()},
+        {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
+        {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
+        });
+
+        psqlQueryJoin->setOrderBy("loan_app_loan.id asc ,new_lms_installmentextension.accrual_date asc");
+        psqlQueryJoin->setDistinct(" distinct on (loan_app_loan.id) ");
+        psqlQueryJoin->filter(
+            ANDOperator 
+            (
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13,14,15"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::LAST_ACCRUED_DAY)),
+                new OROperator (
+                    new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,"2023-11-15"),
+                    new ANDOperator (
+                        new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",isnull,"abc"),
+                        new UnaryOperator ("loan_app_installment.day-1",lte,"2023-11-15")
+                    )
+                )
+               
+
+            )
+        );
+
+        psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+                new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
+                loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
+                BDate accrual_date(ie_orm->get_accrual_date());
+                BDate partual_accrual_date(ie_orm->get_partial_accrual_date());
+                BDate first_accrual_adjustment_date(lal_orm->get_first_accrual_adjustment_date());
+                BDate last_accrued_interest_day(lal_orm->get_last_accrued_interest_day());
+                BDate new_last_accrued_interest_day ("");
+
+                if ( accrual_date() >= partual_accrual_date() &&  accrual_date() >= first_accrual_adjustment_date ()) 
+                    new_last_accrued_interest_day.set_date(accrual_date.getDateString());
+                else if ( partual_accrual_date() >= accrual_date() &&  partual_accrual_date() >= first_accrual_adjustment_date ()) 
+                    new_last_accrued_interest_day.set_date(partual_accrual_date.getDateString());
+                else if ( first_accrual_adjustment_date() >= accrual_date() &&  first_accrual_adjustment_date() >= partual_accrual_date ()) 
+                    new_last_accrued_interest_day.set_date(first_accrual_adjustment_date.getDateString());
+
+                if ( last_accrued_interest_day() <  new_last_accrued_interest_day())
+                {
+                    lal_orm->set_last_accrued_interest_day(new_last_accrued_interest_day.getDateString());
+                    lal_orm->set_lms_closure_status(closure_status::LAST_ACCRUED_DAY);
+                }
+                // shared_lock->lock();
+                // if ( last_accrued_interest_day() <  new_last_accrued_interest_day())
+                //     cout << lal_orm->get_id() << " - " << accrual_date.getDateString() << " - " << partual_accrual_date.getDateString() << " - " << first_accrual_adjustment_date.getDateString() << " ---> " << last_accrued_interest_day.getDateString() << " ===== " << lal_orm->get_last_accrued_interest_day() << endl;
+                // shared_lock->unlock();
+            });
+        cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
+        psqlController.ORMCommit(true,true,true);   
+        delete (psqlQueryJoin);
+        cout << "Loan Last Accrual Day" << endl;
+
+    }
 
 
 
     return 0;
 }
 
-//select lal.id,nli.accrual_date,nli.partial_accrual_date,lal.first_accrual_adjustment_date from loan_app_loan lal, loan_app_installment lai, new_lms_installmentextension nli where lal.id=li.loan_id and lai.id = nli.installment_ptr_id and ((lai.day-1 <= '2023-11-15' and nli.partial_accrual_date is null )or nli.partial_accrual_date <= '2023-11-15') and lal.status_id not in (12,13,6,8,15) order by loan_id asc ,nli.accrual_date desc;
+//select lal.id,nli.accrual_date,nli.partial_accrual_date,lal.first_accrual_adjustment_date from loan_app_loan lal, loan_app_installment lai, new_lms_installmentextension nli where lal.id=lai.loan_id and lai.id = nli.installment_ptr_id and ((lai.day-1 <= '2023-11-15' and nli.partial_accrual_date is null )or nli.partial_accrual_date <= '2023-11-15') and lal.status_id not in (12,13,6,8,15) order by loan_id asc ,nli.accrual_date desc;
 
 // select max(id) from new_lms_installmentlatefees;
 //    max   

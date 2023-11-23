@@ -22,9 +22,9 @@ PSQLAbstractORM * PSQLController::addToORMCache(string name,PSQLAbstractORM * ps
 {
     return psqlORMCache->add(name,psqlAbstractORM);
 }
-void PSQLController::ORMCommit(bool parallel,bool transaction)
+void PSQLController::ORMCommit(bool parallel,bool transaction,bool clean_updates)
 {
-    psqlORMCache->commit(parallel,transaction);
+    psqlORMCache->commit(parallel,transaction,clean_updates);
 }
 void PSQLController::ORMCommit(string name)
 {

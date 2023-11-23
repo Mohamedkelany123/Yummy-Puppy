@@ -2,7 +2,7 @@
 #define PSQLABSTRACTQUERYITERATOR_H
 
 #include <PSQLAbstractORM.h>
-enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin };
+enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin,isnull,isnotnull };
 
 class Expression{
 
@@ -105,6 +105,8 @@ class UnaryOperator : public Expression {
                 else if ( op == ne ) return name+" <> "+value;
                 else if ( op == in ) return name+" in ("+value+")";
                 else if ( op == nin ) return name+" not in ("+value+")";
+                else if ( op == isnull ) return name+" is null";
+                else if ( op == isnotnull ) return name+" is not null";
                 else return "";
             }
             else
@@ -117,6 +119,8 @@ class UnaryOperator : public Expression {
                 else if ( op == ne ) return name+" <> '"+value+"'";
                 else if ( op == in ) return name+" in ("+value+")";
                 else if ( op == nin ) return name+" not in ("+value+")";
+                else if ( op == isnull ) return name+" is null";
+                else if ( op == isnotnull ) return name+" is not null";
                 else return "";
             }
         }
@@ -135,12 +139,15 @@ class PSQLAbstractQueryIterator {
         string sql;
         string from_string;
         string orderby_string;
+        string distinct;
     public:
         PSQLAbstractQueryIterator(string _data_source_name,string _table_name);
         void setNativeSQL(string _sql);
         void filter ( Expression const & e,bool print_sql=false);
         bool execute();
         long getResultCount();
+        void setOrderBy(string _orderby_string);
+        void setDistinct(string _distinct_string);
         virtual ~PSQLAbstractQueryIterator();
 };
 

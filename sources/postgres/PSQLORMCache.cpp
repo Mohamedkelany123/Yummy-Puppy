@@ -163,7 +163,7 @@ void PSQLORMCache::release()
 }
 
 
-void PSQLORMCache::commit_parallel (bool transaction)
+void PSQLORMCache::commit_parallel (bool transaction, bool clean_updates)
 {
     vector <thread *> threads;
     vector <bool> thread_results (threads_count);
@@ -212,11 +212,34 @@ void PSQLORMCache::commit_parallel (bool transaction)
             psqlController.releaseConnection("main",psqlConnections[i]);
         }
     }
+
+    for (auto orm_cache: insert_cache)
+    {
+        for (auto orm_cache_item:orm_cache.second) 
+                delete (orm_cache_item);
+        insert_cache[orm_cache.first].clear();
+    }
+    insert_cache.clear();
+
     for ( int i = 0 ; i < insert_thread_cache.size() ; i ++)
         insert_thread_cache[i].clear();
 
+    if (clean_updates)
+    {
+        for (auto orm_cache: update_cache)
+            for (auto orm_cache_item:orm_cache.second) 
+                if (orm_cache_item.second->isUpdated())
+                {
+                    if (clean_updates) delete (orm_cache_item.second);
+                }
+        for (auto orm_cache: update_cache)
+            orm_cache.second.clear();
+        update_cache.clear();
+    }
+
+
 }
-void PSQLORMCache::commit_sequential (bool transaction)
+void PSQLORMCache::commit_sequential (bool transaction, bool clean_updates)
 {
     PSQLConnection * psqlConnection = NULL;
     if (transaction)
@@ -241,6 +264,7 @@ void PSQLORMCache::commit_sequential (bool transaction)
         }
         insert_cache[orm_cache.first].clear();
     }
+    insert_cache.clear();
     for ( int i = 0 ; i < insert_thread_cache.size() ; i ++)
         insert_thread_cache[i].clear();
 
@@ -252,10 +276,17 @@ void PSQLORMCache::commit_sequential (bool transaction)
                 orm_cache_item.second->lock_me();
                 orm_cache_item.second->update(psqlConnection);
                 orm_cache_item.second->unlock_me();
+                if (clean_updates) delete (orm_cache_item.second);
                 counter ++;
                 if (counter % 1000 == 0 )
                     cout << "Committed " << counter << " updates" << endl;
             }
+    if(clean_updates)
+    {
+        for (auto orm_cache: update_cache)
+            orm_cache.second.clear();
+        update_cache.clear();
+    }
     if (transaction)
     {
         psqlConnection->commitTransaction();
@@ -266,12 +297,12 @@ void PSQLORMCache::commit_sequential (bool transaction)
 
 
 
-void PSQLORMCache::commit(bool parallel,bool transaction)
+void PSQLORMCache::commit(bool parallel,bool transaction, bool clean_updates)
 {
     cout << "Staring to commit " << endl;
     std::lock_guard<std::mutex> guard(lock);
-    if ( parallel ) commit_parallel (transaction);
-    else commit_sequential(transaction);
+    if ( parallel ) commit_parallel (transaction,clean_updates);
+    else commit_sequential(transaction,clean_updates);
     cout << "Exiting commit" << endl;
 
 }

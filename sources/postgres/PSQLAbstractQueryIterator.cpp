@@ -25,8 +25,8 @@ void PSQLAbstractQueryIterator::filter (const Expression & e,bool print_sql)
     if ( print_sql)
     {
         if (orderby_string == "")
-            sql = "select "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
-        else sql = "select "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
+            sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
+        else sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
         cout << sql << endl;
     }
 }
@@ -34,8 +34,8 @@ bool PSQLAbstractQueryIterator::execute()
 {
     if (psqlConnection == NULL ) return false;
     if (orderby_string == "")
-        sql = "select "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
-    else sql = "select "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
+        sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
+    else sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
     // cout << sql << endl;
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
@@ -47,6 +47,17 @@ long PSQLAbstractQueryIterator::getResultCount()
         if (psqlQuery ==NULL) return 0;
         else return psqlQuery->getRowCount();
 }
+
+void PSQLAbstractQueryIterator::setOrderBy(string _orderby_string)
+{
+    orderby_string= _orderby_string;
+}
+
+void PSQLAbstractQueryIterator::setDistinct(string _distinct_string)
+{
+    distinct= _distinct_string;
+}
+
 PSQLAbstractQueryIterator::~PSQLAbstractQueryIterator()
 {
     psqlController.releaseConnection(data_source_name,psqlConnection);

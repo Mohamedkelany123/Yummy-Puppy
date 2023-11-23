@@ -23,9 +23,9 @@ class PSQLORMCache
         PSQLAbstractORM * add(string name,PSQLAbstractORM * psqlAbstractORM);
         bool release(string name,PSQLAbstractORM * psqlAbstractORM);
         void release();
-        void commit_parallel (bool transaction=false);
-        void commit_sequential (bool transaction=false);
-        void commit(bool parallel=false,bool transaction=false);
+        void commit_parallel (bool transaction=false, bool clean_updates=false);
+        void commit_sequential (bool transaction=false, bool clean_updates=false);
+        void commit(bool parallel=false,bool transaction=false, bool clean_updates=false);
         void commit(string name);
         void commit(string name,long id);
         void flush();
