@@ -162,12 +162,16 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
 
 int main (int argc, char ** argv)
 {   
-    if (argc != 7)
-        printf("usage: %s <address> <port_number> <database name> <username> <password> full_closure\n",argv[0]);
-
+    if (argc != 8)
+    {
+        printf("usage: %s <address> <port_number> <database name> <username> <password> <step> <date>YYYY-mm-dd\n",argv[0]);
+        exit(9);
+    }
+    //2023-11-15
+    string closure_date_string = argv[7];
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
     psqlController.setORMCacheThreads(10);
-    BDate closure_date("2023-11-15");
+    BDate closure_date(closure_date_string);
     if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
@@ -177,7 +181,7 @@ int main (int argc, char ** argv)
         psqlQueryJoin->filter(
             ANDOperator 
             (
-                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::UNDUE_TO_DUE)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
@@ -212,7 +216,7 @@ int main (int argc, char ** argv)
         psqlQueryJoin->filter(
             ANDOperator 
             (
-                new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::DUE_TO_OVERDUE)),
@@ -416,8 +420,8 @@ int main (int argc, char ** argv)
             (
                 new UnaryOperator ("new_lms_installmentextension.is_marginalized",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.is_partially_marginalized",eq,"f"),
-                new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,"2023-11-15"),
-                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4,5"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
@@ -459,8 +463,8 @@ int main (int argc, char ** argv)
             ANDOperator 
             (
                 new UnaryOperator ("new_lms_installmentextension.is_marginalized",eq,"f"),
-                new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,"2023-11-15"),
-                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
@@ -509,9 +513,9 @@ int main (int argc, char ** argv)
             (
                 new UnaryOperator ("new_lms_installmentlatefees.is_marginalized",eq,"f"),
                 new UnaryOperator ("new_lms_installmentlatefees.is_paid",eq,"f"),
-                new UnaryOperator ("new_lms_installmentlatefees.day",lte,"2023-11-15"),
-                new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,"2023-11-15"),
-                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentlatefees.day",lte,closure_date_string),
+                new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
@@ -632,7 +636,7 @@ int main (int argc, char ** argv)
         psqlQueryJoin->filter(
             ANDOperator 
             (
-                new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_long_term",eq,"t"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::LONG_TO_SHORT_TERM)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"12, 13"),
@@ -679,10 +683,10 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13,14,15"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::LAST_ACCRUED_DAY)),
                 new OROperator (
-                    new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,"2023-11-15"),
+                    new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,closure_date_string),
                     new ANDOperator (
                         new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",isnull,"abc"),
-                        new UnaryOperator ("loan_app_installment.day-1",lte,"2023-11-15")
+                        new UnaryOperator ("loan_app_installment.day-1",lte,closure_date_string)
                     )
                 )
                
