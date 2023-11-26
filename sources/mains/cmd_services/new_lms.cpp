@@ -161,7 +161,10 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
 
 
 int main (int argc, char ** argv)
-{
+{   
+    if (argc != 7)
+        printf("usage: %s <address> <port_number> <database name> <username> <password> full_closure\n",argv[0]);
+
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
     psqlController.setORMCacheThreads(10);
     BDate closure_date("2023-11-15");
