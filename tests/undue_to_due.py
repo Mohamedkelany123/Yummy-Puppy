@@ -113,7 +113,7 @@ class UndueToDue:
         try:
             print_colored("Test 4 :: Compare The Actual Payments History Status Entries", self.color_options.YELLOW ,bold=True)
 
-            query = f"select status, installment_extension_id , coalesce(order_id,-1) as order_id  , \"day\" from new_lms_installmentpaymentstatushistory nli where day >= {self.closure_before_running_date} order by  installment_extension_id desc,  \"day\" desc, status desc"
+            query = f"select status, installment_extension_id , coalesce(order_id,-1) as order_id  , \"day\" from new_lms_installmentpaymentstatushistory nli where day >= '{self.closure_before_running_date}' order by  installment_extension_id desc,  \"day\" desc, status desc"
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
@@ -137,7 +137,7 @@ class UndueToDue:
 
 
 
-    
+        
 
 
     def test_undue_to_due(self):

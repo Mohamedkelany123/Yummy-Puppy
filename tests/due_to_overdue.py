@@ -85,13 +85,13 @@ class DueToOverDue:
 
 
     #3-Creates entry for Installment status payment history entries 
-    def installment_payment_history_data(self):
+    def installment_payment_history_entries(self):
         try:
             print_colored("Test 3 :: Creates entry for Installment status payment history", self.color_options.YELLOW ,bold=True)
-            print_colored("Test 3 :: DINT FORGET TO CHECK THE CREATED_AT AND UPDATED_AT DATES IF THEY ARE CREATED CORRECTLY", self.color_options.RED ,bold=True)
+            # print_colored("Test 3 :: DINT FORGET TO CHECK THE CREATED_AT AND UPDATED_AT DATES IF THEY ARE CREATED CORRECTLY", self.color_options.RED ,bold=True)
 
 
-            query = f"select status, installment_extension_id , coalesce(order_id,-1) as order_id  , \"day\" from new_lms_installmentpaymentstatushistory nli where day >= {self.closure_before_running_date} order by  installment_extension_id desc,  \"day\" desc, status desc"
+            query = f"select status, installment_extension_id , coalesce(order_id,-1) as order_id  , \"day\" from new_lms_installmentpaymentstatushistory nli where day >= '{self.closure_before_running_date}' order by  installment_extension_id desc,  \"day\" desc, status desc"
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
@@ -116,13 +116,13 @@ class DueToOverDue:
 
 
     #4-Create late fees object
-    def installment_payment_history_data(self):
+    def late_fees_objects(self):
         try:
             print_colored("Test 4 :: Create late fees object", self.color_options.YELLOW ,bold=True)
             print_colored("Test 4 :: DINT FORGET TO CHECK THE CREATED_AT AND UPDATED_AT DATES IF THEY ARE CREATED CORRECTLY", self.color_options.RED ,bold=True)
 
 
-            query = f"select status, installment_extension_id , coalesce(order_id,-1) as order_id  , \"day\" from new_lms_installmentpaymentstatushistory nli where day >= {self.closure_before_running_date} order by  installment_extension_id desc,  \"day\" desc, status desc"
+
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
@@ -147,3 +147,5 @@ class DueToOverDue:
 
     def test_due_to_overdue(self):
         self.installment_extention(0)
+        self.due_to_due_overdue_closure_status()
+        self.installment_payment_history_entries()
