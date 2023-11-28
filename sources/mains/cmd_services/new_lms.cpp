@@ -233,6 +233,8 @@ int main (int argc, char ** argv)
                 new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
                 vector <new_lms_installmentlatefees_primitive_orm *> * lform_v = ORM(new_lms_installmentextension,orms)->get_new_lms_installmentlatefees_installment_extension_id();
                 loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
+                loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
+
 
                 int late_fees_count = lform_v->size();
                 if ( ieorm->get_payment_status() != 0 )
@@ -241,8 +243,11 @@ int main (int argc, char ** argv)
                     // if not ins_ext.loan.is_sticky or (ins_ext.loan.is_sticky and ins_ext.is_principal_paid==False)
                     if ( (lal_orm->get_status_id() != 11) or (lal_orm->get_status_id() != 11 and ieorm->get_is_principal_paid() == false))
                     {
+                        BDate overdue_date; 
+                        overdue_date.set_date(lai_orm->get_day());
+                        overdue_date.inc_day();
                         new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
-                        psh_orm->set_day(ieorm->get_due_to_overdue_date());
+                        psh_orm->set_day(overdue_date.getDateString());
                         psh_orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
                         psh_orm->set_status(0); // 0
                     }
