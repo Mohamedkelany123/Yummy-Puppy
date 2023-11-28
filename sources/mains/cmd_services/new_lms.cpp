@@ -237,11 +237,16 @@ int main (int argc, char ** argv)
                 int late_fees_count = lform_v->size();
                 if ( ieorm->get_payment_status() != 0 )
                 {
+                    // buggy behavior must check the following condition based on python django
+                    // if not ins_ext.loan.is_sticky or (ins_ext.loan.is_sticky and ins_ext.is_principal_paid==False)
+                    if ( (lal_orm->get_status_id() != 11) or (lal_orm->get_status_id() != 11 and ieorm->get_is_principal_paid() == false))
+                    {
+                        new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
+                        psh_orm->set_day(ieorm->get_due_to_overdue_date());
+                        psh_orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
+                        psh_orm->set_status(0); // 0
+                    }
                     ieorm->set_payment_status(0); //0
-                    new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
-                    psh_orm->set_day(ieorm->get_due_to_overdue_date());
-                    psh_orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
-                    psh_orm->set_status(0); // 0
                 }
 
 
