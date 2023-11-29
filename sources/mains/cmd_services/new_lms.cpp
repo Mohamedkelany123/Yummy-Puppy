@@ -241,7 +241,7 @@ int main (int argc, char ** argv)
                 {
                     // buggy behavior must check the following condition based on python django
                     // if not ins_ext.loan.is_sticky or (ins_ext.loan.is_sticky and ins_ext.is_principal_paid==False)
-                    if ( (lal_orm->get_status_id() != 11) or (lal_orm->get_status_id() != 11 and ieorm->get_is_principal_paid() == false))
+                    if ( (lal_orm->get_status_id() != 11) or (lal_orm->get_status_id() == 11 and ieorm->get_is_principal_paid() == false))
                     {
                         BDate overdue_date; 
                         overdue_date.set_date(lai_orm->get_day());
