@@ -38,9 +38,6 @@ class UndueToDue:
             print_colored("Results from DB_python (Payment Status = 4):",self.color_options.BLUE,  bold=True)
             print(data_python)
 
-
-
-
             # Compare the results
             if data_c == data_python:
                 print_colored("PASS -> Installments Extension from (payment status) 5->4",color=self.color_options.GREEN , bold=True)
@@ -54,10 +51,11 @@ class UndueToDue:
                 print_colored(f"An error occurred: {e}", color='red', bold=True)
 
 
+
     #2-Update loan closure status -undue to -due
     def undue_to_due_lms_closure_status(self):
         try:
-            print_colored("Test 2 :: Update LMS closure status -undue to -due", self.color_options.YELLOW ,bold=True)
+            print_colored("Test 2 :: Update LMS closure status -undue(0) to -due(1)", self.color_options.YELLOW ,bold=True)
 
             query = f"select lms_closure_status, count(*) from loan_app_loan group by lms_closure_status "
 
@@ -80,6 +78,7 @@ class UndueToDue:
 
         except Exception as e:
                 print_colored(f"An error occurred: {e}", self.color_options.RED, bold=True)
+
 
     #3-Compare Payments Status history (COUNT)
     def installment_payment_history_count(self):
@@ -107,6 +106,7 @@ class UndueToDue:
                 print("DB_python result:", data_python)
         except Exception as e:
             print_colored(f"An error occurred: {e}", self.color_options.RED, bold=True)
+
 
     #3.1-Compare The Actual Payments History Status Entries
     def installment_payment_history_data(self):

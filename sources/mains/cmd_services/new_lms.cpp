@@ -254,12 +254,12 @@ int main (int argc, char ** argv)
                     ieorm->set_payment_status(0); //0
                 }
 
-
                 // shared_lock->lock();
                 // cout << ieorm->get_installment_ptr_id() << " -> " <<  lform_v->size() <<  "->";
                 if (lform_v->size() > 0 )
                 {
                     reference_date.set_date(((*lform_v)[lform_v->size()-1])->get_day());
+                    reference_date.inc_month();
                     // cout << ((*lform_v)[lform_v->size()-1])->get_day();
                 }
                 else
@@ -268,7 +268,7 @@ int main (int argc, char ** argv)
                     // cout << ieorm->get_due_to_overdue_date();
                 }
                 // cout << endl;
-                reference_date.inc_month();
+                // -------------------------------------------------reference_date.inc_month();
                 int seq = lform_v->size()+1;
                 int initial_status_id = 1;
                 int status_index=1;
