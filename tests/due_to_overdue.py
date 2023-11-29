@@ -119,9 +119,9 @@ class DueToOverDue:
     def late_fees_objects(self):
         try:
             print_colored("Test 4 :: Create late fees object", self.color_options.YELLOW ,bold=True)
-            print_colored("Test 4 :: DINT FORGET TO CHECK THE CREATED_AT AND UPDATED_AT DATES IF THEY ARE CREATED CORRECTLY", self.color_options.RED ,bold=True)
+            # print_colored("Test 4 :: DONT FORGET TO CHECK THE CREATED_AT AND UPDATED_AT DATES IF THEY ARE CREATED CORRECTLY", self.color_options.RED ,bold=True)
 
-
+            query = "select * from new_lms_installmentlatefees nli where day >= '2023-11-24' order by installment_extension_id  desc"
 
 
             # C++
@@ -149,3 +149,4 @@ class DueToOverDue:
         self.installment_extention(0)
         self.due_to_due_overdue_closure_status()
         self.installment_payment_history_entries()
+        self.late_fees_objects()
