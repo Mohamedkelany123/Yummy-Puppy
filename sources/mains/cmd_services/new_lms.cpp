@@ -159,13 +159,20 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
 }
 
 int main (int argc, char ** argv)
-{
+{   
+    if (argc != 8)
+    {
+        printf("usage: %s <address> <port_number> <database name> <username> <password> <step> <date>YYYY-mm-dd\n",argv[0]);
+        exit(9);
+    }
+    //2023-11-15
+    string closure_date_string = argv[7];
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
     psqlController.addDefault("created_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(10);
-    BDate closure_date("2023-11-15");
+    BDate closure_date(closure_date_string);
     if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
@@ -175,7 +182,7 @@ int main (int argc, char ** argv)
         psqlQueryJoin->filter(
             ANDOperator 
             (
-                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::UNDUE_TO_DUE)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
@@ -210,7 +217,7 @@ int main (int argc, char ** argv)
         psqlQueryJoin->filter(
             ANDOperator 
             (
-                new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::DUE_TO_OVERDUE)),
@@ -227,23 +234,33 @@ int main (int argc, char ** argv)
                 new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
                 vector <new_lms_installmentlatefees_primitive_orm *> * lform_v = ORM(new_lms_installmentextension,orms)->get_new_lms_installmentlatefees_installment_extension_id();
                 loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
+                loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
+
 
                 int late_fees_count = lform_v->size();
                 if ( ieorm->get_payment_status() != 0 )
                 {
+                    // buggy behavior must check the following condition based on python django
+                    // if not ins_ext.loan.is_sticky or (ins_ext.loan.is_sticky and ins_ext.is_principal_paid==False)
+                    if ( (lal_orm->get_status_id() != 11) or (lal_orm->get_status_id() == 11 and ieorm->get_is_principal_paid() == false))
+                    {
+                        BDate overdue_date; 
+                        overdue_date.set_date(lai_orm->get_day());
+                        overdue_date.inc_day();
+                        new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
+                        psh_orm->set_day(overdue_date.getDateString());
+                        psh_orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
+                        psh_orm->set_status(0); // 0
+                    }
                     ieorm->set_payment_status(0); //0
-                    new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
-                    psh_orm->set_day(ieorm->get_due_to_overdue_date());
-                    psh_orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
-                    psh_orm->set_status(0); // 0
                 }
-
 
                 // shared_lock->lock();
                 // cout << ieorm->get_installment_ptr_id() << " -> " <<  lform_v->size() <<  "->";
                 if (lform_v->size() > 0 )
                 {
                     reference_date.set_date(((*lform_v)[lform_v->size()-1])->get_day());
+                    reference_date.inc_month();
                     // cout << ((*lform_v)[lform_v->size()-1])->get_day();
                 }
                 else
@@ -252,14 +269,14 @@ int main (int argc, char ** argv)
                     // cout << ieorm->get_due_to_overdue_date();
                 }
                 // cout << endl;
-                reference_date.inc_month();
+                // -------------------------------------------------reference_date.inc_month();
                 int seq = lform_v->size()+1;
                 int initial_status_id = 1;
                 int status_index=1;
                 if (lform_v->size() != 0)
                 {
                     initial_status_id = ((*lform_v)[lform_v->size()-1])->get_installment_status_id();
-                    int status_index=-1;
+                    status_index=-1;
                     for ( int i = 0 ; i < buckets.size() ; i ++)
                         if (buckets[i] == initial_status_id)
                         {
@@ -414,8 +431,8 @@ int main (int argc, char ** argv)
             (
                 new UnaryOperator ("new_lms_installmentextension.is_marginalized",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.is_partially_marginalized",eq,"f"),
-                new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,"2023-11-15"),
-                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4,5"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
@@ -457,8 +474,8 @@ int main (int argc, char ** argv)
             ANDOperator 
             (
                 new UnaryOperator ("new_lms_installmentextension.is_marginalized",eq,"f"),
-                new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,"2023-11-15"),
-                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
@@ -507,9 +524,9 @@ int main (int argc, char ** argv)
             (
                 new UnaryOperator ("new_lms_installmentlatefees.is_marginalized",eq,"f"),
                 new UnaryOperator ("new_lms_installmentlatefees.is_paid",eq,"f"),
-                new UnaryOperator ("new_lms_installmentlatefees.day",lte,"2023-11-15"),
-                new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,"2023-11-15"),
-                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentlatefees.day",lte,closure_date_string),
+                new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
@@ -630,7 +647,7 @@ int main (int argc, char ** argv)
         psqlQueryJoin->filter(
             ANDOperator 
             (
-                new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date",lte,"2023-11-15"),
+                new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_long_term",eq,"t"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::LONG_TO_SHORT_TERM)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"12, 13"),
@@ -677,10 +694,10 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13,14,15"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::LAST_ACCRUED_DAY)),
                 new OROperator (
-                    new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,"2023-11-15"),
+                    new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,closure_date_string),
                     new ANDOperator (
                         new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",isnull,"abc"),
-                        new UnaryOperator ("loan_app_installment.day-1",lte,"2023-11-15")
+                        new UnaryOperator ("loan_app_installment.day-1",lte,closure_date_string)
                     )
                 )
                
