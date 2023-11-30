@@ -30,13 +30,13 @@ class UndueToDue:
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
-            print_colored("Results from DB_c (Payment Status = 4):", self.color_options.BLUE ,bold=True)
-            print(data_c)
+            # print_colored("Results from DB_c (Payment Status = 4):", self.color_options.BLUE ,bold=True)
+            # print(data_c)
 
             # PYTHON
             data_python = SQLUtilsService.execute_query(self.connection_python, query)
-            print_colored("Results from DB_python (Payment Status = 4):",self.color_options.BLUE,  bold=True)
-            print(data_python)
+            # print_colored("Results from DB_python (Payment Status = 4):",self.color_options.BLUE,  bold=True)
+            # print(data_python)
 
             # Compare the results
             if data_c == data_python:
@@ -61,13 +61,13 @@ class UndueToDue:
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
-            print_colored("Results from DB_c (Undue To Due):", self.color_options.BLUE ,bold=True)
-            print(data_c)
+            # print_colored("Results from DB_c (Undue To Due):", self.color_options.BLUE ,bold=True)
+            # print(data_c)
 
             # PYTHON
             data_python = SQLUtilsService.execute_query(self.connection_python, query)
-            print_colored("Results from DB_python (Undue To Due):",self.color_options.BLUE,  bold=True)
-            print(data_python)
+            # print_colored("Results from DB_python (Undue To Due):",self.color_options.BLUE,  bold=True)
+            # print(data_python)
 
 
             df_c = pl.DataFrame(data_c)
@@ -89,13 +89,13 @@ class UndueToDue:
 
             #C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
-            print_colored("Results from DB_c(Installment Payment History):", self.color_options.BLUE, bold=True)
-            print(data_c[0])
+            # print_colored("Results from DB_c(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_c[0])
 
             #PYTHON
             data_python = SQLUtilsService.execute_query(self.connection_python, query)
-            print_colored("Results from DB_python(Installment Payment History):", self.color_options.BLUE, bold=True)
-            print(data_python[0])
+            # print_colored("Results from DB_python(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_python[0])
 
             # Compare the results
             if data_c == data_python:
@@ -117,13 +117,13 @@ class UndueToDue:
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
-            print_colored("Results from DB_c(Installment Payment History):", self.color_options.BLUE, bold=True)
-            print(data_c[0])
+            # print_colored("Results from DB_c(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_c[0])
 
             # PYTHON
             data_python = SQLUtilsService.execute_query(self.connection_python, query)
-            print_colored("Results from DB_python(Installment Payment History):", self.color_options.BLUE, bold=True)
-            print(data_python[0])
+            # print_colored("Results from DB_python(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_python[0])
 
             df_c = pl.DataFrame(data_c)
             df_python = pl.DataFrame(data_python)
@@ -134,10 +134,6 @@ class UndueToDue:
 
         except Exception as e:
             print_colored(f"An error occurred: {e}", color='red', bold=True)
-
-
-
-        
 
 
     def test_undue_to_due(self):

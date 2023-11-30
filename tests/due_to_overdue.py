@@ -60,9 +60,6 @@ class DueToOverDue:
         except Exception as e:
                 print_colored(f"An error occurred: {e}", color='red', bold=True)
 
-
-
-
     #2-Changes LMS Closure Status Due To Over Due 1->2
     def due_to_due_overdue_closure_status(self):
         try:
