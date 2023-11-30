@@ -8,8 +8,8 @@ from colors import *
 
 def main():
 
-    #Put it manually -(Date = 1 Day Before database date)
-    closure_before_running_date = '2023-11-24'
+    #Put it manually -(Date = DATABASE DUPLICATION DATE)
+    closure_before_running_date = '2023-11-25'
 
     #--------------------------------------------------UNDUE TO DUE--------------------------------------------------
     print_colored("---------------------------------> UNDUE TO DUE ", color_options.PURPLE, bold=True)
@@ -24,7 +24,6 @@ def main():
 
     connection_c.close()
     connection_python.close()
-
 
     #--------------------------------------------------Due TO overdue--------------------------------------------------
     print_colored("---------------------------------> DUE TO OVERDUE ", color_options.PURPLE, bold=True)
@@ -42,6 +41,7 @@ def main():
     connection_c.close()
     connection_python.close()
 
+    #--------------------------------------------------UPDATE LOAN STATUS---------------------------------------------
 
 
 

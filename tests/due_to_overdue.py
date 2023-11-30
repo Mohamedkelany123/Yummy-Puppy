@@ -95,7 +95,7 @@ class DueToOverDue:
             # print_colored("Test 3 :: DINT FORGET TO CHECK THE CREATED_AT AND UPDATED_AT DATES IF THEY ARE CREATED CORRECTLY", self.color_options.RED ,bold=True)
 
 
-            query = f"select status, installment_extension_id , coalesce(order_id,-1) as order_id  , \"day\" from new_lms_installmentpaymentstatushistory nli where day >= '{self.closure_before_running_date}' order by  installment_extension_id desc,  \"day\" desc, status desc"
+            query = f"select status, installment_extension_id , coalesce(order_id,-1) as order_id  , \"day\" from new_lms_installmentpaymentstatushistory nli where day > '{self.closure_before_running_date}' order by  installment_extension_id desc,  \"day\" desc, status desc"
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
@@ -128,7 +128,7 @@ class DueToOverDue:
 
             query = f"""select *
                         from new_lms_installmentlatefees nli 
-                        where day >= '{self.closure_before_running_date}' order by installment_extension_id  desc, \"day\" desc, installment_status_id desc
+                        where day > '{self.closure_before_running_date}' order by installment_extension_id  desc, \"day\" desc, installment_status_id desc
                     """
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
@@ -164,3 +164,5 @@ class DueToOverDue:
         self.due_to_due_overdue_closure_status()
         self.installment_payment_history_entries()
         self.late_fees_objects()
+
+
