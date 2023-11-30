@@ -356,7 +356,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
             columns_string += db_field_name;
 
             if (ts_flag ){
-                if(columns_definition["udt_name"][i] == "NO"){
+                if(columns_definition["is_nullable"][i] == "NO"){
                     values_string += "(("+orm_field_name+" == \"\") ? \"now()\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
                 }                
                 else{
