@@ -16,6 +16,9 @@ PSQLAbstractORM::PSQLAbstractORM (string _table_name,string _identifier_name)
     //     for (auto value: result.second) 
     //         std::cout << "\t\t" << value << std::endl;
     // }
+    insert_default_values = psqlController.getInsertDefaultValues();
+    update_default_values = psqlController.getUpdateDefaultValues();
+
 }
 string PSQLAbstractORM::getIdentifierName ()
 {
@@ -30,6 +33,16 @@ string PSQLAbstractORM::getTableName()
 bool PSQLAbstractORM::isLoaded ()
 {
     return loaded;
+}
+
+void PSQLAbstractORM::addDefault(string name,string value, bool is_insert, bool is_func)
+{
+    pair<string, bool> p; 
+    p.first = value;
+    p.second = is_func;
+    if ( is_insert )
+        insert_default_values[name]= p;
+    else update_default_values[name]= p;
 }
 
 void PSQLAbstractORM::lock_me()

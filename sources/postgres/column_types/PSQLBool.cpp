@@ -13,6 +13,7 @@ string PSQLBool::get_native_type(int index)
     else return "";
 }
 
+
 string PSQLBool::genDeclaration ()
 {
     return "\t\tbool "+field_name+";\n";

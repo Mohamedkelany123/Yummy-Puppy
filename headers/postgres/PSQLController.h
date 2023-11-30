@@ -8,6 +8,9 @@ class PSQLController
     private:
         PSQLConnectionManager * psqlConnectionManager;
         PSQLORMCache * psqlORMCache;
+        map <string,pair<string,bool>> insert_default_values;
+        map <string,pair<string,bool>> update_default_values;
+
     public:
         PSQLController();
         bool addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password);
@@ -23,6 +26,9 @@ class PSQLController
         int getDataSourceConnectionCount(string data_source_name);
         void setORMCacheThreads (int _threads_count);
         void unlock_current_thread_orms();
+        void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
+        map <string,pair<string,bool>> getUpdateDefaultValues();
+        map <string,pair<string,bool>> getInsertDefaultValues();
         ~PSQLController();
 };
 

@@ -158,11 +158,12 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
     return marg_date;
 }
 
-
-
 int main (int argc, char ** argv)
 {
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
+    psqlController.addDefault("created_at","now()",true,true);
+    psqlController.addDefault("updated_at","now()",true,true);
+    psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(10);
     BDate closure_date("2023-11-15");
     if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)

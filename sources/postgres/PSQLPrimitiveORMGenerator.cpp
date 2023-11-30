@@ -197,6 +197,7 @@ void PSQLPrimitiveORMGenerator::generateExternDSOEntryPoint (string class_name,s
 void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name)
 {
     includes = "#include <PSQLController.h>\n";
+    includes += "#include <PSQLBool.h>\n";
     constructor_destructor = "\t\t"+class_name+"::"+class_name+"(bool add_to_cache):PSQLAbstractORM(\""+table_name+"\",\""+primary_key+"\"){\n";
     constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
     constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
@@ -304,6 +305,16 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
                 extra_methods += "\t\t\t\t\tupdate_string += \""+db_field_name+"='\"+"+orm_field_name+".dump()+\"'\";\n";                
             else extra_methods += "\t\t\t\tupdate_string += \""+db_field_name+"='\"+std::to_string("+orm_field_name+")+\"'\";\n";
             extra_methods += "\t\t\t}\n";
+            extra_methods += "\t\t\telse\n";
+            extra_methods += "\t\t\t{\n";
+            extra_methods += "\t\t\t\tif(update_default_values.find(\""+db_field_name+"\") != update_default_values.end())\n ";
+            extra_methods += "\t\t\t\t{\n";
+            extra_methods += "\t\t\t\t\tif(update_default_values[\""+db_field_name+"\"].second )\n";
+            extra_methods += "\t\t\t\t\t\tupdate_string += \""+db_field_name+"=\"+update_default_values[\""+db_field_name+"\"].first;\n";
+            extra_methods += "\t\t\t\t\telse update_string += \""+db_field_name+"='\"+update_default_values[\""+db_field_name+"\"].first+\"'\";\n";                
+            extra_methods += "\t\t\t\t}\n";
+
+            extra_methods += "\t\t\t}\n";
         }
     }
 
@@ -353,10 +364,21 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
         {
             if ( columns_string != "") columns_string+= ",";
             if ( values_string != "") values_string+= "+string(\",\")+";
+
+            values_string+= "((insert_default_values.find(\""+db_field_name+"\") != insert_default_values.end())? ";
+
+            values_string+="((insert_default_values[\""+db_field_name+"\"].second)?insert_default_values[\""+db_field_name+"\"].first:string(\"'\")+insert_default_values[\""+db_field_name+"\"].first+string(\"'\"))";
+
+            values_string+= ":";
+
+
             columns_string += db_field_name;
 
             if (ts_flag )
-                values_string += "(("+orm_field_name+" == \"\") ? \"now()\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
+            {
+                if(columns_definition["is_nullable"][i] == "NO") values_string += "(("+orm_field_name+" == \"\") ? \"now()\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
+                else values_string += "(("+orm_field_name+" == \"\") ? \"null\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
+            }
             else{
                 values_string += "((update_flag.test("+std::to_string(i)+"))?";
                 if (string_flag )
@@ -366,6 +388,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
                 else values_string += "string(\"'\")+std::to_string("+orm_field_name+")+string(\"'\")";
                 values_string += ":\"null\")";
             }
+            values_string += ")";
         }
     }
 
@@ -384,7 +407,6 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
     else extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
     extra_methods += "\t\t}\n";
 }
-
 
 void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
 {

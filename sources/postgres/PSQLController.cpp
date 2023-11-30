@@ -62,6 +62,26 @@ void PSQLController::unlock_current_thread_orms()
     psqlORMCache->unlock_current_thread_orms();
 }
 
+void PSQLController::addDefault(string name,string value, bool is_insert, bool is_func)
+{
+    pair<string, bool> p; 
+    p.first = value;
+    p.second = is_func;
+    if ( is_insert )
+        insert_default_values[name]= p;
+    else update_default_values[name]= p;
+}
+
+map <string,pair<string,bool>> PSQLController::getUpdateDefaultValues()
+{
+    return update_default_values;
+}
+map <string,pair<string,bool>> PSQLController::getInsertDefaultValues()
+{
+    return insert_default_values;
+
+}
+
 PSQLController::~PSQLController()
 {
     delete (psqlORMCache);
