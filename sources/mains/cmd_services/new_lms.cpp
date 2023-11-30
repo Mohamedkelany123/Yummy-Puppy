@@ -275,7 +275,7 @@ int main (int argc, char ** argv)
                 if (lform_v->size() != 0)
                 {
                     initial_status_id = ((*lform_v)[lform_v->size()-1])->get_installment_status_id();
-                    int status_index=-1;
+                    status_index=-1;
                     for ( int i = 0 ; i < buckets.size() ; i ++)
                         if (buckets[i] == initial_status_id)
                         {

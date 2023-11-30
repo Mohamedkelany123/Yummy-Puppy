@@ -355,8 +355,14 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
             if ( values_string != "") values_string+= "+string(\",\")+";
             columns_string += db_field_name;
 
-            if (ts_flag )
-                values_string += "(("+orm_field_name+" == \"\") ? \"now()\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
+            if (ts_flag ){
+                if(columns_definition["udt_name"][i] == "NO"){
+                    values_string += "(("+orm_field_name+" == \"\") ? \"now()\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
+                }                
+                else{
+                    values_string += "(("+orm_field_name+" == \"\") ? \"null\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
+                }
+            }
             else{
                 values_string += "((update_flag.test("+std::to_string(i)+"))?";
                 if (string_flag )

@@ -19,8 +19,17 @@ class DueToOverDue:
             1-NLI [new_lms_installment_extention] Payment status changed to 0 
             2-Changes LMS Closure Status Due To Over Due 1->2
             3-Creates entry for Installment status payment history entries
-            4-Create late fees object
-            
+            4-Create late fees object -> Excluding [amount, created_at, updated_at]  
+    """
+
+    """
+        Late Fees Amount  -> In django the late fees are calculated twice. 1st time while creating the installment extension, second 
+        time is when creating the late fee. Both ways are different. In C we get the late fees from the installment extension. So the 
+        values differ sometimes within a range of 0.01->0.72 EGP, Ramy Told me to keep using the same way which is getting the value 
+        from installment extension because its more accurate as it uses decimal.
+
+        --> WHAT I DID IS CHANGED IN DJANGO CODE TO SET THE LATE FEES AMOUNT WITH THE INSTALLMENTEXTENTION LATEFEES AMOUNT IN ORDER TO 
+            BE ABLE TO TEST CORRECTLY
     """
 
      #1-NLI Payment status changed to 0 (COUNT)
@@ -31,14 +40,13 @@ class DueToOverDue:
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
-            print_colored(f"Results from DB_c (Payment Status = {payment_status}):", self.color_options.BLUE ,bold=True)
-            print(data_c)
+            # print_colored(f"Results from DB_c (Payment Status = {payment_status}):", self.color_options.BLUE ,bold=True)
+            # print(data_c)
 
             # PYTHON
             data_python = SQLUtilsService.execute_query(self.connection_python, query)
-            print_colored(f"Results from DB_python (Payment Status = {payment_status}):",self.color_options.BLUE,  bold=True)
-            print(data_python)
-
+            # print_colored(f"Results from DB_python (Payment Status = {payment_status}):",self.color_options.BLUE,  bold=True)
+            # print(data_python)
 
             # Compare the results
             if data_c == data_python:
@@ -64,13 +72,13 @@ class DueToOverDue:
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
-            print_colored("Results from DB_c (Due To OverDue):", self.color_options.BLUE ,bold=True)
-            print(data_c)
+            # print_colored("Results from DB_c (Due To OverDue):", self.color_options.BLUE ,bold=True)
+            # print(data_c)
 
             # PYTHON
             data_python = SQLUtilsService.execute_query(self.connection_python, query)
-            print_colored("Results from DB_python (Due To OverDue):",self.color_options.BLUE,  bold=True)
-            print(data_python)
+            # print_colored("Results from DB_python (Due To OverDue):",self.color_options.BLUE,  bold=True)
+            # print(data_python)
 
 
             df_c = pl.DataFrame(data_c)
@@ -81,7 +89,6 @@ class DueToOverDue:
 
         except Exception as e:
                 print_colored(f"An error occurred: {e}", self.color_options.RED, bold=True)
-
 
 
     #3-Creates entry for Installment status payment history entries 
@@ -95,13 +102,13 @@ class DueToOverDue:
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
-            print_colored("Results from DB_c(Installment Payment History):", self.color_options.BLUE, bold=True)
-            print(data_c[0])
+            # print_colored("Results from DB_c(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_c[0])
 
             # PYTHON
             data_python = SQLUtilsService.execute_query(self.connection_python, query)
-            print_colored("Results from DB_python(Installment Payment History):", self.color_options.BLUE, bold=True)
-            print(data_python[0])
+            # print_colored("Results from DB_python(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_python[0])
 
             df_c = pl.DataFrame(data_c)
             df_python = pl.DataFrame(data_python)
@@ -113,6 +120,7 @@ class DueToOverDue:
 
         except Exception as e:
             print_colored(f"An error occurred: {e}", color='red', bold=True)
+
 
 
     #4-Create late fees object
@@ -121,21 +129,29 @@ class DueToOverDue:
             print_colored("Test 4 :: Create late fees object", self.color_options.YELLOW ,bold=True)
             # print_colored("Test 4 :: DONT FORGET TO CHECK THE CREATED_AT AND UPDATED_AT DATES IF THEY ARE CREATED CORRECTLY", self.color_options.RED ,bold=True)
 
-            query = "select * from new_lms_installmentlatefees nli where day >= '2023-11-24' order by installment_extension_id  desc"
-
-
+            query = f"""select *
+                        from new_lms_installmentlatefees nli 
+                        where day >= '{self.closure_before_running_date}' order by installment_extension_id  desc, \"day\" desc, installment_status_id desc
+                    """
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
-            print_colored("Results from DB_c(Installment Payment History):", self.color_options.BLUE, bold=True)
-            print(data_c[0])
+            # print_colored("Results from DB_c(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_c[0])
 
             # PYTHON
             data_python = SQLUtilsService.execute_query(self.connection_python, query)
-            print_colored("Results from DB_python(Installment Payment History):", self.color_options.BLUE, bold=True)
-            print(data_python[0])
+            # print_colored("Results from DB_python(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_python[0])
 
-            df_c = pl.DataFrame(data_c)
-            df_python = pl.DataFrame(data_python)
+
+            # Remove "created_at" and "updated_at" from the data
+            excluded_columns = ['created_at', 'updated_at', 'id']
+            data_c_filtered = [ {k: v for k, v in row.items() if k not in excluded_columns} for row in data_c]
+            data_python_filtered = [ {k: v for k, v in row.items() if k not in excluded_columns} for row in data_python]
+            print_colored("----------> FILTERED DATA", self.color_options.YELLOW, bold=True)
+
+            df_c = pl.DataFrame(data_c_filtered)
+            df_python = pl.DataFrame(data_python_filtered)
             # df_python.write_csv("python.csv")
 
             # Compare the results
@@ -144,6 +160,7 @@ class DueToOverDue:
 
         except Exception as e:
             print_colored(f"An error occurred: {e}", color='red', bold=True)
+
 
     def test_due_to_overdue(self):
         self.installment_extention(0)
