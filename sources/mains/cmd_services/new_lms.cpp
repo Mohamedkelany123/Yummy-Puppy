@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <PSQLController.h>
+#include <PSQLUpdateQuery.h>
 #include <loan_app_loan_primitive_orm.h>
 #include <loan_app_installment_primitive_orm.h>
 #include <new_lms_installmentextension_primitive_orm.h>
@@ -11,7 +12,8 @@
 #include <loan_app_loanstatushistroy_primitive_orm.h>
 #include <new_lms_installmentstatushistory_primitive_orm.h>
 
-enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,MARGINALIZE_INCOME_STEP2,MARGINALIZE_INCOME_STEP3,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
+//enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,MARGINALIZE_INCOME_STEP2,MARGINALIZE_INCOME_STEP3,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
+enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
 
 enum blnk_buckets { NONE, CURRENT, BUCKET1, BUCKET2, BUCKET3, BUCKET4, SETTLED, WRITEOFF, SETTLED_PAID_OFF, BUCKET5,BUCKET6,BUCKET7,CANCELLED, CANCELLED_PARTIAL_REFUND,PARTIAL_SETTLED_CHARGE_OFF,SETTLED_CHARGE_OFF };
 
@@ -184,7 +186,7 @@ int main (int argc, char ** argv)
             (
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::UNDUE_TO_DUE)),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UNDUE_TO_DUE-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
             )
         );
@@ -201,6 +203,15 @@ int main (int argc, char ** argv)
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        ANDOperator (
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::UNDUE_TO_DUE),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+        ),
+        {{"lms_closure_status",to_string(closure_status::UNDUE_TO_DUE)}}
+        );
+        psqlUpdateQuery.update();
+
         cout << "Undue to Due done" << endl;
     }
 
@@ -220,7 +231,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::DUE_TO_OVERDUE)),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::DUE_TO_OVERDUE-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
                 // new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",eq,"1373603")
             )
@@ -312,6 +323,15 @@ int main (int argc, char ** argv)
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        ANDOperator (
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::DUE_TO_OVERDUE),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+        ),
+        {{"lms_closure_status",to_string(closure_status::DUE_TO_OVERDUE)}}
+        );
+        psqlUpdateQuery.update();
+
         cout << "Due to OverDue done" << endl;
     }
     if ( strcmp (argv[6],"status") == 0 || strcmp (argv[6],"full_closure") == 0)
@@ -325,86 +345,99 @@ int main (int argc, char ** argv)
             ANDOperator 
             (
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_yesterday.getDateString()),
-                new UnaryOperator ("new_lms_installmentextension.payment_status",nin,"1,2,3,6"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::UPDATE_LOAN_STATUS)),
+                new UnaryOperator ("new_lms_installmentextension.payment_status",nin,"1,2,3"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UPDATE_LOAN_STATUS-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
             )
         );
         psqlQueryJoin->process (10,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
-                vector <int> buckets = {1,2,3,4,5,9,10,11};
-                vector <int> fra_buckets = {0,0,2,0,3,0,0,4};
+                vector <int> buckets =      {1,2,3,4,5,9,10,11};
+                vector <int> fra_buckets =  {1,1,2,2,3,4,4,5};
+                // vector <int> fra_buckets = {0,0,2,0,3,0,0,4};
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
                 BDate reference_date (lai_orm->get_day());
-                reference_date.inc_day();
-                int bucket_index =1;
-                int b = buckets[bucket_index];
-                int fb = fra_buckets[bucket_index];
 
-                while (reference_date() <= closure_date()) 
+                if ( ie_orm->get_payment_status() == 6 && reference_date() <=  closure_date())
                 {
-                    if ( b > ie_orm->get_status_id() )
-                    {
-                        new_lms_installmentstatushistory_primitive_orm * ish_orm = new new_lms_installmentstatushistory_primitive_orm(true);
-                        ish_orm->set_day(reference_date.getDateString());
-                        ish_orm->set_status_type (0);
-                        ish_orm->set_installment_id (ie_orm->get_installment_ptr_id());
-                        ish_orm->set_status_id(b);
-                        ish_orm->set_previous_status_id(ie_orm->get_status_id());
-                        if ( b > lal_orm->get_status_id() )
-                        {
-                            loan_app_loanstatushistroy_primitive_orm * lsh_orm = new loan_app_loanstatushistroy_primitive_orm(true);
-                            lsh_orm->set_day(reference_date.getDateString());
-                            lsh_orm->set_status_type (0);
-                            lsh_orm->set_loan_id (lal_orm->get_id());
-                            lsh_orm->set_status_id(b);
-                            lsh_orm->set_previous_status_id(lal_orm->get_status_id());
-                            lal_orm->set_status_id(b);
-                        }
-                        ie_orm->set_status_id(b);
-                        if ( b == 2)
-                        {
-                            if ( ie_orm->get_payment_status() != 0 )
-                            {
-                                ie_orm->set_payment_status(0); //0
-                                new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
-                                psh_orm->set_day(reference_date.getDateString());
-                                psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
-                                psh_orm->set_status(0); // 0
-                            }
-                        }
+                    ie_orm->set_payment_status(1);
+                    new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
+                    psh_orm->set_day(reference_date.getDateString());
+                    psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
+                    psh_orm->set_status(1); // 0       
+                }
+                else
+                {
+                    reference_date.inc_day();
+                    int bucket_index =1;
+                    int b = buckets[bucket_index];
+                    int fb = fra_buckets[bucket_index];
 
-                        if ( fb != 0 )
+                    while (reference_date() <= closure_date()) 
+                    {
+                        if ( b > ie_orm->get_status_id() )
                         {
                             new_lms_installmentstatushistory_primitive_orm * ish_orm = new new_lms_installmentstatushistory_primitive_orm(true);
                             ish_orm->set_day(reference_date.getDateString());
-                            ish_orm->set_status_type (1);
+                            ish_orm->set_status_type (0);
                             ish_orm->set_installment_id (ie_orm->get_installment_ptr_id());
-                            ish_orm->set_status_id(fb);
-                            ish_orm->set_previous_status_id(ie_orm->get_fra_status_id());
-
-                            if ( fb > lal_orm->get_fra_status_id() )
+                            ish_orm->set_status_id(b);
+                            ish_orm->set_previous_status_id(ie_orm->get_status_id());
+                            if ( b > lal_orm->get_status_id() )
                             {
                                 loan_app_loanstatushistroy_primitive_orm * lsh_orm = new loan_app_loanstatushistroy_primitive_orm(true);
                                 lsh_orm->set_day(reference_date.getDateString());
-                                lsh_orm->set_status_type (1);
+                                lsh_orm->set_status_type (0);
                                 lsh_orm->set_loan_id (lal_orm->get_id());
-                                lsh_orm->set_status_id(fb);
-                                lsh_orm->set_previous_status_id(lal_orm->get_fra_status_id());
-                                lal_orm->set_fra_status_id(fb);
-                                if (lsh_orm->get_loan_id() ==0 )
+                                lsh_orm->set_status_id(b);
+                                lsh_orm->set_previous_status_id(lal_orm->get_status_id());
+                                lal_orm->set_status_id(b);
+                            }
+                            ie_orm->set_status_id(b);
+                            if ( b == 2)
+                            {
+                                if ( ie_orm->get_payment_status() != 0 )
                                 {
-                                    cout << "Loan app Loan ID is zero" << endl;
+                                    ie_orm->set_payment_status(0); //0
+                                    new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
+                                    psh_orm->set_day(reference_date.getDateString());
+                                    psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
+                                    psh_orm->set_status(0); // 0
                                 }
                             }
-                            ie_orm->set_fra_status_id(fb);
+
+                            if ( fb > ie_orm->get_fra_status_id() )
+                            {
+                                new_lms_installmentstatushistory_primitive_orm * ish_orm = new new_lms_installmentstatushistory_primitive_orm(true);
+                                ish_orm->set_day(reference_date.getDateString());
+                                ish_orm->set_status_type (1);
+                                ish_orm->set_installment_id (ie_orm->get_installment_ptr_id());
+                                ish_orm->set_status_id(fb);
+                                ish_orm->set_previous_status_id(ie_orm->get_fra_status_id());
+
+                                if ( fb > lal_orm->get_fra_status_id() )
+                                {
+                                    loan_app_loanstatushistroy_primitive_orm * lsh_orm = new loan_app_loanstatushistroy_primitive_orm(true);
+                                    lsh_orm->set_day(reference_date.getDateString());
+                                    lsh_orm->set_status_type (1);
+                                    lsh_orm->set_loan_id (lal_orm->get_id());
+                                    lsh_orm->set_status_id(fb);
+                                    lsh_orm->set_previous_status_id(lal_orm->get_fra_status_id());
+                                    lal_orm->set_fra_status_id(fb);
+                                    if (lsh_orm->get_loan_id() ==0 )
+                                    {
+                                        cout << "Loan app Loan ID is zero" << endl;
+                                    }
+                                }
+                                ie_orm->set_fra_status_id(fb);
+                            }
                         }
+                        if (bucket_index < buckets.size()-1) bucket_index++;
+                        b = buckets[bucket_index];
+                        fb = fra_buckets[bucket_index];
+                        reference_date.inc_month();
                     }
-                    if (bucket_index < buckets.size()-1) bucket_index++;
-                    b = buckets[bucket_index];
-                    fb = fra_buckets[bucket_index];
-                    reference_date.inc_month();
                 }
                 lal_orm->set_lms_closure_status(closure_status::UPDATE_LOAN_STATUS);
 
@@ -412,6 +445,15 @@ int main (int argc, char ** argv)
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        ANDOperator (
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::UPDATE_LOAN_STATUS),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+        ),
+        {{"lms_closure_status",to_string(closure_status::UPDATE_LOAN_STATUS)}}
+        );
+        psqlUpdateQuery.update();
+
         cout << "Loan Status done" << endl;
     }
 
@@ -436,7 +478,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4,5"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::MARGINALIZE_INCOME_STEP1)),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"),
                 new UnaryOperator ("crm_app_customer.first_loan_cycle_id",ne,"1")
@@ -454,7 +496,7 @@ int main (int argc, char ** argv)
                     ie_orm->set_is_partially_marginalized(true);
                     ie_orm->set_partial_marginalization_date(marg_date.getDateString());
                 }
-                lal_orm->set_lms_closure_status(closure_status::MARGINALIZE_INCOME_STEP1);
+                // lal_orm->set_lms_closure_status(closure_status::MARGINALIZE_INCOME_STEP1);
                 // shared_lock->lock();
                 // if ( marg_date.getDateString() != "")
                 //     cout << ie_orm->get_installment_ptr_id() << " , " << ie_orm->get_is_marginalized() << " , "<< marg_date.getDateString() << " , "<< ie_orm->get_expected_partial_accrual_amount() << " , "<< ie_orm->get_undue_to_due_date() << " , "<< lal_orm->get_lms_closure_status() << endl;
@@ -464,6 +506,7 @@ int main (int argc, char ** argv)
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
+
         cout << "Marginalization Setp 1" << endl;
 
         psqlQueryJoin = new PSQLJoinQueryIterator ("main",
@@ -479,7 +522,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::MARGINALIZE_INCOME_STEP2)),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
                 // new UnaryOperator ("loan_app_installment.id",eq,"327878")
@@ -497,7 +540,7 @@ int main (int argc, char ** argv)
                     ie_orm->set_is_marginalized(true);
                     ie_orm->set_marginalization_date(marg_date.getDateString());
                 }
-                lal_orm->set_lms_closure_status(closure_status::MARGINALIZE_INCOME_STEP2);
+                // lal_orm->set_lms_closure_status(closure_status::MARGINALIZE_INCOME_STEP2);
 
                 // shared_lock->lock();
                 // if ( marg_date.getDateString() != "") 
@@ -530,7 +573,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::MARGINALIZE_INCOME_STEP3)),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15"),
                 new OROperator (
                     new UnaryOperator ("new_lms_installmentlatefees.is_cancelled",eq,"f"),
@@ -623,7 +666,7 @@ int main (int argc, char ** argv)
                     lf_orm->set_is_marginalized(true);
                     lf_orm->set_marginalization_date(marg_date.getDateString());
                 }
-                lal_orm->set_lms_closure_status(closure_status::MARGINALIZE_INCOME_STEP3);
+                lal_orm->set_lms_closure_status(closure_status::MARGINALIZE_INCOME_STEP1);
                 // shared_lock->lock();
                 // cout << lf_orm->get_id() << " - " << marg_date.getDateString() <<  " - " << lf_orm->get_day() << endl;
                 // shared_lock->unlock();
@@ -632,6 +675,16 @@ int main (int argc, char ** argv)
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        ANDOperator (
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::MARGINALIZE_INCOME_STEP1),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+        ),
+
+        {{"lms_closure_status",to_string(closure_status::MARGINALIZE_INCOME_STEP1)}}
+        );
+        psqlUpdateQuery.update();
+
         cout << "Marginalization Setp 3" << endl;
 
     }
@@ -649,7 +702,7 @@ int main (int argc, char ** argv)
             (
                 new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_long_term",eq,"t"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::LONG_TO_SHORT_TERM)),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::LONG_TO_SHORT_TERM-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"12, 13"),
                 new OROperator (
                     new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,"f"),
@@ -673,6 +726,15 @@ int main (int argc, char ** argv)
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+            ANDOperator (
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::LONG_TO_SHORT_TERM),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+            ),
+
+            {{"lms_closure_status",to_string(closure_status::LONG_TO_SHORT_TERM)}}
+        );
+        psqlUpdateQuery.update();
         cout << "Long to short term" << endl;
 
     }
@@ -692,7 +754,7 @@ int main (int argc, char ** argv)
             ANDOperator 
             (
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13,14,15"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::LAST_ACCRUED_DAY)),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::LAST_ACCRUED_DAY-1)),
                 new OROperator (
                     new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,closure_date_string),
                     new ANDOperator (
@@ -734,9 +796,24 @@ int main (int argc, char ** argv)
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true);   
         delete (psqlQueryJoin);
+         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+            ANDOperator (
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::LAST_ACCRUED_DAY),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+            ),
+
+            {{"lms_closure_status",to_string(closure_status::LAST_ACCRUED_DAY)}}
+        );
+        psqlUpdateQuery.update();
         cout << "Loan Last Accrual Day" << endl;
 
     }
+
+    PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+        {{"lms_closure_status",to_string(0)}}
+    );
+    psqlUpdateQuery.update();
 
 
 
