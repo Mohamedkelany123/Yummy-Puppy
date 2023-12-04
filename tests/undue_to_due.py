@@ -6,10 +6,10 @@ from polars.testing import assert_frame_equal
 
 class UndueToDue:
     
-    def __init__(self, connection_c, connection_python,closure_before_running_date):
+    def __init__(self, connection_c, connection_python,database_copy_date):
         self.connection_c = connection_c
         self.connection_python = connection_python
-        self.closure_before_running_date = closure_before_running_date
+        self.database_copy_date = database_copy_date
         self.color_options = color_options
 
 
@@ -113,7 +113,7 @@ class UndueToDue:
         try:
             print_colored("Test 4 :: Compare The Actual Payments History Status Entries", self.color_options.YELLOW ,bold=True)
 
-            query = f"select status, installment_extension_id , coalesce(order_id,-1) as order_id  , \"day\" from new_lms_installmentpaymentstatushistory nli where day > '{self.closure_before_running_date}' order by  installment_extension_id desc,  \"day\" desc, status desc"
+            query = f"select status, installment_extension_id , coalesce(order_id,-1) as order_id  , \"day\" from new_lms_installmentpaymentstatushistory nli where day > '{self.database_copy_date}' order by  installment_extension_id desc,  \"day\" desc, status desc"
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)

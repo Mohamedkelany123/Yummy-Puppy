@@ -325,7 +325,7 @@ int main (int argc, char ** argv)
             ANDOperator 
             (
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_yesterday.getDateString()),
-                new UnaryOperator ("new_lms_installmentextension.payment_status",nin,"1,2,3,6"),
+                new UnaryOperator ("new_lms_installmentextension.payment_status",nin,"1,2,3"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,to_string(closure_status::UPDATE_LOAN_STATUS)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
             )

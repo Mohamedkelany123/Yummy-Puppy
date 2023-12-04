@@ -1,6 +1,7 @@
 import psycopg2
 from undue_to_due import UndueToDue
 from due_to_overdue import DueToOverDue
+from update_loan_status import UpdateLoanStatus
 from database_utils import SQLUtilsService
 from colors import *
 
@@ -9,40 +10,53 @@ from colors import *
 def main():
 
     #Put it manually -(Date = DATABASE DUPLICATION DATE)
-    closure_before_running_date = '2023-11-25'
+    database_copy_date = '2023-11-25'
+    closure_run_date  = '2023-12-03'
 
-    #--------------------------------------------------UNDUE TO DUE--------------------------------------------------
-    print_colored("---------------------------------> UNDUE TO DUE ", color_options.PURPLE, bold=True)
-    DB_c_url = "postgres://postgres:postgres@192.168.65.203/1_undue_to_due_c" 
-    DB_python = "postgres://postgres:postgres@192.168.65.203/1_undue_to_due_django"
+    # #--------------------------------------------------UNDUE TO DUE--------------------------------------------------
+    # print_colored("---------------------------------> UNDUE TO DUE ", color_options.PURPLE, bold=True)
+    # DB_c_url = "postgres://postgres:postgres@192.168.65.203/1_undue_to_due_c" 
+    # DB_python = "postgres://postgres:postgres@192.168.65.203/1_undue_to_due_django"
 
-    connection_c = SQLUtilsService.connect_to_database(DB_c_url)
-    connection_python = SQLUtilsService.connect_to_database(DB_python)
+    # connection_c = SQLUtilsService.connect_to_database(DB_c_url)
+    # connection_python = SQLUtilsService.connect_to_database(DB_python)
 
-    undue_to_due = UndueToDue(connection_c, connection_python, closure_before_running_date)
-    undue_to_due.test_undue_to_due()
+    # undue_to_due = UndueToDue(connection_c, connection_python, database_copy_date)
+    # undue_to_due.test_undue_to_due()
 
-    connection_c.close()
-    connection_python.close()
+    # connection_c.close()
+    # connection_python.close()
 
-    #--------------------------------------------------Due TO overdue--------------------------------------------------
-    print_colored("---------------------------------> DUE TO OVERDUE ", color_options.PURPLE, bold=True)
+    # #--------------------------------------------------Due TO overdue--------------------------------------------------
+    # print_colored("---------------------------------> DUE TO OVERDUE ", color_options.PURPLE, bold=True)
 
-    DB_c_url = "postgres://postgres:postgres@192.168.65.203/2_due_to_overdue_c" 
-    DB_python = "postgres://postgres:postgres@192.168.65.203/2_due_to_overdue_django"
+    # DB_c_url = "postgres://postgres:postgres@192.168.65.203/2_due_to_overdue_c" 
+    # DB_python = "postgres://postgres:postgres@192.168.65.203/2_due_to_overdue_django"
 
-    connection_c = SQLUtilsService.connect_to_database(DB_c_url)
-    connection_python = SQLUtilsService.connect_to_database(DB_python)
+    # connection_c = SQLUtilsService.connect_to_database(DB_c_url)
+    # connection_python = SQLUtilsService.connect_to_database(DB_python)
 
 
-    due_to_overdue = DueToOverDue(connection_c, connection_python, closure_before_running_date)
-    due_to_overdue.test_due_to_overdue()
+    # due_to_overdue = DueToOverDue(connection_c, connection_python, database_copy_date)
+    # due_to_overdue.test_due_to_overdue()
 
-    connection_c.close()
-    connection_python.close()
+    # connection_c.close()
+    # connection_python.close()
 
     #--------------------------------------------------UPDATE LOAN STATUS---------------------------------------------
+    print_colored("---------------------------------> UPDATE LOAN STATUS", color_options.PURPLE, bold=True)
+    DB_c_url = "postgres://postgres:postgres@192.168.65.203/3_update_loan_status_c" 
+    DB_python = "postgres://postgres:postgres@192.168.65.203/3_update_loan_status_django"
 
+    connection_c = SQLUtilsService.connect_to_database(DB_c_url)
+    connection_python = SQLUtilsService.connect_to_database(DB_python)
+
+
+    undue_to_due = UpdateLoanStatus(connection_c, connection_python, database_copy_date, closure_run_date)
+    undue_to_due.test_update_loan_status()
+
+    connection_c.close()
+    connection_python.close()
 
 
 
