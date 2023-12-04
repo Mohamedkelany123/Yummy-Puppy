@@ -205,7 +205,7 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::UNDUE_TO_DUE),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::UNDUE_TO_DUE),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
         ),
         {{"lms_closure_status",to_string(closure_status::UNDUE_TO_DUE)}}
@@ -325,7 +325,7 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::DUE_TO_OVERDUE),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::DUE_TO_OVERDUE),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
         ),
         {{"lms_closure_status",to_string(closure_status::DUE_TO_OVERDUE)}}
@@ -447,7 +447,7 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::UPDATE_LOAN_STATUS),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::UPDATE_LOAN_STATUS),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
         ),
         {{"lms_closure_status",to_string(closure_status::UPDATE_LOAN_STATUS)}}

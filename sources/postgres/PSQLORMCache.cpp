@@ -30,9 +30,12 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
     {
         for (auto orm_cache_item: me->update_thread_cache[t_index])
         {
-            orm_cache_item.second->lock_me();
-            if (!orm_cache_item.second->update(_psqlConnection)) return_flag = false;
-            orm_cache_item.second->unlock_me();
+            if (orm_cache_item.second->isUpdated())
+            {
+                orm_cache_item.second->lock_me();
+                if (!orm_cache_item.second->update(_psqlConnection)) return_flag = false;
+                orm_cache_item.second->unlock_me();
+            }
             counter ++;
             if (counter % 1000 == 0 )
             {
@@ -223,18 +226,19 @@ void PSQLORMCache::commit_parallel (bool transaction, bool clean_updates)
 
     for ( int i = 0 ; i < insert_thread_cache.size() ; i ++)
         insert_thread_cache[i].clear();
+    insert_cache_items_count =0;
 
     if (clean_updates)
     {
         for (auto orm_cache: update_cache)
             for (auto orm_cache_item:orm_cache.second) 
-                if (orm_cache_item.second->isUpdated())
-                {
-                    if (clean_updates) delete (orm_cache_item.second);
-                }
+                    delete (orm_cache_item.second);
         for (auto orm_cache: update_cache)
             orm_cache.second.clear();
         update_cache.clear();
+        update_cache_items_count = 0;
+        for ( int i = 0 ; i < insert_thread_cache.size() ; i ++)
+            update_thread_cache[i].clear();
     }
 
 
@@ -267,7 +271,7 @@ void PSQLORMCache::commit_sequential (bool transaction, bool clean_updates)
     insert_cache.clear();
     for ( int i = 0 ; i < insert_thread_cache.size() ; i ++)
         insert_thread_cache[i].clear();
-
+    insert_cache_items_count=0;
     counter = 0;
     for (auto orm_cache: update_cache)
         for (auto orm_cache_item:orm_cache.second) 
@@ -286,6 +290,7 @@ void PSQLORMCache::commit_sequential (bool transaction, bool clean_updates)
         for (auto orm_cache: update_cache)
             orm_cache.second.clear();
         update_cache.clear();
+        update_cache_items_count=0;
     }
     if (transaction)
     {
