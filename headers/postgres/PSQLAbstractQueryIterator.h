@@ -128,6 +128,7 @@ class UnaryOperator : public Expression {
 };
 
 
+
 class PSQLAbstractQueryIterator {
 
     protected:
