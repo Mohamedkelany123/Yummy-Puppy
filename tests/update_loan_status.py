@@ -59,6 +59,39 @@ class UpdateLoanStatus:
             print_colored(f"An error occurred: {e}", color='red', bold=True)
 
 
+    #2-Create 2 Loan Status History [FRA-BLNK]
+    def loan_status_history_entries(self):
+        try:
+            print_colored("Test 1 :: Create 2 installemnt status history [FRA-BLNK]", self.color_options.YELLOW ,bold=True)
+
+
+            query = f"""
+                select "day" , status_type , loan_id , previous_status_id , status_id , reversal_order_id  
+                from loan_app_loanstatushistroy lal 
+                where "day" > '{self.database_copy_date}'
+                order by "day" desc, loan_id desc, status_id desc
+            """
+
+            # C++
+            data_c = SQLUtilsService.execute_query(self.connection_c, query)
+            # print_colored("Results from DB_c(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_c[0])
+
+            # PYTHON
+            data_python = SQLUtilsService.execute_query(self.connection_python, query)
+            # print_colored("Results from DB_python(Installment Payment History):", self.color_options.BLUE, bold=True)
+            # print(data_python[0])
+
+            df_c = pl.DataFrame(data_c)
+            df_python = pl.DataFrame(data_python)
+            # df_python.write_csv("python.csv")
+
+            # Compare the results
+            assert_frame_equal(df_c, df_python)
+            print_colored("PASS -> Data of Installment Payment History", color=self.color_options.GREEN, bold=True)
+
+        except Exception as e:
+            print_colored(f"An error occurred: {e}", color='red', bold=True)
 
 
     #4-Update Status For Loan
