@@ -143,8 +143,15 @@ void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQue
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
 {
+    time_t start = time (NULL);
+    cout << "Executing PSQL Query on the remote server" << endl;
     if (this->execute() && this->psqlQuery->getRowCount() > 0)
     {
+        time_t time_snapshot1 = time (NULL);
+
+        cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
+        cout << "Starting multi-threading execution" << endl;
+
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
         vector <thread *> threads;
         mutex shared_lock;
@@ -165,6 +172,8 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
                 // cout << "After Delete partition of thread # " << i << endl;
 
         }
+        time_t time_snapshot2 = time (NULL);
+        cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
     }
 }
 
