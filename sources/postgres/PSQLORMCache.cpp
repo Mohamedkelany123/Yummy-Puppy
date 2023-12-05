@@ -226,6 +226,7 @@ void PSQLORMCache::commit_parallel (bool transaction, bool clean_updates)
 
     for ( int i = 0 ; i < insert_thread_cache.size() ; i ++)
         insert_thread_cache[i].clear();
+    insert_thread_cache.clear();
     insert_cache_items_count =0;
 
     if (clean_updates)
@@ -239,6 +240,7 @@ void PSQLORMCache::commit_parallel (bool transaction, bool clean_updates)
         update_cache_items_count = 0;
         for ( int i = 0 ; i < insert_thread_cache.size() ; i ++)
             update_thread_cache[i].clear();
+        update_thread_cache.clear();
     }
 
 
