@@ -29,7 +29,7 @@ class BDate
         struct tm tm; 
         bool is_null;
     public:
-        void set_date (string date_string)
+        void set_date (string date_string="")
         {
             is_null = false;
             if (date_string != "")
@@ -102,22 +102,44 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
     }
     else
     {
-        loan_app_installment_primitive_orm * lai_orm = NULL;
+        loan_app_installment_primitive_orm * lai_prev_orm = NULL;
         vector <loan_app_installment_primitive_orm *>  * lai_orms = lal_orm->get_loan_app_installment_loan_id(true);
         for ( int  i = 0 ; i < lai_orms->size() ; i ++ )
         {
                 if ( (* lai_orms)[i]->get_period() == i_orm->get_period()-1 )
                 {
-                    lai_orm = (* lai_orms)[i];
+                    lai_prev_orm = (* lai_orms)[i];
                     break;
                 }
         }
-        vector <new_lms_installmentextension_primitive_orm *>  * lai_ext_orms = lai_orm->get_new_lms_installmentextension_installment_ptr_id(true);
-        BDate last_inst_marginalization_date ((*lai_ext_orms)[0]->get_marginalization_date());
+        vector <new_lms_installmentextension_primitive_orm *>  * prev_lai_ext_orms = lai_prev_orm->get_new_lms_installmentextension_installment_ptr_id(true);
+        vector<new_lms_installmentpaymentstatushistory_primitive_orm *> * iph_orms = (*prev_lai_ext_orms)[0]->get_new_lms_installmentpaymentstatushistory_installment_extension_id (true);
+        std::list<int> s {1,2,3,6};
+        int iph_index=-1;
+        for (int i = iph_orms->size()-1 ; i >=0 ; i --)
+        {
+            int status = (*iph_orms)[i]->get_status();
+            std::list<int>::iterator findIter = std::find(s.begin(), s.end(), status);
+            if ( s.end() != findIter )
+            {
+                iph_index = i;
+                break;
+            }
+        }
+        BDate prev_installment_payment_date;
+
+        if ( iph_index != -1 )  
+            prev_installment_payment_date.set_date((*iph_orms)[iph_index]->get_day());
+
+        BDate last_inst_marginalization_date ((*prev_lai_ext_orms)[0]->get_marginalization_date());
         BDate inst_marginalization_date (ie_orm->get_marginalization_date());
         BDate inst_partial_accrual_date(ie_orm->get_partial_accrual_date());
         BDate inst_accrual_date(ie_orm->get_accrual_date());
-        if ( last_inst_marginalization_date.getDateString() != "")
+        BDate inst_day(i_orm->get_day());
+        if ( (*prev_lai_ext_orms)[0]->get_status_id() > lal_orm->get_marginalization_bucket_id() && 
+               ( ((*prev_lai_ext_orms)[0]->get_payment_status()!= 1 && (*prev_lai_ext_orms)[0]->get_payment_status()!= 2 
+                && (*prev_lai_ext_orms)[0]->get_payment_status()!= 3 && (*prev_lai_ext_orms)[0]->get_payment_status()!= 6)
+                || prev_installment_payment_date() >= inst_day()))
         {
             if ( is_partial)
             {
@@ -127,16 +149,9 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
             }
             else
             {
-                // cout << "inst_accrual_date: "<< inst_accrual_date.getDateString() << endl;
-                // cout << "inst_marginalization_date: "<< inst_marginalization_date.getDateString() << endl;
-                    if (inst_accrual_date() >= marg_date())
-                    {
-                        // cout << "inst_accrual_date: "<< inst_accrual_date.getDateString() << endl;
-                        // cout << "marg_date: "<< marg_date.getDateString() << endl;
-                        marg_date.set_date(inst_accrual_date.getDateString());
-                        // cout << "marg_date: "<< marg_date.getDateString() << endl;
-                    }
-                    else  marg_date.set_date(""); 
+                if (inst_accrual_date() >= marg_date())
+                    marg_date.set_date(inst_accrual_date.getDateString());
+                else  marg_date.set_date(""); 
             }
         }
         else
@@ -145,7 +160,11 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
             {
                 if (is_partial)
                 {
+
                     marg_date.set_date("");
+                    if (lal_orm->get_status_id() >= lal_orm->get_sticky_bucket_id() 
+                            && inst_partial_accrual_date() >= marg_date()) 
+                                marg_date.set_date(inst_partial_accrual_date.getDateString());
                 }
                 else
                 {
@@ -630,10 +649,17 @@ int main (int argc, char ** argv)
                                 break;
                             }
                         }
+
+                        BDate prev_installment_payment_date;
                         BDate ins_date(lai_orm->get_day());
                         BDate ie_marg_date(ie_orm->get_marginalization_date());
                         BDate lf_day(lf_orm->get_day());
-                        if (( iph_index != -1 || std::find(s.begin(), s.end(), (*prev_lai_ext_orms)[0]->get_payment_status()) == s.end() )
+
+                        if ( iph_index != -1 )  
+                            prev_installment_payment_date.set_date((*iph_orms)[iph_index]->get_day());
+
+                         
+                        if (( prev_installment_payment_date()>= lf_day()  || std::find(s.begin(), s.end(), (*prev_lai_ext_orms)[0]->get_payment_status()) == s.end() )
                             && (*prev_lai_ext_orms)[0]->get_status_id() > lal_orm->get_marginalization_bucket_id())
                         {
                             if (ie_orm->get_marginalization_date() != "" && ie_marg_date() <= lf_day() 
@@ -652,12 +678,13 @@ int main (int argc, char ** argv)
                         else
                         {
                             if ( !(marg_date() > lf_day ()))
-                                    marg_date.set_date(lf_orm->get_day());
+                                marg_date.set_date(lf_orm->get_day());
                         }
-                    }
+                    } // else is already handled above through the default value
                 }
                 else
                 {
+
                     marg_date.set_date(lf_orm->get_day());
                 }
 
