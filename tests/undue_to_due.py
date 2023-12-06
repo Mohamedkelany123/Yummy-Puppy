@@ -16,7 +16,7 @@ class UndueToDue:
     """
         UNDUE TO DUE TESTS:
             1-Installments Extension from (payment status) 5->4 - Compare Count Of Installments Extentions with payment status = 4
-            2-Update LMS closure status -undue to -due [FAILED]
+            2-Update LMS closure status -undue to -due 
             3-Compare Payments Status history (COUNT)
             3.1-Compare The Actual Payments History Status Entries
     """

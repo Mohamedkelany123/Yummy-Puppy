@@ -3,6 +3,7 @@ from undue_to_due import UndueToDue
 from due_to_overdue import DueToOverDue
 from update_loan_status import UpdateLoanStatus
 from database_utils import SQLUtilsService
+from marginalization import Marginalization
 from colors import *
 
 
@@ -43,17 +44,31 @@ def main():
     # connection_c.close()
     # connection_python.close()
 
-    #--------------------------------------------------UPDATE LOAN STATUS---------------------------------------------
-    print_colored("---------------------------------> UPDATE LOAN STATUS", color_options.PURPLE, bold=True)
-    DB_c_url = "postgres://postgres:postgres@192.168.65.203/3_update_loan_status_c" 
-    DB_python = "postgres://postgres:postgres@192.168.65.203/3_update_loan_status_django"
+    # #--------------------------------------------------UPDATE LOAN STATUS---------------------------------------------
+    # print_colored("---------------------------------> UPDATE LOAN STATUS", color_options.PURPLE, bold=True)
+    # DB_c_url = "postgres://postgres:postgres@192.168.65.203/3_update_loan_status_c" 
+    # DB_python = "postgres://postgres:postgres@192.168.65.203/3_update_loan_status_django"
+
+    # connection_c = SQLUtilsService.connect_to_database(DB_c_url)
+    # connection_python = SQLUtilsService.connect_to_database(DB_python)
+
+
+    # update_loan_status = UpdateLoanStatus(connection_c, connection_python, database_copy_date, closure_run_date)
+    # update_loan_status.test_update_loan_status()
+
+    # connection_c.close()
+    # connection_python.close()
+
+    #--------------------------------------------------MARGINALIZATION---------------------------------------------
+    print_colored("---------------------------------> MARGINALIZATION", color_options.PURPLE, bold=True)
+    DB_c_url = "postgres://postgres:postgres@192.168.65.203/4_marginalization_step_1_c" 
+    DB_python = "postgres://postgres:postgres@192.168.65.203/4_marginalization_step_1_django"
 
     connection_c = SQLUtilsService.connect_to_database(DB_c_url)
     connection_python = SQLUtilsService.connect_to_database(DB_python)
 
-
-    undue_to_due = UpdateLoanStatus(connection_c, connection_python, database_copy_date, closure_run_date)
-    undue_to_due.test_update_loan_status()
+    marginalization = Marginalization(connection_c, connection_python, database_copy_date)
+    marginalization.test_marginalization()
 
     connection_c.close()
     connection_python.close()
