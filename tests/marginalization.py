@@ -37,7 +37,7 @@ class Marginalization:
     #1- LMS Closure status 3->4
     def update_loan_status_closure_status(self):
         try:
-            print_colored("Test 6 :: Changes LMS Closure Status Due To Over Due 3->4", self.color_options.YELLOW ,bold=True)
+            print_colored("Test 1 :: Changes LMS Closure Status Due To Over Due 3->4", self.color_options.YELLOW ,bold=True)
 
             query = f"select lms_closure_status, count(*) from loan_app_loan group by lms_closure_status "
 
@@ -66,7 +66,7 @@ class Marginalization:
                 Installment Extention:
                     -is_partially_marginalized
                     -partial_marginalization_date
-            Step-2 ->
+            Step-2 ->  [FAILED]
                 Installment Extention:
                     - is_marginalized 
                     -marginalization_date
@@ -77,6 +77,7 @@ class Marginalization:
 
             query = f"""
                 SELECT
+                    installment_ptr_id,
                     is_partially_marginalized,
                     COALESCE(partial_marginalization_date, '2001-11-30') AS partial_marginalization_date,
                     is_marginalized,
@@ -86,6 +87,8 @@ class Marginalization:
                 ORDER BY
                     installment_ptr_id DESC;
             """
+
+
 
             # C++
             data_c = SQLUtilsService.execute_query(self.connection_c, query)
@@ -106,7 +109,7 @@ class Marginalization:
 
         except Exception as e:
                 print_colored(f"An error occurred: {e}", self.color_options.RED, bold=True)
-
+                
 
     """
         3- Step-3 ->
@@ -116,7 +119,7 @@ class Marginalization:
     """
     def update_late_fees(self):
         try:
-            print_colored("Test 2 :: Step-3 Late Fees", self.color_options.YELLOW ,bold=True)
+            print_colored("Test 3 :: Step-3 Late Fees", self.color_options.YELLOW ,bold=True)
 
             query = f"""
                 select 
@@ -150,4 +153,4 @@ class Marginalization:
     def test_marginalization(self):
         self.update_loan_status_closure_status()
         self.update_installment_extention_partial()
-        # self.update_late_fees()
+        self.update_late_fees()
