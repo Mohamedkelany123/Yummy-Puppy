@@ -151,7 +151,6 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
             {
                 if (inst_accrual_date() >= marg_date())
                     marg_date.set_date(inst_accrual_date.getDateString());
-                else  marg_date.set_date(""); 
             }
         }
         else
@@ -170,7 +169,6 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
                 {
                     if (inst_accrual_date() >= marg_date())
                         marg_date.set_date(inst_accrual_date.getDateString());
-                    else  marg_date.set_date(""); 
                 }
             }
         }

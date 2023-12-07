@@ -61,8 +61,10 @@ def main():
 
     #--------------------------------------------------MARGINALIZATION---------------------------------------------
     print_colored("---------------------------------> MARGINALIZATION", color_options.PURPLE, bold=True)
-    DB_c_url = "postgres://postgres:postgres@192.168.65.203/4_4_4_marginalization_step_1_django" 
-    DB_python = "postgres://postgres:postgres@192.168.65.203/4_4_marginalization_step_1_django"
+    DB_c_url = "postgres://postgres:postgres@192.168.65.203/42_marginalization_step_1_c" 
+    # DB_python = "postgres://postgres:postgres@192.168.65.203/4_marginalization_step_1_django"
+    DB_python = "postgres://postgres:postgres@192.168.65.203/FINALLL_RAMY_update_loan_status_django"
+
 
     connection_c = SQLUtilsService.connect_to_database(DB_c_url)
     connection_python = SQLUtilsService.connect_to_database(DB_python)
@@ -72,7 +74,6 @@ def main():
 
     connection_c.close()
     connection_python.close()
-
 
 
 if __name__ == "__main__":

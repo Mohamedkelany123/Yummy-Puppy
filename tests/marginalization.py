@@ -73,7 +73,7 @@ class Marginalization:
     """
     def update_installment_extention_partial(self):
         try:
-            print_colored("Test 2 :: Step-1 Partial Step-2 Full", self.color_options.YELLOW ,bold=True)
+            print_colored("Test 2 :: Step-1 [Partial] Step-2 [Full]", self.color_options.YELLOW ,bold=True)
 
             query = f"""
                 SELECT
@@ -123,11 +123,17 @@ class Marginalization:
 
             query = f"""
                 select 
-                    is_marginalized, 
-                    COALESCE(marginalization_date, '2001-11-30') AS marginalization_date
+                		installment_extension_id,
+		                "day",
+		                "sequence",
+                        is_marginalized, 
+                        COALESCE(marginalization_date, '2001-11-30') AS marginalization_date
                 from 
-                    new_lms_installmentlatefees nli
-                order by id desc   
+                    new_lms_installmentlatefees nli 
+                where 
+                    day > '{self.database_copy_date}' 
+                order by 
+                    installment_extension_id  desc, \"day\" desc, installment_status_id desc
             """
 
             # C++
