@@ -3,6 +3,7 @@ from undue_to_due import UndueToDue
 from due_to_overdue import DueToOverDue
 from update_loan_status import UpdateLoanStatus
 from database_utils import SQLUtilsService
+from long_to_short import LongToShort
 from marginalization import Marginalization
 from colors import *
 
@@ -59,21 +60,40 @@ def main():
     # connection_c.close()
     # connection_python.close()
 
-    #--------------------------------------------------MARGINALIZATION---------------------------------------------
-    print_colored("---------------------------------> MARGINALIZATION", color_options.PURPLE, bold=True)
-    DB_c_url = "postgres://postgres:postgres@192.168.65.203/42_marginalization_step_1_c" 
-    # DB_python = "postgres://postgres:postgres@192.168.65.203/4_marginalization_step_1_django"
-    DB_python = "postgres://postgres:postgres@192.168.65.203/FINALLL_RAMY_update_loan_status_django"
+    # #--------------------------------------------------MARGINALIZATION---------------------------------------------
+    # print_colored("---------------------------------> MARGINALIZATION", color_options.PURPLE, bold=True)
+    # DB_c_url = "postgres://postgres:postgres@192.168.65.203/4_marginalization_c" 
+    # DB_python = "postgres://postgres:postgres@192.168.65.203/4_marginalization_django"
+
+
+    # connection_c = SQLUtilsService.connect_to_database(DB_c_url)
+    # connection_python = SQLUtilsService.connect_to_database(DB_python)
+
+    # marginalization = Marginalization(connection_c, connection_python, database_copy_date)
+    # marginalization.test_marginalization()
+
+    # connection_c.close()
+    # connection_python.close()
+
+    #--------------------------------------------------Long To Short---------------------------------------------
+    print_colored("---------------------------------> Long To Short", color_options.PURPLE, bold=True)
+    DB_c_url = "postgres://postgres:postgres@192.168.65.203/52_long_to_short_c" 
+    DB_python = "postgres://postgres:postgres@192.168.65.203/5_long_to_short_django"
 
 
     connection_c = SQLUtilsService.connect_to_database(DB_c_url)
     connection_python = SQLUtilsService.connect_to_database(DB_python)
 
-    marginalization = Marginalization(connection_c, connection_python, database_copy_date)
-    marginalization.test_marginalization()
+    long_to_short = LongToShort(connection_c, connection_python, database_copy_date)
+    long_to_short.test_long_to_short()
 
     connection_c.close()
     connection_python.close()
+
+
+
+
+
 
 
 if __name__ == "__main__":

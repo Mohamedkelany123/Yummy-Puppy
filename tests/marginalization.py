@@ -113,9 +113,9 @@ class Marginalization:
 
     """
         3- Step-3 ->
-        Installment Late Fees:
-            -is_marginalized
-            -marginalization_date
+            Installment Late Fees:
+                -is_marginalized
+                -marginalization_date
     """
     def update_late_fees(self):
         try:

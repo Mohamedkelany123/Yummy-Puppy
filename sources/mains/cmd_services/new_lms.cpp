@@ -702,7 +702,7 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::MARGINALIZE_INCOME_STEP1),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::MARGINALIZE_INCOME_STEP1),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
         ),
 
@@ -728,7 +728,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_long_term",eq,"t"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::LONG_TO_SHORT_TERM-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"12, 13"),
+                new UnaryOperator ("new_lms_installmentextension.status_id",nin,"12, 13"),
                 new OROperator (
                     new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,"f"),
                     new ANDOperator (
@@ -742,7 +742,7 @@ int main (int argc, char ** argv)
         psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
-                ie_orm->set_is_long_term(true);
+                ie_orm->set_is_long_term(false); 
                 lal_orm->set_lms_closure_status(closure_status::LONG_TO_SHORT_TERM);
                 // shared_lock->lock();
                 //     cout << ie_orm->get_installment_ptr_id() << " : " << ie_orm->get_is_principal_paid() << " : " << ie_orm->get_principal_paid_at() << endl;
@@ -753,7 +753,7 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::LONG_TO_SHORT_TERM),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::LONG_TO_SHORT_TERM),
                     new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
             ),
 
@@ -823,7 +823,7 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
          PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::LAST_ACCRUED_DAY),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::LAST_ACCRUED_DAY),
                     new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
             ),
 
@@ -833,15 +833,14 @@ int main (int argc, char ** argv)
         cout << "Loan Last Accrual Day" << endl;
 
     }
-
-    PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-        UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
-        {{"lms_closure_status",to_string(0)}}
-    );
-    psqlUpdateQuery.update();
-
-
-
+    if (strcmp (argv[6],"full_closure") == 0)
+    {
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+            UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+            {{"lms_closure_status",to_string(0)}}
+        );
+        psqlUpdateQuery.update();
+    }
     return 0;
 }
 
