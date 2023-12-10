@@ -29,6 +29,9 @@ class BDate
         struct tm tm; 
         bool is_null;
     public:
+        bool isValid() const {
+        return !is_null;
+        }
         void set_date (string date_string="")
         {
             is_null = false;
@@ -151,7 +154,6 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
             {
                 if (inst_accrual_date() >= marg_date())
                     marg_date.set_date(inst_accrual_date.getDateString());
-                else  marg_date.set_date(""); 
             }
         }
         else
@@ -170,7 +172,6 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
                 {
                     if (inst_accrual_date() >= marg_date())
                         marg_date.set_date(inst_accrual_date.getDateString());
-                    else  marg_date.set_date(""); 
                 }
             }
         }
@@ -704,7 +705,7 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
-                new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::MARGINALIZE_INCOME_STEP1),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::MARGINALIZE_INCOME_STEP1),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
         ),
 
@@ -730,7 +731,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_long_term",eq,"t"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::LONG_TO_SHORT_TERM-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"12, 13"),
+                new UnaryOperator ("new_lms_installmentextension.status_id",nin,"12, 13"),
                 new OROperator (
                     new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,"f"),
                     new ANDOperator (
@@ -744,7 +745,7 @@ int main (int argc, char ** argv)
         psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
-                ie_orm->set_is_long_term(true);
+                ie_orm->set_is_long_term(false); 
                 lal_orm->set_lms_closure_status(closure_status::LONG_TO_SHORT_TERM);
                 // shared_lock->lock();
                 //     cout << ie_orm->get_installment_ptr_id() << " : " << ie_orm->get_is_principal_paid() << " : " << ie_orm->get_principal_paid_at() << endl;
@@ -755,7 +756,7 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::LONG_TO_SHORT_TERM),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::LONG_TO_SHORT_TERM),
                     new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
             ),
 
@@ -775,12 +776,14 @@ int main (int argc, char ** argv)
         {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
         });
 
-        psqlQueryJoin->setOrderBy("loan_app_loan.id asc ,new_lms_installmentextension.accrual_date asc");
+        //CHANGED TO DECENDING
+        psqlQueryJoin->setOrderBy("loan_app_loan.id desc ,new_lms_installmentextension.accrual_date desc");
         psqlQueryJoin->setDistinct(" distinct on (loan_app_loan.id) ");
         psqlQueryJoin->filter(
             ANDOperator 
             (
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13,14,15"),
+                // 7(WRITEOFF) and 14(PARTIAL-SETTLE-CHARGE-OFF) are not in django
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 8, 12, 13, 15"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::LAST_ACCRUED_DAY-1)),
                 new OROperator (
                     new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,closure_date_string),
@@ -789,25 +792,33 @@ int main (int argc, char ** argv)
                         new UnaryOperator ("loan_app_installment.day-1",lte,closure_date_string)
                     )
                 )
-               
-
             )
         );
-
-        psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (10,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
                 BDate accrual_date(ie_orm->get_accrual_date());
-                BDate partual_accrual_date(ie_orm->get_partial_accrual_date());
+                BDate partial_accrual_date(ie_orm->get_partial_accrual_date());
                 BDate first_accrual_adjustment_date(lal_orm->get_first_accrual_adjustment_date());
                 BDate last_accrued_interest_day(lal_orm->get_last_accrued_interest_day());
                 BDate new_last_accrued_interest_day ("");
 
-                if ( accrual_date() >= partual_accrual_date() &&  accrual_date() >= first_accrual_adjustment_date ()) 
+                //Missing Conditions From Django --> last_accrued_interest_day_service.py --> line: [21-27]
+                //--------------------------------------------------------------------------------------------------------
+                if ( !accrual_date.isValid() ) {
+                    accrual_date.set_date(lal_orm->get_loan_booking_day());
+                }else if( !partial_accrual_date.isValid() ){ 
+                    partial_accrual_date.set_date(lal_orm->get_loan_booking_day());
+                }else if( !first_accrual_adjustment_date.isValid() || first_accrual_adjustment_date() <= closure_date()){
+                    first_accrual_adjustment_date.set_date(lal_orm->get_loan_booking_day());
+                }
+                //----------------------------------------------------------------------------------------------------------
+
+                if ( accrual_date() >= partial_accrual_date() &&  accrual_date() >= first_accrual_adjustment_date ()) 
                     new_last_accrued_interest_day.set_date(accrual_date.getDateString());
-                else if ( partual_accrual_date() >= accrual_date() &&  partual_accrual_date() >= first_accrual_adjustment_date ()) 
-                    new_last_accrued_interest_day.set_date(partual_accrual_date.getDateString());
-                else if ( first_accrual_adjustment_date() >= accrual_date() &&  first_accrual_adjustment_date() >= partual_accrual_date ()) 
+                else if ( partial_accrual_date() >= accrual_date() &&  partial_accrual_date() >= first_accrual_adjustment_date ()) 
+                    new_last_accrued_interest_day.set_date(partial_accrual_date.getDateString());
+                else if ( first_accrual_adjustment_date() >= accrual_date() &&  first_accrual_adjustment_date() >= partial_accrual_date ()) 
                     new_last_accrued_interest_day.set_date(first_accrual_adjustment_date.getDateString());
 
                 if ( last_accrued_interest_day() <  new_last_accrued_interest_day())
@@ -817,15 +828,15 @@ int main (int argc, char ** argv)
                 }
                 // shared_lock->lock();
                 // if ( last_accrued_interest_day() <  new_last_accrued_interest_day())
-                //     cout << lal_orm->get_id() << " - " << accrual_date.getDateString() << " - " << partual_accrual_date.getDateString() << " - " << first_accrual_adjustment_date.getDateString() << " ---> " << last_accrued_interest_day.getDateString() << " ===== " << lal_orm->get_last_accrued_interest_day() << endl;
+                //     cout << lal_orm->get_id() << " - " << accrual_date.getDateString() << " - " << partial_accrual_date.getDateString() << " - " << first_accrual_adjustment_date.getDateString() << " ---> " << last_accrued_interest_day.getDateString() << " ===== " << lal_orm->get_last_accrued_interest_day() << endl;
                 // shared_lock->unlock();
             });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true);   
-        delete (psqlQueryJoin);
-         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+           delete (psqlQueryJoin);
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",lte,closure_status::LAST_ACCRUED_DAY),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::LAST_ACCRUED_DAY),
                     new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
             ),
 
@@ -835,15 +846,14 @@ int main (int argc, char ** argv)
         cout << "Loan Last Accrual Day" << endl;
 
     }
-
-    PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-        UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
-        {{"lms_closure_status",to_string(0)}}
-    );
-    psqlUpdateQuery.update();
-
-
-
+    if (strcmp (argv[6],"full_closure") == 0)
+    {
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+            UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+            {{"lms_closure_status",to_string(0)}}
+        );
+        psqlUpdateQuery.update();
+    }
     return 0;
 }
 
