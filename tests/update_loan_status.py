@@ -7,12 +7,11 @@ from polars.testing import assert_frame_equal
 
 class UpdateLoanStatus:
     
-    def __init__(self, connection_c, connection_python,database_copy_date, closure_run_date):
+    def __init__(self, connection_c, connection_python,database_copy_date):
         self.connection_c = connection_c
         self.connection_python = connection_python
         self.database_copy_date = database_copy_date
         self.color_options = color_options
-        self.closure_run_date = closure_run_date
 
 
     """
