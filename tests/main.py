@@ -13,7 +13,8 @@ from colors import *
 
 def main():
 
-    #Put it manually -(Date = DATABASE DUPLICATION DATE)
+    #PUT IT MANUALLY-(Date = DATABASE DUPLICATION DATE) 
+    #FOR ALL EXCEPT FULL CLOSURE
     database_copy_date = '2023-11-25'
     
     #------------------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -21,9 +22,17 @@ def main():
     #------------------------------------------------------------------------------------------------------------------------------------------------------------#
     #--------------------------------------------------Full Closure Tests------------------------------------------
     
+
+    #TOOK 24 MINUTES TO TEST ALL 7 TABLES
     print_colored("--------------------------------->FULL CLOSURE TESTS ", color_options.PURPLE, bold=True)
     DB_c_url = "postgres://postgres:postgres@192.168.65.203/7_full_closure_c" 
     DB_python = "postgres://postgres:postgres@192.168.65.203/7_full_closure_django"
+    
+    print_colored("Database 1: ", color_options.CYAN, bold=True)
+    print_colored(DB_c_url, color_options.PURPLE, bold=True)
+    print_colored("Database 2: ", color_options.CYAN, bold=True)
+    print_colored(DB_python, color_options.PURPLE, bold=True)
+    print_colored("------------------------------------------------------ ", color_options.PURPLE, bold=True)
 
     connection_c = SQLUtilsService.connect_to_database(DB_c_url)
     connection_python = SQLUtilsService.connect_to_database(DB_python)
@@ -33,6 +42,26 @@ def main():
 
     connection_c.close()
     connection_python.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -69,7 +98,7 @@ def main():
     # connection_c.close()
     # connection_python.close()
 
-    # #--------------------------------------------------UPDATE LOAN STATUS---------------------------------------------
+    # # #--------------------------------------------------UPDATE LOAN STATUS---------------------------------------------
     # print_colored("---------------------------------> UPDATE LOAN STATUS", color_options.PURPLE, bold=True)
     # DB_c_url = "postgres://postgres:postgres@192.168.65.203/3_update_loan_status_c" 
     # DB_python = "postgres://postgres:postgres@192.168.65.203/3_update_loan_status_django"
@@ -77,12 +106,12 @@ def main():
     # connection_c = SQLUtilsService.connect_to_database(DB_c_url)
     # connection_python = SQLUtilsService.connect_to_database(DB_python)
 
-
     # update_loan_status = UpdateLoanStatus(connection_c, connection_python, database_copy_date)
     # update_loan_status.test_update_loan_status()
 
     # connection_c.close()
     # connection_python.close()
+
 
     # #--------------------------------------------------MARGINALIZATION---------------------------------------------
     # print_colored("---------------------------------> MARGINALIZATION", color_options.PURPLE, bold=True)

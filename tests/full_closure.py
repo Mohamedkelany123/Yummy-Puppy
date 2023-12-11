@@ -31,10 +31,9 @@ class FullClosure:
     [FAILED]2-Loan App Loan Excluding[created_at, updated_at]
             3-Installment Excluding[created_at, updated_at]
             4-Installment Late Fees Exclude-ID-(Step-4 Marginalization Creates Late Fees So We cant Compare the [ids] as C++ runs using Multithreads)
-    [FAILED]5-Installment Payment Status History Exclude
+            5-Installment Payment Status History Exclude
             6-Installment Status History 
             7-Loan Status History
-    
     """
 
 
@@ -107,8 +106,7 @@ class FullClosure:
                 order by  
                     installment_extension_id desc,  "day" desc, status desc
                 """
-        excluded_columns = ['id', 'created_at', 'updated_at', 'order_id']
-        # excluded_columns = ['id', 'created_at', 'updated_at']
+        excluded_columns = ['id', 'created_at', 'updated_at']
 
         self.exec(query, excluded_columns)
 
@@ -130,7 +128,7 @@ class FullClosure:
 
     #7-Loan Status History
     def loan_status_history(self):
-        print_colored("Test 6 :: Loan Status History ", self.color_options.YELLOW ,bold=True)
+        print_colored("Test 7 :: Loan Status History ", self.color_options.YELLOW ,bold=True)
         query = f"""
                 select *  
                 from 
