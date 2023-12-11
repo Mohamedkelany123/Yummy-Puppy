@@ -382,7 +382,20 @@ int main (int argc, char ** argv)
                     new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
                     psh_orm->set_day(reference_date.getDateString());
                     psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
-                    psh_orm->set_status(1); // 0       
+                    psh_orm->set_status(1); // 0    
+
+                    /*
+                    Django Code:
+
+                        CommonFunction.create_payment_status_history(
+                            installment,
+                            PaymentHistoryStatus.PAIDONTIME,
+                            installment.principal_order,
+                            day=installment.day,
+                        )
+                        installment.payment_status = 1
+                        installment.save()
+                    */   
                 }
                 else
                 {
@@ -421,6 +434,18 @@ int main (int argc, char ** argv)
                                     psh_orm->set_day(reference_date.getDateString());
                                     psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
                                     psh_orm->set_status(0); // 0
+                                    /*
+                                        Django Code:
+
+                                            CommonFunction.create_payment_status_history(
+                                                installment,
+                                                PaymentHistoryStatus.PAIDONTIME,
+                                                installment.principal_order,
+                                                day=installment.day,
+                                            )
+                                            installment.payment_status = 1
+                                            installment.save()
+                                    */
                                 }
                             }
 
@@ -834,14 +859,14 @@ int main (int argc, char ** argv)
         cout << "Loan Last Accrual Day" << endl;
 
     }
-    if (strcmp (argv[6],"full_closure") == 0)
-    {
-        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-            UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
-            {{"lms_closure_status",to_string(0)}}
-        );
-        psqlUpdateQuery.update();
-    }
+    // if (strcmp (argv[6],"full_closure") == 0)
+    // {
+    //     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+    //         UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+    //         {{"lms_closure_status",to_string(0)}}
+    //     );
+    //     psqlUpdateQuery.update();
+    // }
     return 0;
 }
 

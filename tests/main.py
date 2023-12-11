@@ -6,6 +6,7 @@ from database_utils import SQLUtilsService
 from long_to_short import LongToShort
 from last_accrual_interest_day import LastAccrualInterestDay
 from marginalization import Marginalization
+from full_closure import FullClosure
 from colors import *
 
 
@@ -14,7 +15,30 @@ def main():
 
     #Put it manually -(Date = DATABASE DUPLICATION DATE)
     database_copy_date = '2023-11-25'
+    
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------#
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------#
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------#
+    #--------------------------------------------------Full Closure Tests------------------------------------------
+    
+    print_colored("--------------------------------->FULL CLOSURE TESTS ", color_options.PURPLE, bold=True)
+    DB_c_url = "postgres://postgres:postgres@192.168.65.203/7_full_closure_c" 
+    DB_python = "postgres://postgres:postgres@192.168.65.203/7_full_closure_django"
 
+    connection_c = SQLUtilsService.connect_to_database(DB_c_url)
+    connection_python = SQLUtilsService.connect_to_database(DB_python)
+
+    full_closure = FullClosure(connection_c, connection_python, database_copy_date)
+    full_closure.test()
+
+    connection_c.close()
+    connection_python.close()
+
+
+
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------#
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------#
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------#
     # #--------------------------------------------------UNDUE TO DUE--------------------------------------------------
     # print_colored("---------------------------------> UNDUE TO DUE ", color_options.PURPLE, bold=True)
     # DB_c_url = "postgres://postgres:postgres@192.168.65.203/1_undue_to_due_c" 
@@ -91,20 +115,20 @@ def main():
     # connection_python.close()
    
    
-    #--------------------------------------------------Last Accrual Interest Date---------------------------------------------
-    print_colored("---------------------------------> Last Accrual Interest Date", color_options.PURPLE, bold=True)
-    DB_c_url = "postgres://postgres:postgres@192.168.65.203/6_trial_last_accrual_interest_date_c" 
-    DB_python = "postgres://postgres:postgres@192.168.65.203/6_trial_last_accrual_interest_date_django"
+    # #--------------------------------------------------Last Accrual Interest Date------------------------------------
+    # print_colored("---------------------------------> Last Accrual Interest Date", color_options.PURPLE, bold=True)
+    # DB_c_url = "postgres://postgres:postgres@192.168.65.203/6_last_accrual_interest_date_c" 
+    # DB_python = "postgres://postgres:postgres@192.168.65.203/6_last_accrual_interest_date_django"
 
 
-    connection_c = SQLUtilsService.connect_to_database(DB_c_url)
-    connection_python = SQLUtilsService.connect_to_database(DB_python)
+    # connection_c = SQLUtilsService.connect_to_database(DB_c_url)
+    # connection_python = SQLUtilsService.connect_to_database(DB_python)
 
-    last_accrual_interest_day = LastAccrualInterestDay(connection_c, connection_python, database_copy_date)
-    last_accrual_interest_day.test_last_accrual_interest_day()
+    # last_accrual_interest_day = LastAccrualInterestDay(connection_c, connection_python, database_copy_date)
+    # last_accrual_interest_day.test_last_accrual_interest_day()
 
-    connection_c.close()
-    connection_python.close()
+    # connection_c.close()
+    # connection_python.close()
 
 
 
