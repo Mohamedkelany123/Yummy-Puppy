@@ -93,8 +93,8 @@ def main():
    
     #--------------------------------------------------Last Accrual Interest Date---------------------------------------------
     print_colored("---------------------------------> Last Accrual Interest Date", color_options.PURPLE, bold=True)
-    DB_c_url = "postgres://postgres:postgres@192.168.65.203/623_last_accrual_interest_date_c" 
-    DB_python = "postgres://postgres:postgres@192.168.65.203/6_last_accrual_interest_date_django"
+    DB_c_url = "postgres://postgres:postgres@192.168.65.203/6_trial_last_accrual_interest_date_c" 
+    DB_python = "postgres://postgres:postgres@192.168.65.203/6_trial_last_accrual_interest_date_django"
 
 
     connection_c = SQLUtilsService.connect_to_database(DB_c_url)
