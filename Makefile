@@ -1,5 +1,27 @@
 include makefile.vars
 
+
+#---------------------------------------__#
+
+
+TEST_DIR = tests
+TEST_SRC = $(wildcard $(TEST_DIR)/*.cpp)
+TEST_OBJ = $(patsubst $(TEST_DIR)/%.cpp, $(OBJECTS)/%.cpp.o, $(TEST_SRC))
+TEST_BIN = $(BIN)/test
+
+$(TEST_BIN): $(TEST_OBJ)
+	$(GCC) $(INCLUDES) $(GTEST_INCLUDE) -o $@ $(TEST_OBJ) $(GTEST_LIB)
+
+$(OBJECTS)/%.cpp.o: $(TEST_DIR)/%.cpp
+	$(GCC) $(GCC_FLAGS) $(INCLUDES) -c $< -o $@
+
+test: $(TEST_BIN)
+	@echo "Running Tests"
+	@./bin/test
+
+#----------------------------------------------------------------____#
+
+
 greeting:
 	@echo "This is ORM-C++ Project"
 
