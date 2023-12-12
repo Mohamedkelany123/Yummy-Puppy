@@ -169,7 +169,7 @@ class UpdateLoanStatus:
             #     order by installment_extension_id desc
             # """
 
-            query = f"""select status, installment_extension_id , "day" , status
+            query = f"""select status, installment_extension_id , "day" , status,  COALESCE(order_id,-1)
                         from new_lms_installmentpaymentstatushistory nli 
                         where day > '{self.database_copy_date}' 
                         order by  installment_extension_id desc,  "day" desc, status desc

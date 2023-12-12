@@ -29,9 +29,6 @@ class BDate
         struct tm tm; 
         bool is_null;
     public:
-        bool isValid() const {
-        return !is_null;
-        }
         void set_date (string date_string="")
         {
             is_null = false;
@@ -385,7 +382,8 @@ int main (int argc, char ** argv)
                     new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
                     psh_orm->set_day(reference_date.getDateString());
                     psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
-                    psh_orm->set_status(1); // 0       
+                    psh_orm->set_status(1); // 0  
+                    psh_orm->set_order_id(ie_orm->get_principal_order_id());
                 }
                 else
                 {
@@ -424,6 +422,7 @@ int main (int argc, char ** argv)
                                     psh_orm->set_day(reference_date.getDateString());
                                     psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
                                     psh_orm->set_status(0); // 0
+                                    psh_orm->set_order_id(ie_orm->get_principal_order_id());
                                 }
                             }
 
@@ -801,19 +800,9 @@ int main (int argc, char ** argv)
                 BDate partial_accrual_date(ie_orm->get_partial_accrual_date());
                 BDate first_accrual_adjustment_date(lal_orm->get_first_accrual_adjustment_date());
                 BDate last_accrued_interest_day(lal_orm->get_last_accrued_interest_day());
-                BDate new_last_accrued_interest_day (lal_orm->loan_booking_day());
+                BDate new_last_accrued_interest_day (lal_orm->get_loan_booking_day());
                 new_last_accrued_interest_day.dec_day();
 
-                //Missing Conditions From Django --> last_accrued_interest_day_service.py --> line: [21-27]
-                //--------------------------------------------------------------------------------------------------------
-                if ( !accrual_date.isValid() ) {
-                    accrual_date.set_date(lal_orm->get_loan_booking_day());
-                }else if( !partial_accrual_date.isValid() ){ 
-                    partial_accrual_date.set_date(lal_orm->get_loan_booking_day());
-                }else if( !first_accrual_adjustment_date.isValid() || first_accrual_adjustment_date() <= closure_date()){
-                    first_accrual_adjustment_date.set_date(lal_orm->get_loan_booking_day());
-                }
-                //----------------------------------------------------------------------------------------------------------
 
                 if ( accrual_date() >= partial_accrual_date() &&  accrual_date() >= first_accrual_adjustment_date () && accrual_date() <= closure_date ()) 
                     new_last_accrued_interest_day.set_date(accrual_date.getDateString());
@@ -847,14 +836,14 @@ int main (int argc, char ** argv)
         cout << "Loan Last Accrual Day" << endl;
 
     }
-    if (strcmp (argv[6],"full_closure") == 0)
-    {
-        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-            UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
-            {{"lms_closure_status",to_string(0)}}
-        );
-        psqlUpdateQuery.update();
-    }
+    // if (strcmp (argv[6],"full_closure") == 0)
+    // {
+    //     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+    //         UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+    //         {{"lms_closure_status",to_string(0)}}
+    //     );
+    //     psqlUpdateQuery.update();
+    // }
     return 0;
 }
 
