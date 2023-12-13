@@ -158,16 +158,28 @@ void PSQLPrimitiveORMGenerator::generateFieldsMap (string class_name,string tabl
     extra_methods_def += "\t\tmap<string,string> generateFieldsMap ();\n";
     extra_methods += "\t\tmap<string,string> "+class_name+"::generateFieldsMap (){\n";
     extra_methods += "\t\t\tmap <string,string> fields_map;\n";
+
+    cout << "hii" << endl;
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         string db_field_name = columns_definition["column_name"][i];
         string orm_field_name = "orm_"+columns_definition["column_name"][i];
+        bool string_flag = false;
+        for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
+            if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
 
+        bool json_flag = false;
+        for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
+            if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
 
-        if ( columns_definition["udt_name"][i] == "jsonb")
-            extra_methods += "fields_map[\""+orm_field_name+"\"]= "+orm_field_name+".dump();";
-        else extra_methods += "fields_map[\""+orm_field_name+"\"]= "+orm_field_name+";";
+            
+        if(string_flag)
+            extra_methods += "\t\t\t\t\tfields_map[\""+orm_field_name+"\"]= "+orm_field_name+";\n";
+        else if (json_flag)
+            extra_methods += "\t\t\t\t\tfields_map[\""+orm_field_name+"\"]= "+orm_field_name+".dump();\n";
+        else extra_methods += "\t\t\t\t\tfields_map[\""+orm_field_name+"\"]= std::to_string("+orm_field_name+");\n";        
     }
+
     extra_methods += "\t\t\treturn fields_map;\n";
     extra_methods += "\t\t}\n";
 }
@@ -445,11 +457,11 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
     get_primary_key(table_name);
     if (primary_key != "" )
     {
+        generateFieldsMap(class_name,table_index,results);
         generateDecl_Setters_Getters(class_name,results);
         generateFromString(class_name,table_name,table_index,results);
         generateAssignResults(class_name,table_index,results);
         generateAssignmentOperator(class_name,table_index,results);
-        generateFieldsMap(class_name,table_index,results);
         generateGetIdentifier(class_name);
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);

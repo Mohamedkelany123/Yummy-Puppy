@@ -20,8 +20,6 @@
 
 
 /*
-
-
     Tables To Test:
 
             1-Installment Extention Excluding[ext_created_at , ext_updated_at]
@@ -52,8 +50,11 @@ TEST(ClosureTest, InstallmentExtention) {
     {
         new_lms_installmentextension_primitive_orm * x_old = nliei_old->next();
         new_lms_installmentextension_primitive_orm * x_new = nliei_new->next();
-        x_old->generateFieldsMap()
-        jsonb x_old->compare(x_new);
+        
+        //Compare the 2
+        // x_old->generateFieldsMap()
+
+
         if (x == NULL ) break;
         cout << x->get_installment_ptr_id() << endl;
 
