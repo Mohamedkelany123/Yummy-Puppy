@@ -7,10 +7,10 @@ TEST_SRC = $(wildcard $(TEST_DIR)/*.cpp)
 TEST_OBJ = $(patsubst $(TEST_DIR)/%.cpp, $(TEST_OBJ_DIR)/%.cpp.o, $(TEST_SRC))
 
 $(TEST_BIN): $(TEST_OBJ) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) | $(TEST_BIN_DIR)
-	$(GCC) $(INCLUDES) $(GTEST_INCLUDE) -o $@ $(TEST_OBJ) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(GTEST_LIB) $(LINKER_FLAGS)
+	$(GCC) $(INCLUDES) $(GTEST_INCLUDE) -g -o $@ $(TEST_OBJ) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(GTEST_LIB) $(LINKER_FLAGS)
 
 $(TEST_OBJ_DIR)/%.cpp.o: $(TEST_DIR)/%.cpp | $(TEST_OBJ_DIR)
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) -c $< -o $@
+	$(GCC) $(GCC_FLAGS) $(INCLUDES) -g -c $< -o $@
 
 $(TEST_OBJ_DIR):
 	mkdir -p $(TEST_OBJ_DIR)
@@ -23,7 +23,7 @@ test: $(TEST_BIN)
 	@./bin/tests/test
 
 clean_test:
-	rm -rf $(TEST_OBJ_DIR) $(TEST_BIN_DIR)
+	rm -rf $(TEST_OBJ_DIR) $(TEST_BIN_DIR) 
 
 #------------------------------------------#
 greeting:

@@ -14,12 +14,26 @@
 #include <loan_app_loanstatushistroy_primitive_orm.h>
 #include <new_lms_installmentstatushistory_primitive_orm.h>
 
+/* 
+    Tables To Test:
 
-TEST(AddTest, PositiveNumbers) {
+            1-Installment Extention Excluding[ext_created_at , ext_updated_at]
+    [FAILED]2-Loan App Loan Excluding[created_at, updated_at]
+            3-Installment Excluding[created_at, updated_at]
+            4-Installment Late Fees Exclude-ID-(Step-4 Marginalization Creates Late Fees So We cant Compare the [ids] as C++ runs using Multithreads)
+            5-Installment Payment Status History Exclude
+            6-Installment Status History 
+            7-Loan Status History
+*/
+
+
+
+//TEST(TestSuiteName, TestCaseName) 
+TEST(ClosureTest, InstallmentExtention) {
     
-    PSQLConnectionManager psqlConnectionManager;
-    psqlConnectionManager.addDataSource("main", "192.168.65.203", 5432, "database", "postgres", "postgres");
-
+    // PSQLConnectionManager psqlConnectionManager;
+    // psqlConnectionManager.addDataSource("main", "192.168.65.203", 5432, "7_full_closure_c", "postgres", "postgres");
+    psqlController.addDataSource("main", "192.168.65.203", 5432, "7_full_closure_c", "postgres", "postgres");
 
     PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm(),new loan_app_installment_primitive_orm(),new loan_app_loan_primitive_orm(),new crm_app_customer_primitive_orm()},
@@ -37,16 +51,12 @@ TEST(AddTest, PositiveNumbers) {
         );
 
     // Process the results and print information
-    psqlQueryJoin->process(1, [](map<string, PSQLAbstractORM *> *orms, int partition_number, mutex *shared_lock) {
-        for (auto &orm_pair : *orms) {
-            new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
-            
-            // Replace the following lines with your specific field names and getter methods
-            cout << "ID: " << ie_orm->get_installment_ptr_id() << endl;
-            cout << "HIIIIIIIIIIIIIII"  << endl;
-
-        }
-    });
+    psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
+        loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
+        cout << "hiiiii" << endl;
+        });
+    cout << "C++ Results:" << psqlQueryJoin->getResultCount() << " record(s)" << endl;
 
     delete (psqlQueryJoin);
 
