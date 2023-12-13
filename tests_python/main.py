@@ -1,4 +1,3 @@
-import psycopg2
 from undue_to_due import UndueToDue
 from due_to_overdue import DueToOverDue
 from update_loan_status import UpdateLoanStatus
