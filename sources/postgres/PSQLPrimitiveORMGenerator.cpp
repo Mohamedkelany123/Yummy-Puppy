@@ -150,6 +150,29 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string 
     extra_methods += "\t\t\tif (!_read_only) addToCache();\n";
     extra_methods += "\t\t}\n";
 }
+
+
+
+void PSQLPrimitiveORMGenerator::generateFieldsMap (string class_name,string table_name,map<string, vector<string>> columns_definition)
+{
+    extra_methods_def += "\t\tmap<string,string> generateFieldsMap ();\n";
+    extra_methods += "\t\tmap<string,string> "+class_name+"::generateFieldsMap (){\n";
+    extra_methods += "\t\t\tmap <string,string> fields_map;\n";
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        string db_field_name = columns_definition["column_name"][i];
+        string orm_field_name = "orm_"+columns_definition["column_name"][i];
+
+
+        if ( columns_definition["udt_name"][i] == "jsonb")
+            extra_methods += "fields_map[\""+orm_field_name+"\"]= "+orm_field_name+".dump();";
+        else extra_methods += "fields_map[\""+orm_field_name+"\"]= "+orm_field_name+";";
+    }
+    extra_methods += "\t\t\treturn fields_map;\n";
+    extra_methods += "\t\t}\n";
+}
+
+
 void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
     extra_methods_def += "\t\tvoid operator = ("+class_name+" & orm);\n";
@@ -426,6 +449,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         generateFromString(class_name,table_name,table_index,results);
         generateAssignResults(class_name,table_index,results);
         generateAssignmentOperator(class_name,table_index,results);
+        generateFieldsMap(class_name,table_index,results);
         generateGetIdentifier(class_name);
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);

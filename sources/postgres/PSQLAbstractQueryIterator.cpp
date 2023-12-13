@@ -153,6 +153,7 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         cout << "Starting multi-threading execution" << endl;
 
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
+        cout << p->size() << endl;
         vector <thread *> threads;
         mutex shared_lock;
         for ( int i  = 0 ; i < p->size() ; i ++)
@@ -160,6 +161,8 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
             thread * t = new thread(process_internal,this,(*p)[i],i,&shared_lock,f);
             threads.push_back(t);
         }
+        cout << "After Threads Creation" << endl;
+
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
                 // cout << "Start freeing thread # " << i << endl;

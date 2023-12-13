@@ -54,6 +54,7 @@ PSQLORMCache::PSQLORMCache()
 {
         insert_cache_items_count=0;
         update_cache_items_count=0;
+        threads_count = 1;
 }
 void PSQLORMCache::set_threads_count (int _threads_count)
 {
