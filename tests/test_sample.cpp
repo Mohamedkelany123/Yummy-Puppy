@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <map>
 #include <PSQLController.h>
 #include <PSQLUpdateQuery.h>
 #include <PSQLAbstractQueryIterator.h>
@@ -14,7 +15,14 @@
 #include <loan_app_loanstatushistroy_primitive_orm.h>
 #include <new_lms_installmentstatushistory_primitive_orm.h>
 
-/* 
+//NESHOOF F -> NEXT  3AMAL EXECUTE WALA LA
+//DONT USE THE CACHEEEE
+//FEL SOURCES TEMPLATE CHECK LAW EL PSQL.. MESH B NULL ANDD EL CONDITION EL MAWGOODA
+
+//PEOBLEM BEY LINK EL TEST BA3D A,MA BEN RUNNO
+
+
+/*
     Tables To Test:
 
             1-Installment Extention Excluding[ext_created_at , ext_updated_at]
@@ -28,69 +36,103 @@
 
 
 
-//TEST(TestSuiteName, TestCaseName) 
-TEST(ClosureTest, InstallmentExtention) {
+// //TEST(TestSuiteName, TestCaseName) 
+// TEST(ClosureTest, InstallmentExtention) {
     
-    // PSQLConnectionManager psqlConnectionManager;
-    // psqlConnectionManager.addDataSource("main", "192.168.65.203", 5432, "7_full_closure_c", "postgres", "postgres");
-    // psqlController.addDataSource("main", "192.168.65.203", 5432, "7_full_closure_c", "postgres", "postgres");
-    psqlController.addDataSource("main", "127.0.0.1", 5432, "django_ostaz_25102023", "postgres", "postgres");
+//     psqlController.addDataSource("django", "192.168.65.203", 5432, "7_full_closure_django", "postgres", "postgres");
+//     new_lms_installmentextension_primitive_orm_iterator * nliei_django = new new_lms_installmentextension_primitive_orm_iterator("django");
+//     nliei_django->execute();
+
+//     psqlController.addDataSource("c", "192.168.65.203", 5432, "7_full_closure_c", "postgres", "postgres");
+//     new_lms_installmentextension_primitive_orm_iterator * nliei_c = new new_lms_installmentextension_primitive_orm_iterator("c");
+//     nliei_c->execute();
+
+//     for (int i=0; i<1 ; i++) {
+//         new_lms_installmentextension_primitive_orm* django = nliei_django->next();
+//         new_lms_installmentextension_primitive_orm* c = nliei_c->next();
+
+//         if (c == nullptr || django == nullptr) {
+//             break;
+//         }
+
+//         map<string, string> fieldsMap_django = django->generateFieldsMap();
+//         map<string, string> fieldsMap_c = c->generateFieldsMap();
+
+//         for (const auto& entry : fieldsMap_c) {
+//             if(entry.first != "orm_ext_created_at" && entry.first != "orm_ext_updated_at" ){
+//                 cout << "C++ Output ="  <<entry.first << endl;
+//                 cout << "Django Output ="  << fieldsMap_django[entry.first] << endl;
+//             }
+//         }
+//     }
+
+//     delete (nliei_c);
+//     delete (nliei_django);
 
 
-    new_lms_installmentextension_primitive_orm_iterator * nliei_old = new new_lms_installmentextension_primitive_orm_iterator("main_old");
-    new_lms_installmentextension_primitive_orm_iterator * nliei_new = new new_lms_installmentextension_primitive_orm_iterator("main_new");
-    nliei_old->execute();
-    nliei_new->execute();
-    for ( ;  ; )
-    {
-        new_lms_installmentextension_primitive_orm * x_old = nliei_old->next();
-        new_lms_installmentextension_primitive_orm * x_new = nliei_new->next();
-        x_old->generateFieldsMap()
-        jsonb x_old->compare(x_new);
-        if (x == NULL ) break;
-        cout << x->get_installment_ptr_id() << endl;
 
+
+   
+
+//     EXPECT_EQ(5, 5);
+// }
+
+
+//TEST(TestSuiteName, TestCaseName) 
+TEST(ClosureTest, LoanAppLoan) {
+    
+    psqlController.addDataSource("django", "192.168.65.203", 5432, "7_full_closure_django", "postgres", "postgres");
+    loan_app_loan_primitive_orm_iterator * lal_django = new loan_app_loan_primitive_orm_iterator("django");
+    lal_django->execute();
+
+    psqlController.addDataSource("c", "192.168.65.203", 5432, "7_full_closure_c", "postgres", "postgres");
+    loan_app_loan_primitive_orm_iterator * lal_c = new loan_app_loan_primitive_orm_iterator("c");
+    lal_c->execute();
+
+    for (int i=0; i< 1000 ; i++) {
+        loan_app_loan_primitive_orm * django = lal_django->next();
+        if (django == nullptr) {
+        map<string, string> fieldsMap_django = django->generateFieldsMap();
+        cout << "DJANGO:" << fieldsMap_django["orm_updated_at"]  << "   ID:" << fieldsMap_django["orm_id"] <<  endl;
+
+        loan_app_loan_primitive_orm * c  = lal_c->next();
+           if (c == nullptr) {
+            break;
+        }
+        map<string, string> fieldsMap_c = c->generateFieldsMap();
+        cout << "CCCCCC:" << fieldsMap_c["orm_updated_at"] << "   ID:" << fieldsMap_c["orm_id"] <<  endl;
+
+     
+
+        for (const auto& entry : fieldsMap_django) {
+            // if(entry.first == "orm_updated_at"){
+            //     cout << "CREATED AT C=" << entry.second << endl;
+            //     cout << "Created At D= " << fieldsMap_c[entry.first] << endl;
+            // }
+            
+            // if(entry.first == "orm_id"){
+            //     cout << "ID C=" << entry.second << endl;
+            //     cout << "ID D= " << fieldsMap_c[entry.first] << endl;
+            // }
+
+            if(entry.first != "orm_created_at" && entry.first != "orm_updated_at"){
+                if(entry.second != fieldsMap_c[entry.first]){
+                    cout << "3aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
+                }
+            }
+        }
     }
-    delete (nliei);
 
-    // PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    //     {new new_lms_installmentextension_primitive_orm(),new loan_app_installment_primitive_orm(),new loan_app_loan_primitive_orm(),new crm_app_customer_primitive_orm()},
-    //     {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
-    //     {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
-    //     {{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}
-    //     });
+    delete (lal_c);
+    delete (lal_django);
 
-    //     psqlQueryJoin->filter(
-    //         ANDOperator 
-    //         (
-    //             new UnaryOperator ("new_lms_installmentextension.is_marginalized",eq,"f"),
-    //             // new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4,5"),
-    //             new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",lte,"1000")
-    //         )
-    //     );
 
-    // // Process the results and print information
-    // psqlQueryJoin->process (10,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
-    //     new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
-    //     loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
-    //     cout << "hiiiii" << endl;
-    //     });
-    // cout << "C++ Results:" << psqlQueryJoin->getResultCount() << " record(s)" << endl;
+//                orm->unlock_me();
+//after line 110 in ORMCAHCE
 
-    // delete (psqlQueryJoin);
 
+
+   
 
     EXPECT_EQ(5, 5);
 }
-
-
-
-
-
-
-
-// // Run the tests
-// int main(int argc, char** argv) {
-//     ::testing::InitGoogleTest(&argc, argv);
-//     return RUN_ALL_TESTS();
-// }
