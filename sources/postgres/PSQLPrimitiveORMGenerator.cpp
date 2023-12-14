@@ -159,7 +159,6 @@ void PSQLPrimitiveORMGenerator::generateFieldsMap (string class_name,string tabl
     extra_methods += "\t\tmap<string,string> "+class_name+"::generateFieldsMap (){\n";
     extra_methods += "\t\t\tmap <string,string> fields_map;\n";
 
-    cout << "hii" << endl;
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         string db_field_name = columns_definition["column_name"][i];
