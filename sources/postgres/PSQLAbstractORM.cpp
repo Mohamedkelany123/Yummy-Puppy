@@ -1,8 +1,8 @@
 #include <PSQLAbstractORM.h>
 #include <PSQLController.h>
 
-PSQLAbstractORM::PSQLAbstractORM (string _table_name,string _identifier_name)
-{
+PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name)
+{   
     table_name = _table_name;
     identifier_name = _identifier_name;
     loaded = false;
@@ -18,7 +18,7 @@ PSQLAbstractORM::PSQLAbstractORM (string _table_name,string _identifier_name)
     // }
     insert_default_values = psqlController.getInsertDefaultValues();
     update_default_values = psqlController.getUpdateDefaultValues();
-
+    data_source_name = _data_source_name;
 }
 string PSQLAbstractORM::getIdentifierName ()
 {

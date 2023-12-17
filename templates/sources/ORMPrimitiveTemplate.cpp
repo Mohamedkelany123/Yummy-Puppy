@@ -4,7 +4,7 @@
 
 
 %s::%s(string _data_source_name):PSQLAbstractQueryIterator(_data_source_name,"%s"){
-    %s * orm = new %s();
+    %s * orm = new %s(_data_source_name);
     from_string =orm->getFromString();
     orderby_string = orm->getIdentifierName() + " asc";
 }
@@ -16,7 +16,7 @@
 {
     if (psqlQuery->fetchNextRow())
     {
-        %s * obj = new %s();
+        %s * obj = new %s(data_source_name);
         obj->assignResults(psqlQuery,_read_only);
         return obj;
     }

@@ -116,7 +116,7 @@ void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
 
 }
 
-void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
+void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
 {
         PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects);
         map <string,PSQLAbstractORM *> *  orms = NULL;
@@ -137,7 +137,7 @@ void  PSQLJoinQueryIterator::process_internal(PSQLJoinQueryIterator * me,PSQLQue
         // cout << "Exiting process_internal" << endl;
         // me->unlock_orms(orms);
         // cout << "Start freeing relative resources" << endl;
-        psqlController.unlock_current_thread_orms();
+        psqlController.unlock_current_thread_orms(data_source_name);
         // cout << "After psqlController.unlock_current_thread_orms()" << endl;
 }
 
@@ -158,7 +158,7 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         mutex shared_lock;
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
-            thread * t = new thread(process_internal,this,(*p)[i],i,&shared_lock,f);
+            thread * t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,f);
             threads.push_back(t);
         }
         cout << "After Threads Creation" << endl;

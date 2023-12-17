@@ -160,7 +160,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         string join_string = "";
         vector <PSQLAbstractORM *> * orm_objects;
         void unlock_orms (map <string,PSQLAbstractORM *> *  orms);
-        static void process_internal(PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f);
+        static void process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f);
     public:
         PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields);
         map <string,PSQLAbstractORM *> * next ();
@@ -182,7 +182,7 @@ class PSQLQueryPartitionIterator {
         {
             if (psqlQuery->fetchNextRow())
             {
-                T * obj = new T();
+                T * obj = new T("main");
                 // printf ("----- cloning ORM %p \n",obj);
                 obj->assignResults(psqlQuery);
                 return obj;
