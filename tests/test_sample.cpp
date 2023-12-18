@@ -34,48 +34,42 @@
             7-Loan Status History
 */
 
+template <class T, class U> 
+bool compare(list<string> removed_attributes){
+    T * iterator_d = new T(std::string("django"));
+    T * iterator_c = new T(std::string("c"));
 
 
-// //TEST(TestSuiteName, TestCaseName) 
-// TEST(ClosureTest, InstallmentExtention) {
-    
-//     psqlController.addDataSource("django", "192.168.65.203", 5432, "7_full_closure_django", "postgres", "postgres");
-//     new_lms_installmentextension_primitive_orm_iterator * nliei_django = new new_lms_installmentextension_primitive_orm_iterator("django");
-//     nliei_django->execute();
+    iterator_d->execute();
+    iterator_c->execute();
+    cout << "QUERY FETCHED\n";
 
-//     psqlController.addDataSource("c", "192.168.65.203", 5432, "7_full_closure_c", "postgres", "postgres");
-//     new_lms_installmentextension_primitive_orm_iterator * nliei_c = new new_lms_installmentextension_primitive_orm_iterator("c");
-//     nliei_c->execute();
+    while(true) {
+        U * django = iterator_d->next();
+        if (django == nullptr) {
+            break;
+        }
+        U * c  = iterator_c->next();
+        if (c == nullptr) {
+            break;
+        }
+        map<string, string> fieldsMap_django = django->generateFieldsMap();
+        map<string, string> fieldsMap_c = c->generateFieldsMap();
 
-//     for (int i=0; i<1 ; i++) {
-//         new_lms_installmentextension_primitive_orm* django = nliei_django->next();
-//         new_lms_installmentextension_primitive_orm* c = nliei_c->next();
-
-//         if (c == nullptr || django == nullptr) {
-//             break;
-//         }
-
-//         map<string, string> fieldsMap_django = django->generateFieldsMap();
-//         map<string, string> fieldsMap_c = c->generateFieldsMap();
-
-//         for (const auto& entry : fieldsMap_c) {
-//             if(entry.first != "orm_ext_created_at" && entry.first != "orm_ext_updated_at" ){
-//                 cout << "C++ Output ="  <<entry.first << endl;
-//                 cout << "Django Output ="  << fieldsMap_django[entry.first] << endl;
-//             }
-//         }
-//     }
-
-//     delete (nliei_c);
-//     delete (nliei_django);
+        cout << "ID:" << fieldsMap_c["orm_id"];
 
 
+        for (const auto& entry : fieldsMap_django) {
+            if (find(removed_attributes.begin(), removed_attributes.end(), entry.first) == removed_attributes.end()){
+                // cout << "\nHAMDAAAAA:-->" << fieldsMap_django["orm_id"];
+                EXPECT_EQ(entry.second, fieldsMap_c[entry.first]);
+            }        
+        }
+    }
+    delete (iterator_d);
+    delete (iterator_c);
 
-
-   
-
-//     EXPECT_EQ(5, 5);
-// }
+}
 
 
 //TEST(TestSuiteName, TestCaseName) 
@@ -83,48 +77,44 @@ TEST(ClosureTest, LoanAppLoan) {
     
     psqlController.addDataSource("django",  "192.168.65.203", 5432, "7_full_closure_django", "postgres", "postgres");
     loan_app_loan_primitive_orm_iterator * lal_django = new loan_app_loan_primitive_orm_iterator("django");
-    lal_django->execute();
 
-    psqlController.addDataSource("c", "192.168.65.203", 5432, "trial_2_closure_c", "postgres", "postgres");
+    psqlController.addDataSource("c", "192.168.65.203", 5432, "11_step5", "postgres", "postgres");
     loan_app_loan_primitive_orm_iterator * lal_c = new loan_app_loan_primitive_orm_iterator("c");
-    lal_c->execute();
-        
-    for (int i=0; i< 200 ; i++) {
-        loan_app_loan_primitive_orm * django = lal_django->next();
-        // if (django == nullptr) {
-        map<string, string> fieldsMap_django = django->generateFieldsMap();
-        cout << "DJANGO:" << fieldsMap_django["orm_updated_at"]  << "   ID:" << fieldsMap_django["orm_id"] <<  endl;
+    
+    list<string> removed_attributes = {"orm_updated_at", "orm_created_at","orm_last_lms_closing_day" };
 
-        loan_app_loan_primitive_orm * c  = lal_c->next();
-           if (c == nullptr) {
+    // compare<loan_app_loan_primitive_orm_iterator * ,loan_app_loan_primitive_orm>(removed_attributes);
+
+    lal_django->execute();
+    lal_c->execute();
+    cout << "QUERY FETCHED\n";
+
+    while(true) {
+        loan_app_loan_primitive_orm * django = lal_django->next();
+        if (django == nullptr) {
             break;
         }
+        loan_app_loan_primitive_orm * c  = lal_c->next();
+        if (c == nullptr) {
+            break;
+        }
+        map<string, string> fieldsMap_django = django->generateFieldsMap();
         map<string, string> fieldsMap_c = c->generateFieldsMap();
-        cout << "CCCCCC:" << fieldsMap_c["orm_updated_at"] << "   ID:" << fieldsMap_c["orm_id"] <<  endl;
 
-     
+        // cout << "ID:" << fieldsMap_c["orm_id"];
 
-    //     for (const auto& entry : fieldsMap_django) {
-    //         // if(entry.first == "orm_updated_at"){
-    //         //     cout << "CREATED AT C=" << entry.second << endl;
-    //         //     cout << "Created At D= " << fieldsMap_c[entry.first] << endl;
-    //         // }
-            
-    //         // if(entry.first == "orm_id"){
-    //         //     cout << "ID C=" << entry.second << endl;
-    //         //     cout << "ID D= " << fieldsMap_c[entry.first] << endl;
-    //         // }
 
-    //         if(entry.first != "orm_created_at" && entry.first != "orm_updated_at"){
-    //             if(entry.second != fieldsMap_c[entry.first]){
-    //                 cout << "3aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
-    //             }
-    //         }
-    //     }
-    // }
+        for (const auto& entry : fieldsMap_django) {
+            if (find(removed_attributes.begin(), removed_attributes.end(), entry.first) == removed_attributes.end()){
+                // cout << "\nHAMDAAAAA:-->" << fieldsMap_django["orm_id"];
+                EXPECT_EQ(entry.second, fieldsMap_c[entry.first]);
+            }        
+        }
     }
 
-    // delete (lal_c);
+    delete (lal_c);
     delete (lal_django);
-    EXPECT_EQ(5, 5);
 }
+
+
+
