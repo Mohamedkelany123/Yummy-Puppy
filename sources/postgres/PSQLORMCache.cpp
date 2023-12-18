@@ -178,7 +178,7 @@ void PSQLORMCache::commit_parallel (bool transaction, bool clean_updates)
         PSQLConnection * psqlConnection = NULL;
         if (transaction)
         {
-            cout << "Staring Postgresql Transaction" << endl;
+            // cout << "Staring Postgresql Transaction" << endl;
             psqlConnection = psqlController.getPSQLConnection("main");
             psqlConnection->startTransaction();
             psqlConnections.push_back(psqlConnection);
@@ -251,7 +251,7 @@ void PSQLORMCache::commit_sequential (bool transaction, bool clean_updates)
     PSQLConnection * psqlConnection = NULL;
     if (transaction)
     {
-        cout << "Staring Postgresql Transaction" << endl;
+        // cout << "Staring Postgresql Transaction" << endl;
         psqlConnection = psqlController.getPSQLConnection("main");
         psqlConnection->startTransaction();
     }

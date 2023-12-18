@@ -10,6 +10,10 @@ bool PSQLController::addDataSource(string data_source_name,string _hostname,int 
     psqlORMCaches[data_source_name] = new PSQLORMCache();
     return psqlConnectionManager->addDataSource(data_source_name,_hostname,_port,_database,_username,_password);
 }
+string PSQLController::checkDefaultDatasource(string data_source_name){
+    if (data_source_name == "") return psqlConnectionManager->getDefaultDatasource();
+    return data_source_name;
+}
 PSQLConnection * PSQLController::getPSQLConnection(string data_source_name)
 {
     return psqlConnectionManager->getPSQLConnection(data_source_name);
@@ -18,28 +22,31 @@ bool PSQLController::releaseConnection (string data_source_name,PSQLConnection *
 {
     return psqlConnectionManager->releaseConnection(data_source_name,psqlConnection);
 }
-PSQLAbstractORM * PSQLController::addToORMCache(string data_source_name, string name,PSQLAbstractORM * psqlAbstractORM)
+PSQLAbstractORM * PSQLController::addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM, string data_source_name)
 {
+    data_source_name = checkDefaultDatasource(data_source_name);
     return psqlORMCaches[data_source_name]->add(name,psqlAbstractORM);
 }
-void PSQLController::ORMCommit(bool parallel,bool transaction,bool clean_updates)
+void PSQLController::ORMCommitAll(bool parallel,bool transaction,bool clean_updates)
 {
     for (auto cache : psqlORMCaches){
-        ORMCommit(cache.first, parallel, transaction, clean_updates);
+        ORMCommit(parallel, transaction, clean_updates, cache.first);
     }
 }
-void PSQLController::ORMCommit(string name)
+void PSQLController::ORMCommitAll(string name)
 {
     for (auto cache : psqlORMCaches){
-        ORMCommit(cache.first,name);
+        ORMCommit(name, cache.first);
     }
 }
-void PSQLController::ORMCommit(string data_source_name, bool parallel,bool transaction,bool clean_updates)
+void PSQLController::ORMCommit(bool parallel,bool transaction,bool clean_updates, string data_source_name)
 {
+    data_source_name = checkDefaultDatasource(data_source_name);
     psqlORMCaches[data_source_name]->commit(parallel,transaction,clean_updates);
 }
-void PSQLController::ORMCommit(string data_source_name, string name)
+void PSQLController::ORMCommit(string name, string data_source_name)
 {
+    data_source_name = checkDefaultDatasource(data_source_name);
     psqlORMCaches[data_source_name]->commit(name);
 }
 void PSQLController::ORMCommit(string name,long id)
@@ -64,19 +71,20 @@ int PSQLController::getDataSourceConnectionCount(string data_source_name)
     return psqlConnectionManager->getConnectionCount(data_source_name);
 
 }
-void PSQLController::setORMCacheThreads (int _threads_count)
+void PSQLController::setAllORMCacheThreads (int _threads_count)
 {   
     for (auto cache : psqlORMCaches){
-        setORMCacheThreads(cache.first, _threads_count);
+        setORMCacheThreads(_threads_count, cache.first);
     }
 }
 
-void PSQLController::setORMCacheThreads (string data_source_name, int _threads_count)
+void PSQLController::setORMCacheThreads (int _threads_count, string data_source_name)
 {
+    data_source_name = checkDefaultDatasource(data_source_name);
     psqlORMCaches[data_source_name]->set_threads_count(_threads_count);
 }
 
-void PSQLController::unlock_current_thread_orms()
+void PSQLController::unlock_all_current_thread_orms()
 {
     for (auto cache : psqlORMCaches){
         unlock_current_thread_orms(cache.first);
@@ -85,6 +93,7 @@ void PSQLController::unlock_current_thread_orms()
 
 void PSQLController::unlock_current_thread_orms(string data_source_name)
 {
+    data_source_name = checkDefaultDatasource(data_source_name);
     psqlORMCaches[data_source_name]->unlock_current_thread_orms();
 }
 

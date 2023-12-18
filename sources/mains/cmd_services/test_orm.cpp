@@ -53,7 +53,7 @@ new_lms_installmentpaymentstatushistory_primitive_orm * orm = new new_lms_instal
 orm->set_day("2023-10-30");
 orm->set_installment_extension_id(100);
 orm->set_status(100);
-psqlController.ORMCommit();
+psqlController.ORMCommitAll();
 
 // cout << orm->insert() << endl;
 
@@ -92,7 +92,7 @@ return 0;
     });
 
     cout << "I m done with the lambda" << endl;
-    psqlController.ORMCommit();
+    psqlController.ORMCommitAll();
     // for (;psqlQueryJoin->fetchNextRow();)
     // {
     //     cout << psqlQueryJoin->getValue("crm_app_customer_first_name") << ": "<< psqlQueryJoin->getValue("loan_app_loan_id") <<  endl;

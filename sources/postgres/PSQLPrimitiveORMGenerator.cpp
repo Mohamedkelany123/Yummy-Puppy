@@ -295,7 +295,7 @@ void PSQLPrimitiveORMGenerator::generateAddToCache(string class_name)
 {
     extra_methods_def += "\t\tvoid addToCache (string data_source_name);\n";
     extra_methods += "\t\tvoid "+class_name+"::addToCache (string data_source_name){\n";
-    extra_methods += "\t\t\t"+class_name+" * orm = ("+class_name+" *) psqlController.addToORMCache(data_source_name,\""+class_name+"\",this);\n";
+    extra_methods += "\t\t\t"+class_name+" * orm = ("+class_name+" *) psqlController.addToORMCache(\""+class_name+"\",this,data_source_name);\n";
     extra_methods += "\t\t\tif (orm!= NULL) {\n";
     extra_methods += "\t\t\t\t(*this) = (*orm);\n";
     extra_methods += "\t\t\t\tdelete(orm);\n";

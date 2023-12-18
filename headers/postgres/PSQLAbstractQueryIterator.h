@@ -176,13 +176,17 @@ template <class T>
 class PSQLQueryPartitionIterator {
     private:
         AbstractDBQuery * psqlQuery;
+        string data_source_name;
     public:
-        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery){ psqlQuery = _psqlQuery;}
+        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name){ 
+            psqlQuery = _psqlQuery;
+            data_source_name = _data_source_name;    
+        }
         T * next ()
         {
             if (psqlQuery->fetchNextRow())
             {
-                T * obj = new T("main");
+                T * obj = new T(data_source_name);
                 // printf ("----- cloning ORM %p \n",obj);
                 obj->assignResults(psqlQuery);
                 return obj;
