@@ -25,6 +25,7 @@ class %s : public PSQLAbstractQueryIterator
         %s * operator [] (long index);
         %s * next (bool _read_only=false);
         %s * back ();
+        int getRowCount();
         void process(int partitions_count,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f);
         ~%s ();
 };

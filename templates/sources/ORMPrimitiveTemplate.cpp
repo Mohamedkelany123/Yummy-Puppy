@@ -62,6 +62,9 @@ void %s::process(int partitions_count,std::function<void(%s * orm,int partition_
     }
 }
 
+int %s::getRowCount(){
+    return this->psqlQuery->getRowCount();
+}
 
 %s::~%s ()
 {

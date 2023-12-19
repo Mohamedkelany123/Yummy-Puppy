@@ -15,13 +15,13 @@ class FullClosure:
         self.color_options = color_options
 
     def test(self):
-        # self.installment_extentions()
+        self.installment_extentions()
         self.loan_app_loan()
-        # self.installment()
-        # self.late_fees()
-        # self.installment_payment_status_history()
-        # self.installment_status_history()
-        # self.loan_status_history()
+        self.installment()
+        self.late_fees()
+        self.installment_payment_status_history()
+        self.installment_status_history()
+        self.loan_status_history()
 
 
     """

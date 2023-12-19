@@ -147,7 +147,7 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string 
         }
     }
     extra_methods += "\t\t\tloaded=true;\n";
-    extra_methods += "\t\t\tif (!_read_only) addToCache(data_source_name);\n";
+    extra_methods += "\t\t\tif (!_read_only) addToCache();\n";
     extra_methods += "\t\t}\n";
 }
 
@@ -234,7 +234,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     includes += "#include <PSQLBool.h>\n";
     constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name, bool add_to_cache):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\"){\n";
     constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
-    constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache(data_source_name);\n";
+    constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
     // constructor_destructor +="\t\t\tpsqlQuery = psqlConnection->executeQuery(\"select \"+this->getFromString()+\" from "+table_name+"\");\n";
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery(R""""(select * from ( 
     SELECT replace(conrelid::regclass::text,'"','') AS "fk_table"
@@ -293,8 +293,8 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
 }
 void PSQLPrimitiveORMGenerator::generateAddToCache(string class_name)
 {
-    extra_methods_def += "\t\tvoid addToCache (string data_source_name);\n";
-    extra_methods += "\t\tvoid "+class_name+"::addToCache (string data_source_name){\n";
+    extra_methods_def += "\t\tvoid addToCache ();\n";
+    extra_methods += "\t\tvoid "+class_name+"::addToCache (){\n";
     extra_methods += "\t\t\t"+class_name+" * orm = ("+class_name+" *) psqlController.addToORMCache(\""+class_name+"\",this,data_source_name);\n";
     extra_methods += "\t\t\tif (orm!= NULL) {\n";
     extra_methods += "\t\t\t\t(*this) = (*orm);\n";
@@ -481,7 +481,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         ,class_name.c_str(),query_iterator_class_name.c_str()
         ,query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str()
         ,query_iterator_class_name.c_str(),class_name.c_str()
-        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str());
+        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str());
         write_headers_and_sources(class_name);
     }
     delete (psqlQuery);
