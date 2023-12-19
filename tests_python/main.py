@@ -24,7 +24,7 @@ def main():
 
     #TOOK 24 MINUTES TO TEST ALL 7 TABLES
     print_colored("--------------------------------->FULL CLOSURE TESTS ", color_options.PURPLE, bold=True)
-    DB_c_url = "postgres://postgres:postgres@192.168.65.203/kemosparc_1" 
+    DB_c_url = "postgres://postgres:postgres@192.168.65.203/kemosparc_2" 
     DB_python = "postgres://postgres:postgres@192.168.65.203/7_full_closure_django"
     
     print_colored("Database 1: ", color_options.CYAN, bold=True)
@@ -41,12 +41,6 @@ def main():
 
     connection_c.close()
     connection_python.close()
-
-
-
-
-
-
 
     #------------------------------------------------------------------------------------------------------------------------------------------------------------#
     #------------------------------------------------------------------------------------------------------------------------------------------------------------#

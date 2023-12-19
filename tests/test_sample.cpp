@@ -17,11 +17,13 @@
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
 
-void printProgress(double percentage) {
+void printProgress(double i, double count) {
+    double percentage = i/count; 
     int val = (int) (percentage * 100);
     int lpad = (int) (percentage * PBWIDTH);
     int rpad = PBWIDTH - lpad;
     printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+    cout << i << "/" << count;
     fflush(stdout);
 }
 
@@ -67,7 +69,7 @@ bool compare(vector<string> removed_attributes,T iterator_d,T iterator_c, string
     cout << endl;
 
     for( int i=0 ; i<iterator_d->getRowCount() ; i++ ) {
-        printProgress((double)i/count);
+        // printProgress((double)i, count);
 
         if(flag == true){
             break;
