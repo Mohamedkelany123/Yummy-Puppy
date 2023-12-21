@@ -218,7 +218,7 @@ int main (int argc, char ** argv)
                 lal_orm->set_lms_closure_status(closure_status::UNDUE_TO_DUE);
         });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true,true);   
+        psqlController.ORMCommit(true,true,true, "main");   
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
@@ -338,7 +338,7 @@ int main (int argc, char ** argv)
                 // shared_lock->unlock();
         });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true,true);   
+        psqlController.ORMCommit(true,true,true, "main");   
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
@@ -462,7 +462,7 @@ int main (int argc, char ** argv)
 
         });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true,true);   
+        psqlController.ORMCommit(true,true,true, "main");   
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
@@ -523,7 +523,7 @@ int main (int argc, char ** argv)
             });
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true,true);   
+        psqlController.ORMCommit(true,true,true, "main");   
         delete (psqlQueryJoin);
 
         cout << "Marginalization Setp 1" << endl;
@@ -567,7 +567,7 @@ int main (int argc, char ** argv)
                 // shared_lock->unlock();
             });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true,true);   
+        psqlController.ORMCommit(true,true,true, "main");   
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 2" << endl;
 
@@ -700,7 +700,7 @@ int main (int argc, char ** argv)
             });
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true,true);   
+        psqlController.ORMCommit(true,true,true, "main");   
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
@@ -751,7 +751,7 @@ int main (int argc, char ** argv)
                 // shared_lock->unlock();
             });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true,true);   
+        psqlController.ORMCommit(true,true,true, "main");   
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
@@ -822,8 +822,8 @@ int main (int argc, char ** argv)
                 // shared_lock->unlock();
             });
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true,true);   
-           delete (psqlQueryJoin);
+        psqlController.ORMCommit(true,true,true, "main");   
+        delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
                     new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::LAST_ACCRUED_DAY),

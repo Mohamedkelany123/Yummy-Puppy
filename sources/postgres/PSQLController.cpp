@@ -12,6 +12,12 @@ bool PSQLController::addDataSource(string data_source_name,string _hostname,int 
 }
 string PSQLController::checkDefaultDatasource(string data_source_name){
     if (data_source_name == "") return psqlConnectionManager->getDefaultDatasource();
+    else if (psqlORMCaches.find(data_source_name) == psqlORMCaches.end())
+    {
+        cout << "\nERROR :: Invalid Data Source Name-> " << data_source_name << endl; 
+        throw std::runtime_error("ERROR :: Invalid Data Source Name");
+    }
+    
     return data_source_name;
 }
 PSQLConnection * PSQLController::getPSQLConnection(string data_source_name)
@@ -42,12 +48,12 @@ void PSQLController::ORMCommitAll(string name)
 void PSQLController::ORMCommit(bool parallel,bool transaction,bool clean_updates, string data_source_name)
 {
     data_source_name = checkDefaultDatasource(data_source_name);
-    psqlORMCaches[data_source_name]->commit(parallel,transaction,clean_updates);
+    psqlORMCaches[data_source_name]->commit(data_source_name, parallel,transaction,clean_updates);
 }
 void PSQLController::ORMCommit(string name, string data_source_name)
 {
     data_source_name = checkDefaultDatasource(data_source_name);
-    psqlORMCaches[data_source_name]->commit(name);
+    psqlORMCaches[data_source_name]->commit(data_source_name, name);
 }
 void PSQLController::ORMCommit(string name,long id)
 {

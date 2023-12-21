@@ -23,11 +23,11 @@ class PSQLORMCache
         PSQLAbstractORM * add(string name,PSQLAbstractORM * psqlAbstractORM);
         bool release(string name,PSQLAbstractORM * psqlAbstractORM);
         void release();
-        void commit_parallel (bool transaction=false, bool clean_updates=false);
-        void commit_sequential (bool transaction=false, bool clean_updates=false);
-        void commit(bool parallel=false,bool transaction=false, bool clean_updates=false);
-        void commit(string name);
-        void commit(string name,long id);
+        void commit_parallel (string data_source_name, bool transaction=false, bool clean_updates=false);
+        void commit_sequential (string data_source_name, bool transaction=false, bool clean_updates=false);
+        void commit( string data_source_name, bool parallel=false,bool transaction=false, bool clean_updates=false);
+        void commit(string data_source_name, string name);
+        void commit(string data_source_name, string name,long id);
         void flush();
         void flush(string name);
         void flush(string name,long id);
