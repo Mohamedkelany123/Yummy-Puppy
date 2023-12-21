@@ -13,11 +13,8 @@ bool PSQLController::addDataSource(string data_source_name,string _hostname,int 
 string PSQLController::checkDefaultDatasource(string data_source_name){
     if (data_source_name == "") return psqlConnectionManager->getDefaultDatasource();
     else if (psqlORMCaches.find(data_source_name) == psqlORMCaches.end())
-    {
-        cout << "\nERROR :: Invalid Data Source Name-> " << data_source_name << endl; 
         throw std::runtime_error("ERROR :: Invalid Data Source Name");
-    }
-    
+
     return data_source_name;
 }
 PSQLConnection * PSQLController::getPSQLConnection(string data_source_name)

@@ -111,7 +111,7 @@ bool compare(vector<string> removed_attributes,T iterator_d,T iterator_c, string
 //TEST(TestSuiteName, TestCaseName) 
 TEST(ClosureTest, LoanAppLoan) {
     string database_d = "7_full_closure_django";
-    string database_c = "kemosparc_1";
+    string database_c = "kemosparc_commit_test";
 
 
     psqlController.addDataSource("django",  "192.168.65.203", 5432, database_d, "postgres", "postgres");
