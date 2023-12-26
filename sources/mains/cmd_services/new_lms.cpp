@@ -836,14 +836,14 @@ int main (int argc, char ** argv)
         cout << "Loan Last Accrual Day" << endl;
 
     }
-    // if (strcmp (argv[6],"full_closure") == 0)
-    // {
-    //     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-    //         UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
-    //         {{"lms_closure_status",to_string(0)}}
-    //     );
-    //     psqlUpdateQuery.update();
-    // }
+    if (strcmp (argv[6],"full_closure") == 0)
+    {
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+            UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+            {{"lms_closure_status",to_string(0)}}
+        );
+        psqlUpdateQuery.update();
+    }
     return 0;
 }
 

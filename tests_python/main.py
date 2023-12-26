@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from undue_to_due import UndueToDue
 from due_to_overdue import DueToOverDue
 from update_loan_status import UpdateLoanStatus
@@ -7,8 +8,6 @@ from last_accrual_interest_day import LastAccrualInterestDay
 from marginalization import Marginalization
 from full_closure import FullClosure
 from colors import *
-import os 
-
 
 
 
@@ -26,11 +25,8 @@ def main():
 
     #TOOK 24 MINUTES TO TEST ALL 7 TABLES
     print_colored("--------------------------------->FULL CLOSURE TESTS ", color_options.PURPLE, bold=True)
-    # DB_c_url = "postgres://postgres:postgres@192.168.65.203/kemosparc_commit_test" 
-    # DB_python = "postgres://postgres:postgres@192.168.65.203/7_full_closure_django"
-
-    DB_c_url = os.getenv("DJANGO_DB")
-    DB_python = os.getenv("C_PLUS_PLUS_DB")
+    DB_c_url = "postgres://postgres:postgres@192.168.65.203/kemosparc_commit_test" 
+    DB_python = "postgres://postgres:postgres@192.168.65.203/7_full_closure_django"
 
     
     print_colored("Database 1: ", color_options.CYAN, bold=True)
@@ -42,7 +38,7 @@ def main():
     connection_c = SQLUtilsService.connect_to_database(DB_c_url)
     connection_python = SQLUtilsService.connect_to_database(DB_python)
 
-    full_closure = FullClosure(connection_c, connection_python, database_copy_date)
+    full_closure = FullClosure(connection_c, connection_python)
     full_closure.test()
 
     connection_c.close()

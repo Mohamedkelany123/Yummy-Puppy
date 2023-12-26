@@ -5,16 +5,24 @@ import pandas as pd
 from polars.testing import assert_frame_equal
 import tqdm
 
+from slack_notify import send_slack_message
+from datetime import datetime
+
 
 class FullClosure:
     
-    def __init__(self, connection_c, connection_python,database_copy_date):
+    def __init__(self, connection_c, connection_python):
         self.connection_c = connection_c
         self.connection_python = connection_python
-        self.database_copy_date = database_copy_date
         self.color_options = color_options
 
+        self.webhook_url = "https://hooks.slack.com/services/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"
+        self.current_date = datetime.now().strftime("%Y/%m/%d")
+
+
+
     def test(self):
+        send_slack_message(self.webhook_url, f"*STARTING LMS CLOSURE STATUS TESTS: {str(self.current_date)}* ", "#0000FF")
         self.installment_extentions()
         self.loan_app_loan()
         self.installment()
@@ -22,6 +30,8 @@ class FullClosure:
         self.installment_payment_status_history()
         self.installment_status_history()
         self.loan_status_history()
+        send_slack_message(self.webhook_url, f"*FINISHED LMS CLOSURE STATUS TESTS: {str(self.current_date)}* ", "#0000FF")
+
 
 
     """
@@ -48,7 +58,9 @@ class FullClosure:
                         installment_ptr_id  desc
                 """
         excluded_columns = ['ext_created_at', 'ext_updated_at']
-        self.exec(query, excluded_columns)
+        temp = self.exec(query, excluded_columns, "Installment Extention")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Installment Extention ", "#00FF00")
 
     #2-Loan App Loan Exclude[created_at , updated_at]
     def loan_app_loan(self):
@@ -60,11 +72,15 @@ class FullClosure:
                     order by 
                         id desc
                 """
-        # excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day"]
-        excluded_columns = ['created_at', 'updated_at']
+        excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day"]
+        # excluded_columns = ['created_at', 'updated_at']
         # excluded_columns = ['created_at', 'updated_at']
 
-        self.exec(query, excluded_columns)
+
+        temp = self.exec(query, excluded_columns,  "Loan App Loan")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Loan App Loan ", "#00FF00")
+
 
 
     #3-Installment Exclude[created_at , updated_at]
@@ -78,7 +94,7 @@ class FullClosure:
                         id desc
                 """
         excluded_columns = ['created_at', 'updated_at']
-        self.exec(query, excluded_columns)
+        self.exec(query, excluded_columns, "Installment")
 
 
 
@@ -93,7 +109,9 @@ class FullClosure:
                     installment_extension_id  desc, "day" desc, installment_status_id desc
                 """
         excluded_columns = ['id', 'created_at', 'updated_at']
-        self.exec(query, excluded_columns)
+        temp = self.exec(query, excluded_columns, "Installment Late Fees")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Installment Late Fees ", "#00FF00")
 
 
 
@@ -109,8 +127,9 @@ class FullClosure:
                 """
         excluded_columns = ['id', 'created_at', 'updated_at']
 
-        self.exec(query, excluded_columns)
-
+        temp = self.exec(query, excluded_columns,"Installment Payment Status History")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Installment Payment Status History ", "#00FF00")
 
     #6-Installment Status History 
     def installment_status_history(self):
@@ -123,8 +142,9 @@ class FullClosure:
                     installment_id desc, "day" desc, status_type desc, status_id desc
                 """
         excluded_columns = ['id', 'created_at', 'updated_at']
-        self.exec(query, excluded_columns)
-
+        temp = self.exec(query, excluded_columns, "Installment Status History")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Installment Status History ", "#00FF00")
 
 
     #7-Loan Status History
@@ -138,8 +158,9 @@ class FullClosure:
                     loan_id desc,previous_status_id desc, "day" desc, status_id desc, status_type desc
                 """
         excluded_columns = ['id', 'created_at', 'updated_at']
-        self.exec(query, excluded_columns)
-
+        temp = self.exec(query, excluded_columns, "Loan Status History")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Loan Status History ", "#00FF00")
 
 
 
@@ -150,7 +171,7 @@ class FullClosure:
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-    def exec(self, query ,excluded_columns=None):
+    def exec(self, query ,excluded_columns=None, tableName = ""):
         try:
             print_colored("EXCLUDE:", self.color_options.CYAN, bold=True)
             for excluded_column in excluded_columns:
@@ -189,15 +210,18 @@ class FullClosure:
 
             for i in tqdm.tqdm(range(len(data_c_filtered)), desc="Comparing Data"):
                         if str(data_c_filtered[i]) != str(data_python_filtered[i]):
-                            # counter += 1
                             print_colored("Data C++:", self.color_options.RED, bold=True)
                             print_colored(str(data_c_filtered[i]), self.color_options.BLUE, bold=True)
                             print_colored("Data Python:", self.color_options.RED, bold=True)
                             print_colored(str(data_python_filtered[i]), self.color_options.CYAN, bold=True)
                             print(f"Data mismatch at index {i}")
+
+
+                            send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
                             raise ValueError(f"Data mismatch at index {i}")
             # print("--------------------------------------------------COUNTER:", counter)
             print_colored("-----------------------------------PASS---------------------------------", color=self.color_options.GREEN, bold=True)
+            return True
 
         except Exception as e:
             print_colored(f"FAIL ---> An error occurred: {e}", color_options.RED, bold=True)
