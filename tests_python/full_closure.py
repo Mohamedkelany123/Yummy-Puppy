@@ -23,13 +23,13 @@ class FullClosure:
 
     def test(self):
         send_slack_message(self.webhook_url, f"*STARTING LMS CLOSURE STATUS TESTS: {str(self.current_date)}* ", "#0000FF")
-        # self.installment_extentions()
+        self.installment_extentions()
         self.loan_app_loan()
-        # self.installment()
-        # self.late_fees()
-        # self.installment_payment_status_history()
-        # self.installment_status_history()
-        # self.loan_status_history()
+        self.installment()
+        self.late_fees()
+        self.installment_payment_status_history()
+        self.installment_status_history()
+        self.loan_status_history()
         send_slack_message(self.webhook_url, f"*FINISHED LMS CLOSURE STATUS TESTS: {str(self.current_date)}* ", "#0000FF")
 
 
@@ -72,8 +72,8 @@ class FullClosure:
                     order by 
                         id desc
                 """
-        excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day"]
-        # excluded_columns = ['created_at', 'updated_at']
+        # excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day"]
+        excluded_columns = ['created_at', 'updated_at']
         # excluded_columns = ['created_at', 'updated_at']
 
 
