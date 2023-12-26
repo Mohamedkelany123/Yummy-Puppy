@@ -184,7 +184,7 @@ int main (int argc, char ** argv)
         printf("usage: %s <address> <port_number> <database name> <username> <password> <step> <date>YYYY-mm-dd\n",argv[0]);
         exit(9);
     }
-    //2023-11-15
+    //2023-11-
     string closure_date_string = argv[7];
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
     psqlController.addDefault("created_at","now()",true,true);
