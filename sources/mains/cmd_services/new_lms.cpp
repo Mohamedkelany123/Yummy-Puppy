@@ -13,74 +13,11 @@
 #include <new_lms_installmentstatushistory_primitive_orm.h>
 
 //enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,MARGINALIZE_INCOME_STEP2,MARGINALIZE_INCOME_STEP3,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
-enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
-
-enum blnk_buckets { NONE, CURRENT, BUCKET1, BUCKET2, BUCKET3, BUCKET4, SETTLED, WRITEOFF, SETTLED_PAID_OFF, BUCKET5,BUCKET6,BUCKET7,CANCELLED, CANCELLED_PARTIAL_REFUND,PARTIAL_SETTLED_CHARGE_OFF,SETTLED_CHARGE_OFF };
-
-#define TIME_ZONE_OFFEST 2
 
 
 
 
-class BDate
-{
 
-    private:
-        struct tm tm; 
-        bool is_null;
-    public:
-        void set_date (string date_string="")
-        {
-            is_null = false;
-            if (date_string != "")
-            {
-                date_string += " 00:00:00";
-                strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S",&tm);    
-                tm.tm_hour +=TIME_ZONE_OFFEST;
-            }
-            else
-            {
-                is_null = true;
-                date_string = "1970-01-01 00:00:00";
-                strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S",&tm);    
-                tm.tm_hour +=TIME_ZONE_OFFEST;
-            }
-        }
-        BDate(string date_string="")
-        {
-            set_date(date_string);
-        }
-        BDate (struct tm & _tm)
-        {
-            tm = _tm;
-        }
-        time_t operator () ()
-        {
-            return std::mktime(&tm);
-        }
-        void inc_month ()
-        {
-            tm.tm_mon ++;
-        }
-        void dec_day ()
-        {
-            tm.tm_mday --;
-        }
-        void inc_day ()
-        {
-            tm.tm_mday ++;
-        }
-        string getDateString()
-        {
-            char buf[255];
-            memset ( buf,0,255);
-            if ( !is_null)
-                strftime(buf, sizeof(buf), "%Y-%m-%d", &tm);
-            string date_string = buf;
-            return date_string;
-        }
-        ~BDate () {}
-};
 
 
 BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_installmentextension_primitive_orm * ie_orm,loan_app_installment_primitive_orm * i_orm,bool is_partial = false)
