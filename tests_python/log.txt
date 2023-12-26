@@ -1,0 +1,63 @@
+--------------------------------->FULL CLOSURE TESTS 
+Database 1: 
+postgres://postgres:postgres@192.168.65.203/kemosparc_commit_test
+Database 2: 
+postgres://postgres:postgres@192.168.65.203/7_full_closure_django
+------------------------------------------------------ 
+Test 2 :: Loan App Loan 
+EXCLUDE:
+[created_at]
+[updated_at]
+[last_lms_closing_day]
+---------------------------
+--------------------------------->FULL CLOSURE TESTS 
+Database 1: 
+postgres://postgres:postgres@192.168.65.203/kemosparc_commit_test
+Database 2: 
+postgres://postgres:postgres@192.168.65.203/7_full_closure_django
+------------------------------------------------------ 
+Test 2 :: Loan App Loan 
+EXCLUDE:
+[created_at]
+[updated_at]
+[last_lms_closing_day]
+---------------------------
+----------> DATA C++ FETCHED 
+----------> DATA Python FETCHED
+----------> FILTERING DATA
+-----------------------------------PASS---------------------------------
+--------------------------------->FULL CLOSURE TESTS 
+Database 1: 
+postgres://postgres:postgres@192.168.65.203/kemosparc_commit_test
+Database 2: 
+postgres://postgres:postgres@192.168.65.203/7_full_closure_django
+------------------------------------------------------ 
+Test 2 :: Loan App Loan 
+EXCLUDE:
+[created_at]
+[updated_at]
+[last_lms_closing_day]
+---------------------------
+----------> DATA C++ FETCHED 
+----------> DATA Python FETCHED
+----------> FILTERING DATA
+-----------------------------------PASS---------------------------------
+--------------------------------->FULL CLOSURE TESTS 
+Database 1: 
+postgres://postgres:postgres@192.168.65.203/kemosparc_commit_test
+Database 2: 
+postgres://postgres:postgres@192.168.65.203/7_full_closure_django
+------------------------------------------------------ 
+Test 2 :: Loan App Loan 
+EXCLUDE:
+[created_at]
+[last_lms_closing_day]
+---------------------------
+----------> DATA C++ FETCHED 
+----------> DATA Python FETCHED
+----------> FILTERING DATA
+Data C++:
+{'id': 122368, 'updated_at': datetime.datetime(2023, 12, 21, 11, 0, 1, 588062, tzinfo=datetime.timezone(datetime.timedelta(seconds=7200))), 'principle': Decimal('5200.00'), 'yearly_interest': Decimal('63.0000000000'), 'num_months': 12, 'num_periods': 12, 'num_days_in_year': 365, 'num_payment_cycles_in_month': 2, 'num_periods_per_year': 12, 'late_repayment_grace_days': 5, 'loan_booking_day': datetime.date(2023, 11, 25), 'last_closing_day': datetime.date(2023, 11, 25), 'period_interest_rate': Decimal('5.2500000000'), 'daily_interest_rate': Decimal('0.1726027397'), 'early_repayment_fee_rate': Decimal('0E-10'), 'late_repayment_fee_rate': Decimal('5.0000000000'), 'late_repayment_grace_amount': Decimal('10.00'), 'period_installment': Decimal('585.99'), 'cashier_id': 20688, 'customer_id': 394561, 'merchant_id': 325, 'status_id': 2, 'activation_id': 8726, 'bl_t_mer_fee': Decimal('0.5000000000'), 'cashier_fee': Decimal('0.5000000000'), 'fra_status_id': 1, 'loan_product_id': 87, 'mer_t_bl_fee': Decimal('0E-10'), 'funded_by': 0, 'merchant_daily_interest_rate': Decimal('0E-10'), 'merchant_period_installment': Decimal('0.00'), 'merchant_period_interest_rate': Decimal('0E-10'), 'merchant_yearly_interest': Decimal('0E-10'), 'last_accrued_interest_day': datetime.date(2023, 12, 31), 'cancelled_loan_id': None, 'partial_refund_loan': False, 'num_cancel_days': 30, 'original_loan_booking_day': None, 'refund_upfront_fee_bool': True, 'loan_upfront_fee': 7, 'disable_early_repayment_fees': False, 'settled_cancel_id': None, 'settled_pay_id': None, 'num_days_in_leap_year': 366, 'cancel_ledger_entry_id': None, 'closure_status': 34, 'first_accrual_adjustment_amount': Decimal('0.00'), 'first_accrual_adjustment_date': None, 'first_accrual_adjustment_ledger_entry_id': None, 'fra_sticky_bucket_id': 5, 'is_extra_accrual_adjustment_marginalized': False, 'lms_closure_status': 6, 'loan_creation_ledger_entry_id': 10433949, 'marginalization_bucket_id': 2, 'provisions_snapshot': None, 'second_accrual_adjustment_amount': Decimal('0.00'), 'second_accrual_adjustment_date': None, 'second_accrual_adjustment_ledger_entry_id': None, 'settlement_to_merchant_date': datetime.date(2023, 11, 30), 'settlement_to_merchant_ledger_entry_id': None, 'sticky_bucket_id': 11}
+Data Python:
+{'id': 122368, 'updated_at': datetime.datetime(2023, 12, 11, 14, 50, 9, 678610, tzinfo=datetime.timezone(datetime.timedelta(seconds=7200))), 'principle': Decimal('5200.00'), 'yearly_interest': Decimal('63.0000000000'), 'num_months': 12, 'num_periods': 12, 'num_days_in_year': 365, 'num_payment_cycles_in_month': 2, 'num_periods_per_year': 12, 'late_repayment_grace_days': 5, 'loan_booking_day': datetime.date(2023, 11, 25), 'last_closing_day': datetime.date(2023, 11, 25), 'period_interest_rate': Decimal('5.2500000000'), 'daily_interest_rate': Decimal('0.1726027397'), 'early_repayment_fee_rate': Decimal('0E-10'), 'late_repayment_fee_rate': Decimal('5.0000000000'), 'late_repayment_grace_amount': Decimal('10.00'), 'period_installment': Decimal('585.99'), 'cashier_id': 20688, 'customer_id': 394561, 'merchant_id': 325, 'status_id': 2, 'activation_id': 8726, 'bl_t_mer_fee': Decimal('0.5000000000'), 'cashier_fee': Decimal('0.5000000000'), 'fra_status_id': 1, 'loan_product_id': 87, 'mer_t_bl_fee': Decimal('0E-10'), 'funded_by': 0, 'merchant_daily_interest_rate': Decimal('0E-10'), 'merchant_period_installment': Decimal('0.00'), 'merchant_period_interest_rate': Decimal('0E-10'), 'merchant_yearly_interest': Decimal('0E-10'), 'last_accrued_interest_day': datetime.date(2023, 12, 31), 'cancelled_loan_id': None, 'partial_refund_loan': False, 'num_cancel_days': 30, 'original_loan_booking_day': None, 'refund_upfront_fee_bool': True, 'loan_upfront_fee': 7, 'disable_early_repayment_fees': False, 'settled_cancel_id': None, 'settled_pay_id': None, 'num_days_in_leap_year': 366, 'cancel_ledger_entry_id': None, 'closure_status': 34, 'first_accrual_adjustment_amount': Decimal('0.00'), 'first_accrual_adjustment_date': None, 'first_accrual_adjustment_ledger_entry_id': None, 'fra_sticky_bucket_id': 5, 'is_extra_accrual_adjustment_marginalized': False, 'lms_closure_status': 6, 'loan_creation_ledger_entry_id': 10433949, 'marginalization_bucket_id': 2, 'provisions_snapshot': None, 'second_accrual_adjustment_amount': Decimal('0.00'), 'second_accrual_adjustment_date': None, 'second_accrual_adjustment_ledger_entry_id': None, 'settlement_to_merchant_date': datetime.date(2023, 11, 30), 'settlement_to_merchant_ledger_entry_id': None, 'sticky_bucket_id': 11}
+FAIL ---> An error occurred: Data mismatch at index 0

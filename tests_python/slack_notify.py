@@ -19,8 +19,7 @@ def send_slack_message(webhook_url, message, color):
     response = requests.post(webhook_url, data=json.dumps(payload), headers=headers)
 
     if response.status_code == 200:
-        # print("Message sent successfully!")
-        print(" ")
+        print("Message Sent To Slack!")
     else:
         print(f"Failed to send message. Status code: {response.status_code}, Response: {response.text}")
 

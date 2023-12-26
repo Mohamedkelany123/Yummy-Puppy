@@ -16,20 +16,20 @@ class FullClosure:
         self.connection_python = connection_python
         self.color_options = color_options
 
-        self.webhook_url = "https://hooks.slack.com/services/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"
+        self.webhook_url = "https://hooks.slack.com/services/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"
         self.current_date = datetime.now().strftime("%Y/%m/%d")
 
 
 
     def test(self):
         send_slack_message(self.webhook_url, f"*STARTING LMS CLOSURE STATUS TESTS: {str(self.current_date)}* ", "#0000FF")
-        self.installment_extentions()
+        # self.installment_extentions()
         self.loan_app_loan()
-        self.installment()
-        self.late_fees()
-        self.installment_payment_status_history()
-        self.installment_status_history()
-        self.loan_status_history()
+        # self.installment()
+        # self.late_fees()
+        # self.installment_payment_status_history()
+        # self.installment_status_history()
+        # self.loan_status_history()
         send_slack_message(self.webhook_url, f"*FINISHED LMS CLOSURE STATUS TESTS: {str(self.current_date)}* ", "#0000FF")
 
 
