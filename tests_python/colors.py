@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 class color_options:
     PURPLE = '\033[95m'
     CYAN = '\033[96m'
@@ -10,7 +13,9 @@ class color_options:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
-LOG_FILE = 'log.txt'
+
+current_date = datetime.now().strftime("%Y%m%d")
+LOG_FILE = f'/home/kmsobh/closure_logs/test_logs_{current_date}.txt'
 
 def print_colored(msg: str, color: str = color_options.GREEN, bold: bool = False):
     if bold:
