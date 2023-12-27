@@ -167,7 +167,7 @@ void PSQLORMCache::release()
 }
 
 
-void PSQLORMCache::commit_parallel (bool transaction, bool clean_updates)
+void PSQLORMCache::commit_parallel (string data_source_name, bool transaction, bool clean_updates)
 {
     vector <thread *> threads;
     vector <bool> thread_results (threads_count);
@@ -178,8 +178,8 @@ void PSQLORMCache::commit_parallel (bool transaction, bool clean_updates)
         PSQLConnection * psqlConnection = NULL;
         if (transaction)
         {
-            cout << "Staring Postgresql Transaction" << endl;
-            psqlConnection = psqlController.getPSQLConnection("main");
+            // cout << "Staring Postgresql Transaction" << endl;
+            psqlConnection = psqlController.getPSQLConnection(data_source_name);
             psqlConnection->startTransaction();
             psqlConnections.push_back(psqlConnection);
         }
@@ -213,7 +213,7 @@ void PSQLORMCache::commit_parallel (bool transaction, bool clean_updates)
                 // psqlConnections[i]->rollbackTransaction();
                 psqlConnections[i]->commitTransaction();
             }
-            psqlController.releaseConnection("main",psqlConnections[i]);
+            psqlController.releaseConnection(data_source_name,psqlConnections[i]);
         }
     }
 
@@ -246,13 +246,13 @@ void PSQLORMCache::commit_parallel (bool transaction, bool clean_updates)
 
 
 }
-void PSQLORMCache::commit_sequential (bool transaction, bool clean_updates)
+void PSQLORMCache::commit_sequential (string data_source_name, bool transaction, bool clean_updates)
 {
     PSQLConnection * psqlConnection = NULL;
     if (transaction)
     {
-        cout << "Staring Postgresql Transaction" << endl;
-        psqlConnection = psqlController.getPSQLConnection("main");
+        // cout << "Staring Postgresql Transaction" << endl;
+        psqlConnection = psqlController.getPSQLConnection(data_source_name);
         psqlConnection->startTransaction();
     }
 
@@ -299,26 +299,24 @@ void PSQLORMCache::commit_sequential (bool transaction, bool clean_updates)
     {
         psqlConnection->commitTransaction();
         // psqlConnection->rollbackTransaction();
-        psqlController.releaseConnection("main",psqlConnection);
+        psqlController.releaseConnection(data_source_name,psqlConnection);
     }
 }
 
-
-
-void PSQLORMCache::commit(bool parallel,bool transaction, bool clean_updates)
+void PSQLORMCache::commit(string data_source_name, bool parallel,bool transaction, bool clean_updates)
 {
     cout << "Staring to commit " << endl;
     std::lock_guard<std::mutex> guard(lock);
-    if ( parallel ) commit_parallel (transaction,clean_updates);
-    else commit_sequential(transaction,clean_updates);
+    if ( parallel ) commit_parallel (data_source_name, transaction,clean_updates);
+    else commit_sequential(data_source_name, transaction,clean_updates);
     cout << "Exiting commit" << endl;
 
 }
-void PSQLORMCache::commit(string name)
+void PSQLORMCache::commit(string data_source_name, string name )
 {
 
 }
-void PSQLORMCache::commit(string name,long id)
+void PSQLORMCache::commit(string data_source_name, string name,long id)
 {
 
 }

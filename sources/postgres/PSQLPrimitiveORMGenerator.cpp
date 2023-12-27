@@ -212,7 +212,7 @@ void PSQLPrimitiveORMGenerator::generateCloner(string class_name)
 {
     extra_methods_def += "\t\tPSQLAbstractORM * clone ();\n";
     extra_methods += "\t\tPSQLAbstractORM * "+class_name+"::clone (){\n";
-    extra_methods += "\t\t\treturn new "+class_name+"();\n";
+    extra_methods += "\t\t\treturn new "+class_name+"(data_source_name);\n";
     extra_methods += "\t\t}\n";
 
 }
@@ -232,7 +232,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
 {
     includes = "#include <PSQLController.h>\n";
     includes += "#include <PSQLBool.h>\n";
-    constructor_destructor = "\t\t"+class_name+"::"+class_name+"(bool add_to_cache):PSQLAbstractORM(\""+table_name+"\",\""+primary_key+"\"){\n";
+    constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name, bool add_to_cache):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\"){\n";
     constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
     constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
     // constructor_destructor +="\t\t\tpsqlQuery = psqlConnection->executeQuery(\"select \"+this->getFromString()+\" from "+table_name+"\");\n";
@@ -287,7 +287,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor += "\t\t "+class_name+"::~"+class_name+"(){\n";
     constructor_destructor += temp+"}\n";
 
-    constructor_destructor_def = "\t\t"+class_name+"(bool add_to_cache=false);\n";
+    constructor_destructor_def = "\t\t"+class_name+"(string data_source_name, bool add_to_cache=false);\n";
     constructor_destructor_def += "\t\t virtual ~"+class_name+"();\n";
 
 }
@@ -295,7 +295,7 @@ void PSQLPrimitiveORMGenerator::generateAddToCache(string class_name)
 {
     extra_methods_def += "\t\tvoid addToCache ();\n";
     extra_methods += "\t\tvoid "+class_name+"::addToCache (){\n";
-    extra_methods += "\t\t\t"+class_name+" * orm = ("+class_name+" *) psqlController.addToORMCache(\""+class_name+"\",this);\n";
+    extra_methods += "\t\t\t"+class_name+" * orm = ("+class_name+" *) psqlController.addToORMCache(\""+class_name+"\",this,data_source_name);\n";
     extra_methods += "\t\t\tif (orm!= NULL) {\n";
     extra_methods += "\t\t\t\t(*this) = (*orm);\n";
     extra_methods += "\t\t\t\tdelete(orm);\n";
@@ -481,7 +481,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         ,class_name.c_str(),query_iterator_class_name.c_str()
         ,query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str()
         ,query_iterator_class_name.c_str(),class_name.c_str()
-        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str());
+        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str());
         write_headers_and_sources(class_name);
     }
     delete (psqlQuery);

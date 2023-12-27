@@ -4,7 +4,7 @@
 
 
 %s::%s(string _data_source_name):PSQLAbstractQueryIterator(_data_source_name,"%s"){
-    %s * orm = new %s();
+    %s * orm = new %s(_data_source_name);
     from_string =orm->getFromString();
     orderby_string = orm->getIdentifierName() + " asc";
 }
@@ -16,7 +16,7 @@
 {
     if (psqlQuery->fetchNextRow())
     {
-        %s * obj = new %s();
+        %s * obj = new %s(data_source_name);
         obj->assignResults(psqlQuery,_read_only);
         return obj;
     }
@@ -27,9 +27,9 @@
     return NULL;
 }
 
-void  %s::process_internal(PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f)
+void  %s::process_internal(string data_source_name, PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f)
 {
-        PSQLQueryPartitionIterator <%s> psqlQueryPartitionIterator (psqlQueryPartition);
+        PSQLQueryPartitionIterator <%s> psqlQueryPartitionIterator (psqlQueryPartition, data_source_name);
         %s * orm = NULL;
         do {
             orm =psqlQueryPartitionIterator.next();
@@ -50,7 +50,7 @@ void %s::process(int partitions_count,std::function<void(%s * orm,int partition_
         mutex shared_lock;
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
-            thread * t = new thread(process_internal,(*p)[i],i,&shared_lock,f);
+            thread * t = new thread(process_internal, data_source_name, (*p)[i],i,&shared_lock,f);
             threads.push_back(t);
         }
         for ( int i  = 0 ; i < p->size() ; i ++)
@@ -62,6 +62,9 @@ void %s::process(int partitions_count,std::function<void(%s * orm,int partition_
     }
 }
 
+int %s::getRowCount(){
+    return this->psqlQuery->getRowCount();
+}
 
 %s::~%s ()
 {

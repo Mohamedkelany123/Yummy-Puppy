@@ -49,11 +49,11 @@ int main (int argc, char ** argv)
 
 
 psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
-new_lms_installmentpaymentstatushistory_primitive_orm * orm = new new_lms_installmentpaymentstatushistory_primitive_orm(true);
+new_lms_installmentpaymentstatushistory_primitive_orm * orm = new new_lms_installmentpaymentstatushistory_primitive_orm("main",true);
 orm->set_day("2023-10-30");
 orm->set_installment_extension_id(100);
 orm->set_status(100);
-psqlController.ORMCommit();
+psqlController.ORMCommitAll();
 
 // cout << orm->insert() << endl;
 
@@ -75,7 +75,7 @@ return 0;
     //ORM(crm_app_customer,orms)
     psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    {new crm_app_customer_primitive_orm(),new loan_app_loan_primitive_orm()},{{{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}});
+    {new crm_app_customer_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},{{{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}});
 
     psqlQueryJoin->filter(UnaryOperator ("loan_app_loan.id",lt,"10000"));
     psqlQueryJoin->process (6,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
@@ -92,7 +92,7 @@ return 0;
     });
 
     cout << "I m done with the lambda" << endl;
-    psqlController.ORMCommit();
+    psqlController.ORMCommitAll();
     // for (;psqlQueryJoin->fetchNextRow();)
     // {
     //     cout << psqlQueryJoin->getValue("crm_app_customer_first_name") << ": "<< psqlQueryJoin->getValue("loan_app_loan_id") <<  endl;

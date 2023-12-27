@@ -1,4 +1,4 @@
-
+from datetime import datetime
 
 
 class color_options:
@@ -11,11 +11,22 @@ class color_options:
     RED = '\033[91m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-    END = '\033[0m'  
+    END = '\033[0m'
 
 
-def print_colored(msg:str , color: str = color_options.GREEN, bold: bool = False):
+current_date = datetime.now().strftime("%Y%m%d")
+LOG_FILE = f'/home/kmsobh/closure_logs/test_logs_{current_date}.txt'
+
+def print_colored(msg: str, color: str = color_options.GREEN, bold: bool = False):
     if bold:
-        print(color_options.BOLD + color + msg + color_options.END)
+        colored_msg = color_options.BOLD + color + msg + color_options.END
     else:
-        print(color + msg + color_options.END)
+        colored_msg = color + msg + color_options.END
+
+    # Print to console
+    print(colored_msg)
+
+    # Write to log file
+    with open(LOG_FILE, 'a') as log_file:
+        log_file.write(msg + '\n')
+

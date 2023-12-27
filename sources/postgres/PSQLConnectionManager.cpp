@@ -3,16 +3,29 @@
 
 PSQLConnectionManager::PSQLConnectionManager()
 {
-
+    default_data_source = "";
 }
 bool PSQLConnectionManager::addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password)
 {
     if (data_sources.find(data_source_name) != data_sources.end()) return false;
     else 
-    {
+    {   
         data_sources[data_source_name] = new PSQLDataSource(_hostname,_port,_database,_username,_password);
+        if (default_data_source == "") setDefaultDatasource(data_source_name);
         return true;
     }
+}
+bool PSQLConnectionManager::setDefaultDatasource(string _default_data_source){
+    
+    if (data_sources.find(_default_data_source) == data_sources.end())
+        return false;
+
+    default_data_source = _default_data_source;
+    return true;
+
+}
+string PSQLConnectionManager::getDefaultDatasource(){
+    return default_data_source;
 }
 PSQLConnection * PSQLConnectionManager::getPSQLConnection(string data_source_name)
 {
