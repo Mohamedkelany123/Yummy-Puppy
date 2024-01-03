@@ -72,8 +72,8 @@ class FullClosure:
                     order by 
                         id desc
                 """
-        # excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day"]
-        excluded_columns = ['created_at', 'updated_at']
+        excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day"]
+        # excluded_columns = ['created_at', 'updated_at']
         # excluded_columns = ['created_at', 'updated_at']
 
 
