@@ -139,7 +139,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UNDUE_TO_DUE-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
             )
         );
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
@@ -187,7 +187,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::DUE_TO_OVERDUE-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
                 // new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",eq,"1373603")
             )
         );
@@ -302,7 +302,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_yesterday.getDateString()),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",nin,"1,2,3"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UPDATE_LOAN_STATUS-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15")
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
             )
         );
         psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
@@ -436,7 +436,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4,5"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15"),
+                new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"),
                 new UnaryOperator ("crm_app_customer.first_loan_cycle_id",ne,"1")
             )
@@ -480,7 +480,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15"),
+                new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
                 // new UnaryOperator ("loan_app_installment.id",eq,"327878")
             )
@@ -531,7 +531,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15"),
+                new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new OROperator (
                     new UnaryOperator ("new_lms_installmentlatefees.is_cancelled",eq,"f"),
                     new ANDOperator (
@@ -720,7 +720,7 @@ int main (int argc, char ** argv)
             ANDOperator 
             (
                 // 7(WRITEOFF) and 14(PARTIAL-SETTLE-CHARGE-OFF) are not in django
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 8, 12, 13, 15"),
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 8, 12, 13, 15, 16"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::LAST_ACCRUED_DAY-1)),                
                 new OROperator (
                     new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,closure_date_string),

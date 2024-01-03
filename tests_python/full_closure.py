@@ -204,6 +204,7 @@ class FullClosure:
                 data_python_filtered = data_python
 
             if len(data_c_filtered) != len(data_python_filtered):
+                send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
                 raise ValueError(f"Data LENGTHS ARE NOT EQUAL")
 
             # counter = 0
