@@ -72,8 +72,8 @@ class FullClosure:
                     order by 
                         id desc
                 """
-        # excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day"]
-        excluded_columns = ['created_at', 'updated_at']
+        excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day"]
+        # excluded_columns = ['created_at', 'updated_at']
         # excluded_columns = ['created_at', 'updated_at']
 
 
@@ -94,8 +94,9 @@ class FullClosure:
                         id desc
                 """
         excluded_columns = ['created_at', 'updated_at']
-        self.exec(query, excluded_columns, "Installment")
-
+        temp = self.exec(query, excluded_columns, "Installment")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Installment ", "#00FF00")
 
 
     #4-Installment Late Fees Exclude[id, created_at , updated_at]-(Marginalization Creates Late Fees So We cant Compare the ids as C++ runs using Multithreads)
@@ -204,6 +205,7 @@ class FullClosure:
                 data_python_filtered = data_python
 
             if len(data_c_filtered) != len(data_python_filtered):
+                send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
                 raise ValueError(f"Data LENGTHS ARE NOT EQUAL")
 
             # counter = 0

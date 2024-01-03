@@ -1,5 +1,9 @@
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+from datetime import datetime
 
+load_dotenv()
 
 class color_options:
     PURPLE = '\033[95m'
@@ -15,7 +19,8 @@ class color_options:
 
 
 current_date = datetime.now().strftime("%Y%m%d")
-LOG_FILE = f'/home/kmsobh/closure_logs/test_logs_{current_date}.txt'
+LOG_FILE = str(os.environ.get('LOG_FILE')) + f"_{current_date}.txt" 
+
 
 def print_colored(msg: str, color: str = color_options.GREEN, bold: bool = False):
     if bold:

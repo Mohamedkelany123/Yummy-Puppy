@@ -8,8 +8,11 @@ from last_accrual_interest_day import LastAccrualInterestDay
 from marginalization import Marginalization
 from full_closure import FullClosure
 from colors import *
+import os
+from dotenv import load_dotenv
+from datetime import datetime
 
-
+load_dotenv()
 
 def main():
 
@@ -25,9 +28,12 @@ def main():
 
     #TOOK 24 MINUTES TO TEST ALL 7 TABLES
     print_colored("--------------------------------->FULL CLOSURE TESTS ", color_options.PURPLE, bold=True)
-    DB_c_url = "postgres://postgres:8ZozYD6DhNJgW7a@192.168.65.216/c_plus_plus" 
-    DB_python = "postgres://postgres:8ZozYD6DhNJgW7a@192.168.65.216/django_ostaz"
+    # DB_c_url = "postgres://postgres:postgres@192.168.65.203/before_closure_01012024_c2" 
+    # DB_python = "postgres://postgres:postgres@192.168.65.203/before_closure_01012024_django2"
 
+
+    DB_c_url = os.environ.get('DB_c_url')
+    DB_python = os.environ.get('DB_python')
 
     
     print_colored("Database 1: ", color_options.CYAN, bold=True)
