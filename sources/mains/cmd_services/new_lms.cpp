@@ -356,11 +356,15 @@ int main (int argc, char ** argv)
                                 if ( ie_orm->get_payment_status() != 0 )
                                 {
                                     ie_orm->set_payment_status(0); //0
-                                    new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm("main",true);
-                                    psh_orm->set_day(reference_date.getDateString());
-                                    psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
-                                    psh_orm->set_status(0); // 0
-                                    psh_orm->set_order_id(ie_orm->get_principal_order_id());
+                                    if ( (lal_orm->get_status_id() != 11) or (lal_orm->get_status_id() == 11 and ie_orm->get_is_principal_paid() == false))
+                                    {
+                                        new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm("main",true);
+                                        psh_orm->set_day(reference_date.getDateString());
+                                        psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
+                                        psh_orm->set_status(0); // 0
+                                        // psh_orm->set_order_id(ie_orm->get_principal_order_id());
+                                    }
+                                    
                                 }
                             }
 
