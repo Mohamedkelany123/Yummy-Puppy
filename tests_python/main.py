@@ -28,12 +28,12 @@ def main():
 
     #TOOK 24 MINUTES TO TEST ALL 7 TABLES
     print_colored("--------------------------------->FULL CLOSURE TESTS ", color_options.PURPLE, bold=True)
-    DB_c_url = "postgres://postgres:postgres@192.168.65.203/before_closure_01012024_c2" 
-    DB_python = "postgres://postgres:postgres@192.168.65.203/before_closure_01012024_django2"
+    # DB_c_url = "postgres://postgres:postgres@192.168.65.203/before_closure_01012024_c2" 
+    # DB_python = "postgres://postgres:postgres@192.168.65.203/before_closure_01012024_django2"
 
 
-    # DB_c_url = os.environ.get('DB_c_url')
-    # DB_python = os.environ.get('DB_python')
+    DB_c_url = os.environ.get('DB_c_url')
+    DB_python = os.environ.get('DB_python')
 
     
     print_colored("Database 1: ", color_options.CYAN, bold=True)
