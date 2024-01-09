@@ -443,6 +443,8 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"),
                 new UnaryOperator ("crm_app_customer.first_loan_cycle_id",ne,"1")
+                // new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",eq,"1477535")
+
             )
         );
 
@@ -486,7 +488,6 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
-                // new UnaryOperator ("loan_app_installment.id",eq,"327878")
             )
         );
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
@@ -515,6 +516,60 @@ int main (int argc, char ** argv)
 
 
 
+
+        psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
+        {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
+            {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
+            {{"new_lms_installmentextension","installment_ptr_id"},{"new_lms_installmentlatefees","installment_extension_id"}}
+        });
+
+        psqlQueryJoin->filter(
+            ANDOperator 
+            (
+                new UnaryOperator ("new_lms_installmentlatefees.is_marginalized",eq,"f"),
+                new UnaryOperator ("new_lms_installmentlatefees.is_paid",eq,"f"),
+                new UnaryOperator ("new_lms_installmentlatefees.day",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
+                new UnaryOperator ("new_lms_installmentextension.is_marginalized",eq,"t"),
+                new UnaryOperator ("new_lms_installmentextension.marginalization_date",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
+                new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
+                new OROperator (
+                    new UnaryOperator ("new_lms_installmentlatefees.is_cancelled",eq,"f"),
+                    new ANDOperator (
+                        new UnaryOperator ("new_lms_installmentlatefees.is_cancelled",eq,"t"),
+                        new UnaryOperator ("new_lms_installmentlatefees.cancellation_date",gt,"new_lms_installmentlatefees.marginalization_date",true)
+                    )
+                )
+            )
+        );
+
+        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+                new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
+                new_lms_installmentlatefees_primitive_orm * lf_orm = ORM(new_lms_installmentlatefees,orms);
+                loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
+                loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
+
+                BDate marg_date; 
+                marg_date.set_date(lf_orm->get_day());
+
+                if ( marg_date.getDateString() != "" )
+                {
+                    cout << "INSINDE THE MARGINALIZATION DATE 111111111111: " << marg_date.getDateString() << endl;
+                    lf_orm->set_is_marginalized(true);
+                    lf_orm->set_marginalization_date(marg_date.getDateString());
+                }
+                // shared_lock->lock();
+                // cout << lf_orm->get_id() << " - " << marg_date.getDateString() <<  " - " << lf_orm->get_day() << endl;
+                // shared_lock->unlock();
+            });
+
+        cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
+        psqlController.ORMCommit(true,true,true, "main");   
+        delete (psqlQueryJoin);
+        cout << "Marginalization Setp 3" << endl;
 
         psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
@@ -653,9 +708,7 @@ int main (int argc, char ** argv)
         {{"lms_closure_status",to_string(closure_status::MARGINALIZE_INCOME_STEP1)}}
         );
         psqlUpdateQuery.update();
-
-        cout << "Marginalization Setp 3" << endl;
-
+        cout << "Marginalization Setp 4" << endl;
     }
 
     if ( strcmp (argv[6],"long_to_short") == 0 || strcmp (argv[6],"full_closure") == 0)
