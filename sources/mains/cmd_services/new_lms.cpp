@@ -444,7 +444,6 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"),
                 new UnaryOperator ("crm_app_customer.first_loan_cycle_id",ne,"1")
                 // new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",eq,"1477535")
-
             )
         );
 
@@ -533,7 +532,6 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_marginalized",eq,"t"),
                 new UnaryOperator ("new_lms_installmentextension.marginalization_date",lte,closure_date_string),
-                new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new OROperator (
