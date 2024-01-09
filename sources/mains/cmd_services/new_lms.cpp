@@ -557,7 +557,6 @@ int main (int argc, char ** argv)
 
                 if ( marg_date.getDateString() != "" )
                 {
-                    cout << "INSINDE THE MARGINALIZATION DATE 111111111111: " << marg_date.getDateString() << endl;
                     lf_orm->set_is_marginalized(true);
                     lf_orm->set_marginalization_date(marg_date.getDateString());
                 }
