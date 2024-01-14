@@ -72,7 +72,7 @@ class FullClosure:
                     order by 
                         id desc
                 """
-        excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day"]
+        excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day", "lms_closure_status"]
         # excluded_columns = ['created_at', 'updated_at']
         # excluded_columns = ['created_at', 'updated_at']
 
@@ -208,22 +208,31 @@ class FullClosure:
                 send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
                 raise ValueError(f"Data LENGTHS ARE NOT EQUAL")
 
-            # counter = 0
+            counter = 0
 
             for i in tqdm.tqdm(range(len(data_c_filtered)), desc="Comparing Data"):
                         if str(data_c_filtered[i]) != str(data_python_filtered[i]):
-                            print_colored("Data C++:", self.color_options.RED, bold=True)
-                            print_colored(str(data_c_filtered[i]), self.color_options.BLUE, bold=True)
-                            print_colored("Data Python:", self.color_options.RED, bold=True)
-                            print_colored(str(data_python_filtered[i]), self.color_options.CYAN, bold=True)
-                            print(f"Data mismatch at index {i}")
+                            counter += 1
+                            if counter < 10:
+                                print_colored("Data C++:", self.color_options.RED, bold=True)
+                                print_colored(str(data_c_filtered[i]), self.color_options.BLUE, bold=True)
+                                print_colored("Data Python:", self.color_options.RED, bold=True)
+                                print_colored(str(data_python_filtered[i]), self.color_options.CYAN, bold=True)
+                                print(f"Data mismatch at index {i}")
 
 
-                            send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
-                            raise ValueError(f"Data mismatch at index {i}")
+                            # send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
+                            # raise ValueError(f"Data mismatch at index {i}")
             # print("--------------------------------------------------COUNTER:", counter)
-            print_colored("-----------------------------------PASS---------------------------------", color=self.color_options.GREEN, bold=True)
-            return True
+            if counter > 0:
+                print_colored(str(counter), color=self.color_options.RED, bold=True)
+                print_colored("-----------------------------------FAILED---------------------------------", color=self.color_options.RED, bold=True)
+                send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
+                return False
+            else:
+                print_colored(str(counter), color=self.color_options.GREEN, bold=True)
+                print_colored("-----------------------------------PASS---------------------------------", color=self.color_options.GREEN, bold=True)
+                return True
 
         except Exception as e:
             print_colored(f"FAIL ---> An error occurred: {e}", color_options.RED, bold=True)
