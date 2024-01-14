@@ -188,7 +188,6 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::DUE_TO_OVERDUE-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
-                // new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",eq,"1373603")
             )
         );
 
@@ -443,6 +442,7 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"),
                 new UnaryOperator ("crm_app_customer.first_loan_cycle_id",ne,"1")
+                // new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",eq,"1477535")
             )
         );
 
@@ -486,7 +486,6 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
-                // new UnaryOperator ("loan_app_installment.id",eq,"327878")
             )
         );
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
@@ -513,9 +512,6 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 2" << endl;
 
-
-
-
         psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
@@ -533,107 +529,114 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
-                new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
-                new OROperator (
-                    new UnaryOperator ("new_lms_installmentlatefees.is_cancelled",eq,"f"),
-                    new ANDOperator (
-                        new UnaryOperator ("new_lms_installmentlatefees.is_cancelled",eq,"t"),
-                        new UnaryOperator ("new_lms_installmentlatefees.cancellation_date",gt,"new_lms_installmentlatefees.marginalization_date",true)
-                    )
-                )
+                new UnaryOperator ("new_lms_installmentlatefees.is_cancelled",eq,"f")
             )
         );
 
-        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 new_lms_installmentlatefees_primitive_orm * lf_orm = ORM(new_lms_installmentlatefees,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
                 loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
 
-                BDate marg_date; 
-                vector<loan_app_loanstatushistroy_primitive_orm *>  * lsh_orms = lal_orm->get_loan_app_loanstatushistroy_loan_id(true);
-                for ( int i = lsh_orms->size()-1 ; i  >= 0 ; i --)
-                {  
-                    if ( (*lsh_orms)[i]->get_status_type() == 0 && (*lsh_orms)[i]->get_previous_status_id() == blnk_buckets::BUCKET1 && (*lsh_orms)[i]->get_status_id () > blnk_buckets::BUCKET1)
+
+                if((ie_orm->get_is_marginalized() == true) && (ie_orm->get_marginalization_date() <= closure_date_string)){
+                    BDate marg_date; 
+                    marg_date.set_date(lf_orm->get_day());
+                    // cout << "Insideeeeee" << endl;
+                    if ( marg_date.getDateString() != "" )
                     {
-                        marg_date.set_date( (*lsh_orms)[i]->get_day());
-                        break;
+                        lf_orm->set_is_marginalized(true);
+                        lf_orm->set_marginalization_date(marg_date.getDateString());
                     }
                 }
-
-                if ( lf_orm->get_sequence() == 1)
+                else if (lal_orm->get_status_id() > lal_orm->get_marginalization_bucket_id())
                 {
-                    if ( lai_orm->get_period() != 1)
+                    BDate marg_date; 
+                    vector<loan_app_loanstatushistroy_primitive_orm *>  * lsh_orms = lal_orm->get_loan_app_loanstatushistroy_loan_id(true);
+                    for ( int i = lsh_orms->size()-1 ; i  >= 0 ; i --)
+                    {  
+                        if ( (*lsh_orms)[i]->get_status_type() == 0 && (*lsh_orms)[i]->get_previous_status_id() == blnk_buckets::BUCKET1 && (*lsh_orms)[i]->get_status_id () > blnk_buckets::BUCKET1)
+                        {
+                            marg_date.set_date( (*lsh_orms)[i]->get_day());
+                            break;
+                        }
+                    }
+
+                    if ( lf_orm->get_sequence() == 1)
                     {
-                        loan_app_installment_primitive_orm * prev_lai_orm = NULL;
-                        vector <loan_app_installment_primitive_orm *>  * lai_orms = lal_orm->get_loan_app_installment_loan_id(true);
-                        for ( int  i = 0 ; i < lai_orms->size() ; i ++ )
+                        if ( lai_orm->get_period() != 1)
                         {
-                            if ( (* lai_orms)[i]->get_period() == lai_orm->get_period()-1 )
+                            loan_app_installment_primitive_orm * prev_lai_orm = NULL;
+                            vector <loan_app_installment_primitive_orm *>  * lai_orms = lal_orm->get_loan_app_installment_loan_id(true);
+                            for ( int  i = 0 ; i < lai_orms->size() ; i ++ )
                             {
-                                prev_lai_orm = (* lai_orms)[i];
-                                break;
+                                if ( (* lai_orms)[i]->get_period() == lai_orm->get_period()-1 )
+                                {
+                                    prev_lai_orm = (* lai_orms)[i];
+                                    break;
+                                }
                             }
-                        }
-                        vector <new_lms_installmentextension_primitive_orm *>  * prev_lai_ext_orms = prev_lai_orm->get_new_lms_installmentextension_installment_ptr_id(true);
-                        vector<new_lms_installmentpaymentstatushistory_primitive_orm *> * iph_orms = (*prev_lai_ext_orms)[0]->get_new_lms_installmentpaymentstatushistory_installment_extension_id (true);
-                        std::list<int> s {1,2,3,6};
-                        int iph_index=-1;
-                        for (int i = iph_orms->size()-1 ; i >=0 ; i --)
-                        {
-                            int status = (*iph_orms)[i]->get_status();
-                            std::list<int>::iterator findIter = std::find(s.begin(), s.end(), status);
-                            if ( s.end() != findIter )
+                            vector <new_lms_installmentextension_primitive_orm *>  * prev_lai_ext_orms = prev_lai_orm->get_new_lms_installmentextension_installment_ptr_id(true);
+                            vector<new_lms_installmentpaymentstatushistory_primitive_orm *> * iph_orms = (*prev_lai_ext_orms)[0]->get_new_lms_installmentpaymentstatushistory_installment_extension_id (true);
+                            std::list<int> s {1,2,3,6};
+                            int iph_index=-1;
+                            for (int i = iph_orms->size()-1 ; i >=0 ; i --)
                             {
-                                iph_index = i;
-                                break;
+                                int status = (*iph_orms)[i]->get_status();
+                                std::list<int>::iterator findIter = std::find(s.begin(), s.end(), status);
+                                if ( s.end() != findIter )
+                                {
+                                    iph_index = i;
+                                    break;
+                                }
                             }
-                        }
 
-                        BDate prev_installment_payment_date;
-                        BDate ins_date(lai_orm->get_day());
-                        BDate ie_marg_date(ie_orm->get_marginalization_date());
-                        BDate lf_day(lf_orm->get_day());
+                            BDate prev_installment_payment_date;
+                            BDate ins_date(lai_orm->get_day());
+                            BDate ie_marg_date(ie_orm->get_marginalization_date());
+                            BDate lf_day(lf_orm->get_day());
 
-                        if ( iph_index != -1 )  
-                            prev_installment_payment_date.set_date((*iph_orms)[iph_index]->get_day());
+                            if ( iph_index != -1 )  
+                                prev_installment_payment_date.set_date((*iph_orms)[iph_index]->get_day());
 
-                         
-                        if (( prev_installment_payment_date()>= lf_day()  || std::find(s.begin(), s.end(), (*prev_lai_ext_orms)[0]->get_payment_status()) == s.end() )
-                            && (*prev_lai_ext_orms)[0]->get_status_id() > lal_orm->get_marginalization_bucket_id())
-                        {
-                            if (ie_orm->get_marginalization_date() != "" && ie_marg_date() <= lf_day() 
-                                || (lal_orm->get_status_id() > lal_orm->get_marginalization_bucket_id() && lai_orm->get_interest_expected() == 0)
-                            )
+                            
+                            if (( prev_installment_payment_date()>= lf_day()  || std::find(s.begin(), s.end(), (*prev_lai_ext_orms)[0]->get_payment_status()) == s.end() )
+                                && (*prev_lai_ext_orms)[0]->get_status_id() > lal_orm->get_marginalization_bucket_id())
                             {
-                                marg_date.set_date(lf_orm->get_day());
+                                if (ie_orm->get_marginalization_date() != "" && ie_marg_date() <= lf_day() 
+                                    || (lal_orm->get_status_id() > lal_orm->get_marginalization_bucket_id() && lai_orm->get_interest_expected() == 0)
+                                )
+                                {
+                                    marg_date.set_date(lf_orm->get_day());
+                                }
+                                else
+                                {
+                                    ins_date.inc_day();
+                                    ins_date.inc_month();
+                                    marg_date.set_date(ins_date.getDateString());
+                                }
                             }
                             else
                             {
-                                ins_date.inc_day();
-                                ins_date.inc_month();
-                                marg_date.set_date(ins_date.getDateString());
+                                if ( !(marg_date() > lf_day ()))
+                                    marg_date.set_date(lf_orm->get_day());
                             }
-                        }
-                        else
-                        {
-                            if ( !(marg_date() > lf_day ()))
-                                marg_date.set_date(lf_orm->get_day());
-                        }
-                    } // else is already handled above through the default value
-                }
-                else
-                {
+                        } // else is already handled above through the default value
+                    }
+                    else
+                    {
 
-                    marg_date.set_date(lf_orm->get_day());
-                }
+                        marg_date.set_date(lf_orm->get_day());
+                    }
 
-                if ( marg_date.getDateString() != "" )
-                {
-                    lf_orm->set_is_marginalized(true);
-                    lf_orm->set_marginalization_date(marg_date.getDateString());
+                    if ( marg_date.getDateString() != "" )
+                    {
+                        lf_orm->set_is_marginalized(true);
+                        lf_orm->set_marginalization_date(marg_date.getDateString());
+                    }
                 }
                 lal_orm->set_lms_closure_status(closure_status::MARGINALIZE_INCOME_STEP1);
                 // shared_lock->lock();
@@ -653,9 +656,7 @@ int main (int argc, char ** argv)
         {{"lms_closure_status",to_string(closure_status::MARGINALIZE_INCOME_STEP1)}}
         );
         psqlUpdateQuery.update();
-
         cout << "Marginalization Setp 3" << endl;
-
     }
 
     if ( strcmp (argv[6],"long_to_short") == 0 || strcmp (argv[6],"full_closure") == 0)
