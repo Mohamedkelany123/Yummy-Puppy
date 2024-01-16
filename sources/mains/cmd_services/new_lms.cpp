@@ -720,18 +720,23 @@ int main (int argc, char ** argv)
 
         //CHANGED TO DECENDING
         psqlQueryJoin->setOrderBy("loan_app_loan.id desc ,new_lms_installmentextension.accrual_date desc");
-        psqlQueryJoin->setDistinct(" distinct on (loan_app_loan.id) ");
         psqlQueryJoin->filter(
             ANDOperator 
             (
-                // 7(WRITEOFF) and 14(PARTIAL-SETTLE-CHARGE-OFF) are not in django
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 8, 12, 13, 15, 16"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::LAST_ACCRUED_DAY-1)),                
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::LAST_ACCRUED_DAY-1)), 
                 new OROperator (
-                    new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,closure_date_string),
-                    new ANDOperator (
-                        new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",isnull,"abc"),
-                        new UnaryOperator ("loan_app_installment.day-1",lte,closure_date_string)
+                    new ANDOperator(
+                        new UnaryOperator ("new_lms_installmentextension.partial_accrual_date",lte,closure_date_string),
+                        new UnaryOperator ("loan_app_loan.last_accrued_interest_day",lt,"new_lms_installmentextension.partial_accrual_date", true)
+                    ),
+                    new ANDOperator(
+                        new UnaryOperator ("new_lms_installmentextension.accrual_date",lte,closure_date_string),
+                        new UnaryOperator ("loan_app_loan.last_accrued_interest_day",lt,"new_lms_installmentextension.accrual_date", true)
+                    ),
+                    new ANDOperator(
+                        new UnaryOperator ("loan_app_loan.first_accrual_adjustment_date",lte,closure_date_string),
+                        new UnaryOperator ("loan_app_loan.last_accrued_interest_day",lt,"loan_app_loan.first_accrual_adjustment_date", true)
                     )
                 )
             )
@@ -744,8 +749,7 @@ int main (int argc, char ** argv)
                 BDate first_accrual_adjustment_date(lal_orm->get_first_accrual_adjustment_date());
                 BDate last_accrued_interest_day(lal_orm->get_last_accrued_interest_day());
                 BDate new_last_accrued_interest_day (lal_orm->get_loan_booking_day());
-                new_last_accrued_interest_day.dec_day();
-
+                // new_last_accrued_interest_day.dec_day();
 
                 if ( accrual_date() >= partial_accrual_date() &&  accrual_date() >= first_accrual_adjustment_date () && accrual_date() <= closure_date ()) 
                     new_last_accrued_interest_day.set_date(accrual_date.getDateString());
