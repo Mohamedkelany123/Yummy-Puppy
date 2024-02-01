@@ -97,7 +97,7 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
                 {
 
                     marg_date.set_date("");
-                    if (lal_orm->get_status_id() >= lal_orm->get_sticky_bucket_id() 
+                    if (lal_orm->get_status_id() >= lal_orm->get_marginalization_bucket_id() 
                             && inst_partial_accrual_date() >= marg_date()) 
                                 marg_date.set_date(inst_partial_accrual_date.getDateString());
                 }
