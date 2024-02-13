@@ -330,7 +330,7 @@ int main (int argc, char ** argv)
                     {
                         if ( b > ie_orm->get_status_id() )
                         {
-                            new_lms_installmentstatushistory_primitive_orm * ish_orm = new new_lms_installmentstatushistory_primitive_orm("main",true);
+                            new_lms_installmentstatushistory_primitive_orm * ish_orm = new new_lms_installmentstatushistory_primitive_orm("main",true, false);
                             ish_orm->set_day(reference_date.getDateString());
                             ish_orm->set_status_type (0);
                             ish_orm->set_installment_id (ie_orm->get_installment_ptr_id());
@@ -365,7 +365,7 @@ int main (int argc, char ** argv)
 
                             if ( fb > ie_orm->get_fra_status_id() )
                             {
-                                new_lms_installmentstatushistory_primitive_orm * ish_orm = new new_lms_installmentstatushistory_primitive_orm("main",true);
+                                new_lms_installmentstatushistory_primitive_orm * ish_orm = new new_lms_installmentstatushistory_primitive_orm("main",true, false);
                                 ish_orm->set_day(reference_date.getDateString());
                                 ish_orm->set_status_type (1);
                                 ish_orm->set_installment_id (ie_orm->get_installment_ptr_id());

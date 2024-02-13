@@ -17,6 +17,8 @@ class PSQLAbstractORM
         map <string,pair<string,bool>> insert_default_values;
         map <string,pair<string,bool>> update_default_values;
         string data_source_name;
+        bool orm_transactional;
+
 
     public:
         virtual string getFromString () = 0;
@@ -29,10 +31,11 @@ class PSQLAbstractORM
         virtual string getTableName();
         virtual bool isLoaded();
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
-        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier);
+        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool exclude_from_transactional);
         virtual PSQLAbstractORM * clone ()=0;
         virtual void lock_me();
         virtual void unlock_me(bool restrict_to_owner = false);        
+        bool isOrmTransactional();
         virtual ~PSQLAbstractORM();
 };
 

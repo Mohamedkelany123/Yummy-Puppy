@@ -232,7 +232,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
 {
     includes = "#include <PSQLController.h>\n";
     includes += "#include <PSQLBool.h>\n";
-    constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name, bool add_to_cache):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\"){\n";
+    constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name, bool add_to_cache, bool orm_transactional):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\", orm_transactional){\n";
     constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
     constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
     // constructor_destructor +="\t\t\tpsqlQuery = psqlConnection->executeQuery(\"select \"+this->getFromString()+\" from "+table_name+"\");\n";
@@ -287,7 +287,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor += "\t\t "+class_name+"::~"+class_name+"(){\n";
     constructor_destructor += temp+"}\n";
 
-    constructor_destructor_def = "\t\t"+class_name+"(string data_source_name, bool add_to_cache=false);\n";
+    constructor_destructor_def = "\t\t"+class_name+"(string data_source_name, bool add_to_cache=false, bool orm_transactional=true);\n";
     constructor_destructor_def += "\t\t virtual ~"+class_name+"();\n";
 
 }
