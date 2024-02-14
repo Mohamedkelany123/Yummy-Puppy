@@ -8,8 +8,8 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
     int return_flag = true;
 
     cout << "Started commit internal for " << t_index 
-        << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : -1) 
-        << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : -1) << endl;
+        << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
+        << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
 
     if (me->insert_thread_cache.size() > t_index)
     {
@@ -64,7 +64,6 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
     }
     (*threads_results)[t_index] = return_flag;
 
-    cout << "Finished commit internal for " << t_index << endl;;
     return return_flag;
 }
 

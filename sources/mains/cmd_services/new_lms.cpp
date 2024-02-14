@@ -131,6 +131,9 @@ int main (int argc, char ** argv)
     BDate closure_date(closure_date_string);
     if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
+        auto begin = std::chrono::high_resolution_clock::now();
+
+
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
@@ -170,6 +173,12 @@ int main (int argc, char ** argv)
         psqlUpdateQuery.update();
 
         cout << "Undue to Due done" << endl;
+
+        // Stop measuring time and calculate the elapsed time
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------//
@@ -177,6 +186,8 @@ int main (int argc, char ** argv)
 
     if ( strcmp (argv[6],"due_to_overdue") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
+
+        auto begin = std::chrono::high_resolution_clock::now();
 
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),
@@ -281,13 +292,22 @@ int main (int argc, char ** argv)
         psqlUpdateQuery.update();
 
         cout << "Due to OverDue done" << endl;
+
+        // Stop measuring time and calculate the elapsed time
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
     if ( strcmp (argv[6],"status") == 0 || strcmp (argv[6],"full_closure") == 0)
-    {
+    {   
+
+        auto begin = std::chrono::high_resolution_clock::now();
+
         BDate closure_yesterday = closure_date;
         closure_yesterday.dec_day();
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
@@ -410,6 +430,12 @@ int main (int argc, char ** argv)
         psqlUpdateQuery.update();
 
         cout << "Loan Status done" << endl;
+
+        // Stop measuring time and calculate the elapsed time
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------//
@@ -418,6 +444,9 @@ int main (int argc, char ** argv)
 
     if ( strcmp (argv[6],"marginalization") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
+        auto begin = std::chrono::high_resolution_clock::now();
+
+        
         PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
@@ -467,10 +496,20 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
 
         cout << "Marginalization Setp 1" << endl;
+
+        // Stop measuring time and calculate the elapsed time
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
     
     //-----------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------//
     
+
+        begin = std::chrono::high_resolution_clock::now();
+
+
         psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main"),new crm_app_customer_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
@@ -514,8 +553,16 @@ int main (int argc, char ** argv)
 
         cout << "Marginalization Setp 2" << endl;
 
+        // Stop measuring time and calculate the elapsed time
+         end = std::chrono::high_resolution_clock::now();
+         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
+
+         begin = std::chrono::high_resolution_clock::now();
+
 
         psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
@@ -553,9 +600,15 @@ int main (int argc, char ** argv)
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 3" << endl;
 
+        // Stop measuring time and calculate the elapsed time
+         end = std::chrono::high_resolution_clock::now();
+         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
+        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
+
+         begin = std::chrono::high_resolution_clock::now();
 
 
         psqlQueryJoin = new PSQLJoinQueryIterator ("main",
@@ -691,13 +744,23 @@ int main (int argc, char ** argv)
         );
         psqlUpdateQuery.update();
         cout << "Marginalization Setp 4" << endl;
+
+                // Stop measuring time and calculate the elapsed time
+        end = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
     }
+
 
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
     if ( strcmp (argv[6],"long_to_short") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
+        auto begin = std::chrono::high_resolution_clock::now();
+
+
         PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
@@ -741,6 +804,11 @@ int main (int argc, char ** argv)
         psqlUpdateQuery.update();
         cout << "Long to short term" << endl;
 
+        // Stop measuring time and calculate the elapsed time
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------//
@@ -750,6 +818,9 @@ int main (int argc, char ** argv)
 
     if ( strcmp (argv[6],"last_accrual_interest_date") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
+        auto begin = std::chrono::high_resolution_clock::now();
+
+
         PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
@@ -815,6 +886,12 @@ int main (int argc, char ** argv)
         );
         psqlUpdateQuery.update();
         cout << "Loan Last Accrual Day" << endl;
+
+        // Stop measuring time and calculate the elapsed time
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
 
     }
     if (strcmp (argv[6],"full_closure") == 0)
