@@ -359,7 +359,6 @@ int main (int argc, char ** argv)
                                         psh_orm->set_installment_extension_id(ie_orm->get_installment_ptr_id());
                                         psh_orm->set_status(0); // 0
                                     }
-                                    
                                 }
                             }
 

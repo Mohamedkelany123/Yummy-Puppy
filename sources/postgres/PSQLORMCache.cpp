@@ -6,12 +6,18 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
 {
     int counter =0;
     int return_flag = true;
+
+    cout << "Started commit internal for " << t_index 
+        << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : -1) 
+        << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : -1) << endl;
+
     if (me->insert_thread_cache.size() > t_index)
     {
         for (auto orm_cache_item: me->insert_thread_cache[t_index])
         {
-            orm_cache_item.second->lock_me();
+            // cout << transactional << "& (" << orm_transaction << "==" << orm_cache_item.second->isOrmTransactional() << ") || " << !transactional << ")" << endl;
             if((transactional && (orm_transaction == orm_cache_item.second->isOrmTransactional())) || !transactional){
+                orm_cache_item.second->lock_me();
                 if (orm_cache_item.second->insert(_psqlConnection) == -1)
                 {
                     cout << "Insert problem " << endl;
@@ -30,12 +36,12 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
             }
         }
     }
+
+
     if (me->update_thread_cache.size() > t_index)
     {
         for (auto orm_cache_item: me->update_thread_cache[t_index])
         {
-            if( orm_cache_item.second->isOrmTransactional() == false)
-                cout << "awyaaaaaa" << endl;
             if((transactional && (orm_transaction == orm_cache_item.second->isOrmTransactional())) || !transactional){
 
                 if (orm_cache_item.second->isUpdated())
@@ -45,7 +51,7 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
                     orm_cache_item.second->unlock_me();
                 }
                 counter ++;
-                if (counter % 1000 == 0 )
+                if (counter % 10000 == 0 )
                 {
                     shared_lock->lock();
                     if(orm_transaction)
@@ -57,6 +63,8 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
         }
     }
     (*threads_results)[t_index] = return_flag;
+
+    cout << "Finished commit internal for " << t_index << endl;;
     return return_flag;
 }
 
@@ -192,7 +200,7 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
 
         if (transaction && orm_transaction)
         {
-            cout << "#####################333CREATED TRANSACTION" << endl;
+            // cout << "#####################333CREATED TRANSACTION" << endl;
             psqlConnection->startTransaction();
         }
 
@@ -343,9 +351,8 @@ void PSQLORMCache::commit(string data_source_name, bool parallel,bool transactio
     if ( parallel ) {
 
         if (transaction){
-            commit_parallel (data_source_name, transaction, true);
-            cout << "CALLINGGGGGGGGGG COMMITTTTT FORRRRR NON TRANSACTIONAL" << endl;
             commit_parallel (data_source_name, transaction, false);
+            commit_parallel (data_source_name, transaction, true);
         }else commit_parallel (data_source_name, transaction, false);
 
         clear_cache(clean_updates);
