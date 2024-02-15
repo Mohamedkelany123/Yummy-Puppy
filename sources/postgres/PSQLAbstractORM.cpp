@@ -1,8 +1,9 @@
 #include <PSQLAbstractORM.h>
 #include <PSQLController.h>
 
-PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name)
+PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional)
 {   
+    orm_transactional = _orm_transactional;
     table_name = _table_name;
     identifier_name = _identifier_name;
     loaded = false;
@@ -20,6 +21,11 @@ PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,s
     update_default_values = psqlController.getUpdateDefaultValues();
     data_source_name = _data_source_name;
 }
+
+bool PSQLAbstractORM::isOrmTransactional(){
+    return orm_transactional;
+}
+
 string PSQLAbstractORM::getIdentifierName ()
 {
     return identifier_name;
