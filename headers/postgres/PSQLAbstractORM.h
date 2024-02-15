@@ -31,7 +31,7 @@ class PSQLAbstractORM
         virtual string getTableName();
         virtual bool isLoaded();
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
-        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool exclude_from_transactional);
+        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional);
         virtual PSQLAbstractORM * clone ()=0;
         virtual void lock_me();
         virtual void unlock_me(bool restrict_to_owner = false);        
