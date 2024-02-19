@@ -118,6 +118,8 @@ void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
 
 void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
 {
+        auto begin = std::chrono::high_resolution_clock::now();
+
         PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects);
         map <string,PSQLAbstractORM *> *  orms = NULL;
         do {
@@ -139,6 +141,12 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
         // cout << "Start freeing relative resources" << endl;
         psqlController.unlock_current_thread_orms(data_source_name);
         // cout << "After psqlController.unlock_current_thread_orms()" << endl;
+
+        // Stop measuring time and calculate the elapsed time
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("THREAD PROCESS TIME Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
 }
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
