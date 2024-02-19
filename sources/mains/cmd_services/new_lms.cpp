@@ -120,11 +120,24 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
 
 int main (int argc, char ** argv)
 {   
-    if (argc != 9)
+    if (argc < 11 || argc > 12)
     {
-        printf("usage: %s <address> <port_number> <database name> <username> <password> <step> <date>YYYY-mm-dd <threads count>\n",argv[0]);
-        exit(9);
+        printf("usage: %s <address> <port_number> <database name> <username> <password> <step> <date>YYYY-mm-dd <threads count> <mod> <offset> <loan ids comma-seperated>\n",argv[0]);
+        exit(12);
     }
+    bool isLoanSpecific = argc >= 12; 
+    string loan_ids = "";
+    if (isLoanSpecific){
+        loan_ids = argv[11];
+        cout << "Loan ids to close: " << loan_ids << endl;
+    }
+
+    int mod_value = std::stoi(argv[9]);
+    int offset = std::stoi(argv[10]);
+
+    bool isMultiMachine = mod_value > 0; 
+
+
     int threadsCount = std::stoi(argv[8]);
     //2023-11-
     string closure_date_string = argv[7];
@@ -136,10 +149,14 @@ int main (int argc, char ** argv)
     BDate closure_date(closure_date_string);
 
     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-        UnaryOperator ("loan_app_loan.id",ne,"14312"),
+        ANDOperator(
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+            isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
+        ),
         {{"lms_closure_status",to_string(0)}}
         );
-        psqlUpdateQuery.update();   
+    psqlUpdateQuery.update();   
 
 
     if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)
@@ -157,7 +174,9 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UNDUE_TO_DUE-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
             )
         );
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
@@ -178,8 +197,10 @@ int main (int argc, char ** argv)
             new UnaryOperator ("loan_app_loan.lms_closure_status",isnull,"",true),
             new ANDOperator (
                     new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::UNDUE_TO_DUE),
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
-            )            
+                    new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                    isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                    isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()  
+            )          
         ),
         {{"lms_closure_status",to_string(closure_status::UNDUE_TO_DUE)}}
         );
@@ -216,7 +237,9 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::DUE_TO_OVERDUE-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
 
@@ -298,7 +321,9 @@ int main (int argc, char ** argv)
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::DUE_TO_OVERDUE),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
         ),
         {{"lms_closure_status",to_string(closure_status::DUE_TO_OVERDUE)}}
         );
@@ -332,7 +357,9 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_yesterday.getDateString()),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",nin,"1,2,3"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UPDATE_LOAN_STATUS-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
         psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
@@ -436,7 +463,9 @@ int main (int argc, char ** argv)
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::UPDATE_LOAN_STATUS),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
         ),
         {{"lms_closure_status",to_string(closure_status::UPDATE_LOAN_STATUS)}}
         );
@@ -483,8 +512,10 @@ int main (int argc, char ** argv)
 
                 //New
                 new UnaryOperator ("new_lms_installmentextension.is_marginalized", eq, "t"),
-                new UnaryOperator ("new_lms_installmentextension.marginalization_date", lte,closure_date_string)
+                new UnaryOperator ("new_lms_installmentextension.marginalization_date", lte,closure_date_string),
                 //
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
 
@@ -543,7 +574,9 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"),
-                new UnaryOperator ("crm_app_customer.first_loan_cycle_id",ne,"1")
+                new UnaryOperator ("crm_app_customer.first_loan_cycle_id",ne,"1"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
 
@@ -592,7 +625,9 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
-                new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
+                new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
@@ -646,8 +681,11 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentlatefees.is_cancelled",eq,"f"),
 
                 //New
-                new UnaryOperator ("loan_app_loan.status_id", gt, "loan_app_loan.marginalization_bucket_id", true)
+                new UnaryOperator ("loan_app_loan.status_id", gt, "loan_app_loan.marginalization_bucket_id", true),
                 //
+
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
 
@@ -750,7 +788,9 @@ int main (int argc, char ** argv)
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::MARGINALIZE_INCOME_STEP1),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
         ),
 
         {{"lms_closure_status",to_string(closure_status::MARGINALIZE_INCOME_STEP1)}}
@@ -793,7 +833,9 @@ int main (int argc, char ** argv)
                         new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,"t"),
                         new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date::date",lte,"new_lms_installmentextension.principal_paid_at::date",true)
                     )
-                )
+                ),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
 
@@ -809,7 +851,9 @@ int main (int argc, char ** argv)
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
                     new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::LONG_TO_SHORT_TERM),
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                    new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                    isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                    isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             ),
 
             {{"lms_closure_status",to_string(closure_status::LONG_TO_SHORT_TERM)}}
@@ -860,7 +904,9 @@ int main (int argc, char ** argv)
                         new UnaryOperator ("loan_app_loan.first_accrual_adjustment_date",lte,closure_date_string),
                         new UnaryOperator ("loan_app_loan.last_accrued_interest_day",lt,"loan_app_loan.first_accrual_adjustment_date", true)
                     )
-                )
+                ),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
         psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
@@ -892,7 +938,9 @@ int main (int argc, char ** argv)
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
                     new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::LAST_ACCRUED_DAY),
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                    new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                    isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                    isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             ),
 
             {{"lms_closure_status",to_string(closure_status::LAST_ACCRUED_DAY)}}
@@ -910,7 +958,12 @@ int main (int argc, char ** argv)
     if (strcmp (argv[6],"full_closure") == 0)
     {
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-            UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+            ANDOperator(
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
+            ),
             {{"lms_closure_status",to_string(0)}}
         );
         psqlUpdateQuery.update();

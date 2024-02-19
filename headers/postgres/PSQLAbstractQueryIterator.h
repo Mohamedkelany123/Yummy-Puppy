@@ -3,6 +3,7 @@
 
 #include <PSQLAbstractORM.h>
 enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin,isnull,isnotnull };
+enum math_operator { mod, plus };
 
 class Expression{
 
@@ -75,6 +76,12 @@ class UnaryOperator : public Expression {
         string value;
         bool value_is_field_name;
     public:
+        UnaryOperator(){
+            name = "true";
+            op = unary_operator::eq;
+            value = "true";
+            value_is_field_name = true;
+        }
         UnaryOperator(string _name,unary_operator _op,string _value,bool _value_is_field_name=false){
             name = _name;
             op = _op;
@@ -128,7 +135,55 @@ class UnaryOperator : public Expression {
 };
 
 
-
+class BinaryOperator : public Expression {
+    private:
+        string name;
+        math_operator op1;
+        string value1;
+        unary_operator op2;
+        string value2;
+        bool value_is_field_name;
+    public:
+        BinaryOperator(){
+            name = "0";
+            op1 = math_operator::plus;
+            value1 = "0";
+            op2 = unary_operator::eq;
+            value2 = "0";
+            value_is_field_name = true;
+        }
+        BinaryOperator(string _name, math_operator _op1, string _value1, unary_operator _op2, string _value2, bool _value_is_field_name=false){
+            name = _name;
+            op1 = _op1;
+            value1 = _value1;
+            op2 = _op2;
+            value2 = _value2;
+            value_is_field_name = _value_is_field_name;
+        }
+        BinaryOperator(string _name,math_operator _op1, int _value1, unary_operator _op2, int _value2,bool _value_is_field_name=false){
+            name = _name;
+            op1 = _op1;
+            value1 = to_string(_value1);
+            op2 = _op2;
+            value2 = to_string(_value2);
+            value_is_field_name = _value_is_field_name;
+        }
+        BinaryOperator(string _name,math_operator _op1, double _value1, unary_operator _op2, double _value2,bool _value_is_field_name=false){
+            name = _name;
+            op1 = _op1;
+            value1 = to_string(_value1);
+            op2 = _op2;
+            value2 = to_string(_value2);
+            value_is_field_name = _value_is_field_name;
+        }
+        string const generate() const
+        {
+            if ( op1 == mod ) return UnaryOperator(name + " % " + value1,op2,value2, value_is_field_name).generate();
+            else if ( op1 == math_operator::plus ) return UnaryOperator(name + " + " + value1,op2,value2, value_is_field_name).generate();
+            else return "";
+        }
+        virtual ~BinaryOperator(){}
+};
 class PSQLAbstractQueryIterator {
 
     protected:
