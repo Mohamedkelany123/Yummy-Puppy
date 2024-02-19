@@ -95,11 +95,16 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
             {
                 if (is_partial)
                 {
+                    BDate tempDate;
 
+                    tempDate.set_date(marg_date.getDateString());
                     marg_date.set_date("");
+
                     if (lal_orm->get_status_id() >= lal_orm->get_marginalization_bucket_id() 
-                            && inst_partial_accrual_date() >= marg_date()) 
-                                marg_date.set_date(inst_partial_accrual_date.getDateString());
+                            && inst_partial_accrual_date() >= tempDate()) 
+                                {
+                                    marg_date.set_date(inst_partial_accrual_date.getDateString());
+                                }
                 }
                 else
                 {
@@ -129,6 +134,14 @@ int main (int argc, char ** argv)
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(threadsCount);
     BDate closure_date(closure_date_string);
+
+    PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        UnaryOperator ("loan_app_loan.id",ne,"14312"),
+        {{"lms_closure_status",to_string(0)}}
+        );
+        psqlUpdateQuery.update();   
+
+
     if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
         auto begin = std::chrono::high_resolution_clock::now();
