@@ -95,11 +95,16 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
             {
                 if (is_partial)
                 {
+                    BDate tempDate;
 
+                    tempDate.set_date(marg_date.getDateString());
                     marg_date.set_date("");
+
                     if (lal_orm->get_status_id() >= lal_orm->get_marginalization_bucket_id() 
-                            && inst_partial_accrual_date() >= marg_date()) 
-                                marg_date.set_date(inst_partial_accrual_date.getDateString());
+                            && inst_partial_accrual_date() >= tempDate()) 
+                                {
+                                    marg_date.set_date(inst_partial_accrual_date.getDateString());
+                                }
                 }
                 else
                 {
