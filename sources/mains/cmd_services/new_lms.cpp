@@ -129,6 +129,14 @@ int main (int argc, char ** argv)
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(threadsCount);
     BDate closure_date(closure_date_string);
+
+    PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        UnaryOperator ("loan_app_loan.id",ne,"14312"),
+        {{"lms_closure_status",to_string(0)}}
+        );
+        psqlUpdateQuery.update();   
+
+
     if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
         auto begin = std::chrono::high_resolution_clock::now();
