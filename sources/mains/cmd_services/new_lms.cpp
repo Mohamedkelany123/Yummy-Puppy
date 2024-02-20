@@ -162,6 +162,7 @@ int main (int argc, char ** argv)
 
     if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
+
         auto begin = std::chrono::high_resolution_clock::now();
 
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
@@ -183,6 +184,8 @@ int main (int argc, char ** argv)
         );
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
+        
+        cout << "THREADTIME --> undue_to_due" << endl;
 
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
@@ -197,14 +200,14 @@ int main (int argc, char ** argv)
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
-        printf("PROCESS undue_to_due->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("PROCESSTIME undue_to_due->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
 
         auto afterCommit = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
-        printf("Commit undue_to_due->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("COMMITTIME undue_to_due->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
 
         delete (psqlQueryJoin);
@@ -262,6 +265,7 @@ int main (int argc, char ** argv)
   
         auto beforeProcess = std::chrono::high_resolution_clock::now();
 
+        cout << "THREADTIME --> due_to_overdue" << endl;
 
         psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
 
@@ -338,14 +342,14 @@ int main (int argc, char ** argv)
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
-        printf("PROCESS due_to_overdue->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("PROCESSTIME due_to_overdue->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
 
         auto afterCommit = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
-        printf("Commit due_to_overdue->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("COMMITTIME due_to_overdue->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
 
         delete (psqlQueryJoin);
@@ -399,6 +403,8 @@ int main (int argc, char ** argv)
 
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
+
+        cout << "THREADTIME --> status" << endl;
 
         psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 vector <int> buckets =      {1,2,3,4,5,9,10,11};
@@ -498,14 +504,14 @@ int main (int argc, char ** argv)
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
-        printf("PROCESS status->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("PROCESSTIME status->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
 
         auto afterCommit = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
-        printf("Commit status->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("COMMITTIME status->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
 
         delete (psqlQueryJoin);
@@ -570,6 +576,7 @@ int main (int argc, char ** argv)
 
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
+        cout << "THREADTIME --> marginalization step 1" << endl;
 
         psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
@@ -589,14 +596,14 @@ int main (int argc, char ** argv)
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
-        printf("PROCESS Marginalization step 1->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("PROCESSTIME Marginalization step 1->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
 
         auto afterCommit = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
-        printf("Commit Marg 1->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("COMMITTIME Marg 1->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         delete (psqlQueryJoin);
 
@@ -643,6 +650,9 @@ int main (int argc, char ** argv)
 
         beforeProcess = std::chrono::high_resolution_clock::now();
 
+        cout << "THREADTIME --> marginalization step 2" << endl;
+
+
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_installment_primitive_orm * i_orm  = ORM(loan_app_installment,orms);
@@ -658,14 +668,14 @@ int main (int argc, char ** argv)
 
         afterProcess = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
-        printf("PROCESS Marginalization step 2->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("PROCESSTIME Marginalization step 2->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
 
         afterCommit = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
-        printf("Commit Marg 2->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("COMMITTIME Marg 2->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         delete (psqlQueryJoin);
 
@@ -704,6 +714,8 @@ int main (int argc, char ** argv)
         );
 
         beforeProcess = std::chrono::high_resolution_clock::now();
+        
+        cout << "THREADTIME --> marginalization step 3" << endl;
 
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
@@ -721,14 +733,14 @@ int main (int argc, char ** argv)
 
         afterProcess = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
-        printf("PROCESS Marginalization Step 3->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("PROCESSTIME Marginalization Step 3->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");  
 
         afterCommit = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
-        printf("Commit Marg3->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("COMMITTIME Marg3->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 3" << endl;
@@ -776,6 +788,8 @@ int main (int argc, char ** argv)
 
 
         beforeProcess = std::chrono::high_resolution_clock::now();
+        
+        cout << "THREADTIME --> marginalization step 3" << endl;
 
         psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
@@ -872,14 +886,14 @@ int main (int argc, char ** argv)
 
         afterProcess = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
-        printf("PROCESS Marginalization step 4->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("PROCESSTIME Marginalization step 4->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
 
         afterCommit = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
-        printf("Commit Marg 4->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("COMMITTIME Marg 4->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
@@ -940,6 +954,8 @@ int main (int argc, char ** argv)
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
 
+        cout << "THREADTIME --> long_to_short" << endl;
+
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
@@ -949,14 +965,14 @@ int main (int argc, char ** argv)
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
         auto  elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
-        printf("PROCESS long_to_short->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("PROCESSTIME long_to_short->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
 
         auto afterCommit = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
-        printf("Commit long_to_short->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("COMMITTIME long_to_short->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
@@ -1026,6 +1042,8 @@ int main (int argc, char ** argv)
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
 
+        cout << "THREADTIME --> last_accrual_interest_date" << endl;
+
         psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
@@ -1052,14 +1070,14 @@ int main (int argc, char ** argv)
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
-        printf("PROCESS last_accrual_interest_date->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("PROCESSTIME last_accrual_interest_date->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
 
         auto afterCommit = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
-        printf("Commit last_accrual_interest_date->: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("COMMITTIME last_accrual_interest_date->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
@@ -1078,7 +1096,7 @@ int main (int argc, char ** argv)
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
-         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
         printf("Total Time Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
 

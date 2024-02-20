@@ -146,7 +146,7 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("THREAD PROCESS TIME Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("THREADTIME  Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
 }
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
