@@ -248,6 +248,10 @@ int main (int argc, char ** argv)
         new loan_app_loan_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
         {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+        psqlQueryJoin->addExtraFromField("(select count(*) from new_lms_installmentlatefees where installment_extension_id=new_lms_installmentextension.installment_ptr_id)","late_fees_count");
+        psqlQueryJoin->addExtraFromField("(select max(day) from new_lms_installmentlatefees where installment_extension_id=new_lms_installmentextension.installment_ptr_id)","late_fees_date");
+        psqlQueryJoin->addExtraFromField("(select max(installment_status_id) from new_lms_installmentlatefees nli where installment_extension_id=new_lms_installmentextension.installment_ptr_id)","late_fees_installment_status_id");
+        
 
         psqlQueryJoin->filter(
             ANDOperator 
@@ -273,12 +277,14 @@ int main (int argc, char ** argv)
 
                 BDate reference_date; 
                 new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
-                vector <new_lms_installmentlatefees_primitive_orm *> * lform_v = ORM(new_lms_installmentextension,orms)->get_new_lms_installmentlatefees_installment_extension_id();
                 loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
                 loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
 
+                PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+                int late_fees_count = gorm->toInt("late_fees_count");
+                string late_fees_date = gorm->get("late_fees_date");
+                int late_fees_installment_status_id = gorm->toInt("late_fees_installment_status_id");
 
-                int late_fees_count = lform_v->size();
                 if ( ieorm->get_payment_status() != 0 )
                 {
                     if ( (lal_orm->get_status_id() != 11) or (lal_orm->get_status_id() == 11 and ieorm->get_is_principal_paid() == false))
@@ -294,9 +300,9 @@ int main (int argc, char ** argv)
                     ieorm->set_payment_status(0); //0
                 }
 
-                if (lform_v->size() > 0 )
+                if (late_fees_count > 0 )
                 {
-                    reference_date.set_date(((*lform_v)[lform_v->size()-1])->get_day());
+                    reference_date.set_date(late_fees_date);
                     reference_date.inc_month();
                 }
                 else
@@ -304,12 +310,12 @@ int main (int argc, char ** argv)
                     reference_date.set_date(ieorm->get_due_to_overdue_date());
                 }
                 
-                int seq = lform_v->size()+1;
+                int seq = late_fees_count+1;
                 int initial_status_id = 1;
                 int status_index=1;
-                if (lform_v->size() != 0)
+                if (late_fees_count != 0)
                 {
-                    initial_status_id = ((*lform_v)[lform_v->size()-1])->get_installment_status_id();
+                    initial_status_id = late_fees_installment_status_id;
                     status_index=-1;
                     for ( int i = 0 ; i < buckets.size() ; i ++)
                         if (buckets[i] == initial_status_id)
