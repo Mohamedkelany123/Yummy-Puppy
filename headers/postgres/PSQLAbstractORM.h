@@ -39,6 +39,32 @@ class PSQLAbstractORM
         virtual ~PSQLAbstractORM();
 };
 
+class PSQLGeneric_primitive_orm: public PSQLAbstractORM
+{
+    private:
+        map <string, string> values;
+    public:
+        PSQLGeneric_primitive_orm (string _data_source_name):PSQLAbstractORM (_data_source_name, "","", false){}
+        void add (string name, string value){
+            values[name] = value;
+
+        }
+        string get (string name){
+            return values[name];
+        }
+        int toInt (string name) { return atoi(values[name].c_str());}
+        float toFloat (string name) { return atof(values[name].c_str());}
+        double toLong (string name) { return atol(values[name].c_str());}
+        // double toDouble (name) { return atoll(values[name].c_str());} need to be implemented using strtod
+        string getFromString () { return "";}
+        void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) {}
+        bool update(PSQLConnection * _psqlConnection=NULL) { return false;}
+        long insert(PSQLConnection * _psqlConnection=NULL) { return -1;}
+        long getIdentifier() {return -1;};
+        bool isUpdated() {return false;};
+        PSQLAbstractORM * clone () { return NULL;}
+        ~PSQLGeneric_primitive_orm(){}
+};
 
 
 class PSQLQueryJoin : public PSQLQuery

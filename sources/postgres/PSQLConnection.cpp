@@ -3,7 +3,7 @@
 
 void PSQLConnection::load_table_names()
 {
-    AbstractDBQuery *psqlQuery = this->executeQuery("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'");
+    AbstractDBQuery *psqlQuery = this->executeQuery("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema' and schemaname != 'nonreplicated' and schemaname = 'public'");
     for (;psqlQuery->fetchNextRow();)
     {
         for (int c = 0; c < psqlQuery->getColumnCount(); c++)

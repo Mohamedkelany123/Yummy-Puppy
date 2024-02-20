@@ -196,6 +196,7 @@ class PSQLAbstractQueryIterator {
         string from_string;
         string orderby_string;
         string distinct;
+        map <string,string> extras;
     public:
         PSQLAbstractQueryIterator(string _data_source_name,string _table_name);
         void setNativeSQL(string _sql);
@@ -204,6 +205,7 @@ class PSQLAbstractQueryIterator {
         long getResultCount();
         void setOrderBy(string _orderby_string);
         void setDistinct(string _distinct_string);
+        void addExtraFromField (string field, string field_name);
         virtual ~PSQLAbstractQueryIterator();
 };
 
@@ -232,10 +234,11 @@ class PSQLQueryPartitionIterator {
     private:
         AbstractDBQuery * psqlQuery;
         string data_source_name;
+
     public:
         PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name){ 
             psqlQuery = _psqlQuery;
-            data_source_name = _data_source_name;    
+            data_source_name = _data_source_name;
         }
         T * next ()
         {
@@ -255,11 +258,14 @@ class PSQLJoinQueryPartitionIterator {
     private:
         AbstractDBQuery * psqlQuery;
         vector <PSQLAbstractORM *> * orm_objects;
+        map <string,string> extras;
+
     public:
-        PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects){ 
-                psqlQuery = _psqlQuery;
-                orm_objects = _orm_objects;
-        }
+        PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects, map <string,string> _extras){ 
+            psqlQuery = _psqlQuery;
+            orm_objects = _orm_objects;
+            extras = _extras;
+    }
         map <string,PSQLAbstractORM *> * next ()
         {
             if (psqlQuery->fetchNextRow())
@@ -274,6 +280,15 @@ class PSQLJoinQueryPartitionIterator {
                     // cout << "after assignresults" << endl;
                     (*results)[orm->getTableName()] = orm;
                 }
+                if (extras.size() > 0)
+                {
+                    PSQLGeneric_primitive_orm * orm = new PSQLGeneric_primitive_orm("");
+                    for (auto e : extras)
+                        orm->add(e.first,psqlQuery->getValue(e.first));
+                    (*results)["PSQLGeneric"] = orm;            
+                }
+                else (*results)["PSQLGeneric"] = NULL;
+
                 return results;
             }
             else return NULL;

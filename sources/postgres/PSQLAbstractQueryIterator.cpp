@@ -33,10 +33,14 @@ void PSQLAbstractQueryIterator::filter (const Expression & e,bool print_sql)
 bool PSQLAbstractQueryIterator::execute()
 {
     if (psqlConnection == NULL ) return false;
+
+    for (auto e : extras)
+        from_string += "," +e.second+" \""+e.first+"\"";
+
     if (orderby_string == "")
         sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
-    // cout << sql << endl;
+    cout << sql << endl;
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;
@@ -56,6 +60,11 @@ void PSQLAbstractQueryIterator::setOrderBy(string _orderby_string)
 void PSQLAbstractQueryIterator::setDistinct(string _distinct_string)
 {
     distinct= _distinct_string;
+}
+
+void PSQLAbstractQueryIterator::addExtraFromField (string field, string field_name)
+{
+    extras[field_name] = field;
 }
 
 PSQLAbstractQueryIterator::~PSQLAbstractQueryIterator()
@@ -104,6 +113,17 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next ()
             orm->assignResults(psqlQuery);
             (*results)[orm->getTableName()] = orm;
         }
+
+        if (extras.size() > 0)
+        {
+            cout << "I am here inside the loop" << endl;
+            PSQLGeneric_primitive_orm * orm = new PSQLGeneric_primitive_orm(data_source_name);
+            for (auto e : extras)
+                orm->add(e.first,psqlQuery->getValue(e.first));
+            (*results)["PSQLGeneric"] = orm;            
+        }
+        else cout << "I am NOT here inside the loop" << endl;
+
         return results;
     }
     else return NULL;
@@ -112,7 +132,8 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next ()
 void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
 {
     for (auto orm_pair: (*orms))
-        orm_pair.second->unlock_me();
+        if (orm_pair.second != NULL)
+            orm_pair.second->unlock_me();
 
 }
 
@@ -120,7 +141,7 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
 {
         auto begin = std::chrono::high_resolution_clock::now();
 
-        PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects);
+        PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras);
         map <string,PSQLAbstractORM *> *  orms = NULL;
         do {
             if ( orms!= NULL) delete(orms);
@@ -131,7 +152,10 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
                shared_lock->lock();
             //    cout << "before unlock orms" << endl;
                me->unlock_orms(orms);
+               //Here we neeed to delete grom
             //    cout << "after unlock orms" << endl;
+                PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+                if (gorm != NULL) delete (gorm);
                shared_lock->unlock();
             }
         } while (orms != NULL);

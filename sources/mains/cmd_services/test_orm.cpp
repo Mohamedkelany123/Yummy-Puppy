@@ -3,156 +3,76 @@
 #include <stdlib.h>
 #include <string.h>
 #include <PSQLController.h>
+#include <PSQLUpdateQuery.h>
 #include <loan_app_loan_primitive_orm.h>
+#include <loan_app_installment_primitive_orm.h>
+#include <new_lms_installmentextension_primitive_orm.h>
 #include <crm_app_customer_primitive_orm.h>
-#include <new_lms_installmentpaymentstatushistory_primitive_orm.h>
-
-/*
-
-
-            loan_app_installment_loan_id = new vector <loan_app_installment_primitive_orm *> ();
-            loan_app_installment_primitive_orm_iterator * i = new loan_app_installment_primitive_orm_iterator("main");
-			i->filter (ANDOperator(new UnaryOperator("loan_id",eq,id)));
-			i->execute();
-			loan_app_installment_primitive_orm * l = NULL;
-			do {
-					l = i->next();
-					if (l!= NULL) loan_app_installment_loan_id->push_back(l);
-			} while (l != NULL);
-
-*/
-
-void process_query(crm_app_customer_primitive_orm_iterator * crm_app_customer,std::function<void(crm_app_customer_primitive_orm * orm)> f)
-{
-    if (crm_app_customer->execute())
-    {
-        crm_app_customer_primitive_orm * cac = NULL;
-        do {
-            cac =crm_app_customer->next();
-            if (cac != NULL) 
-            {
-                f(cac);
-            }
-        } while (cac != NULL);
-    }
-}
-
-void func (vector <pair<pair<string,string>,pair<string,string>>>)
-{
-    printf ("This is a test");
-
-}
-
-
+#include <new_lms_installmentlatefees_primitive_orm.h>
+#include <loan_app_loanstatushistroy_primitive_orm.h>
+#include <new_lms_installmentstatushistory_primitive_orm.h>
 int main (int argc, char ** argv)
-{
-
-
-psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
-new_lms_installmentpaymentstatushistory_primitive_orm * orm = new new_lms_installmentpaymentstatushistory_primitive_orm("main",true);
-orm->set_day("2023-10-30");
-orm->set_installment_extension_id(100);
-orm->set_status(100);
-psqlController.ORMCommitAll();
-
-// cout << orm->insert() << endl;
-
-// delete (orm);
-return 0;
-// select principle from loan_app_loan where id in (100,200,300);
-//  principle 
-// -----------
-//    1234.00
-//   23899.00
-//   22000.00
-
-
-// django_ostaz_15082023_old=# select principle from loan_app_loan where id=100;
-//  principle 
-// -----------
-//    7943.00
-// (1 row)
-    //ORM(crm_app_customer,orms)
-    psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
-    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    {new crm_app_customer_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},{{{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}});
-
-    psqlQueryJoin->filter(UnaryOperator ("loan_app_loan.id",lt,"10000"));
-    psqlQueryJoin->process (6,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
-        shared_lock->lock();
-        if (ORM(loan_app_loan,orms)->get_id() == 100 || ORM(loan_app_loan,orms)->get_id() == 200 || ORM(loan_app_loan,orms)->get_id() == 300)
-        {
-            cout << ORM(crm_app_customer,orms)->get_first_name() << " - "<<  ORM(loan_app_loan,orms)->get_principle() << endl;
-            ORM(loan_app_loan,orms)->set_principle(7943.00);
-            // ORM(loan_app_loan,orms)->set_principle(1234.00);
-            // ORM(loan_app_loan,orms)->update();
-        }
-//        else cout << "____________" << ORM(loan_app_loan,orms)->get_id() << endl;
-        shared_lock->unlock();
-    });
-
-    cout << "I m done with the lambda" << endl;
-    psqlController.ORMCommitAll();
-    // for (;psqlQueryJoin->fetchNextRow();)
-    // {
-    //     cout << psqlQueryJoin->getValue("crm_app_customer_first_name") << ": "<< psqlQueryJoin->getValue("loan_app_loan_id") <<  endl;
-    // }
-    // delete (psqlQueryJoin);
-    return 0;
-
-    loan_app_loan_primitive_orm_iterator * loan_app_loan  = new loan_app_loan_primitive_orm_iterator("main");
-    crm_app_customer_primitive_orm_iterator * crm_app_customer  = new crm_app_customer_primitive_orm_iterator("main");
-    crm_app_customer->filter(ANDOperator (
-        new UnaryOperator ("id",gt,"0"),new UnaryOperator ("id",lt,"1000000")
-    ));
-    loan_app_loan->filter(ANDOperator 
-    (
-        new UnaryOperator ("customer_id",gt,"100000"),new UnaryOperator ("customer_id",lt,"110000")
-    ));
-
-    crm_app_customer->process(11,[](crm_app_customer_primitive_orm * orm,int partition_number,mutex * shared_lock) {
-            shared_lock->lock();
-            cout << "(" << partition_number <<  ") Customer Name ["<< orm->get_id() <<"]:  "<< orm->get_first_name() << endl;
-            shared_lock->unlock();
-    });
-
-    // if (crm_app_customer->execute())
-    // {
-    //     crm_app_customer_primitive_orm * cac = NULL;
-    //     do {
-    //         cac =crm_app_customer->next();
-    //         if (cac != NULL) 
-    //         {
-    //             cout << "Customer Name: "<< cac->get_first_name() << endl;
-    //         }
-    //     } while (cac != NULL);
-
-    // }
-    return 0;
-    loan_app_loan->filter(ANDOperator 
-    (
-        new UnaryOperator ("customer_id",gt,"100000"),new UnaryOperator ("customer_id",lt,"110000")
-    ));
-    if (loan_app_loan->execute())
+{   
+    if (argc < 11 || argc > 12)
     {
-        loan_app_loan_primitive_orm * lal = NULL;
-        do {
-            lal =loan_app_loan->next();
-            if (lal != NULL) 
-            {
-                cout << "Loan ID: "<< lal->get_id() << endl;
-                cout << "Customer ID: "<< lal->get_customer_id() << endl;
-                cout << "disable_early_repayment_fees: "<< lal->get_disable_early_repayment_fees() << endl;
-                // vector <loan_app_installment_primitive_orm *> * ins = lal->get_loan_app_installment_loan_id();
-
-                for ( auto a : *(lal->get_loan_app_installment_loan_id()))
-                    cout << a->get_id()<< endl; 
-                // for ( int i = 0 ; i < ins->size(); i++)
-                //     cout << (*ins)[i]->get_id()<< endl; 
-            }
-            break;
-        } while (lal != NULL);
+        printf("usage: %s <address> <port_number> <database name> <username> <password> <step> <date>YYYY-mm-dd <threads count> <mod> <offset> <loan ids comma-seperated>\n",argv[0]);
+        exit(12);
     }
-    delete (loan_app_loan);
+    bool isLoanSpecific = argc >= 12; 
+    string loan_ids = "";
+    if (isLoanSpecific){
+        loan_ids = argv[11];
+        cout << "Loan ids to close: " << loan_ids << endl;
+    }
+
+    int mod_value = std::stoi(argv[9]);
+    int offset = std::stoi(argv[10]);
+
+    bool isMultiMachine = mod_value > 0; 
+
+
+    int threadsCount = std::stoi(argv[8]);
+    //2023-11-
+    string closure_date_string = argv[7];
+    psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
+    psqlController.addDefault("created_at","now()",true,true);
+    psqlController.addDefault("updated_at","now()",true,true);
+    psqlController.addDefault("updated_at","now()",false,true);
+    psqlController.setORMCacheThreads(threadsCount);
+    BDate closure_date(closure_date_string);
+
+     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+        {new new_lms_installmentextension_primitive_orm("main"),
+        new loan_app_installment_primitive_orm("main"),
+        new loan_app_loan_primitive_orm("main")},
+        {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
+        {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+        psqlQueryJoin->addExtraFromField("(select count(*) from new_lms_installmentlatefees where installment_extension_id=new_lms_installmentextension.installment_ptr_id)","late_fees_count");
+        psqlQueryJoin->addExtraFromField("(select max(day) from new_lms_installmentlatefees where installment_extension_id=new_lms_installmentextension.installment_ptr_id)","late_fees_date");
+
+
+        psqlQueryJoin->filter(
+            ANDOperator 
+            (
+                new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte,closure_date_string),
+                new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
+                new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
+                // new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::DUE_TO_OVERDUE-1)),
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
+            )
+        );
+
+        psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+            shared_lock->lock();
+            new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
+            PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+            cout << ieorm->get_installment_ptr_id() << " --- " << gorm->get("late_fees_count")<< " --- " << gorm->get("late_fees_date")<< endl;
+            // cout << ieorm->get_installment_ptr_id() << endl;
+            shared_lock->unlock();
+
+        });
+
     return 0;
 }
