@@ -120,11 +120,24 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
 
 int main (int argc, char ** argv)
 {   
-    if (argc != 9)
+    if (argc < 11 || argc > 12)
     {
-        printf("usage: %s <address> <port_number> <database name> <username> <password> <step> <date>YYYY-mm-dd <threads count>\n",argv[0]);
-        exit(9);
+        printf("usage: %s <address> <port_number> <database name> <username> <password> <step> <date>YYYY-mm-dd <threads count> <mod> <offset> <loan ids comma-seperated>\n",argv[0]);
+        exit(12);
     }
+    bool isLoanSpecific = argc >= 12; 
+    string loan_ids = "";
+    if (isLoanSpecific){
+        loan_ids = argv[11];
+        cout << "Loan ids to close: " << loan_ids << endl;
+    }
+
+    int mod_value = std::stoi(argv[9]);
+    int offset = std::stoi(argv[10]);
+
+    bool isMultiMachine = mod_value > 0; 
+
+
     int threadsCount = std::stoi(argv[8]);
     //2023-11-
     string closure_date_string = argv[7];
@@ -136,20 +149,27 @@ int main (int argc, char ** argv)
     BDate closure_date(closure_date_string);
 
     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-        UnaryOperator ("loan_app_loan.id",ne,"14312"),
+        ANDOperator(
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+            isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+            isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
+        ),
         {{"lms_closure_status",to_string(0)}}
         );
-        psqlUpdateQuery.update();   
+    psqlUpdateQuery.update();   
 
 
     if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)
     {
-        auto begin = std::chrono::high_resolution_clock::now();
 
+        auto begin = std::chrono::high_resolution_clock::now();
 
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+
+
 
         psqlQueryJoin->filter(
             ANDOperator 
@@ -157,9 +177,16 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UNDUE_TO_DUE-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
             )
         );
+
+        auto beforeProcess = std::chrono::high_resolution_clock::now();
+        
+        cout << "THREADTIME --> undue_to_due" << endl;
+
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
@@ -170,16 +197,30 @@ int main (int argc, char ** argv)
                 orm->set_status(4); // 4
                 lal_orm->set_lms_closure_status(closure_status::UNDUE_TO_DUE);
         });
+
+        auto afterProcess = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME undue_to_due->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
+
+        auto afterCommit = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
+        printf("COMMITTIME undue_to_due->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
+
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         OROperator (
             new UnaryOperator ("loan_app_loan.lms_closure_status",isnull,"",true),
             new ANDOperator (
                     new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::UNDUE_TO_DUE),
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
-            )            
+                    new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                    isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                    isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()  
+            )          
         ),
         {{"lms_closure_status",to_string(closure_status::UNDUE_TO_DUE)}}
         );
@@ -189,9 +230,8 @@ int main (int argc, char ** argv)
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
-
-        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+        printf("Total time-> %.3f seconds.\n", elapsed.count() * 1e-9);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------//
@@ -216,9 +256,16 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::DUE_TO_OVERDUE-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
+
+  
+        auto beforeProcess = std::chrono::high_resolution_clock::now();
+
+        cout << "THREADTIME --> due_to_overdue" << endl;
 
         psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
 
@@ -292,13 +339,27 @@ int main (int argc, char ** argv)
                 lal_orm->set_lms_closure_status(closure_status::DUE_TO_OVERDUE);
 
         });
+
+        auto afterProcess = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME due_to_overdue->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
+
+        auto afterCommit = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
+        printf("COMMITTIME due_to_overdue->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
+
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::DUE_TO_OVERDUE),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
         ),
         {{"lms_closure_status",to_string(closure_status::DUE_TO_OVERDUE)}}
         );
@@ -308,9 +369,9 @@ int main (int argc, char ** argv)
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("Total Time-> %.3f seconds.\n", elapsed.count() * 1e-9);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------//
@@ -326,15 +387,25 @@ int main (int argc, char ** argv)
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+        
+
         psqlQueryJoin->filter(
             ANDOperator 
             (
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_yesterday.getDateString()),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",nin,"1,2,3"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UPDATE_LOAN_STATUS-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16")
+                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
+
+
+        auto beforeProcess = std::chrono::high_resolution_clock::now();
+
+        cout << "THREADTIME --> status" << endl;
+
         psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 vector <int> buckets =      {1,2,3,4,5,9,10,11};
                 vector <int> fra_buckets =  {1,1,2,2,3,4,4,5};
@@ -430,13 +501,27 @@ int main (int argc, char ** argv)
                 lal_orm->set_lms_closure_status(closure_status::UPDATE_LOAN_STATUS);
 
         });
+
+        auto afterProcess = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME status->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
+
+        auto afterCommit = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
+        printf("COMMITTIME status->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
+
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::UPDATE_LOAN_STATUS),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
         ),
         {{"lms_closure_status",to_string(closure_status::UPDATE_LOAN_STATUS)}}
         );
@@ -446,9 +531,9 @@ int main (int argc, char ** argv)
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("Total Time-> %.3f seconds.\n", elapsed.count() * 1e-9);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------//
@@ -459,7 +544,6 @@ int main (int argc, char ** argv)
     {
         auto begin = std::chrono::high_resolution_clock::now();
 
-        
         PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
@@ -483,10 +567,16 @@ int main (int argc, char ** argv)
 
                 //New
                 new UnaryOperator ("new_lms_installmentextension.is_marginalized", eq, "t"),
-                new UnaryOperator ("new_lms_installmentextension.marginalization_date", lte,closure_date_string)
+                new UnaryOperator ("new_lms_installmentextension.marginalization_date", lte,closure_date_string),
                 //
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
+
+
+        auto beforeProcess = std::chrono::high_resolution_clock::now();
+        cout << "THREADTIME --> marginalization step 1" << endl;
 
         psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
@@ -504,17 +594,26 @@ int main (int argc, char ** argv)
                     }
         });
 
+        auto afterProcess = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME Marginalization step 1->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
+
+        auto afterCommit = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
+        printf("COMMITTIME Marg 1->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         delete (psqlQueryJoin);
 
         cout << "Marginalization Setp 1" << endl;
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("Total Time-> %.3f seconds.\n", elapsed.count() * 1e-9);
     
     //-----------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------//
@@ -543,9 +642,16 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
                 new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"),
-                new UnaryOperator ("crm_app_customer.first_loan_cycle_id",ne,"1")
+                new UnaryOperator ("crm_app_customer.first_loan_cycle_id",ne,"1"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
+
+        beforeProcess = std::chrono::high_resolution_clock::now();
+
+        cout << "THREADTIME --> marginalization step 2" << endl;
+
 
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
@@ -560,8 +666,17 @@ int main (int argc, char ** argv)
                 }
             });
 
+        afterProcess = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME Marginalization step 2->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
+
+        afterCommit = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
+        printf("COMMITTIME Marg 2->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         delete (psqlQueryJoin);
 
         cout << "Marginalization Setp 2" << endl;
@@ -570,7 +685,7 @@ int main (int argc, char ** argv)
          end = std::chrono::high_resolution_clock::now();
          elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("Total Time-> %.3f seconds.\n", elapsed.count() * 1e-9);
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
@@ -592,9 +707,16 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("loan_app_loan.status_id",gt,"loan_app_loan.marginalization_bucket_id",true),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::MARGINALIZE_INCOME_STEP1-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"1,6, 7, 8, 12, 13, 14, 15, 16"),
-                new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
+                new UnaryOperator ("loan_app_installment.interest_expected",ne,"0"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
+
+        beforeProcess = std::chrono::high_resolution_clock::now();
+        
+        cout << "THREADTIME --> marginalization step 3" << endl;
+
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_installment_primitive_orm * i_orm  = ORM(loan_app_installment,orms);
@@ -608,8 +730,18 @@ int main (int argc, char ** argv)
                     ie_orm->set_marginalization_date(marg_date.getDateString());
                 }
             });
+
+        afterProcess = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME Marginalization Step 3->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
-        psqlController.ORMCommit(true,true,true, "main");   
+        psqlController.ORMCommit(true,true,true, "main");  
+
+        afterCommit = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
+        printf("COMMITTIME Marg3->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         delete (psqlQueryJoin);
         cout << "Marginalization Setp 3" << endl;
 
@@ -617,7 +749,7 @@ int main (int argc, char ** argv)
          end = std::chrono::high_resolution_clock::now();
          elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("Total Time-> %.3f seconds.\n", elapsed.count() * 1e-9);
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
@@ -646,10 +778,18 @@ int main (int argc, char ** argv)
                 new UnaryOperator ("new_lms_installmentlatefees.is_cancelled",eq,"f"),
 
                 //New
-                new UnaryOperator ("loan_app_loan.status_id", gt, "loan_app_loan.marginalization_bucket_id", true)
+                new UnaryOperator ("loan_app_loan.status_id", gt, "loan_app_loan.marginalization_bucket_id", true),
                 //
+
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
+
+
+        beforeProcess = std::chrono::high_resolution_clock::now();
+        
+        cout << "THREADTIME --> marginalization step 3" << endl;
 
         psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
@@ -742,15 +882,27 @@ int main (int argc, char ** argv)
                 }
 
                 lal_orm->set_lms_closure_status(closure_status::MARGINALIZE_INCOME_STEP1);
-            });
+    });
+
+        afterProcess = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME Marginalization step 4->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
+
+        afterCommit = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
+        printf("COMMITTIME Marg 4->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator (
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::MARGINALIZE_INCOME_STEP1),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
         ),
 
         {{"lms_closure_status",to_string(closure_status::MARGINALIZE_INCOME_STEP1)}}
@@ -762,7 +914,7 @@ int main (int argc, char ** argv)
         end = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("Total Time-> %.3f seconds.\n", elapsed.count() * 1e-9);
     }
 
 
@@ -780,6 +932,7 @@ int main (int argc, char ** argv)
         {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}
         });
 
+
         psqlQueryJoin->filter(
             ANDOperator 
             (
@@ -793,9 +946,15 @@ int main (int argc, char ** argv)
                         new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,"t"),
                         new UnaryOperator ("new_lms_installmentextension.long_to_short_term_date::date",lte,"new_lms_installmentextension.principal_paid_at::date",true)
                     )
-                )
+                ),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
+
+        auto beforeProcess = std::chrono::high_resolution_clock::now();
+
+        cout << "THREADTIME --> long_to_short" << endl;
 
         psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
@@ -803,13 +962,26 @@ int main (int argc, char ** argv)
                 ie_orm->set_is_long_term(false); 
                 lal_orm->set_lms_closure_status(closure_status::LONG_TO_SHORT_TERM);
             });
+
+        auto afterProcess = std::chrono::high_resolution_clock::now();
+        auto  elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME long_to_short->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
+
+        auto afterCommit = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
+        printf("COMMITTIME long_to_short->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
                     new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::LONG_TO_SHORT_TERM),
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                    new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                    isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                    isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             ),
 
             {{"lms_closure_status",to_string(closure_status::LONG_TO_SHORT_TERM)}}
@@ -819,9 +991,9 @@ int main (int argc, char ** argv)
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("Total Time-> %.3f seconds.\n", elapsed.count() * 1e-9);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------//
@@ -839,6 +1011,8 @@ int main (int argc, char ** argv)
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
         {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
         });
+
+
 
         //CHANGED TO DECENDING
         psqlQueryJoin->setOrderBy("loan_app_loan.id desc ,new_lms_installmentextension.accrual_date desc");
@@ -860,9 +1034,16 @@ int main (int argc, char ** argv)
                         new UnaryOperator ("loan_app_loan.first_accrual_adjustment_date",lte,closure_date_string),
                         new UnaryOperator ("loan_app_loan.last_accrued_interest_day",lt,"loan_app_loan.first_accrual_adjustment_date", true)
                     )
-                )
+                ),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
         );
+
+        auto beforeProcess = std::chrono::high_resolution_clock::now();
+
+        cout << "THREADTIME --> last_accrual_interest_date" << endl;
+
         psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
@@ -886,13 +1067,26 @@ int main (int argc, char ** argv)
                     lal_orm->set_lms_closure_status(closure_status::LAST_ACCRUED_DAY);
                 }
             });
+
+        auto afterProcess = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME last_accrual_interest_date->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
         psqlController.ORMCommit(true,true,true, "main");   
+
+        auto afterCommit = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterCommit - afterProcess);
+        printf("COMMITTIME last_accrual_interest_date->: %.3f seconds.\n", elapsed.count() * 1e-9);
+
         delete (psqlQueryJoin);
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator (
                     new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::LAST_ACCRUED_DAY),
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0)
+                    new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                    isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                    isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             ),
 
             {{"lms_closure_status",to_string(closure_status::LAST_ACCRUED_DAY)}}
@@ -902,15 +1096,21 @@ int main (int argc, char ** argv)
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("Time Taken For Step is: %.3f seconds.\n", elapsed.count() * 1e-9);
+        printf("Total Time Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
 
     }
     if (strcmp (argv[6],"full_closure") == 0)
     {
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-            UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+            ANDOperator(
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
+            ),
             {{"lms_closure_status",to_string(0)}}
         );
         psqlUpdateQuery.update();
