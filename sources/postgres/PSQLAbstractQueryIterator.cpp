@@ -34,13 +34,16 @@ bool PSQLAbstractQueryIterator::execute()
 {
     if (psqlConnection == NULL ) return false;
 
+    // cout << "EXTRAS SIZEEE ---->>>" <<  extras.size() << endl;
     for (auto e : extras)
         from_string += "," +e.second+" \""+e.first+"\"";
 
     if (orderby_string == "")
         sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
-    cout << sql << endl;
+    
+    // cout << sql << endl;
+    
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;
