@@ -33,6 +33,10 @@ $(BIN_SERVICES):
 	@mkdir -p $(BIN_SERVICES)
 	@echo $(BIN_SERVICES)
 
+$(BIN_SHARED):
+	@mkdir -p $(BIN_SHARED)
+	@echo $(BIN_SHARED)
+
 $(DB_PRIMITIVE_ORM):
 	@mkdir -p $(DB_PRIMITIVE_ORM)
 	@echo $(DB_PRIMITIVE_ORM)
@@ -58,7 +62,7 @@ $(DB_BUSINESS_LOGIC_ORM_HEADERS):
 	@echo $(DB_BUSINESS_LOGIC_ORM_HEADERS)
 
 
-build_tree: $(SOURCES) $(OBJECTS) $(OBJECTS_MAIN) $(OBJECTS_CMD_MAIN) $(HEADERS) $(BIN) $(BIN_SERVICES) $(DB_PRIMITIVE_ORM) $(DB_PRIMITIVE_ORM_SOURCES) $(DB_PRIMITIVE_ORM_HEADERS) $(DB_BUSINESS_LOGIC_ORM) $(DB_BUSINESS_LOGIC_ORM_SOURCES) $(DB_BUSINESS_LOGIC_ORM_HEADERS)
+build_tree: $(SOURCES) $(OBJECTS) $(OBJECTS_MAIN) $(OBJECTS_CMD_MAIN) $(HEADERS) $(BIN) $(BIN_SERVICES) $(BIN_SHARED) $(DB_PRIMITIVE_ORM) $(DB_PRIMITIVE_ORM_SOURCES) $(DB_PRIMITIVE_ORM_HEADERS) $(DB_BUSINESS_LOGIC_ORM) $(DB_BUSINESS_LOGIC_ORM_SOURCES) $(DB_BUSINESS_LOGIC_ORM_HEADERS)
 	@echo "Tree Built ....."
 
 clean:
@@ -77,6 +81,7 @@ MAIN_BINS = $(patsubst $(SOURCES)/mains/%.cpp, $(BIN)/%, $(SRC_MAINS))
 SRC_CMD_MAINS = $(wildcard $(SOURCES)/mains/cmd_services/*.cpp)
 OBJS_CMD_MAINS = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(OBJECTS)/mains/cmd_services/%.cpp.o, $(SRC_CMD_MAINS))
 MAIN_CMD_BINS = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(BIN)/cmd_services/%, $(SRC_CMD_MAINS))
+MAIN_CMD_SHARED = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(BIN_SHARED)/%.so, $(SRC_CMD_MAINS))
 
 SRC_ABSTRACT = $(wildcard $(SOURCES)/abstract/*.cpp)
 OBJS_ABSTRACT = $(patsubst $(SOURCES)/abstract/%.cpp, $(OBJECTS)/%.cpp.o, $(SRC_ABSTRACT))
@@ -120,8 +125,11 @@ $(OBJECTS)/%.cpp.o: $(SOURCES)/postgres/column_types/%.cpp
 
 .SECONDARY: $(OBJS_MAINS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_CMD_MAINS)
 
-$(BIN)/cmd_services/%: $(OBJECTS)/mains/cmd_services/%.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) 
+$(BIN_SERVICES)/%: $(OBJECTS)/mains/cmd_services/%.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) 
 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(LINKER_FLAGS) $< -o $@
+
+$(BIN_SHARED)/%.so: $(OBJECTS)/mains/cmd_services/%.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) 
+	$(GCC) -shared $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(LINKER_FLAGS) $< -o $@
 
 $(BIN)/%: $(OBJECTS)/mains/%.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) 
 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(LINKER_FLAGS) $< -o $@
@@ -135,6 +143,9 @@ orm_c++: build_tree  $(MAIN_BINS)
 	@echo "Generating Executable"
 
 services: build_tree  $(MAIN_CMD_BINS)
+	@echo "Generating Executable"
+
+services_dso: build_tree  $(MAIN_CMD_SHARED)
 	@echo "Generating Executable"
 
 
