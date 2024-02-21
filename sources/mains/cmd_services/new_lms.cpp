@@ -151,7 +151,6 @@ int main (int argc, char ** argv)
     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator(
             new UnaryOperator ("loan_app_loan.id",ne,"14312"),
-            new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
             isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
             isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
         ),
@@ -248,6 +247,8 @@ int main (int argc, char ** argv)
         new loan_app_loan_primitive_orm("main")},
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
         {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+
+
         psqlQueryJoin->addExtraFromField("(select count(*) from new_lms_installmentlatefees where installment_extension_id=new_lms_installmentextension.installment_ptr_id)","late_fees_count");
         psqlQueryJoin->addExtraFromField("(select max(day) from new_lms_installmentlatefees where installment_extension_id=new_lms_installmentextension.installment_ptr_id)","late_fees_date");
         psqlQueryJoin->addExtraFromField("(select max(installment_status_id) from new_lms_installmentlatefees nli where installment_extension_id=new_lms_installmentextension.installment_ptr_id)","late_fees_installment_status_id");
