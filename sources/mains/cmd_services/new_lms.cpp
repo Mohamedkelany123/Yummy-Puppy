@@ -17,7 +17,7 @@
 
 //enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,MARGINALIZE_INCOME_STEP2,MARGINALIZE_INCOME_STEP3,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
 
-
+extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids="");
 
 BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_installmentextension_primitive_orm * ie_orm,loan_app_installment_primitive_orm * i_orm,bool is_partial = false)
 {
@@ -118,30 +118,36 @@ BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_inst
     return marg_date;
 }
 
-int main (int argc, char ** argv)
-{   
+
+int main (int argc, char ** argv) {
     if (argc < 11 || argc > 12)
     {
         printf("usage: %s <address> <port_number> <database name> <username> <password> <step> <date>YYYY-mm-dd <threads count> <mod> <offset> <loan ids comma-seperated>\n",argv[0]);
         exit(12);
     }
+
     bool isLoanSpecific = argc >= 12; 
-    string loan_ids = "";
-    if (isLoanSpecific){
+    char* loan_ids = "";
+    if (isLoanSpecific) {
         loan_ids = argv[11];
+    }
+
+    return main_closure(argv[1],atoi(argv[2]),argv[3],argv[4],argv[5],argv[6],argv[7],stoi(argv[8]),stoi(argv[9]),stoi(argv[10]),loan_ids);
+}
+
+// extern "c" not garbling function names
+extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids)
+{   
+    bool isLoanSpecific = loan_ids != ""; 
+    if (isLoanSpecific){
         cout << "Loan ids to close: " << loan_ids << endl;
     }
 
-    int mod_value = std::stoi(argv[9]);
-    int offset = std::stoi(argv[10]);
-
     bool isMultiMachine = mod_value > 0; 
 
-
-    int threadsCount = std::stoi(argv[8]);
-    //2023-11-
-    string closure_date_string = argv[7];
-    psqlController.addDataSource("main",argv[1],atoi(argv[2]),argv[3],argv[4],argv[5]);
+    psqlController.addDataSource("main",address,port,database_name,username,password);
+    cout << "Connected to " << database_name << endl;
+    
     psqlController.addDefault("created_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",false,true);
@@ -158,8 +164,7 @@ int main (int argc, char ** argv)
         );
     psqlUpdateQuery.update();   
 
-
-    if ( strcmp (argv[6],"undue_to_due") == 0 || strcmp (argv[6],"full_closure") == 0)
+    if ( strcmp (step,"undue_to_due") == 0 || strcmp (step,"full_closure") == 0)
     {
 
         auto begin = std::chrono::high_resolution_clock::now();
@@ -236,7 +241,7 @@ int main (int argc, char ** argv)
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
-    if ( strcmp (argv[6],"due_to_overdue") == 0 || strcmp (argv[6],"full_closure") == 0)
+    if ( strcmp (step,"due_to_overdue") == 0 || strcmp (step,"full_closure") == 0)
     {
 
         auto begin = std::chrono::high_resolution_clock::now();
@@ -384,7 +389,7 @@ int main (int argc, char ** argv)
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
-    if ( strcmp (argv[6],"status") == 0 || strcmp (argv[6],"full_closure") == 0)
+    if ( strcmp (step,"status") == 0 || strcmp (step,"full_closure") == 0)
     {   
 
         auto begin = std::chrono::high_resolution_clock::now();
@@ -547,7 +552,7 @@ int main (int argc, char ** argv)
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
 
-    if ( strcmp (argv[6],"marginalization") == 0 || strcmp (argv[6],"full_closure") == 0)
+    if ( strcmp (step,"marginalization") == 0 || strcmp (step,"full_closure") == 0)
     {
         auto begin = std::chrono::high_resolution_clock::now();
 
@@ -928,7 +933,7 @@ int main (int argc, char ** argv)
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
-    if ( strcmp (argv[6],"long_to_short") == 0 || strcmp (argv[6],"full_closure") == 0)
+    if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"full_closure") == 0)
     {
         auto begin = std::chrono::high_resolution_clock::now();
 
@@ -1008,7 +1013,7 @@ int main (int argc, char ** argv)
 
 
 
-    if ( strcmp (argv[6],"last_accrual_interest_date") == 0 || strcmp (argv[6],"full_closure") == 0)
+    if ( strcmp (step,"last_accrual_interest_date") == 0 || strcmp (step,"full_closure") == 0)
     {
         auto begin = std::chrono::high_resolution_clock::now();
 
@@ -1108,7 +1113,7 @@ int main (int argc, char ** argv)
         printf("Total Time Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
 
     }
-    if (strcmp (argv[6],"full_closure") == 0)
+    if (strcmp (step,"full_closure") == 0)
     {
         PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
             ANDOperator(

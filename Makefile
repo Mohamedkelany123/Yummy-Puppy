@@ -76,7 +76,7 @@ MAIN_BINS = $(patsubst $(SOURCES)/mains/%.cpp, $(BIN)/%, $(SRC_MAINS))
 
 SRC_CMD_MAINS = $(wildcard $(SOURCES)/mains/cmd_services/*.cpp)
 OBJS_CMD_MAINS = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(OBJECTS)/mains/cmd_services/%.cpp.o, $(SRC_CMD_MAINS))
-MAIN_CMD_BINS = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(BIN)/cmd_services/%, $(SRC_CMD_MAINS))
+MAIN_CMD_BINS = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(BIN)/cmd_services/%.so, $(SRC_CMD_MAINS))
 
 SRC_ABSTRACT = $(wildcard $(SOURCES)/abstract/*.cpp)
 OBJS_ABSTRACT = $(patsubst $(SOURCES)/abstract/%.cpp, $(OBJECTS)/%.cpp.o, $(SRC_ABSTRACT))
@@ -95,33 +95,33 @@ OBJS_POSTGRES_COLUMN_TYPES = $(patsubst $(SOURCES)/postgres/column_types/%.cpp, 
 
 
 $(OBJECTS)/%.cpp.o: $(SOURCES)/%.cpp
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
+	$(GCC) -fPIC $(GCC_FLAGS) $(INCLUDES) $< -o $@
 
 $(OBJECTS_MAIN)/%.cpp.o: $(SOURCES)/mains/%.cpp
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
+	$(GCC) -fPIC $(GCC_FLAGS) $(INCLUDES) $< -o $@
 
 $(OBJECTS_CMD_MAIN)/%.cpp.o: $(SOURCES)/mains/cmd_services/%.cpp
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
+	$(GCC) -fPIC $(GCC_FLAGS) $(INCLUDES) $< -o $@
 
 $(OBJECTS)/%.cpp.o: $(SOURCES)/abstract/%.cpp
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
+	$(GCC) -fPIC $(GCC_FLAGS) $(INCLUDES) $< -o $@
 
 $(OBJECTS)/%.cpp.o: $(SOURCES)/postgres/%.cpp
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
+	$(GCC) -fPIC $(GCC_FLAGS) $(INCLUDES) $< -o $@
 
 $(OBJECTS)/%.cpp.o: $(DB_PRIMITIVE_ORM_SOURCES)/%.cpp
-	$(GCC) -D SKIP_ENTRY_POINT $(GCC_FLAGS) $(INCLUDES) $< -o $@
+	$(GCC) -fPIC -D SKIP_ENTRY_POINT $(GCC_FLAGS) $(INCLUDES) $< -o $@
 
 $(OBJECTS)/%.cpp.o: $(SOURCES)/postgres/column_types/%.cpp
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
+	$(GCC) -fPIC $(GCC_FLAGS) $(INCLUDES) $< -o $@
 
 # $(ORM_C_PLUS_PLUS): $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(ORM_C_PLUS_PLUS_OBJ)
 # 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(ORM_C_PLUS_PLUS_OBJ) -o $(ORM_C_PLUS_PLUS) $(LINKER_FLAGS) 
 
 .SECONDARY: $(OBJS_MAINS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_CMD_MAINS)
 
-$(BIN)/cmd_services/%: $(OBJECTS)/mains/cmd_services/%.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) 
-	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(LINKER_FLAGS) $< -o $@
+$(BIN)/cmd_services/%.so: $(OBJECTS)/mains/cmd_services/%.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) 
+	$(GCC) $(INCLUDES) -shared $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(LINKER_FLAGS) $< -o $@
 
 $(BIN)/%: $(OBJECTS)/mains/%.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) 
 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(LINKER_FLAGS) $< -o $@
