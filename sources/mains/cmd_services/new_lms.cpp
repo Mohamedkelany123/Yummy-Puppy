@@ -12,6 +12,14 @@
 #include <loan_app_loanstatushistroy_primitive_orm.h>
 #include <new_lms_installmentstatushistory_primitive_orm.h>
 
+
+/*
+    Gtest Concerns:
+        -Esier Ashan ha create objects el hayst3mlha bas bel attributes el ha3melaha access.
+        -Bad: Hay Create Objects gededa fa ha access lel objects dool ezay.
+
+*/
+
 //TODO: Print Time Taken To Process + Time Taken To Start Multithreading execution.
 
 
@@ -406,6 +414,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
             (
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_yesterday.getDateString()),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",nin,"1,2,3"),
+                new UnaryOperator ("new_lms_installmentextension.status_id",ne,"11"),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UPDATE_LOAN_STATUS-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
                 isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
@@ -426,7 +435,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
                 BDate reference_date (lai_orm->get_day());
 
-                if ( ie_orm->get_payment_status() == 6 && reference_date() <=  closure_date())
+                if ( ie_orm->get_payment_status() == 6 && reference_date() <=  closure_date()) //Paid From Escrow --Badry
                 {
                     ie_orm->set_payment_status(1);
                     new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm("main",true);
