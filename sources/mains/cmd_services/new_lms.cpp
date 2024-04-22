@@ -27,7 +27,7 @@
 
 extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids="");
 
-int closure_go (vector<string> phone_numbers);
+int closure_go (string phone_numbers);
 
 BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_installmentextension_primitive_orm * ie_orm,loan_app_installment_primitive_orm * i_orm,bool is_partial = false)
 {
@@ -1129,48 +1129,92 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     }
 
 
-    if ( strcmp (step,"customer_wallet") == 0 || strcmp (step, "full_closure") == 0) 
+    if ((strcmp (step,"customer_wallet") == 0 || strcmp (step, "full_closure") == 0) || strcmp (step, "full_closure_without_wallet") != 0) 
     {   
         printf("Beginning customer wallet closure\n");
+        
         auto begin = std::chrono::high_resolution_clock::now();
 
-        PSQLJoinQueryIterator *  psqlQueryJoin;
-        vector<string> phone_numbers;
-        if (isLoanSpecific) {
-            psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-            {new loan_app_loan_primitive_orm("main"), new crm_app_customer_primitive_orm("main")},
-            {{{"crm_app_customer","id"},{"loan_app_loan","customer_id"}},
-            });
+        PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+            {
+                new crm_app_customer_primitive_orm("main"), new new_lms_customerwallet_primitive_orm("main"),
+                new loan_app_loan_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),},
+            {   
+                {{"crm_app_customer","id"},{"loan_app_loan","customer_id"}},
+                {{"crm_app_customer","id"},{"new_lms_customerwallet","customer_id"}},
+                {{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
+                {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
+        });
 
-            psqlQueryJoin->setDistinct("distinct phone_number as \"13_phone_number\", \"crm_app_customer\".\"id\" as \"13_id\"");
+        psqlQueryJoin->filter(
+            ANDOperator 
+            (
+                new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,true),
+                new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,false),
+                new UnaryOperator ("loan_app_loan.status_id",eq,11),
+                new UnaryOperator ("loan_app_installment.interest_expected",ne,0),
+                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::CUSTOMER_WALLET-1)), 
+                new UnaryOperator ("new_lms_installmentextension.interest_expected",lte, "new_lms_customerwallet.total_amount", true),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator(),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator()
+            )
+        );
 
-            psqlQueryJoin->filter(UnaryOperator ("loan_app_loan.id", in, loan_ids));
-
-            psqlQueryJoin->process (threadsCount,[&phone_numbers](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
-                crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
-                
-                cout << partition_number << ": " << cac_orm->get_phone_number() << endl;
-                shared_lock->lock();
-                phone_numbers.push_back(cac_orm->get_phone_number());
-                shared_lock->unlock();
-            });
-
-            for (auto phone : phone_numbers) {
-                cout << phone << endl;
-            }
-
-        } else {
-
-        }
+        // TODO: change to new implementation when implemented
+        psqlQueryJoin->setDistinct("distinct phone_number as \"13_phone_number\", \"crm_app_customer\".\"id\" as \"13_id\"");
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
+        
+        
+        unordered_set<int> processed_customers;
+        string failed_customers_ids = "";
+        psqlQueryJoin->process (threadsCount,[&processed_customers, &failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+            crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
+
+            if (processed_customers.find(cac_orm->get_id()) != processed_customers.end()) {
+                bool success = closure_go(cac_orm->get_phone_number());
+                if (!success){
+                    failed_customers_ids += (to_string(cac_orm->get_id()) + ",");
+                }
+                processed_customers.insert(cac_orm->get_id());
+            }
+        });
+
+        // update loans of failed customers
+        if (failed_customers_ids.length() > 0) {
+            PSQLUpdateQuery failedUpdateQuery ("main","loan_app_loan",
+            ANDOperator (
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::CUSTOMER_WALLET),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                    new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                    new UnaryOperator ("loan_app_loan.customer_id", in, failed_customers_ids),
+                    isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator()
+            ),
+            {{"lms_closure_status",to_string(closure_status::CUSTOMER_WALLET * -1)}}
+            );
+            psqlUpdateQuery.update();
+        }
+
+        BDate closure_yesterday = closure_date;
+        closure_yesterday.dec_day();
+
+        PSQLUpdateQuery successUpdateQuery ("main","loan_app_loan",
+        ANDOperator (
+                new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::CUSTOMER_WALLET),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator()
+        ),
+        {{"lms_closure_status",to_string(closure_status::CUSTOMER_WALLET)}, {"last_lms_closing_day",closure_yesterday.getDateString()}}
+        );
+        psqlUpdateQuery.update();
         
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
         printf("Total Time Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
 
-        // closure_go({"44","23","7","66","2"});
     }
 
 
@@ -1211,11 +1255,13 @@ typedef struct {
     go_int cap;
 } go_slice;
 
-typedef go_slice (*Func)(go_slice);
-
+typedef bool (*Func)(go_string);
 
 void *handle = nullptr;
-int closure_go (vector<string> phone_numbers) {
+Func closure = nullptr;
+
+
+int closure_go (string phone_number) {
     const string so_name = "./closure_wallet.so";
     const string func_name = "Sort";
 
@@ -1230,34 +1276,22 @@ int closure_go (vector<string> phone_numbers) {
     }
 
     // resolve function symbol
-    Func closure = (Func)dlsym(handle, func_name.c_str());
-    if (closure == nullptr)  {
-        fputs(dlerror() + '\n', stderr);
-        exit(1);
+    if (closure == nullptr){
+        closure = (Func)dlsym(handle, func_name.c_str());
+        if (closure == nullptr)  {
+            fputs(dlerror() + '\n', stderr);
+            exit(1);
+        }
     }
+    
 
     // Prepare data
-    go_string strings[5];
-    for (int i = 0; i < 5; ++i) {
-        strings[i].data = const_cast<char*>(phone_numbers[i].c_str());
-        strings[i].len = phone_numbers[i].length();
-    }
-    go_slice nums = {strings, 5, 5};
+    go_string go_phonenumber;
+    go_phonenumber.data = const_cast<char*>(phone_number.c_str());
+    go_phonenumber.len = phone_number.length();
 
     // Call function
-    go_slice output = closure(nums);
+    bool output = closure(go_phonenumber);
 
-    // Save return value to vector<string>
-    vector<string> failed;
-    for (int i = 0; i < output.len; i++) {
-        failed.push_back(string(output.data[i].data, output.data[i].len));
-    }
-
-    // Print failed
-    std::cout << "Failed phone numbers: \n";
-    for (auto phone : failed){
-        cout << phone << "\n";
-    }
-
-    return 0;
+    return output;
 }
