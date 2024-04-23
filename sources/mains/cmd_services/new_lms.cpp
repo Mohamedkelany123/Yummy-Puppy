@@ -27,7 +27,7 @@
 
 extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids="");
 
-int closure_go (string phone_numbers);
+bool closure_go (string phone_numbers);
 
 BDate getMarginalizationDate (loan_app_loan_primitive_orm * lal_orm,new_lms_installmentextension_primitive_orm * ie_orm,loan_app_installment_primitive_orm * i_orm,bool is_partial = false)
 {
@@ -177,7 +177,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         );
     psqlUpdateQuery.update();   
 
-    if ( strcmp (step,"undue_to_due") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"undue_to_due") == 0 || strcmp (step,"full_closure") == 0 || strcmp (step,"payment_closure") == 0)
     {
 
         auto begin = std::chrono::high_resolution_clock::now();
@@ -254,7 +254,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
-    if ( strcmp (step,"due_to_overdue") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"due_to_overdue") == 0 || strcmp (step,"full_closure") == 0 || strcmp (step,"payment_closure") == 0)
     {
 
         auto begin = std::chrono::high_resolution_clock::now();
@@ -402,7 +402,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
-    if ( strcmp (step,"status") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"status") == 0 || strcmp (step,"full_closure") == 0 || strcmp (step,"payment_closure") == 0)
     {   
 
         auto begin = std::chrono::high_resolution_clock::now();
@@ -566,7 +566,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
 
-    if ( strcmp (step,"marginalization") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"marginalization") == 0 || strcmp (step,"full_closure") == 0 || strcmp (step,"payment_closure") == 0)
     {
         auto begin = std::chrono::high_resolution_clock::now();
 
@@ -947,7 +947,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     //-----------------------------------------------------------------------------------------------------------------------------------------//
     //-----------------------------------------------------------------------------------------------------------------------------------------//
 
-    if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"full_closure") == 0 || strcmp (step,"payment_closure") == 0)
     {
         auto begin = std::chrono::high_resolution_clock::now();
 
@@ -1027,7 +1027,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
 
 
-    if ( strcmp (step,"last_accrual_interest_date") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"last_accrual_interest_date") == 0 || strcmp (step,"full_closure") == 0 || strcmp (step,"payment_closure") == 0)
     {
         auto begin = std::chrono::high_resolution_clock::now();
 
@@ -1129,7 +1129,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     }
 
 
-    if ((strcmp (step,"customer_wallet") == 0 || strcmp (step, "full_closure") == 0) || strcmp (step, "full_closure_without_wallet") != 0) 
+    if ((strcmp (step,"customer_wallet") == 0 || strcmp (step, "full_closure") == 0) || strcmp (step,"payment_closure") == 0) 
     {   
         printf("Beginning customer wallet closure\n");
         
@@ -1149,14 +1149,14 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         psqlQueryJoin->filter(
             ANDOperator 
             (
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator(),
+                new UnaryOperator ("loan_app_loan.status_id",eq,11),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::CUSTOMER_WALLET-1)), 
+                new UnaryOperator ("loan_app_installment.interest_expected",ne,0),
+                new UnaryOperator ("loan_app_installment.interest_expected",lte, "new_lms_customerwallet.total_amount", true),
                 new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,true),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,false),
-                new UnaryOperator ("loan_app_loan.status_id",eq,11),
-                new UnaryOperator ("loan_app_installment.interest_expected",ne,0),
                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::CUSTOMER_WALLET-1)), 
-                new UnaryOperator ("new_lms_installmentextension.interest_expected",lte, "new_lms_customerwallet.total_amount", true),
-                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator(),
                 isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator()
             )
         );
@@ -1169,15 +1169,19 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         string failed_customers_ids = "";
         psqlQueryJoin->process (threadsCount,[&failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
             crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
-
+            cout << partition_number << ": " << cac_orm->get_phone_number() << endl; 
             bool success = closure_go(cac_orm->get_phone_number());
             if (!success){
+                cout << cac_orm->get_phone_number() << ": failed" << endl; 
                 failed_customers_ids += (to_string(cac_orm->get_id()) + ",");
             }
         });
 
+        auto afterProcess = std::chrono::high_resolution_clock::now();
+
         // update loans of failed customers
         if (failed_customers_ids.length() > 0) {
+            failed_customers_ids.pop_back();
             PSQLUpdateQuery failedUpdateQuery ("main","loan_app_loan",
             ANDOperator (
                     new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::CUSTOMER_WALLET),
@@ -1188,11 +1192,8 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
             ),
             {{"lms_closure_status",to_string(closure_status::CUSTOMER_WALLET * -1)}}
             );
-            psqlUpdateQuery.update();
+            failedUpdateQuery.update();
         }
-
-        BDate closure_yesterday = closure_date;
-        closure_yesterday.dec_day();
 
         // update all non-failed loans
         PSQLUpdateQuery successUpdateQuery ("main","loan_app_loan",
@@ -1200,34 +1201,52 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::CUSTOMER_WALLET),
                 new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
                 new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator(),
                 isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator()
         ),
-        {{"lms_closure_status",to_string(closure_status::CUSTOMER_WALLET)}, {"last_lms_closing_day",closure_yesterday.getDateString()}}
+        {{"lms_closure_status",to_string(closure_status::CUSTOMER_WALLET)}}
         );
-        psqlUpdateQuery.update();
+        successUpdateQuery.update();
         
         auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+        auto time_until_process = std::chrono::duration_cast<std::chrono::nanoseconds>(beforeProcess - begin); 
+        auto time_in_process = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess); 
+        auto time_after_process = std::chrono::duration_cast<std::chrono::nanoseconds>(end - beforeProcess); 
+        auto total_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
-        printf("Total Time Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
-
+        printf("\nTime of customer wallet step.\n");
+        printf("Before Process -> %.3f seconds.\n", time_until_process.count() * 1e-9);
+        printf("In Process -> %.3f seconds.\n", time_in_process.count() * 1e-9);
+        printf("After Process -> %.3f seconds.\n", time_after_process.count() * 1e-9);
+        printf("Total Time Step-> %.3f seconds.\n", total_time.count() * 1e-9);
+        printf("\n");
     }
 
 
-    // if (strcmp (step,"full_closure") == 0)
-    // {
-    //     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
-    //         ANDOperator(
-    //             new UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::LAST_ACCRUED_DAY-1),
-    //             new UnaryOperator ("loan_app_loan.id",ne,"14312"),
-    //             new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
-    //             isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
-    //             isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
-    //         ),
-    //         {{"lms_closure_status",to_string(0)}}
-    //     );
-    //     psqlUpdateQuery.update();
-    // }
+    map <string,string> set_map;
+    if (strcmp (step,"full_closure") == 0)
+    {
+        BDate closure_yesterday = closure_date;
+        closure_yesterday.dec_day();
+
+        set_map = {{"lms_closure_status",to_string(0)}, {"last_lms_closing_day",closure_yesterday.getDateString()}};
+    } 
+    else if (strcmp (step,"payment_closure") == 0) 
+    {    
+        set_map = {{"last_lms_closing_day",closure_date.getDateString()}};
+    }
+
+    PSQLUpdateQuery lastUpdateQuery ("main","loan_app_loan",
+        ANDOperator(
+            new UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::CUSTOMER_WALLET),
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+            isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+            isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
+        ),
+        {set_map}
+    );
+    lastUpdateQuery.update();
    
     return 0;
 }
@@ -1257,9 +1276,9 @@ void *handle = nullptr;
 Func closure = nullptr;
 
 
-int closure_go (string phone_number) {
-    const string so_name = "./closure_wallet.so";
-    const string func_name = "Sort";
+bool closure_go (string phone_number) {
+    const string so_name = "./walletPayment.so";
+    const string func_name = "ProcessCustomerChargedWallets";
 
     if (handle == nullptr) {
         // use dlopen to load shared object
@@ -1287,6 +1306,8 @@ int closure_go (string phone_number) {
 
     // Call function
     bool output = closure(go_phonenumber);
+
+    cout << "***********called closure go\n";
 
     return output;
 }

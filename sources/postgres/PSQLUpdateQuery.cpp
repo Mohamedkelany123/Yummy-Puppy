@@ -21,7 +21,7 @@ void PSQLUpdateQuery::set (map <string,string> set_map)
 {
     for (auto const& x : set_map)
     {
-        if ( set_string != "") set_string = ",";
+        if ( set_string != "") set_string += ",";
         set_string += x.first+"='"+x.second+"'";
     }
 }
