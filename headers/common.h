@@ -27,7 +27,6 @@
 #include <future>
 #include <list>
 #include <utils.h>
-#include <unordered_set>
 
 
 using namespace std;

@@ -1165,19 +1165,14 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         psqlQueryJoin->setDistinct("distinct phone_number as \"13_phone_number\", \"crm_app_customer\".\"id\" as \"13_id\"");
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
-        
-        
-        unordered_set<int> processed_customers;
+                
         string failed_customers_ids = "";
-        psqlQueryJoin->process (threadsCount,[&processed_customers, &failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+        psqlQueryJoin->process (threadsCount,[&failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
             crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
 
-            if (processed_customers.find(cac_orm->get_id()) != processed_customers.end()) {
-                bool success = closure_go(cac_orm->get_phone_number());
-                if (!success){
-                    failed_customers_ids += (to_string(cac_orm->get_id()) + ",");
-                }
-                processed_customers.insert(cac_orm->get_id());
+            bool success = closure_go(cac_orm->get_phone_number());
+            if (!success){
+                failed_customers_ids += (to_string(cac_orm->get_id()) + ",");
             }
         });
 
@@ -1199,6 +1194,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         BDate closure_yesterday = closure_date;
         closure_yesterday.dec_day();
 
+        // update all non-failed loans
         PSQLUpdateQuery successUpdateQuery ("main","loan_app_loan",
         ANDOperator (
                 new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::CUSTOMER_WALLET),
@@ -1270,7 +1266,7 @@ int closure_go (string phone_number) {
         handle = dlopen (so_name.c_str(), RTLD_LAZY);
         if (!handle) {
             fputs (dlerror() + '\n', stderr);
-            exit(1);
+            return 0;
         }
         printf("*******Loaded .so file\n");
     }
@@ -1280,10 +1276,9 @@ int closure_go (string phone_number) {
         closure = (Func)dlsym(handle, func_name.c_str());
         if (closure == nullptr)  {
             fputs(dlerror() + '\n', stderr);
-            exit(1);
+            return 0;
         }
     }
-    
 
     // Prepare data
     go_string go_phonenumber;
