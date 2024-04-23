@@ -1236,17 +1236,19 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         set_map = {{"last_lms_closing_day",closure_date.getDateString()}};
     }
 
-    PSQLUpdateQuery lastUpdateQuery ("main","loan_app_loan",
-        ANDOperator(
-            new UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::CUSTOMER_WALLET),
-            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
-            new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
-            isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
-            isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
-        ),
-        {set_map}
-    );
-    lastUpdateQuery.update();
+    if (set_map.size() > 0) {
+        PSQLUpdateQuery lastUpdateQuery ("main","loan_app_loan",
+            ANDOperator(
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,closure_status::CUSTOMER_WALLET),
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
+            ),
+            {set_map}
+        );
+        lastUpdateQuery.update();
+    }
    
     return 0;
 }
