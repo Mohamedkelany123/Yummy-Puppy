@@ -1279,7 +1279,7 @@ Func closure = nullptr;
 
 
 bool closure_go (string phone_number) {
-    const string so_name = "./walletPayment.so";
+    const string so_name = "./shared/walletPayment.so";
     const string func_name = "ProcessCustomerChargedWallets";
 
     if (handle == nullptr) {

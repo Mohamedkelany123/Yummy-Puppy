@@ -148,6 +148,8 @@ services: build_tree  $(MAIN_CMD_BINS)
 services_dso: build_tree  $(MAIN_CMD_SHARED)
 	@echo "Generating Executable"
 
+closure_go: 
+	bash closure_go.sh
 
 #---------------------------------------#
 #TESTS
