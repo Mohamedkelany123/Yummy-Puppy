@@ -4,18 +4,18 @@
 LMS_COMMAND="./bin/cmd_services/new_lms"
 ADDRESS="192.168.1.51"
 PORT_NUMBER="5432"
-DB_NAME="temp_17_django"
+DB_NAME="c_plus_plus"
 USERNAME="postgres"
 PASSWORD="postgres"
 STEP="full_closure"
-DATE="2024-02-29"
-THREADS_COUNT="16"
+DATE="2024-04-24"
+THREADS_COUNT="1"
 
 # mod 2 offset(0,1) ....
 MOD="0"
 OFFSET="0"
 
-LOANIDS=""
+LOANIDS="105050"
 
 
 

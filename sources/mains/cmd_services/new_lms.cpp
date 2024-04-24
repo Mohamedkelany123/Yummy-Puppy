@@ -1162,7 +1162,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         );
 
         // TODO: change to new implementation when implemented
-        psqlQueryJoin->setDistinct("distinct phone_number as \"13_phone_number\", \"crm_app_customer\".\"id\" as \"13_id\"");
+        psqlQueryJoin->setDistinct("distinct phone_number as \"17_phone_number\", \"crm_app_customer\".\"id\" as \"17_id\"");
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
                 
@@ -1279,14 +1279,14 @@ Func closure = nullptr;
 
 
 bool closure_go (string phone_number) {
-    const string so_name = "./shared/walletPayment.so";
+    const string so_name = "./shared/closure_wallet.so";
     const string func_name = "ProcessCustomerChargedWallets";
 
     if (handle == nullptr) {
         // use dlopen to load shared object
         handle = dlopen (so_name.c_str(), RTLD_LAZY);
         if (!handle) {
-            fputs (dlerror() + '\n', stderr);
+            cout << dlerror() << '\n';
             return 0;
         }
         printf("*******Loaded .so file\n");
@@ -1296,7 +1296,7 @@ bool closure_go (string phone_number) {
     if (closure == nullptr){
         closure = (Func)dlsym(handle, func_name.c_str());
         if (closure == nullptr)  {
-            fputs(dlerror() + '\n', stderr);
+            cout << dlerror() << '\n';
             return 0;
         }
     }
