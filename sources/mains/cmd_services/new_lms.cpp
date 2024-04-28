@@ -1161,6 +1161,9 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
             )
         );
 
+        cout << "THREADTIME --> Wallet" << endl;
+
+
         // TODO: change to new implementation when implemented
         psqlQueryJoin->setDistinct("distinct phone_number as \"17_phone_number\", \"crm_app_customer\".\"id\" as \"17_id\"");
 
@@ -1178,6 +1181,8 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         });
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);
+        printf("PROCESSTIME Wallet->: %.3f seconds.\n", elapsed.count() * 1e-9);
 
         // update loans of failed customers
         if (failed_customers_ids.length() > 0) {
@@ -1209,15 +1214,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         successUpdateQuery.update();
         
         auto end = std::chrono::high_resolution_clock::now();
-        auto time_until_process = std::chrono::duration_cast<std::chrono::nanoseconds>(beforeProcess - begin); 
-        auto time_in_process = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess); 
-        auto time_after_process = std::chrono::duration_cast<std::chrono::nanoseconds>(end - beforeProcess); 
         auto total_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
-
-        printf("\nTime of customer wallet step.\n");
-        printf("Before Process -> %.3f seconds.\n", time_until_process.count() * 1e-9);
-        printf("In Process -> %.3f seconds.\n", time_in_process.count() * 1e-9);
-        printf("After Process -> %.3f seconds.\n", time_after_process.count() * 1e-9);
         printf("Total Time Step-> %.3f seconds.\n", total_time.count() * 1e-9);
         printf("\n");
     }
