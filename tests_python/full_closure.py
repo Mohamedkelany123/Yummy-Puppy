@@ -65,7 +65,7 @@ class FullClosure:
                     order by 
                         installment_ptr_id  desc
                 """
-        excluded_columns = ['ext_created_at', 'ext_updated_at','early_paid_at', 'interest_paid_at' ,'principal_paid_at', 'extra_interest_paid_at', ]
+        excluded_columns = ['ext_created_at', 'ext_updated_at','early_paid_at', 'interest_paid_at' ,'principal_paid_at', 'extra_interest_paid_at','interest_order_id', 'principal_order_id', 'early_order_id', 'extra_interest_order_id']
         temp = self.exec(query, excluded_columns, "Installment Extention")
         if temp:
             send_slack_message(self.webhook_url, "PASS -> Installment Extention ", "#00FF00")
