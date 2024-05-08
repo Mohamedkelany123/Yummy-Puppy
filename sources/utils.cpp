@@ -9,7 +9,7 @@ void BDate::set_date (string date_string)
         strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S",&tm);    
         tm.tm_hour +=TIME_ZONE_OFFEST;
         //local time zone and daylight saving time settings
-        tm.tm_isdst = -1;
+        tm.tm_isdst = DL_SAVING;
     }
     else
     {
@@ -18,7 +18,7 @@ void BDate::set_date (string date_string)
         strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S",&tm);    
         tm.tm_hour +=TIME_ZONE_OFFEST;
         //local time zone and daylight saving time settings
-        tm.tm_isdst = -1;
+        tm.tm_isdst = DL_SAVING;
     }
 }
 BDate::BDate(string date_string)

@@ -8,7 +8,20 @@
 #include <string.h>
 using namespace std;
 
-#define TIME_ZONE_OFFEST 2
+
+// g++ main.cpp -o my_program -D SUMMER 
+// #ifdef SUMMER
+//     #define TIME_ZONE_OFFEST 3
+//     #define DL_SAVING        0
+// #else
+//     #define TIME_ZONE_OFFEST 2
+//     #define DL_SAVING        -1
+// #endif
+
+#define TIME_ZONE_OFFEST 3
+#define DL_SAVING        0
+
+
 
 class BDate
 {
