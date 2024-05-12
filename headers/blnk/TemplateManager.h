@@ -35,10 +35,12 @@ class LedgerCompositLeg
 
 class BlnkTemplateManager {
     private:
+        json template_legs;
         map <string,LedgerCompositLeg> legs;
         vector <PSQLAbstractORM *> entry_orms;
         void buildLegs();
         void loadTemplate (int template_id);
+        void getTemplate (int template_id);
         bool validate ();
     public:
         BlnkTemplateManager(int template_id);
