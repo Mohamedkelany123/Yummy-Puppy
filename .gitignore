@@ -1,4 +1,5 @@
 objects/*
+shared/*
 bin/*
 dso/*
 temp/*

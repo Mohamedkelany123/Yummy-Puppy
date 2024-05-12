@@ -38,9 +38,16 @@ bool PSQLAbstractQueryIterator::execute()
     for (auto e : extras)
         from_string += "," +e.second+" \""+e.first+"\"";
 
+    string select_stmt = "";
+    if (distinct != "") {
+        select_stmt = distinct;
+    } else {
+        select_stmt = from_string;
+    }
+
     if (orderby_string == "")
-        sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
-    else sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
+        sql = "select "+ select_stmt+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
+    else sql = "select "+ select_stmt+" from "+ table_name + conditions +" order by "+orderby_string;
     
     // cout << sql << endl;
     

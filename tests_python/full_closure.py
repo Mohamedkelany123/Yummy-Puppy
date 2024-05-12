@@ -23,8 +23,12 @@ class FullClosure:
 
     def test(self):
         send_slack_message(self.webhook_url, f"*STARTING LMS CLOSURE STATUS TESTS: {str(self.current_date)}* ", "#0000FF")
-        self.installment_extentions()
+        self.wallet()
+        self.wallet_transaction()
+        self.loan_order()
+        self.loan_order_header()
         self.loan_app_loan()
+        self.installment_extentions()
         self.installment()
         self.late_fees()
         self.installment_payment_status_history()
@@ -38,12 +42,16 @@ class FullClosure:
         Tables To Test:
 
             1-Installment Extention Excluding[ext_created_at , ext_updated_at]
-    [FAILED]2-Loan App Loan Excluding[created_at, updated_at]
+            2-Loan App Loan Excluding[created_at, updated_at]
             3-Installment Excluding[created_at, updated_at]
             4-Installment Late Fees Exclude-ID-(Step-4 Marginalization Creates Late Fees So We cant Compare the [ids] as C++ runs using Multithreads)
             5-Installment Payment Status History Exclude
             6-Installment Status History 
             7-Loan Status History
+            8- Wallet
+            9- Wallet Transaction
+            10- Loan Order
+            11- Loan Order Header
     """
 
 
@@ -57,7 +65,7 @@ class FullClosure:
                     order by 
                         installment_ptr_id  desc
                 """
-        excluded_columns = ['ext_created_at', 'ext_updated_at']
+        excluded_columns = ['ext_created_at', 'ext_updated_at','early_paid_at', 'interest_paid_at' ,'principal_paid_at', 'extra_interest_paid_at','interest_order_id', 'principal_order_id', 'early_order_id', 'extra_interest_order_id']
         temp = self.exec(query, excluded_columns, "Installment Extention")
         if temp:
             send_slack_message(self.webhook_url, "PASS -> Installment Extention ", "#00FF00")
@@ -72,9 +80,8 @@ class FullClosure:
                     order by 
                         id desc
                 """
-        excluded_columns = ['created_at', 'updated_at', "last_lms_closing_day", "lms_closure_status"]
-        # excluded_columns = ['created_at', 'updated_at']
-        # excluded_columns = ['created_at', 'updated_at']
+        excluded_columns = ['created_at', 'updated_at']
+
 
 
         temp = self.exec(query, excluded_columns,  "Loan App Loan")
@@ -109,7 +116,7 @@ class FullClosure:
                 order by 
                     installment_extension_id  desc, "day" desc, installment_status_id desc
                 """
-        excluded_columns = ['id', 'created_at', 'updated_at']
+        excluded_columns = ['id', 'created_at', 'updated_at', 'paid_at']
         temp = self.exec(query, excluded_columns, "Installment Late Fees")
         if temp:
             send_slack_message(self.webhook_url, "PASS -> Installment Late Fees ", "#00FF00")
@@ -126,7 +133,7 @@ class FullClosure:
                 order by  
                     installment_extension_id desc,  "day" desc, status desc
                 """
-        excluded_columns = ['id', 'created_at', 'updated_at']
+        excluded_columns = ['id', 'created_at', 'updated_at', 'order_id']
 
         temp = self.exec(query, excluded_columns,"Installment Payment Status History")
         if temp:
@@ -162,6 +169,62 @@ class FullClosure:
         temp = self.exec(query, excluded_columns, "Loan Status History")
         if temp:
             send_slack_message(self.webhook_url, "PASS -> Loan Status History ", "#00FF00")
+
+    #8- Wallet
+    def wallet(self):
+        print_colored("Test 8 :: Wallet ", self.color_options.YELLOW ,bold=True)
+        query = f"""
+                    select * 
+                    from new_lms_customerwallet nlc 
+                    order by id 
+                """
+        excluded_columns = ['created_at', 'updated_at']
+        temp = self.exec(query, excluded_columns, "Wallet")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Wallet ", "#00FF00")
+
+    #9- Wallet Transaction
+    def wallet_transaction(self):
+        print_colored("Test 9 :: Wallet Transaction ", self.color_options.YELLOW ,bold=True)
+        query = f"""
+                    select * 
+                    from new_lms_customerwallettransaction nlc 
+                    order by customer_wallet_id , amount  
+                """
+        excluded_columns = ['id', 'created_at', 'updated_at', 'order_id']
+        temp = self.exec(query, excluded_columns, "Wallet Transaction")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Wallet Transaction ", "#00FF00")
+
+    #10- Loan Order
+    def loan_order(self):
+        print_colored("Test 10 :: Loan Order ", self.color_options.YELLOW ,bold=True)
+        query = f"""
+                    select * 
+                    from payments_loanorder pl 
+                    where created_at::date > '2024-04-01'
+                    order by customer_id , amount, status , payment_method_id, payment_method_code, payment_ledger_entry_id, loan_id
+                """
+        excluded_columns = ['id', 'created_at', 'updated_at', 'processed_at', 'paid_at', 'installments', 'loan_order_header_id']
+        temp = self.exec(query, excluded_columns, "Loan Order")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Loan Order ", "#00FF00")
+
+    #11- Loan Order Header
+    def loan_order_header(self):
+        print_colored("Test 11 :: Loan Order Header ", self.color_options.YELLOW ,bold=True)
+        query = f"""
+                    select * 
+                    from payments_loanorderheader pl 
+                    where created_at::date > '2024-01-01'
+                    order by customer_id , total_amount , payment_ledger_entry_id , adjustment_amount
+                """
+        excluded_columns = ['id', 'created_at', 'updated_at']
+        temp = self.exec(query, excluded_columns, "Loan Order Header")
+        if temp:
+            send_slack_message(self.webhook_url, "PASS -> Loan Order Header ", "#00FF00")
+
+
 
 
 
