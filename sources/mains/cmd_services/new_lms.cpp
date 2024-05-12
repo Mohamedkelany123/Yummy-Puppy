@@ -146,7 +146,6 @@ int main (int argc, char ** argv) {
 }
 
 
-int * global_count;
 
 // extern "c" not garbling function names
 extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids)
