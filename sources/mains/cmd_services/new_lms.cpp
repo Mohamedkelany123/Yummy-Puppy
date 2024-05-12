@@ -13,16 +13,6 @@
 #include <new_lms_installmentstatushistory_primitive_orm.h>
 
 
-/*
-    Gtest Concerns:
-        -Esier Ashan ha create objects el hayst3mlha bas bel attributes el ha3melaha access.
-        -Bad: Hay Create Objects gededa fa ha access lel objects dool ezay.
-
-*/
-
-//TODO: Print Time Taken To Process + Time Taken To Start Multithreading execution.
-
-
 //enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,MARGINALIZE_INCOME_STEP2,MARGINALIZE_INCOME_STEP3,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
 
 extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids="");
@@ -439,7 +429,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
                 BDate reference_date (lai_orm->get_day());
 
-                if ( ie_orm->get_payment_status() == 6 && reference_date() <=  closure_date()) //Paid From Escrow --Badry
+                if ( ie_orm->get_payment_status() == 6 && reference_date() <=  closure_date()) //Paid From Escrow
                 {
                     ie_orm->set_payment_status(1);
                     new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm("main",true);
@@ -554,7 +544,6 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
         cout << "Loan Status done" << endl;
 
-        // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
@@ -593,7 +582,6 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
                 //New
                 new UnaryOperator ("new_lms_installmentextension.is_marginalized", eq, "t"),
                 new UnaryOperator ("new_lms_installmentextension.marginalization_date", lte,closure_date_string),
-                //
                 isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
                 isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
             )
@@ -935,7 +923,6 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         psqlUpdateQuery.update();
         cout << "Marginalization Setp 4" << endl;
 
-                // Stop measuring time and calculate the elapsed time
         end = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
@@ -1014,7 +1001,6 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         psqlUpdateQuery.update();
         cout << "Long to short term" << endl;
 
-        // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
@@ -1119,7 +1105,6 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         psqlUpdateQuery.update();
         cout << "Loan Last Accrual Day" << endl;
 
-        // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
