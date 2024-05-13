@@ -25,7 +25,7 @@ int main (int argc, char ** argv)
 
 
 
-    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4, temp);
+    BlnkTemplateManager blnkTemplateManager(4, temp);
 
     return 0;
 }
