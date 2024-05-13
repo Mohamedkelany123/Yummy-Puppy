@@ -49,6 +49,8 @@ void BlnkTemplateManager::buildLegs(json temp_amount_json)
 
         template_legs.push_back(template_leg); 
     }
+
+    //
     for (temp_amount_json)
     {
         LedgerCompositLeg lc;
