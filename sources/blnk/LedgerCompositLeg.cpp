@@ -13,6 +13,7 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
                        if (_bond_id != 0){
                         leg_side->set_bond_id(_bond_id);
                        }
+                        cout << "bond-id "+ _bond_id  << endl;
                 }
          } else{
                 
@@ -162,7 +163,11 @@ int LedgerCompositLeg::getBondId (int installment_id)
     _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator->execute();
 
     tms_app_loaninstallmentfundingrequest_primitive_orm * funding_req = _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator->next();
-    int _funding_req_id = funding_req->get_funding_facility_id();
+    if(funding_req == 0){
+        return 0;
+    }
+    int _funding_req_id =   static_cast<int>(funding_req->get_funding_facility_id());
+        cout << "abl el if"  << endl;
     if(std::find( bond_ids.begin(),  bond_ids.end(), _funding_req_id) !=  bond_ids.end()) {
                 return _funding_req_id;
         } else {
