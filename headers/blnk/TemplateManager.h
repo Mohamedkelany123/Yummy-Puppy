@@ -2,7 +2,20 @@
 #include <ledger_amount_primitive_orm.h>
 #include <ledger_entry_primitive_orm.h>
 
-class LedgerAmount
+class x
+{
+    protected:
+        int customer_id;
+        int loan_id;
+        int installment_id;
+        int merchant_id;
+        int bond_id;
+        int latefee_id;
+
+
+}
+
+class LedgerAmount: public x
 {
     private:
         int id;
@@ -129,6 +142,18 @@ class LedgerCompositLeg
         LedgerCompositLeg(){}
         void setAmount (float _amount);
         std::pair <ledger_amount_primitive_orm *,ledger_amount_primitive_orm *> getLedgerCompositeLeg ();
+
+        void build (TemplateLeg * template_leg, json leg_json)
+        {
+                LedgerAmount debit;
+                LedgerAmount credit;
+
+                // some code to build credit debit
+
+                leg.first = debit;
+                leg.second = credit;
+
+        }
         ~LedgerCompositLeg(){}
 
 };
@@ -138,7 +163,7 @@ class BlnkTemplateManager {
         json template_json;
         json entry_json;
         vector <TemplateLeg> template_legs;
-        map <string,LedgerCompositLeg> ledger_amounts;
+        map <int,LedgerCompositLeg> ledger_amounts;
         vector <PSQLAbstractORM *> entry_orms;
         void buildLegs();
         void loadTemplate (int template_id);

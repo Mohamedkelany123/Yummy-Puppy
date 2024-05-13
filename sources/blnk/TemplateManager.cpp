@@ -6,8 +6,6 @@ BlnkTemplateManager::BlnkTemplateManager(int template_id, json entry_json)
 {
     this->entry_json = entry_json;
     cout << entry_json.dump();
-    this->loadTemplate(template_id);
-    this->buildLegs();
 
 
 }
@@ -32,7 +30,7 @@ void BlnkTemplateManager::loadTemplate (int template_id)
 }
 
 
-void BlnkTemplateManager::buildLegs()
+void BlnkTemplateManager::buildLegs(json temp_amount_json)
 {
     for (auto& leg : this->template_json["legs"]) { 
         TemplateLeg  template_leg;
@@ -48,7 +46,15 @@ void BlnkTemplateManager::buildLegs()
         template_leg.setMerchantIdRequired(leg["merchant_id"]);
         template_leg.setName(leg["name"]);
         template_leg.setLegRequired(leg["required"]);
+
         template_legs.push_back(template_leg); 
+    }
+    for (temp_amount_json)
+    {
+        LedgerCompositLeg lc;
+        lc.build (template_leg,json item);
+        ledger_amounts [lc.get_id()] = lc;
+        
     }
     // for(int i=0 ; i<template_legs.size(); i++){
     //     cout << template_legs[i].getName() << endl;
@@ -60,6 +66,8 @@ bool BlnkTemplateManager::validate ()
 }
 bool BlnkTemplateManager::buildEntry (json temp_amount_json)
 {
+    this->loadTemplate(template_id);
+    this->buildLegs();
 
 }
 BlnkTemplateManager::~BlnkTemplateManager()
