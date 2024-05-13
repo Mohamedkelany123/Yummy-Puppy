@@ -2,20 +2,9 @@
 #include <ledger_amount_primitive_orm.h>
 #include <ledger_entry_primitive_orm.h>
 
-class x
-{
-    protected:
-        int customer_id;
-        int loan_id;
-        int installment_id;
-        int merchant_id;
-        int bond_id;
-        int latefee_id;
 
 
-}
-
-class LedgerAmount: public x
+class LedgerAmount
 {
     private:
         int id;
@@ -118,7 +107,7 @@ class TemplateLeg
         //GETTERS
         bool getCashierIdRequired() const { return cashier_id_required; }
         const vector<int>& getCreditAvailableIds() const { return credit_available_ids; }
-        int getCreditBondIdRequired() const { return credit_bond_id_required; }
+        bool getCreditBondIdRequired() const { return credit_bond_id_required; }
         bool getCustomerIdRequired() const { return customer_id_required; }
         const vector<int>& getDebitAvailableIds() const { return debit_available_ids; }
         int getDebitBondIdRequired() const { return debit_bond_id_required; }
