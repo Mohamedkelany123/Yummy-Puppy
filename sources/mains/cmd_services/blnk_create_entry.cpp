@@ -19,13 +19,13 @@ int main (int argc, char ** argv)
     psqlController.setORMCacheThreads(threadsCount);
     
     // json entry_json = { {"Booking new loan - short term; and", { {"amount" ,2000.00}, {"loan_id", 133416}, {"customer_id", 359786}, {"cashier_id", 126935}, {"merchant_id", 2} }} };
-    LedgerAmount demo(1, "Demo", 101, 201, 301, 401, 501, 601, 701, 801, 901, 1001, 1101, 1201.50, 1301, true);
+    LedgerAmount demo(1, 101, 201, 301, 401, 501, 601, 701, 801, 901, 1001, 1101, 1201.50, 1301, true);
     std::map<std::string, LedgerAmount> temp;
     temp["Booking new loan - short term; and"] = demo;
 
 
-
-    BlnkTemplateManager blnkTemplateManager(4, temp);
+    BDate entry_date =  BDate("2024-04-13");
+    BlnkTemplateManager blnkTemplateManager(4, temp, entry_date);
 
     return 0;
 }
