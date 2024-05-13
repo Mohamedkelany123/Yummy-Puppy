@@ -51,19 +51,14 @@ bool BlnkTemplateManager::buildLegs()
     }
 
     for (const auto& entry : this->entry_data) {
-        // Check if entry_data is empty
         if (this->entry_data.empty()) {
-            std::cerr << "entry_data is empty!" << std::endl;
+            cout << "entry_data is empty!" << endl;
             break;
         }
+        const std::string& leg_name = entry.first;     
+        const LedgerAmount& entry_values = entry.second; 
 
-    //     const std::string& leg_name = entry.first;     
-    //     const LedgerAmount& entry_values = entry.second; 
-
-    //     // Print leg_name
-    //     cout << leg_name << endl;
-    // }
-        // cout << entry_values << endl;
+        cout << "Leg Name:" << leg_name << endl;
 
         // LedgerCompositLeg lc;
         // bool is_built = lc.build(template_legs[leg_name], entry_values);
@@ -71,7 +66,7 @@ bool BlnkTemplateManager::buildLegs()
         // if(!is_built){
         //     return false;
         // }
-    // }
+    }
 
     return true;
 
@@ -83,8 +78,9 @@ bool BlnkTemplateManager::validate ()
 bool BlnkTemplateManager::buildEntry (int template_id)
 {
     this->loadTemplate(template_id);
-    this->buildLegs();
-
+    bool is_built = this->buildLegs();
+    
+    return is_built;
 }
 BlnkTemplateManager::~BlnkTemplateManager()
 {
