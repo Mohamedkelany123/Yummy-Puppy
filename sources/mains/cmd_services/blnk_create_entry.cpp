@@ -18,8 +18,9 @@ int main (int argc, char ** argv)
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(threadsCount);
     
+    json entry_json = { {"Booking new loan - short term; and", { {"amount" ,2000.00}, {"loan_id", 133416}, {"customer_id", 359786}, {"cashier_id", 126935}, {"merchant_id", 2} }} };
 
-    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
+    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4, entry_json);
 
     return 0;
 }
