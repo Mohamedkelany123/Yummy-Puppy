@@ -19,7 +19,6 @@ class PSQLAbstractORM
         string data_source_name;
         bool orm_transactional;
 
-
     public:
         virtual string getFromString () = 0;
         virtual void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) = 0;

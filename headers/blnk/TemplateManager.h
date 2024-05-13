@@ -149,6 +149,7 @@ class BlnkTemplateManager {
         map <string , TemplateLeg> template_legs;
         map <string,LedgerCompositLeg> ledger_amounts;
         vector <PSQLAbstractORM *> entry_orms;
+        ledger_entry_primitive_orm * entry;
         bool buildLegs();
         void loadTemplate (int template_id);
         bool validate ();

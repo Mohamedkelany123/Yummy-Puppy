@@ -8,6 +8,7 @@ BlnkTemplateManager::BlnkTemplateManager(int template_id, map<string, LedgerAmou
 {
     entry_data = _entry_data;
     this->buildEntry(template_id);
+    entry = NULL;
 }
 
 
@@ -79,29 +80,23 @@ bool BlnkTemplateManager::buildEntry (int template_id)
 {
     this->loadTemplate(template_id);
     bool is_built = this->buildLegs();
-    
+    createEntry ();
     return is_built;
 }
 BlnkTemplateManager::~BlnkTemplateManager()
 {
 
 }
-bool LedgerCompositLeg::build (TemplateLeg * template_leg, LedgerAmount * leg_json)
-        {
-        // bool bond_id_required;
-        // bool latefee_id_required;
 
-                ledger_amount_primitive_orm * debit ;
-                ledger_amount_primitive_orm  * credit;
-
+bool LedgerCompositLeg::buildLeg (ledger_amount_primitive_orm * leg)
+{
                 debit->set_leg_temple_id(template_leg->getId());
                 credit->set_leg_temple_id(template_leg->getId());
 
                 debit->set_account_id(template_leg->getDebitAccountId());
                 credit->set_account_id(template_leg->getCreditAccountId());
                 
-                if(template_leg->getCashierIdRequired() && leg_json->getCashierId() == 0){
-              
+                if(template_leg->getCashierIdRequired() && leg_json->getCashierId() == 0){              
                         throw std::invalid_argument( "cashier id is required" );
                 }
                 
@@ -170,6 +165,24 @@ bool LedgerCompositLeg::build (TemplateLeg * template_leg, LedgerAmount * leg_js
                 credit->set_amount(leg_json->getAmount());
                 debit->set_amount(-leg_json->getAmount());
 
+}
+bool LedgerCompositLeg::build (TemplateLeg * template_leg, LedgerAmount * leg_json)
+        {
+        // bool bond_id_required;
+        // bool latefee_id_required;
+
+                ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm();
+                ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm();
+                try{
+
+                buildLeg (debit);
+                buildLeg (credit);
+                }
+                catch ()
+                {
+
+
+                }
               
 
 
