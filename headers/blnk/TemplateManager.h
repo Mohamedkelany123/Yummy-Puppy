@@ -2,20 +2,7 @@
 #include <ledger_amount_primitive_orm.h>
 #include <ledger_entry_primitive_orm.h>
 
-class x
-{
-    protected:
-        int customer_id;
-        int loan_id;
-        int installment_id;
-        int merchant_id;
-        int bond_id;
-        int latefee_id;
-
-
-}
-
-class LedgerAmount: public x
+class LedgerAmount
 {
     private:
         int id;
@@ -36,7 +23,7 @@ class LedgerAmount: public x
         bool is_credit;
     public:
         LedgerAmount(){}
-        // Setters
+        LedgerAmount(int _id, std::string _name, int _debit_account_id, int _cashier_id, int _credit_account_id, int _customer_id, int _loan_id, int _installment_id, int _merchant_id, int _bond_id, int _latefee_id, int _leg_id, int _entry_id, float _amount, int _account_id, bool _is_credit);
         void setId(int id) {this->id = id; }
         void setName(string name) { this->name = name; }
         void setDebitAccountId(int debit_account_id) { this->debit_account_id = debit_account_id; }
@@ -137,23 +124,12 @@ class LedgerCompositLeg
 {
     private:
         int leg_id;
-        std::pair <LedgerAmount,LedgerAmount> leg;
+        // std::pair <ledger_amount_primitive_orm,ledger_amount_primitive_orm> leg;
     public:
         LedgerCompositLeg(){}
         void setAmount (float _amount);
+        bool build(TemplateLeg _template, LedgerAmount _ledger_amount);
         std::pair <ledger_amount_primitive_orm *,ledger_amount_primitive_orm *> getLedgerCompositeLeg ();
-
-        void build (TemplateLeg * template_leg, json leg_json)
-        {
-                LedgerAmount debit;
-                LedgerAmount credit;
-
-                // some code to build credit debit
-
-                leg.first = debit;
-                leg.second = credit;
-
-        }
         ~LedgerCompositLeg(){}
 
 };
@@ -161,17 +137,17 @@ class LedgerCompositLeg
 class BlnkTemplateManager {
     private:
         json template_json;
-        json entry_json;
-        vector <TemplateLeg> template_legs;
-        map <int,LedgerCompositLeg> ledger_amounts;
+        map<string, LedgerAmount> entry_data;
+        map <string , TemplateLeg> template_legs;
+        map <string,LedgerCompositLeg> ledger_amounts;
         vector <PSQLAbstractORM *> entry_orms;
-        void buildLegs();
+        bool buildLegs();
         void loadTemplate (int template_id);
         bool validate ();
     public:
-        BlnkTemplateManager(int template_id, json entry_json);
+        BlnkTemplateManager(int template_id, map <string, LedgerAmount> _entry_json);
         TemplateLeg getTemplateLegByName(string name);
-        bool buildEntry (json temp_amount_json);
+        bool buildEntry (int template_id);
         ~BlnkTemplateManager();
 
 };
