@@ -436,7 +436,8 @@ void PSQLPrimitiveORMGenerator::generateResolveReferences(string class_name,stri
         if ( db_field_name != primary_key && ! json_flag && !string_flag )
         {
             extra_methods += "\t\t\tif(reference_values.find(\""+db_field_name+"\") != reference_values.end())\n ";
-            extra_methods += "\t\t\t\t "+orm_field_name+" = reference_values[\""+db_field_name+"\"];\n";
+            extra_methods += "\t\t\t\tset_"+db_field_name+"( reference_values[\""+db_field_name+"\"]);\n";
+
         }
      }
     extra_methods += "\t\t}\n";
@@ -572,9 +573,9 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
         extra_methods += "\t\t\t\tif (_psqlConnection == NULL )\n";
         extra_methods += "\t\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
         extra_methods += "\t\t\t\tupdate_flag.reset();\n";
-        extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
-    }
-    else extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
+    } 
+    extra_methods += "\t\t\tinserted = true;\n ";
+    extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
     extra_methods += "\t\t}\n";
 }
 

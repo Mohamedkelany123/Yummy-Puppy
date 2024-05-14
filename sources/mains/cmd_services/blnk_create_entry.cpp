@@ -9,7 +9,7 @@
 int main (int argc, char ** argv)
 {
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","postgres","8ZozYD6DhNJgW7a");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -19,7 +19,7 @@ int main (int argc, char ** argv)
     psqlController.setORMCacheThreads(threadsCount);
     
     // json entry_json = { {"Booking new loan - short term; and", { {"amount" ,2000.00}, {"loan_id", 133416}, {"customer_id", 359786}, {"cashier_id", 126935}, {"merchant_id", 2} }} };
-    LedgerAmount demo(1, 101, 201, 301, 401, 501, 601, 701, 801, 901, 1001, 1101, 1201.50, 1301, true);
+    LedgerAmount demo(1, 101, 233, 301, 401, 501, 601, 2, 801, 901, 1001, 1101, 1201.50, 1301, true);
     std::map<std::string, LedgerAmount> temp;
     temp["Booking new loan - short term; and"] = demo;
 

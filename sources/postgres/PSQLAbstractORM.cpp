@@ -8,7 +8,7 @@ PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,s
     identifier_name = _identifier_name;
     loaded = false;
     locking_thread = "";
-    inserted = true;
+    inserted = false; 
     // psqlConnection = new PSQLConnection ("localhost",5432,"django_ostaz_15082023_old","postgres","postgres");
     // psqlQuery = NULL;
     // map<string, vector<string>> results  = psqlQuery->getResultAsString();
@@ -82,7 +82,12 @@ void PSQLAbstractORM::setRefernce (string field_name,PSQLAbstractORM * reference
 void PSQLAbstractORM::commitReferences ()
 {
     for (auto& ref : this->references) 
-        reference_values[ref.first] = ref.second->insert ();
+    {
+        cout << "3aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" <<endl;
+        int entry_id = ref.second->insert();
+        cout << entry_id <<endl;
+        reference_values[ref.first] = entry_id;
+    }
 }
 
 PSQLAbstractORM::~PSQLAbstractORM()

@@ -12,6 +12,7 @@ class LedgerCompositLeg
     private:
         int leg_id;
         std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*> leg;
+        int bond_id; 
     public:
         LedgerCompositLeg(){}
         void setAmount (float _amount);

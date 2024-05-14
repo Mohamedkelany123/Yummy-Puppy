@@ -3,26 +3,27 @@
 void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_amount_primitive_orm * leg_side, bool is_debit)
 {
         leg_side->set_leg_temple_id(template_leg->getId());
-       
+        leg_side->set_currency_id(1);
+        leg_side->set_reversal_bool(0);
         if (is_debit){
                 leg_side->set_account_id(template_leg->getDebitAccountId());
                 leg_side->set_amount(-entry_data->getAmount());
+                leg_side->set_amount_local(-entry_data->getAmount());
 
                 if(template_leg->getBondIdRequired() &&  template_leg->getDebitBondIdRequired() && entry_data->getInstallmentId() != 0 ){
-                       int _bond_id = getBondId(entry_data->getInstallmentId());
-                       if (_bond_id != 0){
-                        leg_side->set_bond_id(_bond_id);
+                if (this->bond_id != 0){
+                        leg_side->set_bond_id(this->bond_id);
                        }
-                        cout << "bond-id " << _bond_id  << endl;
                 }
-         } else{
+                cout << "bond-id ::->" << bond_id  << endl;
+        } else{
                 
                 leg_side->set_account_id(template_leg->getCreditAccountId());
                 leg_side->set_amount(entry_data->getAmount());
+                leg_side->set_amount_local(entry_data->getAmount());
                 if(template_leg->getBondIdRequired() &&  template_leg->getCreditBondIdRequired() && entry_data->getInstallmentId() != 0 ){
-                       int _bond_id = getBondId(entry_data->getInstallmentId());
-                       if (_bond_id != 0){
-                        leg_side->set_bond_id(_bond_id);
+                if (this->bond_id != 0){
+                        leg_side->set_bond_id(this->bond_id);
                        }
                 }
         }
@@ -114,12 +115,13 @@ bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry
         }
         
         // Some code to build credit debit
+        this->bond_id =  getBondId(entry_data->getInstallmentId());
         buildLeg (template_leg, entry_data,debit, true);
         buildLeg (template_leg, entry_data,credit, false);
         leg.first = debit;
         leg.second = credit;
-        debit.insert();
-        credit.insert();
+        debit->insert();
+        credit->insert();
 
         return true;
 
@@ -131,19 +133,18 @@ int LedgerCompositLeg::getBondId (int installment_id)
 
 {
         tms_app_bond_primitive_orm_iterator * _tms_app_bond_primitive_orm_iterator = new tms_app_bond_primitive_orm_iterator ("main");
-
-       
         _tms_app_bond_primitive_orm_iterator->execute();
         
         vector<int> bond_ids;
+        int x = _tms_app_bond_primitive_orm_iterator->getRowCount();
 
-        for (int i=0 ; i<_tms_app_bond_primitive_orm_iterator->getRowCount();i++){
-                tms_app_bond_primitive_orm * bond = _tms_app_bond_primitive_orm_iterator->next();
+        tms_app_bond_primitive_orm * bond = _tms_app_bond_primitive_orm_iterator->next();
+        while(bond != nullptr){
                 int _bond = bond->get_fundingfacility_ptr_id();
                 bond_ids.push_back(_bond);
+                bond = _tms_app_bond_primitive_orm_iterator->next();
         }
-       
-        
+        delete(bond);
 
 
 
