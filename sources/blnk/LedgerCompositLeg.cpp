@@ -99,30 +99,23 @@ void LedgerCompositLeg::validateEntry(TemplateLeg * template_leg,  LedgerAmount 
 }
 bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data)
 {
-// bool latefee_id_required;
-
+        // bool latefee_id_required;
         ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm("main");
         ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm("main");
-        // try{
+        try{
                 validateEntry(template_leg, entry_data);
-     
-        // }
-        // catch ()
-        // {
-
-
-        // }
+        }
+        catch (const std::invalid_argument& e) {
+                std::cerr << "Validation error: " << e.what() << std::endl;
+                return false;
+        }
         
+        // Some code to build credit debit
         buildLeg (template_leg, entry_data,debit, true);
         buildLeg (template_leg, entry_data,credit, false);
-
-
-        
-
-        // some code to build credit debit
-
         leg.first = debit;
         leg.second = credit;
+
         return true;
 
 }
@@ -143,7 +136,6 @@ int LedgerCompositLeg::getBondId (int installment_id)
                 tms_app_bond_primitive_orm * bond = _tms_app_bond_primitive_orm_iterator->next();
                 int _bond = bond->get_fundingfacility_ptr_id();
                 bond_ids.push_back(_bond);
-
         }
        
         

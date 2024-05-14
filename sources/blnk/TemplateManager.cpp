@@ -54,20 +54,20 @@ bool BlnkTemplateManager::buildLegs()
         template_legs[template_leg.getName()] = template_leg; 
     }
    
-    for (const auto& entry : this->entry_data) {
+    for (auto& entry : this->entry_data) {
         if (this->entry_data.empty()) {
             cout << "entry_data is empty!" << endl;
             break;
         }
-        const string leg_name = entry.first;     
-        const LedgerAmount* entry_values = &entry.second; 
+        string leg_name = entry.first;     
+        LedgerAmount * entry_values = &entry.second; 
+        // LedgerAmount* pntrAmount= const_cast< LedgerAmount*>(entry_values);
 
         cout << "Leg Name:" << leg_name << endl;
 
-        LedgerCompositLeg lc;
-        LedgerAmount* pntrAmount= const_cast< LedgerAmount*>(entry_values);
         
-        bool is_built = lc.build(&template_legs[leg_name],  pntrAmount);
+        LedgerCompositLeg lc;
+        bool is_built = lc.build(&template_legs[leg_name],  entry_values);
 
         if(!is_built){
             return false;
@@ -85,7 +85,7 @@ bool BlnkTemplateManager::buildEntry (int template_id, BDate entry_date)
 {
     this->loadTemplate(template_id);
     bool is_built = this->buildLegs();
-    createEntry (template_id, entry_date);
+    this->createEntry(template_id, entry_date);
     return is_built;
 }
 int BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
@@ -96,9 +96,6 @@ int BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
     _ledger_entry_primitive_orm->set_month_code(1);
 
     return 0;
-
-
-
 }
 
 BlnkTemplateManager::~BlnkTemplateManager()
