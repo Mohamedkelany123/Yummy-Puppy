@@ -38,6 +38,7 @@ bool BlnkTemplateManager::buildLegs()
 
         }}
         TemplateLeg  template_leg;
+        //TODO:: Reiterate To make sure if we need to add any conditions for variable to check if available or not.
         template_leg.setCashierIdRequired(leg["cashier_id"]);
         template_leg.setCreditAvailableIds(leg["credit_available_ids"]);
         
