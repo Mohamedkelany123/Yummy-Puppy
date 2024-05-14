@@ -4,6 +4,7 @@
 #include<TemplateLeg.h>
 #include<tms_app_loaninstallmentfundingrequest_primitive_orm.h>
 #include<tms_app_bond_primitive_orm.h>
+#include<ledger_entry_primitive_orm.h>
 
 
 class LedgerCompositLeg
@@ -14,7 +15,7 @@ class LedgerCompositLeg
     public:
         LedgerCompositLeg(){}
         void setAmount (float _amount);
-        bool build(TemplateLeg * _template,  LedgerAmount * _ledger_amount);
+        bool build(TemplateLeg * _template,  LedgerAmount * _ledger_amount,ledger_entry_primitive_orm * entry);
         void buildLeg(TemplateLeg * _template,  LedgerAmount * _ledger_amount, ledger_amount_primitive_orm * _leg_side, bool _is_debit);
         void validateEntry(TemplateLeg * _template,  LedgerAmount * _ledger_amount); 
         int getBondId(int _installment_id);

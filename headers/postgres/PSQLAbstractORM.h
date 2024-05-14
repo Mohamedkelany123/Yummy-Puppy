@@ -18,6 +18,9 @@ class PSQLAbstractORM
         map <string,pair<string,bool>> update_default_values;
         string data_source_name;
         bool orm_transactional;
+        map <string, PSQLAbstractORM *> references;
+        map <string, int > reference_values;
+        bool inserted;
 
     public:
         virtual string getFromString () = 0;
@@ -32,9 +35,15 @@ class PSQLAbstractORM
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
         PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional);
         virtual PSQLAbstractORM * clone ()=0;
+		virtual string serialize (PSQLConnection * _psqlConnection=NULL)=0;
+		virtual void deSerialize (json orm_json,bool _read_only = false)=0;
+	    virtual void resolveReferences ()=0;
         virtual void lock_me();
         virtual void unlock_me(bool restrict_to_owner = false);        
         bool isOrmTransactional();
+        void setRefernce (string field_name,PSQLAbstractORM * reference);
+        void commitReferences ();
+
         virtual ~PSQLAbstractORM();
 };
 
@@ -59,6 +68,9 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
         void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) {}
         bool update(PSQLConnection * _psqlConnection=NULL) { return false;}
         long insert(PSQLConnection * _psqlConnection=NULL) { return -1;}
+		string serialize (PSQLConnection * _psqlConnection=NULL) { return "";}
+		void deSerialize (json orm_json,bool _read_only = false){}
+	    void resolveReferences () {}
         long getIdentifier() {return -1;};
         bool isUpdated() {return false;};
         PSQLAbstractORM * clone () { return NULL;}

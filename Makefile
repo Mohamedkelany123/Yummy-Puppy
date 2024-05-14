@@ -101,15 +101,14 @@ OBJS_POSTGRES_COLUMN_TYPES = $(patsubst $(SOURCES)/postgres/column_types/%.cpp, 
 
 
 
+$(OBJECTS_CMD_MAIN)/%.cpp.o: $(SOURCES)/mains/cmd_services/%.cpp
+	$(GCC) $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
 
-$(OBJECTS)/%.cpp.o: $(SOURCES)/%.cpp
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
+$(OBJECTS)/%.cpp.o: $(DB_PRIMITIVE_ORM_SOURCES)/%.cpp
+	$(GCC) -D SKIP_ENTRY_POINT $(GCC_FLAGS) $(INCLUDES) $< -o $@
 
 $(OBJECTS_MAIN)/%.cpp.o: $(SOURCES)/mains/%.cpp
 	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
-
-$(OBJECTS_CMD_MAIN)/%.cpp.o: $(SOURCES)/mains/cmd_services/%.cpp
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
 
 $(OBJECTS)/%.cpp.o: $(SOURCES)/abstract/%.cpp
 	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
@@ -118,14 +117,14 @@ $(OBJECTS)/%.cpp.o: $(SOURCES)/postgres/%.cpp
 	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
 
 $(OBJECTS)/%.cpp.o: $(SOURCES)/blnk/%.cpp
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
-
-
-$(OBJECTS)/%.cpp.o: $(DB_PRIMITIVE_ORM_SOURCES)/%.cpp
-	$(GCC) -D SKIP_ENTRY_POINT $(GCC_FLAGS) $(INCLUDES) $< -o $@
+	$(GCC)  $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
 
 $(OBJECTS)/%.cpp.o: $(SOURCES)/postgres/column_types/%.cpp
 	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
+
+$(OBJECTS)/%.cpp.o: $(SOURCES)/%.cpp
+	$(GCC) $(GCC_FLAGS) $(INCLUDES) $< -o $@
+
 
 # $(ORM_C_PLUS_PLUS): $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(ORM_C_PLUS_PLUS_OBJ)
 # 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(ORM_C_PLUS_PLUS_OBJ) -o $(ORM_C_PLUS_PLUS) $(LINKER_FLAGS) 

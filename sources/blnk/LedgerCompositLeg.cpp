@@ -13,7 +13,7 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
                        if (_bond_id != 0){
                         leg_side->set_bond_id(_bond_id);
                        }
-                        cout << "bond-id "+ _bond_id  << endl;
+                        cout << "bond-id " << _bond_id  << endl;
                 }
          } else{
                 
@@ -97,11 +97,14 @@ void LedgerCompositLeg::validateEntry(TemplateLeg * template_leg,  LedgerAmount 
         }
 
 }
-bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data)
+bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_entry_primitive_orm * entry)
 {
         // bool latefee_id_required;
         ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm("main");
         ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm("main");
+        debit->setRefernce("entry_id",entry);
+        credit->setRefernce("entry_id",entry);
+        
         try{
                 validateEntry(template_leg, entry_data);
         }

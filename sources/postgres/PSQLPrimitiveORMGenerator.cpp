@@ -250,6 +250,7 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string 
         }
     }
     extra_methods += "\t\t\tloaded=true;\n";
+    extra_methods += "\t\t\tinserted=true;\n";
     extra_methods += "\t\t\tif (!_read_only) addToCache();\n";
     extra_methods += "\t\t}\n";
 }
@@ -414,6 +415,33 @@ void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name)
     extra_methods += "\t\t}\n";
 }
 
+
+void PSQLPrimitiveORMGenerator::generateResolveReferences(string class_name,string table_name,map<string, vector<string>> columns_definition)
+{
+    extra_methods_def += "\t\tvoid resolveReferences ();\n";
+    extra_methods += "\t\tvoid "+class_name+"::resolveReferences (){\n";
+
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        string db_field_name = columns_definition["column_name"][i];
+        string orm_field_name = "orm_"+columns_definition["column_name"][i];
+        bool string_flag = false;
+        for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
+            if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
+
+        bool json_flag = false;
+        for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
+            if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
+
+        if ( db_field_name != primary_key && ! json_flag && !string_flag )
+        {
+            extra_methods += "\t\t\tif(reference_values.find(\""+db_field_name+"\") != reference_values.end())\n ";
+            extra_methods += "\t\t\t\t "+orm_field_name+" = reference_values[\""+db_field_name+"\"];\n";
+        }
+     }
+    extra_methods += "\t\t}\n";
+}
+
 void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
 
@@ -479,6 +507,10 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
 
     extra_methods_def += "\t\tlong insert (PSQLConnection * _psqlConnection=NULL);\n";
     extra_methods += "\t\tlong "+class_name+"::insert (PSQLConnection * _psqlConnection){\n";
+
+    extra_methods += "\t\t\t if (inserted) return orm_"+primary_key+";\n";
+
+    extra_methods += "\t\t\tcommitReferences();\n";
     extra_methods += "\t\t\tstring insert_string = \"\";\n";
     string columns_string = "";
     string values_string = "";
@@ -575,6 +607,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         generateEqualToOperator(class_name,table_name,results);
         generateAddToCache(class_name);
         generateIsUpdated(class_name);
+        generateResolveReferences(class_name,table_name,results);
         snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,
         class_name_upper.c_str(),class_name_upper.c_str(),includes.c_str(),
         class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),
