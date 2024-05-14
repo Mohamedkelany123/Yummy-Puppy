@@ -60,7 +60,7 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
         }
 
 
-       
+        cout << leg_side->serialize() << endl;
         cout << leg_side->get_amount()  << endl;
 
 }

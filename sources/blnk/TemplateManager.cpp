@@ -59,7 +59,7 @@ bool BlnkTemplateManager::buildLegs()
             cout << "entry_data is empty!" << endl;
             break;
         }
-        const std::string& leg_name = entry.first;     
+        const string leg_name = entry.first;     
         const LedgerAmount* entry_values = &entry.second; 
 
         cout << "Leg Name:" << leg_name << endl;
