@@ -20,7 +20,7 @@ class BlnkTemplateManager {
         BlnkTemplateManager(int template_id, map <string, LedgerAmount> _entry_json, BDate _entry_date);
         TemplateLeg getTemplateLegByName(string name);
         bool buildEntry (int template_id, BDate _entry_date);
-        int createEntry(int _template_id, BDate _entry_date);
+        void createEntry(int _template_id, BDate _entry_date);
 
         ~BlnkTemplateManager();
 

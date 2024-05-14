@@ -88,13 +88,13 @@ bool BlnkTemplateManager::buildEntry (int template_id, BDate entry_date)
     bool is_built = this->buildLegs();
     return is_built;
 }
-int BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
+void BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
 {
     entry  = new ledger_entry_primitive_orm("main");
     entry->set_entry_date(entry_date.getDateString());
     entry->set_template_id(template_id);
     entry->set_month_code(1);
-    return 0;
+    cout << entry->serialize() << endl;
 }
 
 BlnkTemplateManager::~BlnkTemplateManager()

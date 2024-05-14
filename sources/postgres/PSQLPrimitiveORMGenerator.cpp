@@ -511,6 +511,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
     extra_methods += "\t\t\t if (inserted) return orm_"+primary_key+";\n";
 
     extra_methods += "\t\t\tcommitReferences();\n";
+    extra_methods += "\t\t\tresolveReferences();\n";
     extra_methods += "\t\t\tstring insert_string = \"\";\n";
     string columns_string = "";
     string values_string = "";
