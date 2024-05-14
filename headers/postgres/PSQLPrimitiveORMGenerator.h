@@ -53,6 +53,9 @@ class PSQLPrimitiveORMGenerator
         void generateCloner(string class_name);
         void generateUpdateQuery(string class_name,string table_name,map<string, vector<string>> columns_definition);
         void generateInsertQuery(string class_name,string table_name,map<string, vector<string>> columns_definition);
+        void generateSerializer(string class_name,string table_name,map<string, vector<string>> columns_definition);
+        void generateDeserializer(string class_name,string table_name,map<string, vector<string>> columns_definition);
+        void generateEqualToOperator(string class_name,string table_name,map<string, vector<string>> columns_definition);
         void fetch_templates();
         void write_headers_and_sources(string class_name);
     public:

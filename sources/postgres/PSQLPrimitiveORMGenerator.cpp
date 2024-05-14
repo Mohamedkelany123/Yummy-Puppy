@@ -1,5 +1,108 @@
 #include <PSQLPrimitiveORMGenerator.h>
 
+
+
+void PSQLPrimitiveORMGenerator::generateSerializer(string class_name,string table_name,map<string, vector<string>> columns_definition)
+{
+    extra_methods_def += "\t\tstring serialize (PSQLConnection * _psqlConnection=NULL);\n";
+    extra_methods += "\t\tstring "+class_name+"::serialize (PSQLConnection * _psqlConnection){\n";
+    extra_methods += "\t\t\tstring serialize_string = \"\\\""+class_name+"\\\":{\";\n";
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+            string orm_field_name = "orm_"+columns_definition["column_name"][i];
+
+            bool string_flag = false;
+            for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
+                if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
+
+
+            bool bool_flag = false;
+            for ( int j = 0 ; PSQLBool::get_native_type(j) != "" ; j ++)
+                if ( PSQLBool::get_native_type(j) == columns_definition["udt_name"][i]) bool_flag=true;
+
+            bool json_flag = false;
+            for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
+                if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
+
+            if (string_flag )
+                extra_methods += "\t\t\tserialize_string += \"\\\""+orm_field_name+"\\\":\\\"\" +"+orm_field_name+"+\"\\\"\";\n";
+            else if (json_flag )
+                extra_methods += "\t\t\tserialize_string += \"\\\""+orm_field_name+"\\\":\" +"+orm_field_name+".dump();\n";
+            else if (bool_flag )
+            {
+                extra_methods += "\t\t\tif ("+orm_field_name+") serialize_string += \"\\\""+orm_field_name+"\\\": true\"; else serialize_string += \"\\\""+orm_field_name+"\\\": false\";\n";
+            }
+            else extra_methods += "\t\t\tserialize_string += \"\\\""+orm_field_name+"\\\":\" +std::to_string("+orm_field_name+");\n";
+
+            if ( i < columns_definition["column_name"].size() -1)
+                extra_methods += "\t\t\tserialize_string += \",\";\n";
+            extra_methods += "\t\t\tserialize_string += \"\\n\";\n";
+    }
+
+    extra_methods += "\t\t\tserialize_string += \"}\";\n";    
+    extra_methods += "\t\t\t\treturn serialize_string;\n";
+    extra_methods += "\t\t}\n";
+
+}
+
+void PSQLPrimitiveORMGenerator::generateDeserializer(string class_name,string table_name,map<string, vector<string>> columns_definition)
+{
+
+    extra_methods_def += "\t\tvoid deSerialize (json orm_json,bool _read_only = false);\n";
+    extra_methods += "\t\tvoid "+class_name+"::deSerialize (json orm_json,bool _read_only){\n";
+    // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        string orm_field_name = "orm_"+columns_definition["column_name"][i];
+        bool string_flag = false;
+        for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
+            if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
+
+        bool json_flag = false;
+        for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
+            if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
+
+        if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
+            AbstractDatabaseColumn * abstractDatabaseColumn = databaseColumnFactory[columns_definition["udt_name"][i]]->clone(columns_definition["column_name"][i]);
+            extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
+                extra_methods += " = orm_json[\""+orm_field_name+"\"];\n";
+            // else extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("std::to_string(orm_json[\""+orm_field_name+"\"])")+ ";\n";
+//            else extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getValue(\"" +table_name+"_"+ columns_definition["column_name"][i]+"\")")+ ";\n";
+            delete(abstractDatabaseColumn);
+        }
+    }
+    extra_methods += "\t\t\tloaded=true;\n";
+    extra_methods += "\t\t\tif (!_read_only) addToCache();\n";
+    extra_methods += "\t\t}\n";
+}
+
+void PSQLPrimitiveORMGenerator::generateEqualToOperator(string class_name,string table_name,map<string, vector<string>> columns_definition)
+{
+    extra_methods_def += "\t\tbool operator == ("+class_name+" & "+class_name+"_object );\n";
+    extra_methods += "\t\tbool "+class_name+"::operator == ("+class_name+" & "+class_name+"_object ){\n";
+    // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        bool string_flag = false;
+        for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
+            if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
+
+        bool json_flag = false;
+        for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
+            if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
+
+        string orm_field_name = "orm_"+columns_definition["column_name"][i];
+
+        if (!string_flag && !json_flag)
+            extra_methods += "\t\t\tif (!(std::to_string(this->"+orm_field_name+") == std::to_string("+class_name+"_object."+orm_field_name+") )) {cout << \""+orm_field_name+"\" << endl; return false;}\n";
+        else extra_methods += "\t\t\tif (!(this->"+orm_field_name+" == "+class_name+"_object."+orm_field_name+" )) {cout << \""+orm_field_name+"\" << endl; return false;}\n";
+    }
+    extra_methods += "\t\t\treturn true; \n";
+    extra_methods += "\t\t}\n";
+
+}
+
+
 void PSQLPrimitiveORMGenerator::fetch_templates()
 {
     FILE * f = fopen (TEMPLATE_H_FILENAME,"rt");
@@ -467,6 +570,9 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         generateConstructorAndDestructor(class_name,table_name);
         generateUpdateQuery(class_name,table_name,results);
         generateInsertQuery(class_name,table_name,results);
+        generateSerializer(class_name,table_name,results);
+        generateDeserializer(class_name,table_name,results);
+        generateEqualToOperator(class_name,table_name,results);
         generateAddToCache(class_name);
         generateIsUpdated(class_name);
         snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,
