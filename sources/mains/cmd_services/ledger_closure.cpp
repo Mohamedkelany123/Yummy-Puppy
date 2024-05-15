@@ -129,7 +129,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         OROperator (
             new UnaryOperator ("loan_app_loan.lms_closure_status",isnull,"",true),
             new ANDOperator (
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",lt,ledger_status::START),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",lt,ledger_status::LEDGER_START),
                     new UnaryOperator ("loan_app_loan.id",ne,"14312"),
                     new UnaryOperator ("loan_app_loan.lms_closure_status",eq,0),
                     isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
