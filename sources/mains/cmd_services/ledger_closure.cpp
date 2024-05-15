@@ -58,14 +58,14 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     BDate closure_date(closure_date_string);
 
 
-    // MOdioify this to reset ledger closure status
+    // Modify this to reset ledger closure status
     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator(
             new UnaryOperator ("loan_app_loan.id",ne,"14312"),
             isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
             isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
         ),
-        {{"lms_closure_status",to_string(0)}}
+        {{"closure_status",0}}
         );
     psqlUpdateQuery.update();   
 
