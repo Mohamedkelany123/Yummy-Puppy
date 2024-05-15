@@ -12,13 +12,13 @@ DisburseLoan::DisburseLoan(BlnkTemplateManager * _temp_manager, loan_app_install
 
 void DisburseLoan::generateFuncMap()
 {
-    funcMap["_calc_long_term_receivable_balance"] = DisburseLoan::_calc_long_term_receivable_balance;
-    funcMap["_calc_short_term_receivable_balance"] = DisburseLoan::_calc_short_term_receivable_balance;
-    funcMap["_calc_mer_t_bl_fee"] = DisburseLoan::_calc_mer_t_bl_fee;
-    funcMap["_calc_provision_percentage"] = DisburseLoan::_calc_provision_percentage;
-    funcMap["_calc_cashier_fee"] = DisburseLoan::_calc_cashier_fee;
-    funcMap["_calc_bl_t_mer_fee"] = DisburseLoan::_calc_bl_t_mer_fee;
-    funcMap["_calc_loan_upfront_fee"] = DisburseLoan::_calc_loan_upfront_fee;
+    // funcMap["_calc_long_term_receivable_balance"] = DisburseLoan::_calc_long_term_receivable_balance;
+    // funcMap["_calc_short_term_receivable_balance"] = DisburseLoan::_calc_short_term_receivable_balance;
+    // funcMap["_calc_mer_t_bl_fee"] = DisburseLoan::_calc_mer_t_bl_fee;
+    // funcMap["_calc_provision_percentage"] = DisburseLoan::_calc_provision_percentage;
+    // funcMap["_calc_cashier_fee"] = DisburseLoan::_calc_cashier_fee;
+    // funcMap["_calc_bl_t_mer_fee"] = DisburseLoan::_calc_bl_t_mer_fee;
+    // funcMap["_calc_loan_upfront_fee"] = DisburseLoan::_calc_loan_upfront_fee;
 }
 
 DisburseLoan::~DisburseLoan(){}
@@ -61,56 +61,34 @@ void DisburseLoan::set_template_id(int _template_id)
     template_id = _template_id;
 }
 
-float get_provisions_percentage()
-{
-        //Query to return percentage from loan_app_provision
-        PSQLJoinQueryIterator * psqlQueryJoinProvisions = new PSQLJoinQueryIterator ("main",
-        {new loan_app_loanstatus_primitive_orm("main"),new loan_app_provision_primitive_orm("main")},
-        {{{"loan_app_loanstatus","id"},{"loan_app_provision","status_id"}}});
-
-        psqlQueryJoinProvisions->filter(
-            UnaryOperator ("loan_app_loanstatus.name",eq,"CURRENT")
-        );
-
-        psqlQueryJoinProvisions->execute();
-        map <string,PSQLAbstractORM *> * orms =  psqlQueryJoinProvisions->next();
-        if (orms == nullptr){
-            throw std::runtime_error( "Query Returns Null");
-        }
-        loan_app_provision_primitive_orm * lap_orm = ORM(loan_app_provision,orms);
-        float percentage = lap_orm->get_percentage();
-        // cout << "PERCENTAGE: " << percentage << endl;
-
-        return percentage;
-}
 
 
 
-LedgerAmount DisburseLoan::_calc_short_term_receivable_balance(DisburseLoan *disburseLoan)
-{
-    return LedgerAmount();
-}
-LedgerAmount DisburseLoan::_calc_mer_t_bl_fee(DisburseLoan *disburseLoan)
-{
-    return LedgerAmount();
-}
-LedgerAmount DisburseLoan::_calc_provision_percentage(DisburseLoan *disburseLoan)
-{
-    return LedgerAmount();
-}
-LedgerAmount DisburseLoan::_calc_cashier_fee(DisburseLoan *disburseLoan)
-{
-    return LedgerAmount();
-}
-LedgerAmount DisburseLoan::_calc_bl_t_mer_fee(DisburseLoan *disburseLoan)
-{
-    return LedgerAmount();
-}
-LedgerAmount DisburseLoan::_calc_loan_upfront_fee(DisburseLoan *disburseLoan)
-{
-    return LedgerAmount();
-}
-LedgerAmount DisburseLoan::_calc_long_term_receivable_balance(DisburseLoan *disburseLoan)
-{
-    return LedgerAmount();
-}
+// LedgerAmount DisburseLoan::_calc_short_term_receivable_balance(DisburseLoan *disburseLoan)
+// {
+//     return LedgerAmount();
+// }
+// LedgerAmount DisburseLoan::_calc_mer_t_bl_fee(DisburseLoan *disburseLoan)
+// {
+//     return LedgerAmount();
+// }
+// LedgerAmount DisburseLoan::_calc_provision_percentage(DisburseLoan *disburseLoan)
+// {
+//     return LedgerAmount();
+// }
+// LedgerAmount DisburseLoan::_calc_cashier_fee(DisburseLoan *disburseLoan)
+// {
+//     return LedgerAmount();
+// }
+// LedgerAmount DisburseLoan::_calc_bl_t_mer_fee(DisburseLoan *disburseLoan)
+// {
+//     return LedgerAmount();
+// }
+// LedgerAmount DisburseLoan::_calc_loan_upfront_fee(DisburseLoan *disburseLoan)
+// {
+//     return LedgerAmount();
+// }
+// LedgerAmount DisburseLoan::_calc_long_term_receivable_balance(DisburseLoan *disburseLoan)
+// {
+//     return LedgerAmount();
+// }

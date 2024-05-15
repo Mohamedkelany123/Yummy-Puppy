@@ -6,7 +6,7 @@
 #include <TemplateManager.h>
 
 
-typedef LedgerAmount (*funcPtr)(DisburseLoan*);
+// typedef LedgerAmount (*funcPtr)(DisburseLoan*);
 
 
 class DisburseLoan
@@ -24,7 +24,7 @@ class DisburseLoan
 
 
     public:
-        map<string, funcPtr> funcMap;
+        // map<string, funcPtr> funcMap;
         DisburseLoan(BlnkTemplateManager *, loan_app_installment_primitive_orm *, new_lms_installmentextension_primitive_orm *,loan_app_loan_primitive_orm *);
 
         void generateFuncMap();
@@ -44,14 +44,14 @@ class DisburseLoan
         int get_template_id();
 
 
-        //static methods
-        static LedgerAmount _calc_short_term_receivable_balance(DisburseLoan *disburseLoan);
-        static LedgerAmount _calc_mer_t_bl_fee(DisburseLoan *disburseLoan);
-        static LedgerAmount _calc_provision_percentage(DisburseLoan *disburseLoan);
-        static LedgerAmount _calc_cashier_fee(DisburseLoan *disburseLoan);
-        static LedgerAmount _calc_bl_t_mer_fee(DisburseLoan *disburseLoan);
-        static LedgerAmount _calc_loan_upfront_fee(DisburseLoan *disburseLoan);
-        static LedgerAmount _calc_long_term_receivable_balance(DisburseLoan *disburseLoan);
+        // //static methods
+        // static LedgerAmount _calc_short_term_receivable_balance(DisburseLoan *disburseLoan);
+        // static LedgerAmount _calc_mer_t_bl_fee(DisburseLoan *disburseLoan);
+        // static LedgerAmount _calc_provision_percentage(DisburseLoan *disburseLoan);
+        // static LedgerAmount _calc_cashier_fee(DisburseLoan *disburseLoan);
+        // static LedgerAmount _calc_bl_t_mer_fee(DisburseLoan *disburseLoan);
+        // static LedgerAmount _calc_loan_upfront_fee(DisburseLoan *disburseLoan);
+        // static LedgerAmount _calc_long_term_receivable_balance(DisburseLoan *disburseLoan);
 
 
         
@@ -69,4 +69,28 @@ class DisburseLoanCalculator {
         
 };
 
-float get_provisions_percentage();
+// float get_provisions_percentage();
+
+
+// float get_provisions_percentage()
+// {
+//         //Query to return percentage from loan_app_provision
+//         PSQLJoinQueryIterator * psqlQueryJoinProvisions = new PSQLJoinQueryIterator ("main",
+//         {new loan_app_loanstatus_primitive_orm("main"),new loan_app_provision_primitive_orm("main")},
+//         {{{"loan_app_loanstatus","id"},{"loan_app_provision","status_id"}}});
+
+//         psqlQueryJoinProvisions->filter(
+//             UnaryOperator ("loan_app_loanstatus.name",eq,"CURRENT")
+//         );
+
+//         psqlQueryJoinProvisions->execute();
+//         map <string,PSQLAbstractORM *> * orms =  psqlQueryJoinProvisions->next();
+//         if (orms == nullptr){
+//             throw std::runtime_error( "Query Returns Null");
+//         }
+//         loan_app_provision_primitive_orm * lap_orm = ORM(loan_app_provision,orms);
+//         float percentage = lap_orm->get_percentage();
+//         // cout << "PERCENTAGE: " << percentage << endl;
+
+//         return percentage;
+// }

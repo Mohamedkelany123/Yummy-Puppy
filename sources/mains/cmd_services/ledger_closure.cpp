@@ -14,7 +14,7 @@
 #include <loan_app_provision_primitive_orm.h>
 #include <loan_app_loanproduct_primitive_orm.h>
 // #include <loan_app_loanstatus_primitive_orm.h>
-#include <DiburseLoans.h>
+#include <DisburseLoans.h>
 
 
 
@@ -107,7 +107,7 @@ if ( strcmp (step,"disburse_loan") == 0 || strcmp (step,"full_closure") == 0 )
 
 
          
-        float percentage = get_provisions_percentage();
+        float percentage = 1 ;// get_provisions_percentage();
 
         psqlQueryJoin->process (threadsCount,[percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
                 cout << "INsidee processsssssss" << endl;
