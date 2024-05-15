@@ -15,6 +15,7 @@ string PSQLText::get_native_type(int index)
     else if ( index == 3 ) return "uuid";
     else if ( index == 4 ) return "date";
     else if ( index == 5 ) return "timestamptz";
+    else if ( index == 6 ) return "int4range";
     else return "";
 }
 

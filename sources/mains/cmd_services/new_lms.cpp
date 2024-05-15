@@ -127,6 +127,7 @@ int main (int argc, char ** argv) {
     }
 
     bool isLoanSpecific = argc >= 12; 
+    //TODO: Change char* to string
     char* loan_ids = "";
     if (isLoanSpecific) {
         loan_ids = argv[11];
@@ -1148,7 +1149,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         cout << "THREADTIME --> Wallet" << endl;
 
 
-        // TODO: change to new implementation when implemented
+        // TODO:     change to new implementation when implemented
         psqlQueryJoin->setDistinct("distinct phone_number as \"17_phone_number\", \"crm_app_customer\".\"id\" as \"17_id\"");
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();

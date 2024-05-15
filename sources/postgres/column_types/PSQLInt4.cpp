@@ -11,7 +11,7 @@ string PSQLInt4::get_native_type(int index)
 {
     if ( index == 0 ) return "int4";
     else if (index == 1) return "_int4";
-    else if (index == 2) return "int4range";
+    // else if (index == 2) return "int4range";
     else return "";
 }
 

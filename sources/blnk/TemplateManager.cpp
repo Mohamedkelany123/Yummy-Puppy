@@ -1,35 +1,18 @@
 #include <TemplateManager.h>
 
-BlnkTemplateManager::BlnkTemplateManager(int template_id, map<string, LedgerAmount> _entry_data, BDate entry_date)
+BlnkTemplateManager::BlnkTemplateManager(int template_id)
 {
-    entry_data = _entry_data;
-    this->buildEntry(template_id,entry_date );
+    loadTemplate(template_id);
+    constructTemplateLegs();
+    // buildLegs();
     entry = NULL;
 }
 
+map <string , TemplateLeg> BlnkTemplateManager::getTemplateLegs(){return template_legs;}
 
-void BlnkTemplateManager::loadTemplate (int template_id)
+void BlnkTemplateManager::constructTemplateLegs()
 {
-    lms_entrytemplate_primitive_orm_iterator * _lms_entrytemplate_primitive_orm_iterator = new lms_entrytemplate_primitive_orm_iterator("main");
-
-    _lms_entrytemplate_primitive_orm_iterator->filter(
-        UnaryOperator ("lms_entrytemplate.id",eq,template_id)
-    );
-
-    _lms_entrytemplate_primitive_orm_iterator->execute();
-
-    lms_entrytemplate_primitive_orm * temp = _lms_entrytemplate_primitive_orm_iterator->next();
-    json _template = temp->get_template();
-    this->template_json = _template;
-    cout << "TEMPLATE" << _template.dump();
-
-    delete(_lms_entrytemplate_primitive_orm_iterator);
-}
-
-
-bool BlnkTemplateManager::buildLegs()
-{
-    for (auto& leg : this->template_json["legs"]) { 
+     for (auto& leg : this->template_json["legs"]) { 
         if (leg["required"]){
             auto it = entry_data.find(leg["name"]);
 
@@ -68,19 +51,36 @@ bool BlnkTemplateManager::buildLegs()
 
         template_legs[template_leg.getName()] = template_leg; 
     }
-   
+}
+
+void BlnkTemplateManager::loadTemplate (int template_id)
+{
+    lms_entrytemplate_primitive_orm_iterator * _lms_entrytemplate_primitive_orm_iterator = new lms_entrytemplate_primitive_orm_iterator("main");
+
+    _lms_entrytemplate_primitive_orm_iterator->filter(
+        UnaryOperator ("lms_entrytemplate.id",eq,template_id)
+    );
+
+    _lms_entrytemplate_primitive_orm_iterator->execute();
+
+    lms_entrytemplate_primitive_orm * temp = _lms_entrytemplate_primitive_orm_iterator->next();
+    json _template = temp->get_template();
+    this->template_json = _template;
+    cout << "TEMPLATE" << _template.dump();
+
+    delete(_lms_entrytemplate_primitive_orm_iterator);
+}
+
+
+bool BlnkTemplateManager::buildLegs()
+{
     for (auto& ent : this->entry_data) {
-        // if (this->entry_data.empty()) {
-        //     cout << "entry_data is empty!" << endl;
-        //     break;
-        // }
+
         string leg_name = ent.first;     
         LedgerAmount * entry_values = &ent.second; 
-        // LedgerAmount* pntrAmount= const_cast< LedgerAmount*>(entry_values);
 
         cout << "Leg Name:" << leg_name << endl;
 
-        
         LedgerCompositLeg lc;
         bool is_built = lc.build(&template_legs[leg_name],  entry_values,entry);
 

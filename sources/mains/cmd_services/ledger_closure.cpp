@@ -4,13 +4,19 @@
 #include <string.h>
 #include <PSQLController.h>
 #include <PSQLUpdateQuery.h>
-#include <loan_app_loan_primitive_orm.h>
-#include <loan_app_installment_primitive_orm.h>
-#include <new_lms_installmentextension_primitive_orm.h>
+// #include <loan_app_loan_primitive_orm.h>
+// #include <loan_app_installment_primitive_orm.h>
+// #include <new_lms_installmentextension_primitive_orm.h>
 #include <crm_app_customer_primitive_orm.h>
 #include <new_lms_installmentlatefees_primitive_orm.h>
 #include <loan_app_loanstatushistroy_primitive_orm.h>
 #include <new_lms_installmentstatushistory_primitive_orm.h>
+#include <loan_app_provision_primitive_orm.h>
+#include <loan_app_loanproduct_primitive_orm.h>
+// #include <loan_app_loanstatus_primitive_orm.h>
+#include <DiburseLoans.h>
+
+
 
 
 //enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,MARGINALIZE_INCOME_STEP2,MARGINALIZE_INCOME_STEP3,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
@@ -65,28 +71,31 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
             isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
             isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
         ),
-        {{"closure_status",0}}
+        {{"closure_status",to_string(ledger_status::LEDGER_START)}}
         );
     psqlUpdateQuery.update();   
 
-    if ( strcmp (step,"dispburse_loan") == 0 || strcmp (step,"full_closure") == 0 )
+if ( strcmp (step,"disburse_loan") == 0 || strcmp (step,"full_closure") == 0 )
     {
 
         auto begin = std::chrono::high_resolution_clock::now();
 
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
-        {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+        {new loan_app_loan_primitive_orm("main"),new loan_app_loanproduct_primitive_orm("main")},
+        {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}});
 
 
+        // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
+        // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
 
+
+        
         psqlQueryJoin->filter(
             ANDOperator 
             (
-                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
-                new UnaryOperator ("new_lms_installmentextension.payment_status",eq,"5"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::UNDUE_TO_DUE-1)),
-                new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
+                new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
+                new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
                 isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
                 isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
             )
@@ -94,20 +103,19 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
         
-        cout << "THREADTIME --> undue_to_due" << endl;
+        cout << "THREADTIME --> disburse_loan" << endl;
 
-        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
 
-                // We will write the disburse loan loagic and we will call the template manager here to disburse the loan
+         
+        float percentage = get_provisions_percentage();
 
-                new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
+        psqlQueryJoin->process (threadsCount,[percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+                cout << "INsidee processsssssss" << endl;
                 loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
-                ieorm->set_payment_status(4);
-                new_lms_installmentpaymentstatushistory_primitive_orm * orm = new new_lms_installmentpaymentstatushistory_primitive_orm("main",true);
-                orm->set_day(ORM(loan_app_installment,orms)->get_day());
-                orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
-                orm->set_status(4); // 4
-                lal_orm->set_lms_closure_status(closure_status::UNDUE_TO_DUE);
+                cout << percentage << endl;
+                cout << lal_orm->get_id() << endl;
+
+
         });
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
@@ -147,5 +155,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
         printf("Total time-> %.3f seconds.\n", elapsed.count() * 1e-9);
     }
+
+    return 0;
 
 }

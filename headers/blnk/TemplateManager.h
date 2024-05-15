@@ -13,12 +13,15 @@ class BlnkTemplateManager {
         map <string,LedgerCompositLeg> ledger_amounts;
         vector <PSQLAbstractORM *> entry_orms;
         ledger_entry_primitive_orm * entry;
-        bool buildLegs();
+        void constructTemplateLegs(); 
         void loadTemplate (int _template_id);
+        bool buildLegs();
         bool validate ();
     public:
-        BlnkTemplateManager(int template_id, map <string, LedgerAmount> _entry_json, BDate _entry_date);
-        TemplateLeg getTemplateLegByName(string name);
+        BlnkTemplateManager(int template_id);
+        map <string , TemplateLeg> getTemplateLegs(); //return this->templatelegs
+
+
         bool buildEntry (int template_id, BDate _entry_date);
         void createEntry(int _template_id, BDate _entry_date);
 
