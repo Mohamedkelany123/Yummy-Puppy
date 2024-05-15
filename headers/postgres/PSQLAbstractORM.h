@@ -18,7 +18,8 @@ class PSQLAbstractORM
         map <string,pair<string,bool>> update_default_values;
         string data_source_name;
         bool orm_transactional;
-        map <string, PSQLAbstractORM *> references;
+        map <string, PSQLAbstractORM *> add_references;
+        map <string, PSQLAbstractORM *> update_references;
         map <string, int > reference_values;
         bool inserted;
 
@@ -41,8 +42,10 @@ class PSQLAbstractORM
         virtual void lock_me();
         virtual void unlock_me(bool restrict_to_owner = false);        
         bool isOrmTransactional();
-        void setRefernce (string field_name,PSQLAbstractORM * reference);
-        void commitReferences ();
+        void setAddRefernce (string field_name,PSQLAbstractORM * reference);
+        void setUpdateRefernce (string field_name,PSQLAbstractORM * reference);
+        void commitAddReferences ();
+        void commitUpdateReferences ();
 
         virtual ~PSQLAbstractORM();
 };

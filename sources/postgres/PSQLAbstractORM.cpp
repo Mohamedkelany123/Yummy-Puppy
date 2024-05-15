@@ -73,20 +73,35 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
     lock.unlock();
 }
 
-void PSQLAbstractORM::setRefernce (string field_name,PSQLAbstractORM * reference)
+void PSQLAbstractORM::setAddRefernce (string field_name,PSQLAbstractORM * reference)
 {
-    references[field_name] = reference;
+    add_references[field_name] = reference;
+}
+void PSQLAbstractORM::setUpdateRefernce (string field_name,PSQLAbstractORM * reference)
+{
+    update_references[field_name] = reference;
 }
 
 
-void PSQLAbstractORM::commitReferences ()
+void PSQLAbstractORM::commitAddReferences ()
 {
-    for (auto& ref : this->references) 
+    for (auto& ref : this->add_references) 
     {
         cout << "3aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" <<endl;
-        int entry_id = ref.second->insert();
-        cout << entry_id <<endl;
-        reference_values[ref.first] = entry_id;
+        int reference_orm_id = ref.second->insert();
+        cout << reference_orm_id <<endl;
+        reference_values[ref.first] = reference_orm_id;
+    }
+}
+
+void PSQLAbstractORM::commitUpdateReferences ()
+{
+    for (auto& ref : this->update_references) 
+    {
+        cout << "3aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" <<endl;
+        int reference_orm_id = ref.second->insert();
+        cout << reference_orm_id <<endl;
+        reference_values[ref.first] = reference_orm_id;
     }
 }
 

@@ -103,8 +103,8 @@ bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry
         // bool latefee_id_required;
         ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm("main");
         ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm("main");
-        debit->setRefernce("entry_id",entry);
-        credit->setRefernce("entry_id",entry);
+        debit->setAddRefernce("entry_id",entry);
+        credit->setAddRefernce("entry_id",entry);
         
         try{
                 validateEntry(template_leg, entry_data);
