@@ -130,7 +130,6 @@ bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry
 
 
 int LedgerCompositLeg::getBondId (int installment_id)
-
 {
         tms_app_bond_primitive_orm_iterator * _tms_app_bond_primitive_orm_iterator = new tms_app_bond_primitive_orm_iterator ("main");
         _tms_app_bond_primitive_orm_iterator->execute();
@@ -138,11 +137,11 @@ int LedgerCompositLeg::getBondId (int installment_id)
         vector<int> bond_ids;
         int x = _tms_app_bond_primitive_orm_iterator->getRowCount();
 
-        tms_app_bond_primitive_orm * bond = _tms_app_bond_primitive_orm_iterator->next();
+        tms_app_bond_primitive_orm * bond = _tms_app_bond_primitive_orm_iterator->next(true);
         while(bond != nullptr){
                 int _bond = bond->get_fundingfacility_ptr_id();
                 bond_ids.push_back(_bond);
-                bond = _tms_app_bond_primitive_orm_iterator->next();
+                bond = _tms_app_bond_primitive_orm_iterator->next(true);
         }
         delete(bond);
 
