@@ -129,14 +129,14 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         OROperator (
             new UnaryOperator ("loan_app_loan.lms_closure_status",isnull,"",true),
             new ANDOperator (
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",lt,closure_status::UNDUE_TO_DUE),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",lt,ledger_status::START),
                     new UnaryOperator ("loan_app_loan.id",ne,"14312"),
-                    new UnaryOperator ("loan_app_loan.lms_closure_status",gte,0),
+                    new UnaryOperator ("loan_app_loan.lms_closure_status",eq,0),
                     isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
                     isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()  
             )          
         ),
-        {{"lms_closure_status",to_string(closure_status::UNDUE_TO_DUE)}}
+        {{"lms_closure_status",to_string(ledger_status::DISBURSE_LOAN)}}
         );
         psqlUpdateQuery.update();
 
