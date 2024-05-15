@@ -448,6 +448,8 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
 
     extra_methods_def += "\t\tbool update (PSQLConnection * _psqlConnection=NULL);\n";
     extra_methods += "\t\tbool "+class_name+"::update (PSQLConnection * _psqlConnection){\n";
+    extra_methods += "\t\t\tcommitUpdateReferences();\n";
+    extra_methods += "\t\t\tresolveReferences();\n";
     extra_methods += "\t\t\tstring update_string = \"\";\n";
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
@@ -511,7 +513,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
 
     extra_methods += "\t\t\t if (inserted) return orm_"+primary_key+";\n";
 
-    extra_methods += "\t\t\tcommitReferences();\n";
+    extra_methods += "\t\t\tcommitAddReferences();\n";
     extra_methods += "\t\t\tresolveReferences();\n";
     extra_methods += "\t\t\tstring insert_string = \"\";\n";
     string columns_string = "";
