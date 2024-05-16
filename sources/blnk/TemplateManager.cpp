@@ -10,6 +10,11 @@ BlnkTemplateManager::BlnkTemplateManager(int template_id)
 
 map <string , TemplateLeg> BlnkTemplateManager::getTemplateLegs(){return template_legs;}
 
+void BlnkTemplateManager::setEntryData(map<string, LedgerAmount> _entry_data)
+{
+    entry_data = _entry_data;
+}
+
 void BlnkTemplateManager::constructTemplateLegs()
 {
      for (auto& leg : this->template_json["legs"]) { 

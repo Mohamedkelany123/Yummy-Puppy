@@ -23,7 +23,7 @@ class BlnkTemplateManager {
     public:
         BlnkTemplateManager(int template_id);
         map <string , TemplateLeg> getTemplateLegs(); //return this->templatelegs
-
+        void setEntryData(map<string, LedgerAmount> _entry_data);
 
         bool buildEntry (int template_id, BDate _entry_date);
         void createEntry(int _template_id, BDate _entry_date);
