@@ -7,6 +7,9 @@
 #include <DisburseLoans.h>
 #include <common_orm.h>
 
+#include <lms_entrytemplate_primitive_orm.h>
+#include <loan_app_loanstatus_primitive_orm.h>
+#include <loan_app_loan_bl_orm.h>
 //TODO: create special type for 
 
 int main (int argc, char ** argv)
@@ -27,6 +30,11 @@ int main (int argc, char ** argv)
     {new loan_app_loan_primitive_orm("main"),new loan_app_loanproduct_primitive_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main")},
     {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}, {{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}});
 
+    // {new loan_app_loan_bl_orm("main"),new loan_app_loanproduct_primitive_orm("main")},
+    // {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}});
+    // PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+    // {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main")},
+    // {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}}});
 
     psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
     psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
@@ -66,6 +74,20 @@ int main (int argc, char ** argv)
             int is_rescheduled = gorm->toInt("is_rescheduled");
             
             cout << "hobaaaa-> " << short_term_principal << "--" << long_term_principal<< "--" << is_rescheduled << endl;
+            loan_app_loan_bl_orm * lal_orm = ORMBL(loan_app_loan,orms);
+            cout << lal_orm->get_id() << endl;
+
+            // // BlnkTemplateManager * blnkTemplateManager;
+            // vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
+            // printf ("ie_list: %p \n",ie_list );
+            // cout << ie_list->size() << endl;
+            // for ( auto i : *ie_list)
+            // {
+            //     cout << "_______________" << i->get_installment_ptr_id() << endl;
+            // }
+            // PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+            // float short_term_principal = gorm->toFloat("short_term_principal");
+            // float long_term_principal = gorm->toFloat("long_term_principal");
             // DisburseLoan disburseLoan (blnkTemplateManager,lal_orm,short_term_principal,long_term_principal, 40);
 
             
@@ -79,7 +101,6 @@ int main (int argc, char ** argv)
             // new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
             // loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
 
-            cout << lal_orm->get_id() << endl;
 
     });
 

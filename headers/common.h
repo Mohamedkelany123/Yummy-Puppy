@@ -34,6 +34,7 @@ using namespace std;
 using json = nlohmann::json;
 
 #define ORM(T,O) ((T##_primitive_orm *)((*O)[#T]))
+#define ORMBL(T,O) ((T##_bl_orm *)((*O)[#T]))
 
 #define ROUND(x) (round(x*100) / 100)
 
