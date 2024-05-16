@@ -1,3 +1,6 @@
+#ifndef LEDGER_COMPOSIT_LEG_H
+#define LEDGER_COMPOSIT_LEG_H
+
 #include <common.h>
 #include<LedgerAmount.h>
 #include<ledger_amount_primitive_orm.h>
@@ -25,3 +28,5 @@ class LedgerCompositLeg
         ~LedgerCompositLeg(){}
 
 };
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef DISBURSE_LOANS_H
+#define DISBURSE_LOANS_H
+
 #include <common.h>
 #include <loan_app_loan_primitive_orm.h>
 #include <loan_app_installment_primitive_orm.h>
@@ -5,18 +8,24 @@
 #include <loan_app_loanstatus_primitive_orm.h>
 #include <TemplateManager.h>
 
+class LedgerClosureService;
 
-// typedef LedgerAmount (*funcPtr)(DisburseLoan*);
+class LedgerClosureStep {
+    protected:
+    public:
+        LedgerClosureStep(){}
+        virtual void setupLedgerClosureService (LedgerClosureService * ledgerClosureService) = 0;
+        virtual ~LedgerClosureStep(){}
 
+};
+typedef LedgerAmount (*funcPtr)(LedgerClosureStep *);
 
-class DisburseLoan
+class DisburseLoan : public LedgerClosureStep
 {
     private:
-        loan_app_installment_primitive_orm * lai_orm;
-        new_lms_installmentextension_primitive_orm * nli_orm ;
         loan_app_loan_primitive_orm * lal_orm;
         BlnkTemplateManager* temp_manager;
-        int template_id = 4;
+        int template_id;
 
         //<Leg Name VariableName(Function)>
 
@@ -24,42 +33,64 @@ class DisburseLoan
 
 
     public:
-        // map<string, funcPtr> funcMap;
-        DisburseLoan(BlnkTemplateManager *, loan_app_installment_primitive_orm *, new_lms_installmentextension_primitive_orm *,loan_app_loan_primitive_orm *);
+        map<string, funcPtr> funcMap;
+        DisburseLoan(BlnkTemplateManager * _temp_manager, loan_app_loan_primitive_orm * _lal_orm, float short_term_principal, float long_term_principal, float percentage);
 
-        void generateFuncMap();
+        // void generateFuncMap();
         
         //Setters
-        void set_loan_app_installment(loan_app_installment_primitive_orm* _lai_orm);
-        void set_new_lms_installmentextension(new_lms_installmentextension_primitive_orm* _nli_orm);
         void set_loan_app_loan(loan_app_loan_primitive_orm* _lal_orm);
         void set_template_manager(BlnkTemplateManager* _temp_manager);
         void set_template_id(int _template_id);
 
         //Getters
-        loan_app_installment_primitive_orm* get_loan_app_installment();
-        new_lms_installmentextension_primitive_orm* get_new_lms_installmentextension();
         loan_app_loan_primitive_orm* get_loan_app_loan();
         BlnkTemplateManager* get_template_manager();
         int get_template_id();
 
 
         // //static methods
-        // static LedgerAmount _calc_short_term_receivable_balance(DisburseLoan *disburseLoan);
-        // static LedgerAmount _calc_mer_t_bl_fee(DisburseLoan *disburseLoan);
-        // static LedgerAmount _calc_provision_percentage(DisburseLoan *disburseLoan);
-        // static LedgerAmount _calc_cashier_fee(DisburseLoan *disburseLoan);
-        // static LedgerAmount _calc_bl_t_mer_fee(DisburseLoan *disburseLoan);
-        // static LedgerAmount _calc_loan_upfront_fee(DisburseLoan *disburseLoan);
-        // static LedgerAmount _calc_long_term_receivable_balance(DisburseLoan *disburseLoan);
+        static LedgerAmount _calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan);
+        static LedgerAmount _calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan);
+        static LedgerAmount _calc_provision_percentage(LedgerClosureStep *disburseLoan);
+        static LedgerAmount _calc_cashier_fee(LedgerClosureStep *disburseLoan);
+        static LedgerAmount _calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan);
+        static LedgerAmount _calc_loan_upfront_fee(LedgerClosureStep *disburseLoan);
+        static LedgerAmount _calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan);
 
-
+        void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
         
 
     ~DisburseLoan();
 };
 
 
+
+
+class LedgerClosureService {
+
+    private:
+            map <string,funcPtr> funcMap;
+            LedgerClosureStep * ledgerClosureStep;
+    public:
+        LedgerClosureService (LedgerClosureStep * _ledgerClosureStep)
+        {
+            ledgerClosureStep = _ledgerClosureStep;
+        }
+        void addHandler (string legName, funcPtr func)
+        {
+            funcMap [legName]= func;
+        }
+        map <string,LedgerAmount> inference ()
+        {
+            map <string,LedgerAmount> la ;
+            for (auto f : funcMap)
+            {
+                la[f.first] = (f.second)(ledgerClosureStep);
+            }
+            return la;
+        }
+};
 
 
 class DisburseLoanCalculator {
@@ -94,3 +125,6 @@ class DisburseLoanCalculator {
 
 //         return percentage;
 // }
+
+
+#endif

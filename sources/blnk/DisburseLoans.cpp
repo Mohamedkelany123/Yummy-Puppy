@@ -1,43 +1,29 @@
 #include <DisburseLoans.h>
 
 
-DisburseLoan::DisburseLoan(BlnkTemplateManager * _temp_manager, loan_app_installment_primitive_orm * _lai_orm, new_lms_installmentextension_primitive_orm * _nli_orm,loan_app_loan_primitive_orm * _lal_orm)
+DisburseLoan::DisburseLoan(BlnkTemplateManager * _temp_manager, loan_app_loan_primitive_orm * _lal_orm, float short_term_principal, float long_term_principal, float percentage):LedgerClosureStep ()
 {
     temp_manager = _temp_manager;
-    lai_orm = _lai_orm;
-    nli_orm = _nli_orm;
     lal_orm = _lal_orm;    
-    generateFuncMap();
+    template_id=4;
+    //setupLedgerClosureService(this);
 }
 
-void DisburseLoan::generateFuncMap()
+void DisburseLoan::setupLedgerClosureService (LedgerClosureService * ledgerClosureService)
 {
-    // funcMap["_calc_long_term_receivable_balance"] = DisburseLoan::_calc_long_term_receivable_balance;
-    // funcMap["_calc_short_term_receivable_balance"] = DisburseLoan::_calc_short_term_receivable_balance;
-    // funcMap["_calc_mer_t_bl_fee"] = DisburseLoan::_calc_mer_t_bl_fee;
-    // funcMap["_calc_provision_percentage"] = DisburseLoan::_calc_provision_percentage;
-    // funcMap["_calc_cashier_fee"] = DisburseLoan::_calc_cashier_fee;
-    // funcMap["_calc_bl_t_mer_fee"] = DisburseLoan::_calc_bl_t_mer_fee;
-    // funcMap["_calc_loan_upfront_fee"] = DisburseLoan::_calc_loan_upfront_fee;
+    ledgerClosureService->addHandler("_calc_long_term_receivable_balance",DisburseLoan::_calc_long_term_receivable_balance);
+    ledgerClosureService->addHandler("_calc_short_term_receivable_balance",DisburseLoan::_calc_short_term_receivable_balance);
+    ledgerClosureService->addHandler("_calc_mer_t_bl_fee",DisburseLoan::_calc_mer_t_bl_fee);
+    ledgerClosureService->addHandler("_calc_provision_percentage",DisburseLoan::_calc_provision_percentage);
+    ledgerClosureService->addHandler("_calc_cashier_fee",DisburseLoan::_calc_cashier_fee);
+    ledgerClosureService->addHandler("_calc_bl_t_mer_fee",DisburseLoan::_calc_bl_t_mer_fee);
+    ledgerClosureService->addHandler("_calc_loan_upfront_fee",DisburseLoan::_calc_loan_upfront_fee);
 }
 
 DisburseLoan::~DisburseLoan(){}
 
 
 
-void DisburseLoan::set_loan_app_installment(loan_app_installment_primitive_orm* _lai_orm) {
-    lai_orm = _lai_orm;
-}
-loan_app_installment_primitive_orm* DisburseLoan::get_loan_app_installment()  {
-    return lai_orm;
-}
-
-new_lms_installmentextension_primitive_orm* DisburseLoan::get_new_lms_installmentextension()  {
-    return nli_orm;
-}
-void DisburseLoan::set_new_lms_installmentextension(new_lms_installmentextension_primitive_orm* _nli_orm) {
-    nli_orm = _nli_orm;
-}
 
 loan_app_loan_primitive_orm* DisburseLoan::get_loan_app_loan()  {
     return lal_orm;
@@ -64,31 +50,31 @@ void DisburseLoan::set_template_id(int _template_id)
 
 
 
-// LedgerAmount DisburseLoan::_calc_short_term_receivable_balance(DisburseLoan *disburseLoan)
-// {
-//     return LedgerAmount();
-// }
-// LedgerAmount DisburseLoan::_calc_mer_t_bl_fee(DisburseLoan *disburseLoan)
-// {
-//     return LedgerAmount();
-// }
-// LedgerAmount DisburseLoan::_calc_provision_percentage(DisburseLoan *disburseLoan)
-// {
-//     return LedgerAmount();
-// }
-// LedgerAmount DisburseLoan::_calc_cashier_fee(DisburseLoan *disburseLoan)
-// {
-//     return LedgerAmount();
-// }
-// LedgerAmount DisburseLoan::_calc_bl_t_mer_fee(DisburseLoan *disburseLoan)
-// {
-//     return LedgerAmount();
-// }
-// LedgerAmount DisburseLoan::_calc_loan_upfront_fee(DisburseLoan *disburseLoan)
-// {
-//     return LedgerAmount();
-// }
-// LedgerAmount DisburseLoan::_calc_long_term_receivable_balance(DisburseLoan *disburseLoan)
-// {
-//     return LedgerAmount();
-// }
+LedgerAmount DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan)
+{
+    return LedgerAmount();
+}
+LedgerAmount DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
+{
+    return LedgerAmount();
+}
+LedgerAmount DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disburseLoan)
+{
+    return LedgerAmount();
+}
+LedgerAmount DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
+{
+    return LedgerAmount();
+}
+LedgerAmount DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
+{
+    return LedgerAmount();
+}
+LedgerAmount DisburseLoan::_calc_loan_upfront_fee(LedgerClosureStep *disburseLoan)
+{
+    return LedgerAmount();
+}
+LedgerAmount DisburseLoan::_calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan)
+{
+    return LedgerAmount();
+}

@@ -1,3 +1,6 @@
+#ifndef TEMPLATE_MANAGER_H
+#define TEMPLATE_MANAGER_H
+
 #include <common.h>
 #include <LedgerCompositLeg.h>
 #include <lms_entrytemplate_primitive_orm.h>
@@ -41,3 +44,5 @@ delete (blnkTemplateManager);
 
 
 */
+
+#endif

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <PSQLController.h>
 #include <TemplateManager.h>
+#include <DisburseLoans.h>
 #include <lms_entrytemplate_primitive_orm.h>
 #include <loan_app_loanstatus_primitive_orm.h>
 //TODO: create special type for 
@@ -54,12 +55,27 @@ int main (int argc, char ** argv)
     // loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
     // cout << "LOANid: " << lal_orm->get_id() << endl;
 
+
+
     psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
             cout << "INsidee processsssssss" << endl;
+            BlnkTemplateManager * blnkTemplateManager;
+            loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
+            PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+            float short_term_principal = gorm->toFloat("short_term_principal");
+            float long_term_principal = gorm->toFloat("long_term_principal");
+            DisburseLoan disburseLoan (blnkTemplateManager,lal_orm,short_term_principal,long_term_principal, 40);
+
+            
+            LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
+            disburseLoan.setupLedgerClosureService(ledgerClosureService);
+            map <string,LedgerAmount> ledgerAmounts = ledgerClosureService->inference ();
+            delete (ledgerClosureService);
+
 
             // loan_app_installment_primitive_orm * lai_orm = ORM(loan_app_installment,orms);
             // new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
-            loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
+            // loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
 
             cout << lal_orm->get_id() << endl;
 

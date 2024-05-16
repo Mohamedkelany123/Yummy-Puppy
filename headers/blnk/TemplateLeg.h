@@ -1,3 +1,6 @@
+#ifndef TEMPLATE_LEG_H
+#define TEMPLATE_LEG_H
+
 #include <common.h>
 #include <ledger_amount_primitive_orm.h>
 
@@ -67,3 +70,6 @@ class TemplateLeg
         ledger_amount_primitive_orm * get_ledger_amount_primitive_orm();
         ~TemplateLeg();
 };
+
+
+#endif

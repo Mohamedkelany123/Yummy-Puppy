@@ -1,3 +1,6 @@
+#ifndef LEDGER_AMOUNT_H
+#define LEDGER_AMOUNT_H
+
 #include <common.h>
 
 class LedgerAmount
@@ -59,3 +62,5 @@ class LedgerAmount
         bool getIsCredit();
         ~LedgerAmount();
 };
+
+#endif
