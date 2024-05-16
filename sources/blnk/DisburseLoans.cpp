@@ -78,7 +78,7 @@ float DisburseLoan::_calculate_loan_upfront_fee(){
     }
     return fee;
     
-// }
+}
 
 loan_app_loan_primitive_orm* DisburseLoan::get_loan_app_loan()  {
     return lal_orm;
@@ -87,10 +87,10 @@ loan_app_loanproduct_primitive_orm *DisburseLoan::get_loan_app_loanproduct()
 {
     return lalp_orm;
 }
-// crm_app_customer_primitive_orm *DisburseLoan::get_crm_app_customer()
-// {
-//     return cac_orm;
-// }
+crm_app_customer_primitive_orm *DisburseLoan::get_crm_app_customer()
+{
+    return cac_orm;
+}
 float DisburseLoan::get_provision_percentage()
 {
     return prov_percentage;
@@ -115,10 +115,10 @@ void DisburseLoan::set_loan_app_loanproduct(loan_app_loanproduct_primitive_orm *
 {
     lalp_orm = _lalp_orm;
 }
-// void DisburseLoan::set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm)
-// {
-//     cac_orm = _cac_orm;
-// }
+void DisburseLoan::set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm)
+{
+    cac_orm = _cac_orm;
+}
 
 int DisburseLoan::get_template_id()  {
     return template_id;

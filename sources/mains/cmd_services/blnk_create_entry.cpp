@@ -53,7 +53,7 @@ int main (int argc, char ** argv)
 
 
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    {new loan_app_loan_primitive_orm("main"),new loan_app_loanproduct_primitive_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main")},
+    {new loan_app_loan_bl_orm("main"),new loan_app_loanproduct_primitive_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main")},
     {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}, {{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}});
 
     // {new loan_app_loan_bl_orm("main"),new loan_app_loanproduct_primitive_orm("main")},
@@ -93,7 +93,9 @@ int main (int argc, char ** argv)
     psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
             cout << "INsidee processsssssss" << endl;
             BlnkTemplateManager * blnkTemplateManager;
-            loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
+            loan_app_loan_bl_orm * lal_orm = ORMBL(loan_app_loan,orms);
+            loan_app_loanproduct_primitive_orm * lalp_orm = ORM(loan_app_loanproduct,orms);
+            crm_app_customer_primitive_orm * cac_orm = ORM(crm_app_customer,orms);
             PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
             float short_term_principal = gorm->toFloat("short_term_principal");
             float long_term_principal = gorm->toFloat("long_term_principal");
@@ -102,17 +104,20 @@ int main (int argc, char ** argv)
             cout << "hobaaaa-> " << short_term_principal << "--" << long_term_principal<< "--" << is_rescheduled << endl;
             cout << lal_orm->get_id() << endl;
 
-            // vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
-            // printf ("ie_list: %p \n",ie_list );
-            // cout << ie_list->size() << endl;
-            // for ( auto i : *ie_list)
-            // {
-            //     cout << "_______________" << i->get_installment_ptr_id() << endl;
-            // }
-            // PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
-            // float short_term_principal = gorm->toFloat("short_term_principal");
-            // float long_term_principal = gorm->toFloat("long_term_principal");
-            DisburseLoan disburseLoan (lal_orm,short_term_principal,long_term_principal, 40, is_rescheduled);
+            vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
+            printf ("ie_list: %p \n",ie_list );
+            cout << ie_list->size() << endl;
+            for ( auto i : *ie_list)
+            {
+                cout << "_______________" << i->get_installment_ptr_id() << endl;
+                // i->setUpdateRefernce("short_term_ledger_amount_id", leg);
+            }
+
+            // lal_orm->setUpdateRefernce("loan_creation_ledger_entry_id", entry);
+
+
+
+            DisburseLoan disburseLoan (lal_orm,cac_orm, lalp_orm, short_term_principal,long_term_principal, 40, is_rescheduled);
 
             
             LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
