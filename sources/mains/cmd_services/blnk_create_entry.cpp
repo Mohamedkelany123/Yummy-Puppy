@@ -12,6 +12,32 @@
 #include <loan_app_loan_bl_orm.h>
 //TODO: create special type for 
 
+//<BuckedId,Percentage>
+map<int,float> get_loan_status_provisions_percentage()
+{
+        //Query to return percentage from loan_app_provision
+        PSQLJoinQueryIterator * psqlQueryJoinProvisions = new PSQLJoinQueryIterator ("main",
+        {new loan_app_loanstatus_primitive_orm("main"),new loan_app_provision_primitive_orm("main")},
+        {{{"loan_app_loanstatus","id"},{"loan_app_provision","status_id"}}});
+
+        
+        map<int,float> bucket_percentage;
+
+        psqlQueryJoinProvisions->execute();
+        map<string, PSQLAbstractORM *>* orms = psqlQueryJoinProvisions->next();
+        loan_app_loanstatus_primitive_orm * lals_orm;
+        loan_app_provision_primitive_orm * lap_orm; 
+        while (orms != NULL){
+            lals_orm = ORM(loan_app_loanstatus,orms);
+            lap_orm = ORM(loan_app_provision,orms);
+            bucket_percentage[lals_orm->get_id()] = lap_orm->get_percentage();
+            orms = psqlQueryJoinProvisions->next();
+        }
+
+        return bucket_percentage;
+}
+
+
 int main (int argc, char ** argv)
 {
 
