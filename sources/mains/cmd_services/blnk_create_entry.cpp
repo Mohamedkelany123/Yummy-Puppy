@@ -74,8 +74,8 @@ int main (int argc, char ** argv)
             int is_rescheduled = gorm->toInt("is_rescheduled");
             
             cout << "hobaaaa-> " << short_term_principal << "--" << long_term_principal<< "--" << is_rescheduled << endl;
-            loan_app_loan_bl_orm * lal_orm = ORMBL(loan_app_loan,orms);
-            cout << lal_orm->get_id() << endl;
+            // loan_app_loan_bl_orm * lal_orm = ORMBL(loan_app_loan,orms);
+            // cout << lal_orm->get_id() << endl;
 
             // // BlnkTemplateManager * blnkTemplateManager;
             // vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
