@@ -109,7 +109,7 @@ bool BlnkTemplateManager::buildEntry (int template_id, BDate entry_date)
 }
 void BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
 {
-    entry  = new ledger_entry_primitive_orm("main");
+    entry  = new ledger_entry_primitive_orm("main", true);
     entry->set_entry_date(entry_date.getDateString());
     entry->set_template_id(template_id);
     entry->set_month_code(1);

@@ -146,6 +146,8 @@ int main (int argc, char ** argv)
 
     });
 
+    // cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
+    // psqlController.ORMCommit(true,true,true, "main");  
     
     // // json entry_json = { {"Booking new loan - short term; and", { {"amount" ,2000.00}, {"loan_id", 133416}, {"customer_id", 359786}, {"cashier_id", 126935}, {"merchant_id", 2} }} };
     // LedgerAmount demo(1, 101, 233, 301, 401, 501, 601, 2, 801, 901, 1001, 1101, 1201.50, 1301, true);
