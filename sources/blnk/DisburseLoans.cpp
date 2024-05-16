@@ -92,7 +92,7 @@ LedgerAmount DisburseLoan::_calc_long_term_receivable_balance_reschedled(LedgerC
 LedgerAmount DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan)
  {  
     LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-    la.setAmount(((DisburseLoan*)disburseLoan)->get_short_term_principal());
+    la.setAmount(round(((DisburseLoan*)disburseLoan)->get_short_term_principal()));
     return la;
 
 }
