@@ -16,6 +16,7 @@ class DisburseLoan : public LedgerClosureStep
         loan_app_loan_primitive_orm * lal_orm;
         loan_app_loanproduct_primitive_orm* lalp_orm;
         int template_id;
+        float prov_percentage;
 
         //<Leg Name VariableName(Function)>
 
@@ -36,6 +37,7 @@ class DisburseLoan : public LedgerClosureStep
         //Getters
         loan_app_loan_primitive_orm* get_loan_app_loan();
         loan_app_loanproduct_primitive_orm* get_loan_app_loanproduct();
+        float get_provision_percentage();
         int get_template_id();
 
 

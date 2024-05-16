@@ -1,11 +1,12 @@
 #include <DisburseLoans.h>
 
 
-DisburseLoan::DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float short_term_principal, float long_term_principal, float percentage):LedgerClosureStep ()
+DisburseLoan::DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float short_term_principal, float long_term_principal, float _percentage):LedgerClosureStep ()
 {
     lal_orm = _lal_orm;    
     template_id=4;
-    //setupLedgerClosureService(this);
+    prov_percentage= _percentage
+    //setupLedgerCloslaureService(this);
 }
 
 /*
@@ -46,6 +47,10 @@ loan_app_loan_primitive_orm* DisburseLoan::get_loan_app_loan()  {
 loan_app_loanproduct_primitive_orm *DisburseLoan::get_loan_app_loanproduct()
 {
     return lalp_orm;
+}
+float DisburseLoan::get_provision_percentage()
+{
+    return prov_percentage;
 }
 void DisburseLoan::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
 {
@@ -96,7 +101,18 @@ LedgerAmount DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
 }
 LedgerAmount DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disburseLoan)
 {
-    return LedgerAmount();
+    loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
+    double perc = ((DisburseLoan*)disburseLoan)->get_provision_percentage()/100;
+    double amount = round(loan_orm->get_principle()*perc);
+
+    LedgerAmount la ;
+    la.setAmount(amount);
+    la.setCustomerId(loan_orm->get_customer_id());
+    la.setLoanId(loan_orm->get_id());
+    la.setMerchantId(loan_orm->get_merchant_id());
+    la.setCashierId(loan_orm->get_cashier_id());    
+
+    return la;
 }
 LedgerAmount DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
 {
