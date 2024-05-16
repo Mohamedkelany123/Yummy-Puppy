@@ -27,6 +27,15 @@ void DisburseLoan::setupLedgerClosureService (LedgerClosureService * ledgerClosu
 DisburseLoan::~DisburseLoan(){}
 
 
+LedgerAmount DisburseLoan::_init_ledger_amount(){
+    LedgerAmount lg;
+    lg.setCashierId(lal_orm->get_cashier_id());
+    lg.setCustomerId(lal_orm->get_customer_id());
+    lg.setLoanId(lal_orm->get_id());
+    lg.setMerchantId(lal_orm->get_merchant_id());
+
+    return lg;
+}
 
 
 loan_app_loan_primitive_orm* DisburseLoan::get_loan_app_loan()  {
@@ -104,7 +113,13 @@ LedgerAmount DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disburs
 }
 LedgerAmount DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
 {
-    return LedgerAmount();
+    loan_app_loan_primitive_orm* lal_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
+    LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    
+    float cashier_fee = (lal_orm->get_principle() * (lal_orm->get_cashier_fee()/ 100));
+    la.setCashierId(ROUND(cashier_fee));
+ 
+    return la;
 }
 LedgerAmount DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
 {

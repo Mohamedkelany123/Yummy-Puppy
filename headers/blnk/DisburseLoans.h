@@ -41,6 +41,7 @@ class DisburseLoan : public LedgerClosureStep
         int get_template_id();
 
 
+        LedgerAmount _init_ledger_amount();
         // //static methods
         static LedgerAmount _calc_short_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
         static LedgerAmount _calc_long_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
