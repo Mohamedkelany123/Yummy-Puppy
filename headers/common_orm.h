@@ -14,7 +14,8 @@
 #include <loan_app_installment_primitive_orm.h>
 #include <new_lms_installmentextension_primitive_orm.h>
 #include <loan_app_loanstatus_primitive_orm.h>
-
+#include <crm_app_customer_primitive_orm.h>
+#include <crm_app_purchase_primitive_orm.h>
 
 
 #endif
