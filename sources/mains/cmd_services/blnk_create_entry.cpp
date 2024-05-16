@@ -89,40 +89,38 @@ int main (int argc, char ** argv)
     // cout << "LOANid: " << lal_orm->get_id() << endl;
 
 
-
-    psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
+    //TODO: Call percentage function and pass the appropriate percentage
+    psqlQueryJoin->process (threadsCount,[blnkTemplateManager](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
             cout << "INsidee processsssssss" << endl;
-            BlnkTemplateManager * blnkTemplateManager;
             loan_app_loan_bl_orm * lal_orm = ORMBL(loan_app_loan,orms);
             loan_app_loanproduct_primitive_orm * lalp_orm = ORM(loan_app_loanproduct,orms);
             crm_app_customer_primitive_orm * cac_orm = ORM(crm_app_customer,orms);
             PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
             float short_term_principal = gorm->toFloat("short_term_principal");
             float long_term_principal = gorm->toFloat("long_term_principal");
+            //TODO: BAYZA IS_RESCHEDULED
             int is_rescheduled = gorm->toInt("is_rescheduled");
             
             cout << "hobaaaa-> " << short_term_principal << "--" << long_term_principal<< "--" << is_rescheduled << endl;
             cout << lal_orm->get_id() << endl;
 
-            vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
-            printf ("ie_list: %p \n",ie_list );
-            cout << ie_list->size() << endl;
-            for ( auto i : *ie_list)
-            {
-                cout << "_______________" << i->get_installment_ptr_id() << endl;
-                // i->setUpdateRefernce("short_term_ledger_amount_id", leg);
-            }
-
-            // lal_orm->setUpdateRefernce("loan_creation_ledger_entry_id", entry);
 
 
 
+
+            //TODO: Send orms iteself as a param
             DisburseLoan disburseLoan (lal_orm,cac_orm, lalp_orm, short_term_principal,long_term_principal, 40, is_rescheduled);
 
             
             LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
             disburseLoan.setupLedgerClosureService(ledgerClosureService);
             map <string,LedgerAmount> ledgerAmounts = ledgerClosureService->inference ();
+            blnkTemplateManager->setEntryData(ledgerAmounts);
+            blnkTemplateManager->buildEntry(4,BDate("2024-05-15"));
+
+            
+            
             for(map<string, LedgerAmount>::iterator it=ledgerAmounts.begin(); it!=ledgerAmounts.end();it++) {
                 cout << "leg name: " << it->first << " calculated amount: " << it->second.getAmount() << endl;
             }
@@ -132,6 +130,18 @@ int main (int argc, char ** argv)
             // loan_app_installment_primitive_orm * lai_orm = ORM(loan_app_installment,orms);
             // new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
             // loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
+
+
+            // vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
+            // printf ("ie_list: %p \n",ie_list );
+            // cout << ie_list->size() << endl;
+            // for ( auto i : *ie_list)
+            // {
+            //     cout << "_______________" << i->get_installment_ptr_id() << endl;
+            //     // i->setUpdateRefernce("short_term_ledger_amount_id", leg);
+            // }
+
+            // // lal_orm->setUpdateRefernce("loan_creation_ledger_entry_id", entry);
 
 
     });

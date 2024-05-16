@@ -103,7 +103,6 @@ bool BlnkTemplateManager::validate ()
 }
 bool BlnkTemplateManager::buildEntry (int template_id, BDate entry_date)
 {
-    this->loadTemplate(template_id);
     this->createEntry(template_id, entry_date);
     bool is_built = this->buildLegs();
     return is_built;

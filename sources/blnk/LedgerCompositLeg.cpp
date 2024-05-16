@@ -120,8 +120,10 @@ bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry
         buildLeg (template_leg, entry_data,credit, false);
         leg.first = debit;
         leg.second = credit;
-        debit->insert();
-        credit->insert();
+        cout << debit->serialize()<<endl; 
+        cout << credit->serialize()<<endl; 
+        // debit->insert();
+        // credit->insert();
 
         return true;
 
