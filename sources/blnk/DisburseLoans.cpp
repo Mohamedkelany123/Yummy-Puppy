@@ -4,8 +4,8 @@
 DisburseLoan::DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float short_term_principal, float long_term_principal, float _percentage):LedgerClosureStep ()
 {
     lal_orm = _lal_orm;    
-    template_id=4;
-    prov_percentage= _percentage
+    template_id = 4;
+    prov_percentage = _percentage;
     //setupLedgerCloslaureService(this);
 }
 
