@@ -15,8 +15,8 @@ DisburseLoan::DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float _short_
 void DisburseLoan::setupLedgerClosureService (LedgerClosureService * ledgerClosureService)
 {
     if(is_rescheduled){
-        ledgerClosureService->addHandler("Booking rescheduled loan - long term, if applicable", DisburseLoan::_calc_long_term_receivable_balance_reschedled);
-        ledgerClosureService->addHandler("Booking rescheduled loan - short term; and", DisburseLoan::_calc_short_term_receivable_balance_reschedled);
+        ledgerClosureService->addHandler("Booking rescheduled loan - long term, if applicable", DisburseLoan::_calc_long_term_receivable_balance);
+        ledgerClosureService->addHandler("Booking rescheduled loan - short term; and", DisburseLoan::_calc_short_term_receivable_balance);
     }
  
     ledgerClosureService->addHandler("Booking new loan - long term, if applicable", DisburseLoan::_calc_long_term_receivable_balance);
@@ -118,29 +118,30 @@ void DisburseLoan::set_loan_app_loanproduct(loan_app_loanproduct_primitive_orm *
 int DisburseLoan::get_template_id()  {
     return template_id;
 }
+
+float DisburseLoan::get_long_term_principal()
+{
+    return long_term_principal;
+}
+
 void DisburseLoan::set_template_id(int _template_id)
 {
     template_id = _template_id;
 }
 
-bool DisburseLoan::get_is_recheduled()  {
+void DisburseLoan::set_long_term_principal(float _long_term_principal)
+{
+    long_term_principal = _long_term_principal;
+}
+
+bool DisburseLoan::get_is_rescheduled()  {
     return is_rescheduled;
 }
-void DisburseLoan::set_is_recheduled(bool _is_rescheduled)
+void DisburseLoan::set_is_rescheduled(bool _is_rescheduled)
 {
     template_id =  _is_rescheduled;
 }
 
-
-LedgerAmount DisburseLoan::_calc_short_term_receivable_balance_reschedled(LedgerClosureStep *disburseLoan)
-{
-    return LedgerAmount();
-}
-
-LedgerAmount DisburseLoan::_calc_long_term_receivable_balance_reschedled(LedgerClosureStep *disburseLoan)
-{
-    return LedgerAmount();
-}
 
 LedgerAmount DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan)
  {  
@@ -150,10 +151,6 @@ LedgerAmount DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureStep
 
 }
 
-LedgerAmount DisburseLoan::_calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan)
-{
-    return LedgerAmount();
-}
 
 LedgerAmount DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
 {
@@ -194,11 +191,19 @@ LedgerAmount DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
     double amount = round(loan_orm->get_principle()*perc);
     LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     la.setAmount(amount);
+    return la;
 }
 LedgerAmount DisburseLoan::_calc_loan_upfront_fee(LedgerClosureStep *disburseLoan)
 {
     // LedgerAmount ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     // ledgerAmount.setAmount(((DisburseLoan*)disburseLoan)->calculate_loan_upfront_fee());
     return LedgerAmount();
-
 }
+LedgerAmount DisburseLoan::_calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan)
+{
+    LedgerAmount ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    float long_term_principal = ROUND(((DisburseLoan*)disburseLoan)->get_long_term_principal());
+    ledgerAmount.setAmount(long_term_principal);
+    return ledgerAmount;
+}
+

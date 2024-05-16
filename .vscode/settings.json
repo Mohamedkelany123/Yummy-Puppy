@@ -95,5 +95,6 @@
         "__availability": "cpp",
         "any": "cpp",
         "forward_list": "cpp"
-    }
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/g++"
 }

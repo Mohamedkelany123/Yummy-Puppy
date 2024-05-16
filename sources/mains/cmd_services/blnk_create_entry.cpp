@@ -100,10 +100,8 @@ int main (int argc, char ** argv)
             int is_rescheduled = gorm->toInt("is_rescheduled");
             
             cout << "hobaaaa-> " << short_term_principal << "--" << long_term_principal<< "--" << is_rescheduled << endl;
-            // loan_app_loan_bl_orm * lal_orm = ORMBL(loan_app_loan,orms);
-            // cout << lal_orm->get_id() << endl;
+            cout << lal_orm->get_id() << endl;
 
-            // // BlnkTemplateManager * blnkTemplateManager;
             // vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
             // printf ("ie_list: %p \n",ie_list );
             // cout << ie_list->size() << endl;
@@ -114,12 +112,15 @@ int main (int argc, char ** argv)
             // PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
             // float short_term_principal = gorm->toFloat("short_term_principal");
             // float long_term_principal = gorm->toFloat("long_term_principal");
-            // DisburseLoan disburseLoan (blnkTemplateManager,lal_orm,short_term_principal,long_term_principal, 40);
+            DisburseLoan disburseLoan (lal_orm,short_term_principal,long_term_principal, 40, is_rescheduled);
 
             
-            // LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
-            // disburseLoan.setupLedgerClosureService(ledgerClosureService);
-            // map <string,LedgerAmount> ledgerAmounts = ledgerClosureService->inference ();
+            LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
+            disburseLoan.setupLedgerClosureService(ledgerClosureService);
+            map <string,LedgerAmount> ledgerAmounts = ledgerClosureService->inference ();
+            for(map<string, LedgerAmount>::iterator it=ledgerAmounts.begin(); it!=ledgerAmounts.end();it++) {
+                cout << "leg name: " << it->first << " calculated amount: " << it->second.getAmount() << endl;
+            }
             // delete (ledgerClosureService);
 
 
