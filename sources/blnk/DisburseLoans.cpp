@@ -1,11 +1,12 @@
 #include <DisburseLoans.h>
 
 
-DisburseLoan::DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float short_term_principal, float long_term_principal, float _percentage):LedgerClosureStep ()
+DisburseLoan::DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float _short_term_principal, float long_term_principal, float _percentage):LedgerClosureStep ()
 {
     lal_orm = _lal_orm;    
     template_id = 4;
     prov_percentage = _percentage;
+    short_term_principal = _short_term_principal;
     //setupLedgerCloslaureService(this);
 }
 
@@ -49,6 +50,17 @@ float DisburseLoan::get_provision_percentage()
 {
     return prov_percentage;
 }
+void DisburseLoan::set_provision_percentage(float _provision_percentage){
+    prov_percentage = _provision_percentage;
+}
+float DisburseLoan::get_short_term_principal()
+{
+    return short_term_principal;
+}
+void DisburseLoan::set_short_term_principal(float _short_term_principal){
+    short_term_principal = _short_term_principal;
+}
+
 void DisburseLoan::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
 {
     lal_orm = _lal_orm;
@@ -78,9 +90,18 @@ LedgerAmount DisburseLoan::_calc_long_term_receivable_balance_reschedled(LedgerC
 }
 
 LedgerAmount DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan)
+ {  
+    LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    la.setAmount(((DisburseLoan*)disburseLoan)->get_short_term_principal());
+    return la;
+
+}
+
+LedgerAmount DisburseLoan::_calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan)
 {
     return LedgerAmount();
 }
+
 LedgerAmount DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
 {
     loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
@@ -125,9 +146,5 @@ LedgerAmount DisburseLoan::_calc_loan_upfront_fee(LedgerClosureStep *disburseLoa
 {
     // loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
 
-    return LedgerAmount();
-}
-LedgerAmount DisburseLoan::_calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan)
-{
     return LedgerAmount();
 }
