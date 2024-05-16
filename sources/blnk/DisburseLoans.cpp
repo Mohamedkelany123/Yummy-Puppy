@@ -87,13 +87,8 @@ LedgerAmount DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
     double principal = loan_orm->get_principle();
     double merchant_to_blnk_fee = loan_orm->get_mer_t_bl_fee();
     double amount = ROUND(principal * (merchant_to_blnk_fee / 100));
-
-    LedgerAmount ledgerAmount;
+    LedgerAmount ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     ledgerAmount.setAmount(amount);
-    ledgerAmount.setLoanId(loan_orm->get_id());
-    ledgerAmount.setMerchantId(loan_orm->get_merchant_id());
-    ledgerAmount.setCashierId(loan_orm->get_cashier_id());
-    ledgerAmount.setCustomerId(loan_orm->get_customer_id());
     return ledgerAmount;
 }
 LedgerAmount DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disburseLoan)
