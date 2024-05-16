@@ -97,12 +97,9 @@ LedgerAmount DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disburs
     double perc = ((DisburseLoan*)disburseLoan)->get_provision_percentage()/100;
     double amount = round(loan_orm->get_principle()*perc);
 
-    LedgerAmount la ;
+    LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     la.setAmount(amount);
-    la.setCustomerId(loan_orm->get_customer_id());
-    la.setLoanId(loan_orm->get_id());
-    la.setMerchantId(loan_orm->get_merchant_id());
-    la.setCashierId(loan_orm->get_cashier_id());    
+    
 
     return la;
 }
@@ -118,7 +115,11 @@ LedgerAmount DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
 }
 LedgerAmount DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
 {
-    return LedgerAmount();
+    loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
+    double perc = loan_orm->get_bl_t_mer_fee()/100;
+    double amount = round(loan_orm->get_principle()*perc);
+    LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    la.setAmount(amount);
 }
 LedgerAmount DisburseLoan::_calc_loan_upfront_fee(LedgerClosureStep *disburseLoan)
 {
