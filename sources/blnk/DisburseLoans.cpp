@@ -38,6 +38,39 @@ LedgerAmount DisburseLoan::_init_ledger_amount(){
     return lg;
 }
 
+float DisburseLoan::_calculate_loan_upfront_fee(){
+    loan_app_loan_primitive_orm* lal_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
+    crm_app_customer_primitive_orm* customer_orm = ((DisburseLoan*)disburseLoan)->get_crm_app_customer();
+    loan_app_loanproduct_primitive_orm* lp_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loanproduct();
+    json upfront_fee;  
+    float fee = 0.0;
+    if (customer_orm.get_limit_source() == 1) {
+        upfront_fee = lp_orm-> get_transaction_upfront_income_banked();
+    }
+    else {
+        upfront_fee = lp_orm-> get_transaction_upfront_income_unbanked();
+    }
+    if (upfront_data["type"] == "Paid in Cash") {
+        if upfront_data["data"]["option"] == "flat_fee":
+            fee = upfront_data["data"]["flat_fee"];
+    }
+    else if (upfront_data["data"]["option"] == "percentage"){
+        fee = ROUND((upfront_data["data"]["percentage"]) / 100 * (lal_orm->get_principle()));
+        if (upfront_data["data"].contains("floor") && fee < upfront_data["data"]["floor"])
+            {fee = upfront_data["data"]["floor"];}
+        if (upfront_data["data"].contains("cap") && fee > upfront_data["data"]["cap"])
+            {fee = upfront_data["data"]["cap"];}
+        else if (upfront_data["data"]["option"] == "both"){
+            fee = upfront_data["data"]["flat_fee_bo"] + ROUND(upfront_data["data"]["percentage_bo"]) / 100 * (lal_orm->get_principle());
+            if upfront_data["data"].contains("floor_bo") && fee < upfront_data["data"]["floor_bo"]
+                {fee = upfront_data["data"]["floor_bo"];}
+            if upfront_data["data"].contains("cap_bo") && fee > upfront_data["data"]["cap_bo"]
+                {fee = upfront_data["data"]["cap_bo"];}
+        }
+    }
+    return fee;
+    
+}
 
 loan_app_loan_primitive_orm* DisburseLoan::get_loan_app_loan()  {
     return lal_orm;
@@ -45,6 +78,10 @@ loan_app_loan_primitive_orm* DisburseLoan::get_loan_app_loan()  {
 loan_app_loanproduct_primitive_orm *DisburseLoan::get_loan_app_loanproduct()
 {
     return lalp_orm;
+}
+crm_app_customer_primitive_orm *DisburseLoan::get_crm_app_customer()
+{
+    return cac_orm;
 }
 float DisburseLoan::get_provision_percentage()
 {
@@ -69,6 +106,10 @@ void DisburseLoan::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
 void DisburseLoan::set_loan_app_loanproduct(loan_app_loanproduct_primitive_orm *_lalp_orm)
 {
     lalp_orm = _lalp_orm;
+}
+void DisburseLoan::set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm)
+{
+    cac_orm = _cac_orm;
 }
 
 int DisburseLoan::get_template_id()  {
@@ -144,7 +185,8 @@ LedgerAmount DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
 }
 LedgerAmount DisburseLoan::_calc_loan_upfront_fee(LedgerClosureStep *disburseLoan)
 {
-    // loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
-
+    LedgerAmount ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    ledgerAmount.setAmount(((DisburseLoan*)disburseLoan)->calculate_loan_upfront_fee());
     return LedgerAmount();
+
 }
