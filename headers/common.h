@@ -33,6 +33,7 @@ using namespace std;
 using json = nlohmann::json;
 
 #define ORM(T,O) ((T##_primitive_orm *)((*O)[#T]))
+#define ORMBL(T,O) ((T##_bl_orm *)((*O)[#T]))
 
 enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY, CUSTOMER_WALLET, PREPAID_TRANSACTION };
 

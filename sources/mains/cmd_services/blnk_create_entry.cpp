@@ -7,6 +7,7 @@
 #include <DisburseLoans.h>
 #include <lms_entrytemplate_primitive_orm.h>
 #include <loan_app_loanstatus_primitive_orm.h>
+#include <loan_app_loan_bl_orm.h>
 //TODO: create special type for 
 
 int main (int argc, char ** argv)
@@ -24,7 +25,7 @@ int main (int argc, char ** argv)
 
 
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    {new loan_app_loan_primitive_orm("main"),new loan_app_loanproduct_primitive_orm("main")},
+    {new loan_app_loan_bl_orm("main"),new loan_app_loanproduct_primitive_orm("main")},
     {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}});
     // PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
     // {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main")},
@@ -59,25 +60,33 @@ int main (int argc, char ** argv)
 
     psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
             cout << "INsidee processsssssss" << endl;
-            BlnkTemplateManager * blnkTemplateManager;
-            loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
-            PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
-            float short_term_principal = gorm->toFloat("short_term_principal");
-            float long_term_principal = gorm->toFloat("long_term_principal");
-            DisburseLoan disburseLoan (blnkTemplateManager,lal_orm,short_term_principal,long_term_principal, 40);
+            loan_app_loan_bl_orm * lal_orm = ORMBL(loan_app_loan,orms);
+            cout << lal_orm->get_id() << endl;
+
+            // BlnkTemplateManager * blnkTemplateManager;
+            vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
+            printf ("ie_list: %p \n",ie_list );
+            cout << ie_list->size() << endl;
+            for ( auto i : *ie_list)
+            {
+                cout << "_______________" << i->get_installment_ptr_id() << endl;
+            }
+            // PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+            // float short_term_principal = gorm->toFloat("short_term_principal");
+            // float long_term_principal = gorm->toFloat("long_term_principal");
+            // DisburseLoan disburseLoan (blnkTemplateManager,lal_orm,short_term_principal,long_term_principal, 40);
 
             
-            LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
-            disburseLoan.setupLedgerClosureService(ledgerClosureService);
-            map <string,LedgerAmount> ledgerAmounts = ledgerClosureService->inference ();
-            delete (ledgerClosureService);
+            // LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
+            // disburseLoan.setupLedgerClosureService(ledgerClosureService);
+            // map <string,LedgerAmount> ledgerAmounts = ledgerClosureService->inference ();
+            // delete (ledgerClosureService);
 
 
             // loan_app_installment_primitive_orm * lai_orm = ORM(loan_app_installment,orms);
             // new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
             // loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
 
-            cout << lal_orm->get_id() << endl;
 
     });
 
