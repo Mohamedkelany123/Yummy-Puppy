@@ -18,6 +18,7 @@ class DisburseLoan : public LedgerClosureStep
         int template_id;
         float prov_percentage;
         float short_term_principal;
+        bool is_rescheduled;
 
         //<Leg Name VariableName(Function)>
 
@@ -26,7 +27,7 @@ class DisburseLoan : public LedgerClosureStep
 
     public:
         map<string, funcPtr> funcMap;
-        DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float short_term_principal, float long_term_principal, float percentage);
+        DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float short_term_principal, float long_term_principal, float percentage, bool _is_rescheduled);
 
         // void generateFuncMap();
         
@@ -36,6 +37,7 @@ class DisburseLoan : public LedgerClosureStep
         void set_template_id(int _template_id);
         void set_provision_percentage(float _provision_percentage);
         void set_short_term_principal(float _short_term_principal);
+        void set_is_recheduled(bool _is_rescheduled);
         
 
         //Getters
@@ -44,6 +46,7 @@ class DisburseLoan : public LedgerClosureStep
         float get_provision_percentage();
         float get_short_term_principal();
         int get_template_id();
+        bool get_is_recheduled();
 
 
         LedgerAmount _init_ledger_amount();
