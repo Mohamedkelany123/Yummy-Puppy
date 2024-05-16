@@ -15,6 +15,7 @@ class DisburseLoan : public LedgerClosureStep
     private:
         loan_app_loan_primitive_orm * lal_orm;
         loan_app_loanproduct_primitive_orm* lalp_orm;
+        crm_app_customer_primitive_orm* cac_orm;
         int template_id;
         float prov_percentage;
         float short_term_principal, long_term_principal;
@@ -27,7 +28,7 @@ class DisburseLoan : public LedgerClosureStep
 
     public:
         map<string, funcPtr> funcMap;
-        DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float short_term_principal, float long_term_principal, float percentage, bool _is_rescheduled);
+        DisburseLoan(loan_app_loan_primitive_orm * _lal_orm,crm_app_customer_primitive_orm * _cac_orm,loan_app_loanproduct_primitive_orm* _lalp_orm, float short_term_principal, float long_term_principal, float percentage, bool _is_rescheduled);
 
         // void generateFuncMap();
         
@@ -39,10 +40,15 @@ class DisburseLoan : public LedgerClosureStep
         void set_short_term_principal(float _short_term_principal);
         void set_is_rescheduled(bool _is_rescheduled);
         void set_long_term_principal(float _long_term_principal);
+        void set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm);
+
+        
 
         //Getters
         loan_app_loan_primitive_orm* get_loan_app_loan();
         loan_app_loanproduct_primitive_orm* get_loan_app_loanproduct();
+        crm_app_customer_primitive_orm *get_crm_app_customer();
+
         float get_provision_percentage();
         float get_short_term_principal();
         int get_template_id();
@@ -50,6 +56,8 @@ class DisburseLoan : public LedgerClosureStep
         bool get_is_rescheduled();
 
 
+
+        float _calculate_loan_upfront_fee();
         LedgerAmount _init_ledger_amount();
         // //static methods
         static LedgerAmount _calc_short_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
