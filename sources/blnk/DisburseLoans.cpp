@@ -9,18 +9,6 @@ DisburseLoan::DisburseLoan(loan_app_loan_primitive_orm * _lal_orm, float short_t
     //setupLedgerCloslaureService(this);
 }
 
-/*
-    Booking rescheduled loan - long term, if applicable
-    Booking rescheduled loan - short term; and
-    Booking the merchant’s commission income
-    Booking an impairment provision
-    Booking the cashier's commission expense
-    Booking the merchant's commission expense
-    Booking the transaction upfront fee
-    Booking new loan - long term, if applicable
-    Booking new loan - short term; and
-
-*/
 
 void DisburseLoan::setupLedgerClosureService (LedgerClosureService * ledgerClosureService)
 {

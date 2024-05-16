@@ -6,3 +6,4 @@ temp/*
 test/*
 factory/db_primitive_orm/*
 makefile.vars
+.vscode
