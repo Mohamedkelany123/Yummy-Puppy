@@ -2,10 +2,10 @@
 #define TEMPLATE_MANAGER_H
 
 #include <common.h>
+#include <common_orm.h>
+
 #include <LedgerCompositLeg.h>
-#include <lms_entrytemplate_primitive_orm.h>
-#include <tms_app_fundingfacility_primitive_orm.h>
-#include <ledger_entry_primitive_orm.h>
+
 
 
 class BlnkTemplateManager {

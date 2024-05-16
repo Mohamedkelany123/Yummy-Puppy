@@ -2,10 +2,7 @@
 #define DISBURSE_LOANS_H
 
 #include <common.h>
-#include <loan_app_loan_primitive_orm.h>
-#include <loan_app_installment_primitive_orm.h>
-#include <new_lms_installmentextension_primitive_orm.h>
-#include <loan_app_loanstatus_primitive_orm.h>
+#include <common_orm.h>
 #include <TemplateManager.h>
 
 class LedgerClosureService;

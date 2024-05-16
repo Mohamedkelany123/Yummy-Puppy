@@ -2,12 +2,10 @@
 #define LEDGER_COMPOSIT_LEG_H
 
 #include <common.h>
+#include <common_orm.h>
 #include<LedgerAmount.h>
-#include<ledger_amount_primitive_orm.h>
 #include<TemplateLeg.h>
-#include<tms_app_loaninstallmentfundingrequest_primitive_orm.h>
-#include<tms_app_bond_primitive_orm.h>
-#include<ledger_entry_primitive_orm.h>
+
 
 
 class LedgerCompositLeg

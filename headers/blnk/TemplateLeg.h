@@ -2,8 +2,7 @@
 #define TEMPLATE_LEG_H
 
 #include <common.h>
-#include <ledger_amount_primitive_orm.h>
-
+#include <common_orm.h>
 
 class TemplateLeg
 {
