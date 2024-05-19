@@ -1,7 +1,24 @@
 #include <TemplateLeg.h>
 
 
-TemplateLeg::TemplateLeg(){}
+TemplateLeg::TemplateLeg(){
+        debit_account_id=-1;
+        cashier_id_required=false;
+        credit_account_id = -1;
+        customer_id_required=false;
+        loan_id_required=-1;
+        installment_id_required=false;;
+        merchant_id_required=false;
+        bond_id_required=false;
+        latefee_id_required=false;
+        credit_bond_id_required=false;
+        debit_bond_id_required=false;
+
+        leg_required = false;
+
+
+
+}
 TemplateLeg::~TemplateLeg(){}
 void TemplateLeg::setCashierIdRequired(bool _cashier_id_required) { cashier_id_required = _cashier_id_required; }
 void TemplateLeg::setCreditAvailableIds(const vector<int>& _credit_available_ids) { credit_available_ids = _credit_available_ids; }

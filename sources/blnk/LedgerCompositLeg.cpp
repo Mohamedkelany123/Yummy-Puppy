@@ -1,5 +1,11 @@
 #include <LedgerCompositLeg.h>
 
+LedgerCompositLeg::LedgerCompositLeg()
+{
+        leg = new std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*> ();
+}
+
+
 void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_amount_primitive_orm * leg_side, bool is_debit)
 {
         leg_side->set_leg_temple_id(template_leg->getId());
@@ -120,14 +126,14 @@ std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCom
         this->bond_id =  getBondId(entry_data->getInstallmentId());
         buildLeg (template_leg, entry_data,debit, true);
         buildLeg (template_leg, entry_data,credit, false);
-        leg.first = debit;
-        leg.second = credit;
+        leg->first = debit;
+        leg->second = credit;
         // cout << debit->serialize()<<endl; 
         // cout << credit->serialize()<<endl; 
         // debit->insert();
         // credit->insert();
 
-        return &leg;
+        return leg;
 
 }
 
@@ -181,5 +187,13 @@ int LedgerCompositLeg::getBondId (int installment_id)
     delete(_tms_app_bond_primitive_orm_iterator);
 }
 
+std::pair <ledger_amount_primitive_orm *,ledger_amount_primitive_orm *> * LedgerCompositLeg::getLedgerCompositeLeg ()
+{
+        return leg;
+}
 
+LedgerCompositLeg::~LedgerCompositLeg()
+{
+        delete (leg);
+}
 

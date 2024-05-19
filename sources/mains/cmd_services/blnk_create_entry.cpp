@@ -97,35 +97,39 @@ int main (int argc, char ** argv)
             
             LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
             disburseLoan.setupLedgerClosureService(ledgerClosureService);
-            map <string,LedgerAmount> ledgerAmounts = ledgerClosureService->inference ();
+            map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference ();
             blnkTemplateManager->setEntryData(ledgerAmounts);
             ledger_entry_primitive_orm* entry = blnkTemplateManager->buildEntry(4,BDate("2024-05-15"));
             lal_orm->setUpdateRefernce("loan_creation_ledger_entry_id",entry);
             
             
 
-            for(map<string, LedgerAmount>::iterator it=ledgerAmounts.begin(); it!=ledgerAmounts.end();it++) {
-                cout << "leg name: " << it->first << " calculated amount: " << it->second.getAmount() << endl;
+            for(map<string, LedgerAmount*>::iterator it=ledgerAmounts->begin(); it!=ledgerAmounts->end();it++) {
+                cout << "leg name: " << it->first << " calculated amount: " << it->second->getAmount() << endl;
             }
 
             delete (ledgerClosureService);
 
-            vector <pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>*>* leg_pairs = blnkTemplateManager->get_entry_orms();
+            // vector <pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>*>* leg_pairs = blnkTemplateManager->get_entry_orms();
 
-
-            vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
-            printf ("ie_list: %p \n",ie_list );
-            cout << ie_list->size() << endl;
-            for ( auto i : *ie_list)
+            ledger_amount_primitive_orm * la_orm =  blnkTemplateManager->getFirstLedgerAmountORM();
+            if (la_orm != NULL)
             {
-                cout << "_______________" << i->get_installment_ptr_id() << endl;
-                if(!i->get_is_long_term()){
-                    i->setUpdateRefernce("short_term_ledger_amount_id", (*leg_pairs)[0]->first);
-                    cout << "LegTamplateID-->" <<  (*leg_pairs)[0]->first->get_leg_temple_id() << endl;
+                vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
+                printf ("ie_list: %p \n",ie_list );
+                cout << ie_list->size() << endl;
+                for ( auto i : *ie_list)
+                {
+                    cout << "_______________" << i->get_installment_ptr_id() << endl;
+                    cout << "_______________" << i->get_is_long_term() << endl;
+                    if(!i->get_is_long_term()){
+                        i->setUpdateRefernce("short_term_ledger_amount_id", la_orm);
+                        cout << "LegTamplateID-->" <<  la_orm->get_leg_temple_id() << endl;
+                    }
+
                 }
-
             }
-
+            else cout << "ERROR in fetching first leg of the entry " << endl;
 
 
     });

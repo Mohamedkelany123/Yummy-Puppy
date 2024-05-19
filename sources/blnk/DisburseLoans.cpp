@@ -33,12 +33,12 @@ void DisburseLoan::setupLedgerClosureService (LedgerClosureService * ledgerClosu
 DisburseLoan::~DisburseLoan(){}
 
 
-LedgerAmount DisburseLoan::_init_ledger_amount(){
-    LedgerAmount lg;
-    lg.setCashierId(lal_orm->get_cashier_id());
-    lg.setCustomerId(lal_orm->get_customer_id());
-    lg.setLoanId(lal_orm->get_id());
-    lg.setMerchantId(lal_orm->get_merchant_id());
+LedgerAmount*  DisburseLoan::_init_ledger_amount(){
+    LedgerAmount * lg = new LedgerAmount();
+    lg->setCashierId(lal_orm->get_cashier_id());
+    lg->setCustomerId(lal_orm->get_customer_id());
+    lg->setLoanId(lal_orm->get_id());
+    lg->setMerchantId(lal_orm->get_merchant_id());
 
     return lg;
 }
@@ -148,67 +148,67 @@ void DisburseLoan::set_is_rescheduled(bool _is_rescheduled)
 }
 
 
-LedgerAmount DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan)
+LedgerAmount * DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan)
  {  
-    LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-    la.setAmount(round(((DisburseLoan*)disburseLoan)->get_short_term_principal()));
+    LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    la->setAmount(round(((DisburseLoan*)disburseLoan)->get_short_term_principal()));
     return la;
 
 }
 
 
-LedgerAmount DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
+LedgerAmount * DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
 {
     loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double principal = loan_orm->get_principle();
     double merchant_to_blnk_fee = loan_orm->get_mer_t_bl_fee();
     double amount = ROUND(principal * (merchant_to_blnk_fee / 100));
-    LedgerAmount ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-    ledgerAmount.setAmount(amount);
+    LedgerAmount * ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    ledgerAmount->setAmount(amount);
     return ledgerAmount;
 }
-LedgerAmount DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disburseLoan)
+LedgerAmount * DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disburseLoan)
 {
     loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double perc = ((DisburseLoan*)disburseLoan)->get_provision_percentage()/100;
     double amount = round(loan_orm->get_principle()*perc);
 
-    LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-    la.setAmount(amount);
+    LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    la->setAmount(amount);
     
 
     return la;
 }
-LedgerAmount DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
+LedgerAmount * DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
 {
     loan_app_loan_primitive_orm* lal_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
-    LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     
     float cashier_fee = (lal_orm->get_principle() * (lal_orm->get_cashier_fee()/ 100));
-    la.setCashierId(ROUND(cashier_fee));
+    la->setCashierId(ROUND(cashier_fee));
  
     return la;
 }
-LedgerAmount DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
+LedgerAmount * DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
 {
     loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double perc = loan_orm->get_bl_t_mer_fee()/100;
     double amount = round(loan_orm->get_principle()*perc);
-    LedgerAmount la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-    la.setAmount(amount);
+    LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    la->setAmount(amount);
     return la;
 }
-LedgerAmount DisburseLoan::_calc_loan_upfront_fee(LedgerClosureStep *disburseLoan)
+LedgerAmount * DisburseLoan::_calc_loan_upfront_fee(LedgerClosureStep *disburseLoan)
 {
-    LedgerAmount ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-    ledgerAmount.setAmount(((DisburseLoan*)disburseLoan)->_calculate_loan_upfront_fee());
-    return LedgerAmount();
+    LedgerAmount  * ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    ledgerAmount->setAmount(((DisburseLoan*)disburseLoan)->_calculate_loan_upfront_fee());
+    return ledgerAmount;
 }
-LedgerAmount DisburseLoan::_calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan)
+LedgerAmount * DisburseLoan::_calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan)
 {
-    LedgerAmount ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
+    LedgerAmount * ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     float long_term_principal = ROUND(((DisburseLoan*)disburseLoan)->get_long_term_principal());
-    ledgerAmount.setAmount(long_term_principal);
+    ledgerAmount->setAmount(long_term_principal);
     return ledgerAmount;
 }
 

@@ -14,7 +14,7 @@ class LedgerClosureStep {
 
 };
 
-typedef LedgerAmount (*funcPtr)(LedgerClosureStep *);
+typedef LedgerAmount * (*funcPtr)(LedgerClosureStep *);
 
 
 #endif

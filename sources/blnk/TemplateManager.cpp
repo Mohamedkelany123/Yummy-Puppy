@@ -10,7 +10,7 @@ BlnkTemplateManager::BlnkTemplateManager(int template_id)
 
 map <string , TemplateLeg> BlnkTemplateManager::getTemplateLegs(){return template_legs;}
 
-void BlnkTemplateManager::setEntryData(map<string, LedgerAmount> _entry_data)
+void BlnkTemplateManager::setEntryData(map<string, LedgerAmount*> * _entry_data)
 {
     entry_data = _entry_data;
 }
@@ -19,9 +19,9 @@ void BlnkTemplateManager::constructTemplateLegs()
 {
      for (auto& leg : this->template_json["legs"]) { 
         if (leg["required"]){
-            auto it = entry_data.find(leg["name"]);
+            auto it = entry_data->find(leg["name"]);
 
-            if (it == entry_data.end()) {
+            if (it == entry_data->end()) {
                 throw std::invalid_argument( "Leg is required but not found in entry data" );
 
         }}
@@ -45,6 +45,13 @@ void BlnkTemplateManager::constructTemplateLegs()
         else {
             template_leg.setDebitBondIdRequired(0);
         }
+        if (leg.find("late_fee_id") != leg.end()){
+            template_leg.setLatefeeIdRequired(leg["late_fee_id"]);
+        }
+        else {
+            template_leg.setLatefeeIdRequired(0);
+        }
+
         template_leg.setId(leg["id"]);
         template_leg.setInstallmentIdRequired(leg["installment_id"]);
         template_leg.setLoanIdRequired(leg["loan_id"]);
@@ -53,7 +60,6 @@ void BlnkTemplateManager::constructTemplateLegs()
         template_leg.setLegRequired(leg["required"]);
         template_leg.setCreditAccountId(leg["credit_id"]);
         template_leg.setDebitAccountId(leg["debit_id"]);
-
         template_legs[template_leg.getName()] = template_leg; 
     }
 }
@@ -79,16 +85,18 @@ void BlnkTemplateManager::loadTemplate (int template_id)
 
 bool BlnkTemplateManager::buildLegs()
 {
-    for (auto& ent : this->entry_data) {
+    for (auto ent : *(this->entry_data)) {
 
         string leg_name = ent.first;     
-        LedgerAmount * entry_values = &ent.second; 
+        LedgerAmount * entry_values = ent.second; 
 
         cout << "Leg Name:" << leg_name << endl;
 
-        LedgerCompositLeg lc;
-        std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc.build(&template_legs[leg_name],  entry_values,entry);
-        entry_orms.push_back(leg_pair);
+        LedgerCompositLeg * lc = new LedgerCompositLeg();
+        std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc->build(&template_legs[leg_name],  entry_values,entry);
+        cout << "leg_pair->first->get_amount();" << lc->getLedgerCompositeLeg()->first->get_amount() << endl;
+        cout << "leg_pair->second->get_amount();" << lc->getLedgerCompositeLeg()->second->get_amount() << endl;
+        ledger_amounts[leg_name]=lc;
         if(leg_pair == NULL){
             return false;
         }
@@ -105,7 +113,7 @@ ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (int template_id, BD
 {
     this->createEntry(template_id, entry_date);
     bool is_built = this->buildLegs();
-    if(is_built){
+    if(!is_built){
         return NULL;
     }
     return entry;
@@ -124,10 +132,20 @@ void BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
 
 BlnkTemplateManager::~BlnkTemplateManager()
 {
-
+    for (auto la :ledger_amounts)
+        delete (la.second);
 }
-vector <pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>*>* BlnkTemplateManager::get_entry_orms(){
-    return &entry_orms;
+
+map <string,LedgerCompositLeg *> * BlnkTemplateManager::get_ledger_amounts()
+{
+    return & ledger_amounts;
+}
+
+ledger_amount_primitive_orm * BlnkTemplateManager::getFirstLedgerAmountORM ()
+{
+    if (ledger_amounts.size() > 0)
+        return (ledger_amounts.begin()->second)->getLedgerCompositeLeg()->first;
+    else return NULL;
 }
 
 

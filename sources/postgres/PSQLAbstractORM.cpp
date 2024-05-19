@@ -80,6 +80,7 @@ void PSQLAbstractORM::setAddRefernce (string field_name,PSQLAbstractORM * refere
 void PSQLAbstractORM::setUpdateRefernce (string field_name,PSQLAbstractORM * reference)
 {
     update_references[field_name] = reference;
+    cout << "update_references.size () " << update_references.size() << endl;
 }
 
 
@@ -96,10 +97,14 @@ void PSQLAbstractORM::commitAddReferences ()
 
 void PSQLAbstractORM::commitUpdateReferences ()
 {
+    cout << "update_references.size () " << update_references.size() << endl;
     for (auto& ref : this->update_references) 
     {
         cout << "COMMIT UPDATE REF" <<endl;
+        cout << "ref.name: "<< ref.first << endl;
+        printf ("ref.second %p\n",ref.second);
         int reference_orm_id = ref.second->insert();
+        cout << "reference_orm_id: " << reference_orm_id << endl;
         cout << reference_orm_id <<endl;
         reference_values[ref.first] = reference_orm_id;
     }

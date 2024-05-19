@@ -58,17 +58,17 @@ class DisburseLoan : public LedgerClosureStep
 
 
         float _calculate_loan_upfront_fee();
-        LedgerAmount _init_ledger_amount();
+        LedgerAmount * _init_ledger_amount();
         // //static methods
-        static LedgerAmount _calc_short_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
-        static LedgerAmount _calc_long_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
-        static LedgerAmount _calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan);
-        static LedgerAmount _calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan);
-        static LedgerAmount _calc_provision_percentage(LedgerClosureStep *disburseLoan);
-        static LedgerAmount _calc_cashier_fee(LedgerClosureStep *disburseLoan);
-        static LedgerAmount _calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan);
-        static LedgerAmount _calc_loan_upfront_fee(LedgerClosureStep *disburseLoan);
-        static LedgerAmount _calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan);
+        static LedgerAmount * _calc_short_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
+        static LedgerAmount * _calc_long_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
+        static LedgerAmount * _calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan);
+        static LedgerAmount * _calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan);
+        static LedgerAmount * _calc_provision_percentage(LedgerClosureStep *disburseLoan);
+        static LedgerAmount * _calc_cashier_fee(LedgerClosureStep *disburseLoan);
+        static LedgerAmount * _calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan);
+        static LedgerAmount * _calc_loan_upfront_fee(LedgerClosureStep *disburseLoan);
+        static LedgerAmount * _calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan);
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
         
