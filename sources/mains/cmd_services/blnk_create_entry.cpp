@@ -68,73 +68,31 @@ int main (int argc, char ** argv)
             new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
             new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
             new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string)
-            // isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
-            // isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
         )
     );
 
     BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
     map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
-
-
     float current_provision_percentage = status_provision_percentage[1];
-    psqlQueryJoin->process (threadsCount,[blnkTemplateManager, current_provision_percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
-            cout << "INsidee processsssssss" << endl;
-            loan_app_loan_bl_orm * lal_orm = ORMBL(loan_app_loan,orms);
-            loan_app_loanproduct_primitive_orm * lalp_orm = ORM(loan_app_loanproduct,orms);
-            crm_app_customer_primitive_orm * cac_orm = ORM(crm_app_customer,orms);
-            PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
-            float short_term_principal = gorm->toFloat("short_term_principal");
-            float long_term_principal = gorm->toFloat("long_term_principal");
-            bool is_rescheduled = gorm->toBool("is_rescheduled");
 
-            cout << "HEREEE--> " << lal_orm->get_id() << "--" << is_rescheduled << endl;
-            
-            
+    psqlQueryJoin->process (threadsCount,[blnkTemplateManager, current_provision_percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+                     
+            cout << "inside process\n";
             //TODO: Send orms iteself as a param
-            DisburseLoan disburseLoan (lal_orm,cac_orm, lalp_orm, short_term_principal,long_term_principal, current_provision_percentage, is_rescheduled);
+            DisburseLoan disburseLoan (orms, current_provision_percentage);
 
             
             LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
             disburseLoan.setupLedgerClosureService(ledgerClosureService);
             map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference ();
             blnkTemplateManager->setEntryData(ledgerAmounts);
-            ledger_entry_primitive_orm* entry = blnkTemplateManager->buildEntry(4,BDate("2024-05-15"));
-            lal_orm->setUpdateRefernce("loan_creation_ledger_entry_id",entry);
-            
-            
-
-            for(map<string, LedgerAmount*>::iterator it=ledgerAmounts->begin(); it!=ledgerAmounts->end();it++) {
-                cout << "leg name: " << it->first << " calculated amount: " << it->second->getAmount() << endl;
-            }
-
-            delete (ledgerClosureService);
-
-            // vector <pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>*>* leg_pairs = blnkTemplateManager->get_entry_orms();
-
+            ledger_entry_primitive_orm* entry = blnkTemplateManager->buildEntry(BDate("2024-05-15"));
             ledger_amount_primitive_orm * la_orm =  blnkTemplateManager->getFirstLedgerAmountORM();
-            if (la_orm != NULL)
-            {
-                vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
-                printf ("ie_list: %p \n",ie_list );
-                cout << ie_list->size() << endl;
-                for ( auto i : *ie_list)
-                {
-                    cout << "_______________" << i->get_installment_ptr_id() << endl;
-                    cout << "_______________" << i->get_is_long_term() << endl;
-                    if(!i->get_is_long_term()){
-                        i->setUpdateRefernce("short_term_ledger_amount_id", la_orm);
-                        cout << "LegTamplateID-->" <<  la_orm->get_leg_temple_id() << endl;
-                    }
 
-                }
-            }
-            else cout << "ERROR in fetching first leg of the entry " << endl;
-
-
+            disburseLoan.stampORMs(entry, la_orm);
+            delete (ledgerClosureService);
     });
 
-    cout << "processed " << psqlQueryJoin->getResultCount() << " record(s)" << endl;
     psqlController.ORMCommit(true,true,true, "main");  
 
     return 0;

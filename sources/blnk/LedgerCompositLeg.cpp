@@ -21,7 +21,6 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
                         leg_side->set_bond_id(this->bond_id);
                        }
                 }
-                cout << "bond-id ::->" << bond_id  << endl;
         } else{
                 
                 leg_side->set_account_id(template_leg->getCreditAccountId());
@@ -34,8 +33,6 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
                 }
         }
 
-        
-
         if(entry_data->getCashierId() != 0){
                leg_side->set_cashier_id(entry_data->getCashierId());
         }
@@ -45,10 +42,7 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
                 leg_side->set_customer_id(entry_data->getCustomerId());
 
         }
-
-
-       
-        
+ 
         if(entry_data->getLoanId() != 0){
                 leg_side->set_loan_id(entry_data->getLoanId());
         }
@@ -58,17 +52,11 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
                 leg_side->set_installment_id(entry_data->getInstallmentId());
 
         }
-
-        
-        
+  
         if(entry_data->getMerchantId() != 0){
                 leg_side->set_merchant_id(entry_data->getMerchantId());
 
         }
-
-
-        // cout << leg_side->serialize() << endl;
-        // cout << leg_side->get_amount()  << endl;
 
 }
 
@@ -106,11 +94,9 @@ void LedgerCompositLeg::validateEntry(TemplateLeg * template_leg,  LedgerAmount 
 }
 std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_entry_primitive_orm * entry)
 {
-        // bool latefee_id_required;
         ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm("main", true);
         ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm("main", true);
-        // entry_orms.push_back(debit);
-        // entry_orms.push_back(credit);
+
         debit->setAddRefernce("entry_id",entry);
         credit->setAddRefernce("entry_id",entry);
         
@@ -122,16 +108,11 @@ std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCom
                 return NULL;
         }
         
-        // Some code to build credit debit
         this->bond_id =  getBondId(entry_data->getInstallmentId());
         buildLeg (template_leg, entry_data,debit, true);
         buildLeg (template_leg, entry_data,credit, false);
         leg->first = debit;
         leg->second = credit;
-        // cout << debit->serialize()<<endl; 
-        // cout << credit->serialize()<<endl; 
-        // debit->insert();
-        // credit->insert();
 
         return leg;
 
@@ -157,34 +138,28 @@ int LedgerCompositLeg::getBondId (int installment_id)
 
 
 
-    tms_app_loaninstallmentfundingrequest_primitive_orm_iterator * _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator = new tms_app_loaninstallmentfundingrequest_primitive_orm_iterator ("main");
+        tms_app_loaninstallmentfundingrequest_primitive_orm_iterator * _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator = new tms_app_loaninstallmentfundingrequest_primitive_orm_iterator ("main");
 
-    _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator->filter(
-        UnaryOperator ("tms_app_loaninstallmentfundingrequest.installment_id",eq,installment_id)
-    );
+        _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator->filter(
+                UnaryOperator ("tms_app_loaninstallmentfundingrequest.installment_id",eq,installment_id)
+        );
 
+        _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator->execute();
 
-
-     
-
-    _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator->execute();
-
-    tms_app_loaninstallmentfundingrequest_primitive_orm * funding_req = _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator->next();
-    if(funding_req == 0){
-        return 0;
-    }
-    int _funding_req_id =   static_cast<int>(funding_req->get_funding_facility_id());
-        cout << "abl el if"  << endl;
-    if(std::find( bond_ids.begin(),  bond_ids.end(), _funding_req_id) !=  bond_ids.end()) {
+        tms_app_loaninstallmentfundingrequest_primitive_orm * funding_req = _tms_app_loaninstallmentfundingrequest_primitive_orm_iterator->next();
+        if(funding_req == 0){
+                return 0;
+        }
+        int _funding_req_id =   static_cast<int>(funding_req->get_funding_facility_id());
+        if(std::find( bond_ids.begin(),  bond_ids.end(), _funding_req_id) !=  bond_ids.end()) {
                 return _funding_req_id;
         } else {
                 return 0;
-       
-        }
-    // cout << "TEMPLATE" << _template.dump();
 
-    delete(_tms_app_loaninstallmentfundingrequest_primitive_orm_iterator);
-    delete(_tms_app_bond_primitive_orm_iterator);
+        }
+
+        delete(_tms_app_loaninstallmentfundingrequest_primitive_orm_iterator);
+        delete(_tms_app_bond_primitive_orm_iterator);
 }
 
 std::pair <ledger_amount_primitive_orm *,ledger_amount_primitive_orm *> * LedgerCompositLeg::getLedgerCompositeLeg ()

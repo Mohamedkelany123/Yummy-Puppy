@@ -10,22 +10,23 @@
 
 class BlnkTemplateManager {
     private:
+        int template_id;
         json template_json;
         map<string, LedgerAmount*> * entry_data;
         map <string , TemplateLeg> template_legs;
         map <string,LedgerCompositLeg *> ledger_amounts;
         ledger_entry_primitive_orm * entry;
         void constructTemplateLegs(); 
-        void loadTemplate (int _template_id);
+        void loadTemplate ();
         bool buildLegs();
         bool validate ();
     public:
-        BlnkTemplateManager(int template_id);
+        BlnkTemplateManager(int _template_id);
         map <string , TemplateLeg> getTemplateLegs(); //return this->templatelegs
         void setEntryData(map<string, LedgerAmount*> * _entry_data);
 
-        ledger_entry_primitive_orm* buildEntry (int template_id, BDate _entry_date);
-        void createEntry(int _template_id, BDate _entry_date);
+        ledger_entry_primitive_orm* buildEntry (BDate _entry_date);
+        void createEntry(BDate _entry_date);
 
         map <string,LedgerCompositLeg*> * get_ledger_amounts();
         ledger_amount_primitive_orm * getFirstLedgerAmountORM ();

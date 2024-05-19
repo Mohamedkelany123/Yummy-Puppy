@@ -1,8 +1,9 @@
 #include <TemplateManager.h>
 
-BlnkTemplateManager::BlnkTemplateManager(int template_id)
+BlnkTemplateManager::BlnkTemplateManager(int _template_id)
 {
-    loadTemplate(template_id);
+    template_id = _template_id;
+    loadTemplate();
     constructTemplateLegs();
     // buildLegs();
     entry = NULL;
@@ -64,12 +65,12 @@ void BlnkTemplateManager::constructTemplateLegs()
     }
 }
 
-void BlnkTemplateManager::loadTemplate (int template_id)
+void BlnkTemplateManager::loadTemplate ()
 {
     lms_entrytemplate_primitive_orm_iterator * _lms_entrytemplate_primitive_orm_iterator = new lms_entrytemplate_primitive_orm_iterator("main");
 
     _lms_entrytemplate_primitive_orm_iterator->filter(
-        UnaryOperator ("lms_entrytemplate.id",eq,template_id)
+        UnaryOperator ("lms_entrytemplate.id",eq, template_id)
     );
 
     _lms_entrytemplate_primitive_orm_iterator->execute();
@@ -77,7 +78,6 @@ void BlnkTemplateManager::loadTemplate (int template_id)
     lms_entrytemplate_primitive_orm * temp = _lms_entrytemplate_primitive_orm_iterator->next();
     json _template = temp->get_template();
     this->template_json = _template;
-    cout << "TEMPLATE" << _template.dump();
 
     delete(_lms_entrytemplate_primitive_orm_iterator);
 }
@@ -90,12 +90,9 @@ bool BlnkTemplateManager::buildLegs()
         string leg_name = ent.first;     
         LedgerAmount * entry_values = ent.second; 
 
-        cout << "Leg Name:" << leg_name << endl;
 
         LedgerCompositLeg * lc = new LedgerCompositLeg();
         std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc->build(&template_legs[leg_name],  entry_values,entry);
-        cout << "leg_pair->first->get_amount();" << lc->getLedgerCompositeLeg()->first->get_amount() << endl;
-        cout << "leg_pair->second->get_amount();" << lc->getLedgerCompositeLeg()->second->get_amount() << endl;
         ledger_amounts[leg_name]=lc;
         if(leg_pair == NULL){
             return false;
@@ -109,16 +106,16 @@ bool BlnkTemplateManager::validate ()
 {
     return false;
 }
-ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (int template_id, BDate entry_date)
+ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
 {
-    this->createEntry(template_id, entry_date);
+    this->createEntry(entry_date);
     bool is_built = this->buildLegs();
     if(!is_built){
         return NULL;
     }
     return entry;
 }
-void BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
+void BlnkTemplateManager::createEntry (BDate entry_date)
 {
     entry  = new ledger_entry_primitive_orm("main", true);
     entry->set_entry_date(entry_date.getDateString());
@@ -127,7 +124,6 @@ void BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
     entry->set_type("NO");
     entry->set_status("PO");
     entry->set_created_by(0);
-    // cout << entry->serialize() << endl;
 }
 
 BlnkTemplateManager::~BlnkTemplateManager()

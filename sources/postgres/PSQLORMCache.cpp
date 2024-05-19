@@ -40,16 +40,12 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
 
     if (me->update_thread_cache.size() > t_index)
     {
-        cout << "+++++++++++++++++++Starting Update Cache" << endl;
         for (auto orm_cache_item: me->update_thread_cache[t_index])
         {
-        cout << "(1)+++++++++++++++++++++++++++ Updating cache Item" << endl;
             if((transactional && (orm_transaction == orm_cache_item.second->isOrmTransactional())) || !transactional){
-                cout << "(2)+++++++++++++++++++++++++++ Updating cache Item" << endl;
 
                 if (orm_cache_item.second->isUpdated())
                 {
-                    cout << "(3)+++++++++++++++++++++++++++ Updating cache Item" << endl;
                     orm_cache_item.second->lock_me();
                     if (!orm_cache_item.second->update(_psqlConnection)) return_flag = false;
                     orm_cache_item.second->unlock_me();

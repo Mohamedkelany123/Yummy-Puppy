@@ -13,7 +13,7 @@
 class DisburseLoan : public LedgerClosureStep
 {
     private:
-        loan_app_loan_primitive_orm * lal_orm;
+        loan_app_loan_bl_orm * lal_orm;
         loan_app_loanproduct_primitive_orm* lalp_orm;
         crm_app_customer_primitive_orm* cac_orm;
         int template_id;
@@ -21,19 +21,14 @@ class DisburseLoan : public LedgerClosureStep
         float short_term_principal, long_term_principal;
         bool is_rescheduled;
 
-        //<Leg Name VariableName(Function)>
-
-        //init funcMap method
-
-
     public:
         map<string, funcPtr> funcMap;
-        DisburseLoan(loan_app_loan_primitive_orm * _lal_orm,crm_app_customer_primitive_orm * _cac_orm,loan_app_loanproduct_primitive_orm* _lalp_orm, float short_term_principal, float long_term_principal, float percentage, bool _is_rescheduled);
+        DisburseLoan(map <string,PSQLAbstractORM *> * _orms, float _percentage);
 
         // void generateFuncMap();
         
         //Setters
-        void set_loan_app_loan(loan_app_loan_primitive_orm* _lal_orm);
+        void set_loan_app_loan(loan_app_loan_bl_orm* _lal_orm);
         void set_loan_app_loanproduct(loan_app_loanproduct_primitive_orm* _lalp_orm);
         void set_template_id(int _template_id);
         void set_provision_percentage(float _provision_percentage);
@@ -45,7 +40,7 @@ class DisburseLoan : public LedgerClosureStep
         
 
         //Getters
-        loan_app_loan_primitive_orm* get_loan_app_loan();
+        loan_app_loan_bl_orm* get_loan_app_loan();
         loan_app_loanproduct_primitive_orm* get_loan_app_loanproduct();
         crm_app_customer_primitive_orm *get_crm_app_customer();
 
@@ -59,6 +54,9 @@ class DisburseLoan : public LedgerClosureStep
 
         float _calculate_loan_upfront_fee();
         LedgerAmount * _init_ledger_amount();
+
+        void stampORMs(ledger_entry_primitive_orm* entry, ledger_amount_primitive_orm * la_orm);
+
         // //static methods
         static LedgerAmount * _calc_short_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
         static LedgerAmount * _calc_long_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);

@@ -1,8 +1,15 @@
 #include <DisburseLoans.h>
 
 
-DisburseLoan::DisburseLoan(loan_app_loan_primitive_orm * _lal_orm,crm_app_customer_primitive_orm * _cac_orm,loan_app_loanproduct_primitive_orm* _lalp_orm, float _short_term_principal, float long_term_principal, float _percentage,bool _is_rescheduled):LedgerClosureStep ()
+DisburseLoan::DisburseLoan(map <string,PSQLAbstractORM *> * _orms, float _percentage):LedgerClosureStep ()
 {
+    loan_app_loan_bl_orm * _lal_orm = ORMBL(loan_app_loan,_orms);
+    loan_app_loanproduct_primitive_orm * _lalp_orm = ORM(loan_app_loanproduct,_orms);
+    crm_app_customer_primitive_orm * _cac_orm = ORM(crm_app_customer,_orms);
+    PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,_orms);
+    float _short_term_principal = gorm->toFloat("short_term_principal");
+    float _long_term_principal = gorm->toFloat("long_term_principal");
+    bool _is_rescheduled = gorm->toBool("is_rescheduled");   
     lal_orm = _lal_orm;    
     cac_orm = _cac_orm;
     lalp_orm = _lalp_orm;
@@ -10,7 +17,6 @@ DisburseLoan::DisburseLoan(loan_app_loan_primitive_orm * _lal_orm,crm_app_custom
     prov_percentage = _percentage;
     short_term_principal = _short_term_principal;
     is_rescheduled = _is_rescheduled;
-    //setupLedgerCloslaureService(this);
 }
 
 
@@ -43,8 +49,24 @@ LedgerAmount*  DisburseLoan::_init_ledger_amount(){
     return lg;
 }
 
+void DisburseLoan::stampORMs(ledger_entry_primitive_orm *entry, ledger_amount_primitive_orm *la_orm){
+    lal_orm->setUpdateRefernce("loan_creation_ledger_entry_id", entry);
+    vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();
+    if (la_orm != NULL)
+    {
+        for ( auto i : *ie_list)
+        {
+            if(!i->get_is_long_term()){
+                i->setUpdateRefernce("short_term_ledger_amount_id", la_orm);
+            }
+
+        }
+    }
+    else cout << "ERROR in fetching first leg of the entry " << endl;
+}
+
 float DisburseLoan::_calculate_loan_upfront_fee(){
-    loan_app_loan_primitive_orm* lal_orm = get_loan_app_loan();
+    loan_app_loan_bl_orm* lal_orm = get_loan_app_loan();
     crm_app_customer_primitive_orm* cac_orm = get_crm_app_customer();
     loan_app_loanproduct_primitive_orm* lp_orm = get_loan_app_loanproduct();
     json upfront_fee;  
@@ -56,7 +78,6 @@ float DisburseLoan::_calculate_loan_upfront_fee(){
     else {
         upfront_fee = lp_orm-> get_transaction_upfront_income_unbanked();
     }
-    cout << "JsON->" << upfront_fee.dump()<< endl;
     if (upfront_fee["type"] == "Paid in Cash") {
         if (upfront_fee["data"]["option"] == "flat_fee"){
             fee = float(upfront_fee["data"]["flat_fee"]);
@@ -80,7 +101,7 @@ float DisburseLoan::_calculate_loan_upfront_fee(){
     
 }
 
-loan_app_loan_primitive_orm* DisburseLoan::get_loan_app_loan()  {
+loan_app_loan_bl_orm* DisburseLoan::get_loan_app_loan()  {
     return lal_orm;
 }
 loan_app_loanproduct_primitive_orm *DisburseLoan::get_loan_app_loanproduct()
@@ -106,7 +127,7 @@ void DisburseLoan::set_short_term_principal(float _short_term_principal){
     short_term_principal = _short_term_principal;
 }
 
-void DisburseLoan::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
+void DisburseLoan::set_loan_app_loan(loan_app_loan_bl_orm *_lal_orm)
 {
     lal_orm = _lal_orm;
 }
@@ -159,7 +180,7 @@ LedgerAmount * DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureSt
 
 LedgerAmount * DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
 {
-    loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
+    loan_app_loan_bl_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double principal = loan_orm->get_principle();
     double merchant_to_blnk_fee = loan_orm->get_mer_t_bl_fee();
     double amount = ROUND(principal * (merchant_to_blnk_fee / 100));
@@ -169,7 +190,7 @@ LedgerAmount * DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
 }
 LedgerAmount * DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disburseLoan)
 {
-    loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
+    loan_app_loan_bl_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double perc = ((DisburseLoan*)disburseLoan)->get_provision_percentage()/100;
     double amount = round(loan_orm->get_principle()*perc);
 
@@ -181,7 +202,7 @@ LedgerAmount * DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disbu
 }
 LedgerAmount * DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
 {
-    loan_app_loan_primitive_orm* lal_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
+    loan_app_loan_bl_orm* lal_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     
     float cashier_fee = (lal_orm->get_principle() * (lal_orm->get_cashier_fee()/ 100));
@@ -191,7 +212,7 @@ LedgerAmount * DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
 }
 LedgerAmount * DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
 {
-    loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
+    loan_app_loan_bl_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double perc = loan_orm->get_bl_t_mer_fee()/100;
     double amount = round(loan_orm->get_principle()*perc);
     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();

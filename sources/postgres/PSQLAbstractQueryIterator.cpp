@@ -126,13 +126,11 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next ()
 
         if (extras.size() > 0)
         {
-            cout << "I am here inside the loop" << endl;
             PSQLGeneric_primitive_orm * orm = new PSQLGeneric_primitive_orm(data_source_name);
             for (auto e : extras)
                 orm->add(e.first,psqlQuery->getValue(e.first));
             (*results)["PSQLGeneric"] = orm;            
         }
-        else cout << "I am NOT here inside the loop" << endl;
 
         return results;
     }
