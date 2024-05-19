@@ -98,11 +98,13 @@ void LedgerCompositLeg::validateEntry(TemplateLeg * template_leg,  LedgerAmount 
         }
 
 }
-bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_entry_primitive_orm * entry)
+std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_entry_primitive_orm * entry)
 {
         // bool latefee_id_required;
         ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm("main", true);
         ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm("main", true);
+        // entry_orms.push_back(debit);
+        // entry_orms.push_back(credit);
         debit->setAddRefernce("entry_id",entry);
         credit->setAddRefernce("entry_id",entry);
         
@@ -111,7 +113,7 @@ bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry
         }
         catch (const std::invalid_argument& e) {
                 std::cerr << "Validation error: " << e.what() << std::endl;
-                return false;
+                return NULL;
         }
         
         // Some code to build credit debit
@@ -120,12 +122,12 @@ bool LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry
         buildLeg (template_leg, entry_data,credit, false);
         leg.first = debit;
         leg.second = credit;
-        cout << debit->serialize()<<endl; 
-        cout << credit->serialize()<<endl; 
-        debit->insert();
-        credit->insert();
+        // cout << debit->serialize()<<endl; 
+        // cout << credit->serialize()<<endl; 
+        // debit->insert();
+        // credit->insert();
 
-        return true;
+        return &leg;
 
 }
 

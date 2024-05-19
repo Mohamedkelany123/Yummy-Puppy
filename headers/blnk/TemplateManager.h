@@ -14,7 +14,7 @@ class BlnkTemplateManager {
         map<string, LedgerAmount> entry_data;
         map <string , TemplateLeg> template_legs;
         map <string,LedgerCompositLeg> ledger_amounts;
-        vector <PSQLAbstractORM *> entry_orms;
+        vector <pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>*> entry_orms;
         ledger_entry_primitive_orm * entry;
         void constructTemplateLegs(); 
         void loadTemplate (int _template_id);
@@ -25,8 +25,10 @@ class BlnkTemplateManager {
         map <string , TemplateLeg> getTemplateLegs(); //return this->templatelegs
         void setEntryData(map<string, LedgerAmount> _entry_data);
 
-        bool buildEntry (int template_id, BDate _entry_date);
+        ledger_entry_primitive_orm* buildEntry (int template_id, BDate _entry_date);
         void createEntry(int _template_id, BDate _entry_date);
+        vector <pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>*>* get_entry_orms();
+
 
         ~BlnkTemplateManager();
 

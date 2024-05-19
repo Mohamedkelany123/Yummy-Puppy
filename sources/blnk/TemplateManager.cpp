@@ -87,9 +87,9 @@ bool BlnkTemplateManager::buildLegs()
         cout << "Leg Name:" << leg_name << endl;
 
         LedgerCompositLeg lc;
-        bool is_built = lc.build(&template_legs[leg_name],  entry_values,entry);
-
-        if(!is_built){
+        std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc.build(&template_legs[leg_name],  entry_values,entry);
+        entry_orms.push_back(leg_pair);
+        if(leg_pair == NULL){
             return false;
         }
     }
@@ -99,13 +99,16 @@ bool BlnkTemplateManager::buildLegs()
 }
 bool BlnkTemplateManager::validate ()
 {
-
+    return false;
 }
-bool BlnkTemplateManager::buildEntry (int template_id, BDate entry_date)
+ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (int template_id, BDate entry_date)
 {
     this->createEntry(template_id, entry_date);
     bool is_built = this->buildLegs();
-    return is_built;
+    if(is_built){
+        return NULL;
+    }
+    return entry;
 }
 void BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
 {
@@ -122,6 +125,9 @@ void BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
 BlnkTemplateManager::~BlnkTemplateManager()
 {
 
+}
+vector <pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>*>* BlnkTemplateManager::get_entry_orms(){
+    return &entry_orms;
 }
 
 

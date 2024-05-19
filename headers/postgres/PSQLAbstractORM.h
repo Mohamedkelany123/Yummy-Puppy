@@ -66,7 +66,7 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
         int toInt (string name) { return atoi(values[name].c_str());}
         float toFloat (string name) { return atof(values[name].c_str());}
         double toLong (string name) { return atol(values[name].c_str());}
-        bool toBool (string name) { return (atoi(values[name].c_str()) != 0);}
+        bool toBool (string name) { return (values[name] == "t");}
         // double toDouble (name) { return atoll(values[name].c_str());} need to be implemented using strtod
         string getFromString () { return "";}
         void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) {}

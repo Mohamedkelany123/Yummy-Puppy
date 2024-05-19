@@ -18,7 +18,23 @@ LedgerAmount::LedgerAmount(int _id,  int _debit_account_id, int _cashier_id, int
     account_id = _account_id;
     is_credit = _is_credit;
 }
-LedgerAmount::LedgerAmount(){}
+LedgerAmount::LedgerAmount(){
+    id = 0;
+    debit_account_id = 0;
+    cashier_id = 0;
+    credit_account_id = 0;
+    customer_id = 0;
+    loan_id = 0;
+    installment_id = 0;
+    merchant_id = 0;
+    bond_id = 0;
+    latefee_id = 0;
+    leg_id = 0;
+    entry_id = 0;
+    amount = 0;
+    account_id = 0;
+    is_credit = 0;
+}
 LedgerAmount::~LedgerAmount(){}
 
 void LedgerAmount::setId(int _id) {id = _id; }
