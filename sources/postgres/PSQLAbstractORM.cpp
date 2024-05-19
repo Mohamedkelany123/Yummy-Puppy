@@ -87,7 +87,7 @@ void PSQLAbstractORM::commitAddReferences ()
 {
     for (auto& ref : this->add_references) 
     {
-        cout << "3aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" <<endl;
+        cout << "COMMIT ADDD REF" <<endl;
         int reference_orm_id = ref.second->insert();
         cout << reference_orm_id <<endl;
         reference_values[ref.first] = reference_orm_id;
@@ -98,7 +98,7 @@ void PSQLAbstractORM::commitUpdateReferences ()
 {
     for (auto& ref : this->update_references) 
     {
-        cout << "3aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" <<endl;
+        cout << "COMMIT UPDATE REF" <<endl;
         int reference_orm_id = ref.second->insert();
         cout << reference_orm_id <<endl;
         reference_values[ref.first] = reference_orm_id;
