@@ -24,15 +24,20 @@ map<int,float> get_loan_status_provisions_percentage()
         map<int,float> bucket_percentage;
 
         psqlQueryJoinProvisions->execute();
-        map<string, PSQLAbstractORM *>* orms = psqlQueryJoinProvisions->next();
+        map<string, PSQLAbstractORM *>* orms = psqlQueryJoinProvisions->next(true);
         loan_app_loanstatus_primitive_orm * lals_orm;
         loan_app_provision_primitive_orm * lap_orm; 
         while (orms != NULL){
             lals_orm = ORM(loan_app_loanstatus,orms);
             lap_orm = ORM(loan_app_provision,orms);
             bucket_percentage[lals_orm->get_id()] = lap_orm->get_percentage();
-            orms = psqlQueryJoinProvisions->next();
+            delete(lals_orm);
+            delete(lap_orm);
+            delete(orms);
+            orms = psqlQueryJoinProvisions->next(true);
         }
+        delete (psqlQueryJoinProvisions);
+        
 
         return bucket_percentage;
 }

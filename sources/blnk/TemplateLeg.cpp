@@ -2,6 +2,7 @@
 
 
 TemplateLeg::TemplateLeg(){
+        id = -1;
         debit_account_id=-1;
         cashier_id_required=false;
         credit_account_id = -1;
@@ -13,11 +14,7 @@ TemplateLeg::TemplateLeg(){
         latefee_id_required=false;
         credit_bond_id_required=false;
         debit_bond_id_required=false;
-
         leg_required = false;
-
-
-
 }
 TemplateLeg::~TemplateLeg(){}
 void TemplateLeg::setCashierIdRequired(bool _cashier_id_required) { cashier_id_required = _cashier_id_required; }

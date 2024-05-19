@@ -220,7 +220,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         static void process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f);
     public:
         PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields);
-        map <string,PSQLAbstractORM *> * next ();
+        map <string,PSQLAbstractORM *> * next (bool read_only=false);
         void process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f);
         // void setNativeSQL(string _sql);
         // void filter ( Expression const & e);

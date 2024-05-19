@@ -2,7 +2,9 @@
 
 LedgerCompositLeg::LedgerCompositLeg()
 {
-        leg = new std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*> ();
+        leg_id = -1;
+        bond_id = -1;
+        leg = new pair<ledger_amount_primitive_orm*, ledger_amount_primitive_orm*>();
 }
 
 

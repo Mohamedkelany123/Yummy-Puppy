@@ -112,7 +112,7 @@ PSQLAbstractQueryIterator(_data_source_name,"")
     from_string = column_names;
     conditions = " where "+join_string;
 }
-map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next ()
+map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next (bool read_only)
 {
     if (psqlQuery->fetchNextRow())
     {
@@ -120,7 +120,7 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next ()
         for (auto orm_object: *orm_objects) 
         {
             PSQLAbstractORM * orm = orm_object->clone();
-            orm->assignResults(psqlQuery);
+            orm->assignResults(psqlQuery, read_only);
             (*results)[orm->getTableName()] = orm;
         }
 

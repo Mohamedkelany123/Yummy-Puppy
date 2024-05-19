@@ -24,8 +24,6 @@ class DisburseLoan : public LedgerClosureStep
     public:
         map<string, funcPtr> funcMap;
         DisburseLoan(map <string,PSQLAbstractORM *> * _orms, float _percentage);
-
-        // void generateFuncMap();
         
         //Setters
         void set_loan_app_loan(loan_app_loan_bl_orm* _lal_orm);
@@ -58,8 +56,6 @@ class DisburseLoan : public LedgerClosureStep
         void stampORMs(ledger_entry_primitive_orm* entry, ledger_amount_primitive_orm * la_orm);
 
         // //static methods
-        static LedgerAmount * _calc_short_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
-        static LedgerAmount * _calc_long_term_receivable_balance_reschedled(LedgerClosureStep* disburseLoan);
         static LedgerAmount * _calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan);
         static LedgerAmount * _calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan);
         static LedgerAmount * _calc_provision_percentage(LedgerClosureStep *disburseLoan);
