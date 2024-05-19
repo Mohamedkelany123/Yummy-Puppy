@@ -119,7 +119,7 @@ void BlnkTemplateManager::createEntry (int template_id, BDate entry_date)
     entry->set_type("NO");
     entry->set_status("PO");
     entry->set_created_by(0);
-    cout << entry->serialize() << endl;
+    // cout << entry->serialize() << endl;
 }
 
 BlnkTemplateManager::~BlnkTemplateManager()

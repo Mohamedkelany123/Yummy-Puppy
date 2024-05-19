@@ -411,6 +411,7 @@ void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name)
 {
     extra_methods_def += "\t\tbool isUpdated ();\n";
     extra_methods += "\t\tbool "+class_name+"::isUpdated (){\n";
+    extra_methods += "\t\t\tresolveReferences();\n";
     extra_methods += "\t\t\treturn update_flag.any();\n";
     extra_methods += "\t\t}\n";
 }
