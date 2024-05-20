@@ -5,27 +5,16 @@ BlnkTemplateManager::BlnkTemplateManager(int _template_id)
     template_id = _template_id;
     loadTemplate();
     constructTemplateLegs();
-    // buildLegs();
     entry = NULL;
 }
 
 map <string , TemplateLeg> BlnkTemplateManager::getTemplateLegs(){return template_legs;}
 
-void BlnkTemplateManager::setEntryData(map<string, LedgerAmount*> * _entry_data)
-{
-    entry_data = _entry_data;
-}
 
 void BlnkTemplateManager::constructTemplateLegs()
 {
-     for (auto& leg : this->template_json["legs"]) { 
-        if (leg["required"]){
-            auto it = entry_data->find(leg["name"]);
-
-            if (it == entry_data->end()) {
-                throw std::invalid_argument( "Leg is required but not found in entry data" );
-
-        }}
+     for (auto& leg : this->template_json["legs"]) {
+        
         TemplateLeg  template_leg;
         //TODO:: Reiterate To make sure if we need to add any conditions for variable to check if available or not.
         template_leg.setCashierIdRequired(leg["cashier_id"]);
@@ -83,10 +72,10 @@ void BlnkTemplateManager::loadTemplate ()
 }
 
 
-bool BlnkTemplateManager::buildLegs()
+bool BlnkTemplateManager::buildLegs(map <string,LedgerAmount*> * ledgerAmounts)
 {
-    for (auto ent : *(this->entry_data)) {
-
+    for (auto ent : *(ledgerAmounts)) {
+        
         string leg_name = ent.first;     
         LedgerAmount * entry_values = ent.second; 
 
@@ -102,15 +91,26 @@ bool BlnkTemplateManager::buildLegs()
     return true;
 
 }
-bool BlnkTemplateManager::validate ()
+bool BlnkTemplateManager::validate (map <string,LedgerAmount*> * ledgerAmounts)
 {
-    return false;
+    for (auto& leg : this->template_json["legs"]) {
+        if (leg["required"]){
+            auto it = ledgerAmounts->find(leg["name"]);
+
+            if (it == ledgerAmounts->end()) {
+                return false;
+            }
+
+        }
+    }
+    return true;
 }
-ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
+ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date, map <string,LedgerAmount*> * ledgerAmounts)
 {
     this->createEntry(entry_date);
-    bool is_built = this->buildLegs();
-    if(!is_built){
+    bool is_built = this->buildLegs(ledgerAmounts);
+    bool is_valid = this->validate(ledgerAmounts);
+    if(!(is_valid && is_built)){
         return NULL;
     }
     return entry;
