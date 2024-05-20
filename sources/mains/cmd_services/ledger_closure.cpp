@@ -21,7 +21,7 @@
 
 //enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,MARGINALIZE_INCOME_STEP2,MARGINALIZE_INCOME_STEP3,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY,PREPAID_TRANSACTION };
 
-extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids="");
+extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids=NULL);
 
 
 
@@ -34,7 +34,7 @@ int main (int argc, char ** argv) {
     }
 
     bool isLoanSpecific = argc >= 12; 
-    char* loan_ids = "";
+    char* loan_ids = NULL;
     if (isLoanSpecific) {
         loan_ids = argv[11];
     }
@@ -47,7 +47,7 @@ int main (int argc, char ** argv) {
 // extern "c" not garbling function names
 extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids)
 {   
-    bool isLoanSpecific = loan_ids != ""; 
+    bool isLoanSpecific = ( loan_ids != NULL and strcmp(loan_ids,"") != 0); 
     if (isLoanSpecific){
         cout << "Loan ids to close: " << loan_ids << endl;
     }
@@ -109,7 +109,7 @@ if ( strcmp (step,"disburse_loan") == 0 || strcmp (step,"full_closure") == 0 )
          
         float percentage = 1 ;// get_provisions_percentage();
 
-        psqlQueryJoin->process (threadsCount,[percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+        psqlQueryJoin->process (threadsCount,[percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
                 cout << "INsidee processsssssss" << endl;
                 loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
                 cout << percentage << endl;

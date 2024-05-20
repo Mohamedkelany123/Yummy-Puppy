@@ -73,9 +73,13 @@ int main (int argc, char ** argv)
 
     BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
     map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
-    float current_provision_percentage = status_provision_percentage[1];
+    // float current_provision_percentage = status_provision_percentage[1];
 
-    psqlQueryJoin->process(threadsCount, DisburseLoanFunc(blnkTemplateManager, current_provision_percentage));
+    DisburseLoanStruct disburseLoanStruct;
+    disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
+    disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
+
+    psqlQueryJoin->process(threadsCount, DisburseLoanFunc,(void *)&disburseLoanStruct);
 
 
     delete(blnkTemplateManager);

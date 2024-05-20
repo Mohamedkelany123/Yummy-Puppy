@@ -194,7 +194,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         
         cout << "THREADTIME --> undue_to_due" << endl;
 
-        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) { 
                 new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
                 ieorm->set_payment_status(4);
@@ -280,7 +280,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
         cout << "THREADTIME --> due_to_overdue" << endl;
 
-        psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+        psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
 
                 vector <int> buckets = {1,2,3,4,5,9,10,11};
 
@@ -422,7 +422,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
         cout << "THREADTIME --> status" << endl;
 
-        psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) { 
                 vector <int> buckets =      {1,2,3,4,5,9,10,11};
                 vector <int> fra_buckets =  {1,1,2,2,3,4,4,5};
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
@@ -592,7 +592,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         auto beforeProcess = std::chrono::high_resolution_clock::now();
         cout << "THREADTIME --> marginalization step 1" << endl;
 
-        psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 new_lms_installmentlatefees_primitive_orm * lf_orm = ORM(new_lms_installmentlatefees,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
@@ -667,7 +667,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         cout << "THREADTIME --> marginalization step 2" << endl;
 
 
-        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_installment_primitive_orm * i_orm  = ORM(loan_app_installment,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
@@ -731,7 +731,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         
         cout << "THREADTIME --> marginalization step 3" << endl;
 
-        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_installment_primitive_orm * i_orm  = ORM(loan_app_installment,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
@@ -805,7 +805,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         
         cout << "THREADTIME --> marginalization step 3" << endl;
 
-        psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 new_lms_installmentlatefees_primitive_orm * lf_orm = ORM(new_lms_installmentlatefees,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
@@ -969,7 +969,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
         cout << "THREADTIME --> long_to_short" << endl;
 
-        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (threadsCount,[](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
                 ie_orm->set_is_long_term(false); 
@@ -1056,7 +1056,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
         cout << "THREADTIME --> last_accrual_interest_date" << endl;
 
-        psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
+        psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) { 
                 new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
                 BDate accrual_date(ie_orm->get_accrual_date());
@@ -1155,7 +1155,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         auto beforeProcess = std::chrono::high_resolution_clock::now();
                 
         string failed_customers_ids = "";
-        psqlQueryJoin->process (threadsCount,[&failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+        psqlQueryJoin->process (threadsCount,[&failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
             crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
             cout << partition_number << ": " << cac_orm->get_phone_number() << endl; 
             bool success = closure_go(cac_orm->get_phone_number());
