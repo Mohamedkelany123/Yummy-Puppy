@@ -80,21 +80,20 @@ int main (int argc, char ** argv)
     map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
     float current_provision_percentage = status_provision_percentage[1];
 
-    psqlQueryJoin->process (threadsCount,[blnkTemplateManager, current_provision_percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
-                     
-            cout << "inside process\n";
-            //TODO: Send orms iteself as a param
+    psqlQueryJoin->process (threadsCount,[blnkTemplateManager, current_provision_percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {                     
             DisburseLoan disburseLoan (orms, current_provision_percentage);
-
-            
             LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
             disburseLoan.setupLedgerClosureService(ledgerClosureService);
             map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference ();
-            blnkTemplateManager->setEntryData(ledgerAmounts);
-            ledger_entry_primitive_orm* entry = blnkTemplateManager->buildEntry(BDate("2024-05-15"));
+            ledger_entry_primitive_orm* entry = blnkTemplateManager->buildEntry(BDate("2024-05-15"), ledgerAmounts);
             ledger_amount_primitive_orm * la_orm =  blnkTemplateManager->getFirstLedgerAmountORM();
-
-            disburseLoan.stampORMs(entry, la_orm);
+            if (entry && la_orm) {
+                disburseLoan.stampORMs(entry, la_orm);
+            }
+            else {
+                cerr << "Can not stamp ORM objects\n";
+                exit(1);
+            }
             delete (ledgerClosureService);
     });
 
