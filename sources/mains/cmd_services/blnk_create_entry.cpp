@@ -1,15 +1,10 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
 #include <PSQLController.h>
 #include <TemplateManager.h>
 #include <DisburseLoans.h>
 #include <common_orm.h>
+#include <common.h>
 
-#include <lms_entrytemplate_primitive_orm.h>
-#include <loan_app_loanstatus_primitive_orm.h>
-#include <loan_app_loan_bl_orm.h>
+
 //TODO: create special type for 
 
 //<BuckedId,Percentage>
@@ -81,12 +76,14 @@ int main (int argc, char ** argv)
     float current_provision_percentage = status_provision_percentage[1];
 
     psqlQueryJoin->process (threadsCount,[blnkTemplateManager, current_provision_percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {                     
+            BlnkTemplateManager * localTemplateManager = new BlnkTemplateManager(blnkTemplateManager);
             DisburseLoan disburseLoan (orms, current_provision_percentage);
             LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
             disburseLoan.setupLedgerClosureService(ledgerClosureService);
             map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference ();
-            ledger_entry_primitive_orm* entry = blnkTemplateManager->buildEntry(BDate("2024-05-15"), ledgerAmounts);
-            ledger_amount_primitive_orm * la_orm =  blnkTemplateManager->getFirstLedgerAmountORM();
+            localTemplateManager->setEntryData(ledgerAmounts);
+            ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate("2024-05-15"));
+            ledger_amount_primitive_orm * la_orm =  localTemplateManager->getFirstLedgerAmountORM();
             if (entry && la_orm) {
                 disburseLoan.stampORMs(entry, la_orm);
             }
@@ -94,10 +91,11 @@ int main (int argc, char ** argv)
                 cerr << "Can not stamp ORM objects\n";
                 exit(1);
             }
+            delete(localTemplateManager);
             delete (ledgerClosureService);
     });
 
     psqlController.ORMCommit(true,true,true, "main");  
-
+    delete(blnkTemplateManager);
     return 0;
 }
