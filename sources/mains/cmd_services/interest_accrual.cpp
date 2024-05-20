@@ -1,12 +1,23 @@
 #include <PSQLController.h>
 #include <TemplateManager.h>
 #include <AccrualInterest.h>
+#include <AccrualInterestFunc.h>
 #include <common_orm.h>
 #include <common.h>
 
 int main(int argc, char** argv) {
 
     int threads_count = 1;
+
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","postgres","8ZozYD6DhNJgW7a");
+    if (connect){
+        cout << "Connected to DATABASE"  << endl;
+    }
+    psqlController.addDefault("created_at","now()",true,true);
+    // psqlController.addDefault("updated_at","now()",true,true);
+    // psqlController.addDefault("updated_at","now()",false,true);
+    psqlController.setORMCacheThreads(threads_count);
+
     // Accrue interest aggregator
 
     PSQLJoinQueryIterator * accrualQuery = new PSQLJoinQueryIterator ("main",
@@ -41,23 +52,12 @@ int main(int argc, char** argv) {
 
     BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8);
 
-    accrualQuery->process(threads_count, [accrualTemplateManager](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) { 
-        AccrualInterest accrualInterest(orms, 1);
-        // DisburseLoan disburseLoan (orms, current_provision_percentage);
-        // LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
-        // disburseLoan.setupLedgerClosureService(ledgerClosureService);
-        // map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference ();
-        // ledger_entry_primitive_orm* entry = blnkTemplateManager->buildEntry(BDate("2024-05-15"), ledgerAmounts);
-        // ledger_amount_primitive_orm * la_orm =  blnkTemplateManager->getFirstLedgerAmountORM();
-        // if (entry && la_orm) {
-        //     disburseLoan.stampORMs(entry, la_orm);
-        // }
-        // else {
-        //     cerr << "Can not stamp ORM objects\n";
-        //     exit(1);
-        // }
-        // delete (ledgerClosureService);
-    });
+    AccrualInterestStruct accrualInterestStruct = {
+        accrualTemplateManager
+    };
+    accrualQuery->process(threads_count, AccrualInterestFunc, (void*)&accrualInterestStruct);
+
+
 
 
     // Partial accrue interest aggregator
@@ -108,5 +108,9 @@ int main(int argc, char** argv) {
     );
 
     settlementccrualQuery->setOrderBy("id");
+
+
+    psqlController.ORMCommit(true,true,true, "main");  
+
 
 }

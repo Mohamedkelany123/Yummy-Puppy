@@ -24,14 +24,33 @@ AccrualInterest::~AccrualInterest()
 
 void AccrualInterest::setupLedgerClosureService(LedgerClosureService *ledgerClosureService)
 {
-    ledgerClosureService->addHandler("", _get_marginalization_interest);
-    ledgerClosureService->addHandler("", _get_accrued_interest);
+    ledgerClosureService->addHandler("Booking marginalized interest income, if applicable", _get_marginalization_interest);
+    ledgerClosureService->addHandler("Interest income accrual (undue)", _get_accrued_interest);
 
 }
 
 LedgerAmount *AccrualInterest::_init_ledger_amount()
 {
-    return nullptr;
+    LedgerAmount * lg = new LedgerAmount();
+    lg->setCashierId(lal_orm->get_cashier_id());
+    lg->setCustomerId(lal_orm->get_customer_id());
+    lg->setLoanId(lal_orm->get_id());
+    lg->setMerchantId(lal_orm->get_merchant_id());
+
+    return lg;
+}
+
+void AccrualInterest::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts)
+{
+    map<string, LedgerCompositLeg *>::iterator it = leg_amounts->begin();
+    ledger_amount_primitive_orm* first_leg_amount = it->second->getLedgerCompositeLeg()->first;
+    nli_orm->setUpdateRefernce("accrual_ledger_amount_id", first_leg_amount);
+    it++;
+    if(it != leg_amounts->end()){
+        ledger_amount_primitive_orm* second_leg_amount = it->second->getLedgerCompositeLeg()->first;
+        nli_orm->setUpdateRefernce("marginalization_ledger_amount_id", second_leg_amount);
+    }
+    nli_orm->set_actual_accrued_amount(abs(first_leg_amount->get_amount()));
 }
 
 void AccrualInterest::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
@@ -72,6 +91,11 @@ void AccrualInterest::set_accrual_type(int _accrual_type)
 loan_app_loan_primitive_orm *AccrualInterest::get_loan_app_loan()
 {
     return lal_orm;
+}
+
+loan_app_installment_primitive_orm *AccrualInterest::get_loan_app_installment()
+{
+    return lai_orm;
 }
 
 new_lms_installmentextension_primitive_orm* AccrualInterest::get_new_lms_installmentextension()
@@ -148,7 +172,6 @@ LedgerAmount *AccrualInterest::_get_marginalization_interest(LedgerClosureStep *
                     float amount;
                     amount = _get_accrued_interest(accrualInterest)->getAmount() + first_installment_interest_adjustment;
                     ledgerAmount->setAmount(ROUND(amount));
-
                 }
             }
         }
@@ -158,5 +181,32 @@ LedgerAmount *AccrualInterest::_get_marginalization_interest(LedgerClosureStep *
 
 LedgerAmount *AccrualInterest::_get_accrued_interest(LedgerClosureStep *accrualInterest)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((AccrualInterest*)accrualInterest)->_init_ledger_amount();
+    loan_app_loan_primitive_orm* lal_orm = ((AccrualInterest*) accrualInterest)->get_loan_app_loan();
+    loan_app_installment_primitive_orm* lai_orm = ((AccrualInterest*) accrualInterest)->get_loan_app_installment();
+    new_lms_installmentextension_primitive_orm* nli_orm = ((AccrualInterest*)accrualInterest)->get_new_lms_installmentextension();
+    int accrual_type = ((AccrualInterest*)accrualInterest)->get_accrual_type();
+    BDate installment_day = BDate(lai_orm->get_day());
+    
+    float expected_partial_accrual_amount = nli_orm->get_expected_partial_accrual_amount();
+    float settlement_accrual_interest_amount = nli_orm->get_settlement_accrual_interest_amount();
+    float expected_accrual_amount = nli_orm->get_expected_accrual_amount();
+
+
+    if(installment_day.get_day() == 1 && accrual_type == 1) {
+        ledgerAmount->setAmount(expected_accrual_amount);
+    }
+    else {
+        if (accrual_type == 2) {
+            ledgerAmount->setAmount(expected_partial_accrual_amount);
+
+        }
+        else if(accrual_type == 3) {
+            ledgerAmount->setAmount(settlement_accrual_interest_amount);
+        }
+        else {
+            ledgerAmount->setAmount(expected_accrual_amount);
+        }
+    }
+    return ledgerAmount;
 }

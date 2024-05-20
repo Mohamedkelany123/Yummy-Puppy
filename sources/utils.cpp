@@ -73,6 +73,10 @@ void BDate::dec_days (int days)
     tm.tm_mday-= days;
     (*this)();
 }
+int BDate::get_day()
+{
+    return tm.tm_mday;
+}
 string BDate::getDateString()
 {
     char buf[255];

@@ -90,7 +90,7 @@ bool BlnkTemplateManager::buildLegs()
 
 
         LedgerCompositLeg * lc = new LedgerCompositLeg();
-        std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc->build(&(*template_legs)[leg_name],  entry_values,entry);
+        std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc->build(&(*template_legs)[leg_name], entry_values, entry);
         ledger_amounts[leg_name]=lc;
         if(leg_pair == NULL){
             return false;

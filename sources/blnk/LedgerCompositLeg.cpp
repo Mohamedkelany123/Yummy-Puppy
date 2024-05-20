@@ -166,7 +166,7 @@ int LedgerCompositLeg::getBondId (int installment_id)
 
 std::pair <ledger_amount_primitive_orm *,ledger_amount_primitive_orm *> * LedgerCompositLeg::getLedgerCompositeLeg ()
 {
-        return leg;
+return leg;
 }
 
 LedgerCompositLeg::~LedgerCompositLeg()

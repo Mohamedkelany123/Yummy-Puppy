@@ -24,6 +24,8 @@ class AccrualInterest : public LedgerClosureStep {
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
         LedgerAmount * _init_ledger_amount();
 
+        void stampORMs(map <string,LedgerCompositLeg*> *leg_amounts);
+
         // Setters
         void set_loan_app_loan(loan_app_loan_primitive_orm* _lal_orm);
         void set_loan_app_installment(loan_app_installment_primitive_orm* _lai_orm);
