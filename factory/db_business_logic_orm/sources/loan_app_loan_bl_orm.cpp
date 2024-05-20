@@ -17,6 +17,25 @@ vector <new_lms_installmentextension_primitive_orm *> * loan_app_loan_bl_orm::ge
 		}
 		return new_lms_installmentextension_loan_id;
 }
+
+vector <ledger_amount_primitive_orm *> * loan_app_loan_bl_orm::get_ledger_amount_loan_id(bool _read_only){
+		if (ledger_amount_loan_id== NULL) {
+			ledger_amount_loan_id_read_only = _read_only;
+			ledger_amount_loan_id = new vector <ledger_amount_primitive_orm *> ();
+			ledger_amount_primitive_orm_iterator * i = new ledger_amount_primitive_orm_iterator("main");
+			i->filter (ANDOperator(new UnaryOperator("loan_id",in,to_string(get_id()))));
+			i->execute();
+			ledger_amount_primitive_orm * orm = NULL;
+			do {
+				orm = i->next(_read_only);
+				if (orm!= NULL) ledger_amount_loan_id->push_back(orm);
+			} while (orm != NULL);
+			delete(i);
+		}
+		return ledger_amount_loan_id;
+}
+
+
 loan_app_loan_bl_orm::loan_app_loan_bl_orm(string _data_source_name, bool add_to_cache, bool orm_transactional): loan_app_loan_primitive_orm(_data_source_name,  add_to_cache,  orm_transactional) {
 	new_lms_installmentextension_loan_id_read_only = false;
 	new_lms_installmentextension_loan_id=NULL;
