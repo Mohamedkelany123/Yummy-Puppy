@@ -1,15 +1,10 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
 #include <PSQLController.h>
 #include <TemplateManager.h>
 #include <DisburseLoans.h>
 #include <common_orm.h>
+#include <common.h>
 
-#include <lms_entrytemplate_primitive_orm.h>
-#include <loan_app_loanstatus_primitive_orm.h>
-#include <loan_app_loan_bl_orm.h>
+
 //TODO: create special type for 
 
 //<BuckedId,Percentage>
