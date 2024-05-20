@@ -332,12 +332,13 @@ void PSQLPrimitiveORMGenerator::generateExternDSOEntryPoint (string class_name,s
     extern_entry_point += "#endif";
 }
 
-void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name)
+void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name,string table_index)
 {
     includes = "#include <PSQLController.h>\n";
     includes += "#include <PSQLBool.h>\n";
     constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name, bool add_to_cache, bool orm_transactional):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\", orm_transactional){\n";
     constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
+    constructor_destructor += "\t\t\ttable_index="+table_index+";\n";
     constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
     // constructor_destructor +="\t\t\tpsqlQuery = psqlConnection->executeQuery(\"select \"+this->getFromString()+\" from "+table_name+"\");\n";
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery(R""""(select * from ( 
@@ -605,7 +606,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         generateGetIdentifier(class_name);
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
-        generateConstructorAndDestructor(class_name,table_name);
+        generateConstructorAndDestructor(class_name,table_name,table_index);
         generateUpdateQuery(class_name,table_name,results);
         generateInsertQuery(class_name,table_name,results);
         generateSerializer(class_name,table_name,results);

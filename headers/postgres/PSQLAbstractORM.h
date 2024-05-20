@@ -7,6 +7,7 @@ class PSQLAbstractORM
 {
     protected:
         string table_name;
+        int table_index;
         // PSQLConnection * psqlConnection;
         // AbstractDBQuery * psqlQuery;
         map <string,map<string, string>> relatives_def;
@@ -46,6 +47,7 @@ class PSQLAbstractORM
         void setUpdateRefernce (string field_name,PSQLAbstractORM * reference);
         void commitAddReferences ();
         void commitUpdateReferences ();
+        string compose_field_and_alias (string field_name);
 
         virtual ~PSQLAbstractORM();
 };

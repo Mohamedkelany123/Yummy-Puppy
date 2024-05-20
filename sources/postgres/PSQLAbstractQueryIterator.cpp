@@ -145,7 +145,7 @@ void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
 
 }
 
-void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
+void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f)
 {
         auto begin = std::chrono::high_resolution_clock::now();
 
@@ -156,7 +156,7 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
             orms =psqlJoinQueryPartitionIterator.next();
             if (orms != NULL) 
             {
-               f(orms,partition_number,shared_lock);
+               f(orms,partition_number,shared_lock,extras);
                shared_lock->lock();
             //    cout << "before unlock orms" << endl;
                me->unlock_orms(orms);
@@ -181,7 +181,7 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
         printf("THREADTIME  Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
 }
 
-void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock)> f)
+void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
 {
     time_t start = time (NULL);
     cout << "Executing PSQL Query on the remote server" << endl;
@@ -198,7 +198,7 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         mutex shared_lock;
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
-            thread * t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,f);
+            thread * t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
             threads.push_back(t);
         }
         cout << "After Threads Creation" << endl;
