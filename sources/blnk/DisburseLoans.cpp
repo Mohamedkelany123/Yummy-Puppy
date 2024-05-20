@@ -13,7 +13,6 @@ DisburseLoan::DisburseLoan(map <string,PSQLAbstractORM *> * _orms, float _percen
     lal_orm = _lal_orm;    
     cac_orm = _cac_orm;
     lalp_orm = _lalp_orm;
-    template_id = 4;
     prov_percentage = _percentage;
     short_term_principal = _short_term_principal;
     is_rescheduled = _is_rescheduled;
@@ -144,19 +143,12 @@ void DisburseLoan::set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm
     cac_orm = _cac_orm;
 }
 
-int DisburseLoan::get_template_id()  {
-    return template_id;
-}
 
 float DisburseLoan::get_long_term_principal()
 {
     return long_term_principal;
 }
 
-void DisburseLoan::set_template_id(int _template_id)
-{
-    template_id = _template_id;
-}
 
 void DisburseLoan::set_long_term_principal(float _long_term_principal)
 {
@@ -168,7 +160,7 @@ bool DisburseLoan::get_is_rescheduled()  {
 }
 void DisburseLoan::set_is_rescheduled(bool _is_rescheduled)
 {
-    template_id =  _is_rescheduled;
+    is_rescheduled =  _is_rescheduled;
 }
 
 

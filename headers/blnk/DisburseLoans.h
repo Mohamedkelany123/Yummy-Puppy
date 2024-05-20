@@ -16,7 +16,6 @@ class DisburseLoan : public LedgerClosureStep
         loan_app_loan_bl_orm * lal_orm;
         loan_app_loanproduct_primitive_orm* lalp_orm;
         crm_app_customer_primitive_orm* cac_orm;
-        int template_id;
         float prov_percentage;
         float short_term_principal, long_term_principal;
         bool is_rescheduled;
