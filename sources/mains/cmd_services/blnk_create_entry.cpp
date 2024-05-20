@@ -3,7 +3,7 @@
 #include <DisburseLoans.h>
 #include <common_orm.h>
 #include <common.h>
-
+#include <Disbursefunc.h>
 
 //TODO: create special type for 
 
@@ -73,26 +73,16 @@ int main (int argc, char ** argv)
 
     BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
     map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
-    float current_provision_percentage = status_provision_percentage[1];
 
-    psqlQueryJoin->process (threadsCount,[blnkTemplateManager, current_provision_percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {                     
-            DisburseLoan disburseLoan (orms, current_provision_percentage);
-            LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
-            disburseLoan.setupLedgerClosureService(ledgerClosureService);
-            map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference ();
-            ledger_entry_primitive_orm* entry = blnkTemplateManager->buildEntry(BDate("2024-05-15"), ledgerAmounts);
-            ledger_amount_primitive_orm * la_orm =  blnkTemplateManager->getFirstLedgerAmountORM();
-            if (entry && la_orm) {
-                disburseLoan.stampORMs(entry, la_orm);
-            }
-            else {
-                cerr << "Can not stamp ORM objects\n";
-                exit(1);
-            }
-            delete (ledgerClosureService);
-    });
+    DisburseLoanStruct disburseLoanStruct;
+    disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
+    disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
+
+    psqlQueryJoin->process(threadsCount, DisburseLoanFunc,(void *)&disburseLoanStruct);
+
+
+    delete(blnkTemplateManager);
 
     psqlController.ORMCommit(true,true,true, "main");  
-
     return 0;
 }

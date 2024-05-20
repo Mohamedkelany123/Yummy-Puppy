@@ -101,6 +101,23 @@ void PSQLAbstractORM::commitUpdateReferences ()
     }
 }
 
+string PSQLAbstractORM::compose_field_and_alias (string field_name)
+{
+
+    string str = "`"; 
+    str += table_name;
+    str += "`.`";
+    str += field_name;
+    str += "` as \"";
+    str += to_string(table_index);
+    str += "_";
+    str += field_name;
+    str += "\"";
+    return str;
+
+}
+
+
 PSQLAbstractORM::~PSQLAbstractORM()
 {
     // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << endl;

@@ -64,7 +64,7 @@ int main (int argc, char ** argv)
             )
         );
 
-        psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {
+        psqlQueryJoin->process (threadsCount,[&closure_date](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
             shared_lock->lock();
             new_lms_installmentextension_primitive_orm * ieorm = ORM(new_lms_installmentextension,orms);
             PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
