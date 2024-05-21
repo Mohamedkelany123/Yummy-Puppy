@@ -24,6 +24,7 @@ class PSQLAbstractORM
         map <string, PSQLAbstractORM *> update_references;
         map <string, int > reference_values;
         bool inserted;
+        map <string,string> extras;
 
     public:
         virtual string getFromString () = 0;
@@ -50,7 +51,8 @@ class PSQLAbstractORM
         void commitAddReferences ();
         void commitUpdateReferences ();
         string compose_field_and_alias (string field_name);
-
+        void setExtra (string fname, string fvalue);
+        string getExtra (string fname);
         virtual ~PSQLAbstractORM();
 };
 

@@ -122,7 +122,17 @@ string PSQLAbstractORM::compose_field_and_alias (string field_name)
 
 }
 
+void PSQLAbstractORM::setExtra (string fname, string fvalue)
+{
+    extras [fname] = fvalue;
 
+}
+string PSQLAbstractORM::getExtra (string fname)
+{
+    if (extras.find(fname) != extras.end())
+        return  extras [fname];
+    else return "";
+}
 PSQLAbstractORM::~PSQLAbstractORM()
 {
     // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << endl;
