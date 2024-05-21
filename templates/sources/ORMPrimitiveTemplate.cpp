@@ -18,6 +18,8 @@
     {
         %s * obj = new %s(data_source_name);
         obj->assignResults(psqlQuery,_read_only);
+        for (auto e: extras)
+			obj->setExtra(e.first,psqlQuery->getValue(e.first));
         return obj;
     }
     else return NULL;
