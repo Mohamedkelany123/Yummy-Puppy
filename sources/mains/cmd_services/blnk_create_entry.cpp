@@ -100,8 +100,8 @@ int main (int argc, char ** argv)
         ANDOperator 
         (
     //         // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::CANCEL_LOAN-1)),
-    //         new UnaryOperator ("loan_app_loan.cancel_ledger_entry_id",isnull,"",true),
-    //         new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
+            new UnaryOperator ("loan_app_loan.cancel_ledger_entry_id",isnull,"",true),
+            new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
             new UnaryOperator ("loan_app_loan.status_id",in,"12,13")
 
         )
@@ -122,8 +122,13 @@ int main (int argc, char ** argv)
 
 
     delete(blnkTemplateManager_cancel);
+        cout<<"delete cancel"<<endl;
+
     delete(blnkTemplateManager_reverse);
+    cout<<"delete reverse "<<endl;
 
     delete(psqlQueryJoin);
-    // psqlController.ORMCommit(true,true,true, "main");  
+        cout<<"delete iterator "<<endl;
+  // psqlController.ORMCommit(true,true,true, "main"); 
+  return 0;
 }
