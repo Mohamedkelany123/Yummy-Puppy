@@ -91,18 +91,18 @@ int main (int argc, char ** argv)
     cout<<"hereeeerrrrrr at first"<<endl;
     string closure_date_string = "2024-05-15"; 
 
-    PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    {new loan_app_loan_bl_orm("main")},{});
+    loan_app_loan_primitive_orm_iterator *  psqlQueryJoin = new loan_app_loan_primitive_orm_iterator ("main");
 
-    psqlQueryJoin->addExtraFromField("(select count(*)>0 from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id;)","is_included");
-   
+    // psqlQueryJoin->addExtraFromField("(select count(*)>0 from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id)","is_included");
+    psqlQueryJoin->addExtraFromField("(select count(*) from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id)","is_included");
+
     psqlQueryJoin->filter(
         ANDOperator 
         (
-            // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::CANCEL_LOAN-1)),
-            new UnaryOperator ("loan_app_loan.cancel_ledger_entry",isnull,"",true),
-            new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
-            new UnaryOperator ("loan_app_loan.status_id",in,"(12,13)")
+    //         // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::CANCEL_LOAN-1)),
+    //         new UnaryOperator ("loan_app_loan.cancel_ledger_entry_id",isnull,"",true),
+    //         new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
+            new UnaryOperator ("loan_app_loan.status_id",in,"12,13")
 
         )
     );
@@ -125,5 +125,5 @@ int main (int argc, char ** argv)
     delete(blnkTemplateManager_reverse);
 
     delete(psqlQueryJoin);
-    psqlController.ORMCommit(true,true,true, "main");  
+    // psqlController.ORMCommit(true,true,true, "main");  
 }
