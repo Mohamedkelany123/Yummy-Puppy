@@ -19,7 +19,7 @@ vector <new_lms_installmentextension_primitive_orm *> * loan_app_loan_bl_orm::ge
 }
 
 vector <ledger_amount_primitive_orm *> * loan_app_loan_bl_orm::get_ledger_amount_loan_id(bool _read_only){
-		if (ledger_amount_loan_id== NULL) {
+		if (ledger_amount_loan_id == NULL) {
 			ledger_amount_loan_id_read_only = _read_only;
 			ledger_amount_loan_id = new vector <ledger_amount_primitive_orm *> ();
 			ledger_amount_primitive_orm_iterator * i = new ledger_amount_primitive_orm_iterator("main");

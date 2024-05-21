@@ -93,9 +93,9 @@ int main (int argc, char ** argv)
 
     loan_app_loan_primitive_orm_iterator *  psqlQueryJoin = new loan_app_loan_primitive_orm_iterator ("main");
 
-    // psqlQueryJoin->addExtraFromField("(select count(*)>0 from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id)","is_included");
+    psqlQueryJoin->addExtraFromField("(select count(*)>0 from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id)","is_included");
 //    psqlQueryJoin->addExtraFromField("(select count(*) from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id)","is_included");
-    psqlQueryJoin->addExtraFromField("(select count(*) from loan_app_installment lai where lai.loan_id = loan_app_loan.id)","ins_count");
+    // psqlQueryJoin->addExtraFromField("(select count(*) from loan_app_installment lai where lai.loan_id = loan_app_loan.id)","ins_count");
 
     psqlQueryJoin->filter(
         ANDOperator 
