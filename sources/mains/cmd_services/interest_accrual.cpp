@@ -58,7 +58,8 @@ int main(int argc, char** argv) {
         accrualTemplateManager
     };
     accrualQuery->process(threads_count, AccrualInterestFunc, (void*)&accrualInterestStruct);  
-
+    delete(accrualTemplateManager);
+    psqlController.ORMCommit(true,true,true, "main");  
 
     // Partial accrue interest aggregator
     PSQLJoinQueryIterator * partialAccrualQuery = new PSQLJoinQueryIterator ("main",
@@ -96,7 +97,8 @@ int main(int argc, char** argv) {
     };
 
     partialAccrualQuery->process(threads_count, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
-
+    delete(partialAccrualTemplateManager);
+    psqlController.ORMCommit(true,true,true, "main");  
     // Settlement accrue interest aggregator
     
     PSQLJoinQueryIterator * settlementAccrualQuery = new PSQLJoinQueryIterator ("main",
@@ -125,7 +127,7 @@ int main(int argc, char** argv) {
 
     settlementAccrualQuery->process(threads_count, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
 
-
+    delete(settlementAccrualTemplateManager);
     psqlController.ORMCommit(true,true,true, "main");  
 
 
