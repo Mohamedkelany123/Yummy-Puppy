@@ -1,10 +1,9 @@
 #include <CancelLoans.h>
 
 
-CancelLoan::CancelLoan(map <string,PSQLAbstractORM *> * _orms):LedgerClosureStep ()
+CancelLoan::CancelLoan(loan_app_loan_bl_orm * _lal_orm):LedgerClosureStep ()
 {
-    loan_app_loan_bl_orm * _lal_orm = ORMBL(loan_app_loan,_orms);
-     
+
     lal_orm = _lal_orm;    
     
     template_id = 5;
@@ -63,7 +62,7 @@ void CancelLoan::set_template_id(int _template_id)
 LedgerAmount * CancelLoan::_get_upfront_fee(LedgerClosureStep *cancelLoan)
 {
     loan_app_loan_bl_orm* loan_orm = ((CancelLoan*)cancelLoan)->get_loan_app_loan();
-    double amount = ROUND(loan_orm->get_loan_upfront_fee() * (loan_orm->get_refund_upfront_fee_bool()));
+    double amount = ROUND(loan_orm->get_loan_upfront_fee() * !(loan_orm->get_refund_upfront_fee_bool()));
     LedgerAmount * ledgerAmount = ((CancelLoan*)cancelLoan)->_init_ledger_amount();
     ledgerAmount->setAmount(amount);
     return ledgerAmount;

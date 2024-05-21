@@ -124,6 +124,21 @@ ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
     }
     return entry;
 }
+
+ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_amount_primitive_orm*> * _ledger_amounts, BDate entry_date)
+{
+    this->createEntry(entry_date);
+
+    for ( auto la : * _ledger_amounts)
+        {
+           ledger_amount_primitive_orm* new_ledger_amount = new ledger_amount_primitive_orm("main", true);
+           *new_ledger_amount= *la;
+            new_ledger_amount->set_amount(-la->get_amount());
+            new_ledger_amount->setAddRefernce("entry_id", entry);
+
+        }
+    return entry;
+}
 void BlnkTemplateManager::setEntryData(map<string, LedgerAmount *> *_entry_data) {
     entry_data = _entry_data;
 }

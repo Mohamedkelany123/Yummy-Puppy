@@ -15,7 +15,7 @@ class CancelLoan : public LedgerClosureStep
 
     public:
         map<string, funcPtr> funcMap;
-        CancelLoan(map <string,PSQLAbstractORM *> * _orms);
+        CancelLoan(loan_app_loan_bl_orm* _orms);
         
         //Setters
         void set_loan_app_loan(loan_app_loan_bl_orm* _lal_orm);
@@ -32,8 +32,9 @@ class CancelLoan : public LedgerClosureStep
 
         // //static methods
         static LedgerAmount * _get_upfront_fee(LedgerClosureStep *disburseLoan);
+
+
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
-        
 
     ~CancelLoan();
 };

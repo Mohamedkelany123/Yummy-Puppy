@@ -4,6 +4,8 @@
 #include <common_orm.h>
 #include <common.h>
 #include <Disbursefunc.h>
+#include <CancelFunc.h>
+
 
 //TODO: create special type for 
 
@@ -52,88 +54,76 @@ int main (int argc, char ** argv)
     psqlController.setORMCacheThreads(threadsCount);
 
 
-    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    {new loan_app_loan_bl_orm("main"),new loan_app_loanproduct_primitive_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main")},
-    {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}, {{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}});
+    // PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+    // {new loan_app_loan_bl_orm("main"),new loan_app_loanproduct_primitive_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main")},
+    // {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}, {{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}});
 
-    psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
-    psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
-    psqlQueryJoin->addExtraFromField("(SELECT cap2.is_rescheduled FROM crm_app_purchase cap INNER JOIN crm_app_purchase cap2 ON cap.parent_purchase_id = cap2.id WHERE  cap.id = crm_app_purchase.id)","is_rescheduled");
-
-    string closure_date_string = "2024-05-15"; 
-    
-    psqlQueryJoin->filter(
-        ANDOperator 
-        (
-            new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
-            new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
-            new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string)
-        )
-    );
-
-    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
-    map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
-
-    DisburseLoanStruct disburseLoanStruct;
-    disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
-    disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
-
-    psqlQueryJoin->process(threadsCount, DisburseLoanFunc,(void *)&disburseLoanStruct);
-
-
-    delete(blnkTemplateManager);
-
-    psqlController.ORMCommit(true,true,true, "main");  
-
-    //  -------------------------------------------- setp 2 --------------------------------------------
-
-    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    {new loan_app_loan_bl_orm("main")},
-    // {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}, {{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}}
-    {});
-    string closure_date_string = "2024-05-15"; 
-
-    psqlQueryJoin->addExtraFromField("(select count(*)>0 from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id;)","is_included");
+    // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
     // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
     // psqlQueryJoin->addExtraFromField("(SELECT cap2.is_rescheduled FROM crm_app_purchase cap INNER JOIN crm_app_purchase cap2 ON cap.parent_purchase_id = cap2.id WHERE  cap.id = crm_app_purchase.id)","is_rescheduled");
+
+    // string closure_date_string = "2024-05-15"; 
     
+    // psqlQueryJoin->filter(
+    //     ANDOperator 
+    //     (
+    //         new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
+    //         new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
+    //         new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string)
+    //     )
+    // );
+
+    // BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
+    // map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
+
+    // DisburseLoanStruct disburseLoanStruct;
+    // disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
+    // disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
+
+    // psqlQueryJoin->process(threadsCount, DisburseLoanFunc,(void *)&disburseLoanStruct);
+
+
+    // delete(blnkTemplateManager);
+    // delete(psqlQueryJoin);
+    // psqlController.ORMCommit(true,true,true, "main");  
+
+    //  -------------------------------------------- setp 2 --------------------------------------------
+    cout<<"hereeeerrrrrr at first"<<endl;
+    string closure_date_string = "2024-05-15"; 
+
+    PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+    {new loan_app_loan_bl_orm("main")},{});
+
+    psqlQueryJoin->addExtraFromField("(select count(*)>0 from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id;)","is_included");
+   
     psqlQueryJoin->filter(
         ANDOperator 
         (
-            new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::CANCEL_LOAN-1)),
+            // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::CANCEL_LOAN-1)),
             new UnaryOperator ("loan_app_loan.cancel_ledger_entry",isnull,"",true),
             new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
             new UnaryOperator ("loan_app_loan.status_id",in,"(12,13)")
 
         )
     );
+    cout<<"after query"<<endl;
 
-    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(5);
-    // map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
-    // float current_provision_percentage = status_provision_percentage[1];
+    CancelLoanStruct cancelLoanStruct;
 
-    psqlQueryJoin->process (threadsCount,[blnkTemplateManager, current_provision_percentage](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock) {    
+    BlnkTemplateManager *  blnkTemplateManager_cancel = new BlnkTemplateManager(5);
+    cancelLoanStruct.blnkTemplateManager_cancel = blnkTemplateManager_cancel;
+     BlnkTemplateManager * blnkTemplateManager_reverse = new BlnkTemplateManager(6);
+    cancelLoanStruct.blnkTemplateManager_reverse = blnkTemplateManager_reverse;
+    
+    cout<<"before processs"<<endl;
 
-            BlnkTemplateManager * localTemplateManager = new BlnkTemplateManager(blnkTemplateManager);
-            
-            DisburseLoan disburseLoan (orms, current_provision_percentage);
-            LedgerClosureService * ledgerClosureService = new LedgerClosureService(&disburseLoan);
-            disburseLoan.setupLedgerClosureService(ledgerClosureService);
-            map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference ();
-            localTemplateManager->setEntryData(ledgerAmounts);
-            ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate("2024-05-15"));
-            ledger_amount_primitive_orm * la_orm =  localTemplateManager->getFirstLedgerAmountORM();
-            if (entry && la_orm) {
-                disburseLoan.stampORMs(entry, la_orm);
-            }
-            else {
-                cerr << "Can not stamp ORM objects\n";
-                exit(1);
-            }
-            delete(localTemplateManager);
-            delete (ledgerClosureService);
-    });
+    psqlQueryJoin->process(threadsCount, CancelLoanFunc,(void *)&cancelLoanStruct);
+    cout<<"after processs"<<endl;
 
+
+    delete(blnkTemplateManager_cancel);
+    delete(blnkTemplateManager_reverse);
+
+    delete(psqlQueryJoin);
     psqlController.ORMCommit(true,true,true, "main");  
-    return 0;
 }
