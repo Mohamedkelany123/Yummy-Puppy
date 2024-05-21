@@ -27,21 +27,21 @@
     return NULL;
 }
 
-void  %s::process_internal(string data_source_name, PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f)
+void  %s::process_internal(string data_source_name, PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(%s * orm,int partition_number,mutex * shared_lock,void * extras)> f)
 {
-        PSQLQueryPartitionIterator <%s> psqlQueryPartitionIterator (psqlQueryPartition, data_source_name);
+        PSQLQueryPartitionIterator <%s> psqlQueryPartitionIterator (psqlQueryPartition, data_source_name, extras);
         %s * orm = NULL;
         do {
             orm =psqlQueryPartitionIterator.next();
             if (orm != NULL) 
             {
-                f(orm,partition_number,shared_lock);
+                f(orm,partition_number,shared_lock, extras);
             }
         } while (orm != NULL);
     
 }
 
-void %s::process(int partitions_count,std::function<void(%s * orm,int partition_number,mutex * shared_lock)> f)
+void %s::process(int partitions_count,std::function<void(%s * orm,int partition_number,mutex * shared_lock,void * extras)> f, void * extras)
 {
     if (this->execute())
     {
@@ -50,7 +50,7 @@ void %s::process(int partitions_count,std::function<void(%s * orm,int partition_
         mutex shared_lock;
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
-            thread * t = new thread(process_internal, data_source_name, (*p)[i],i,&shared_lock,f);
+            thread * t = new thread(process_internal, data_source_name, (*p)[i],i,&shared_lock,extras,f);
             threads.push_back(t);
         }
         for ( int i  = 0 ; i < p->size() ; i ++)

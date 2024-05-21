@@ -5,6 +5,7 @@ PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,s
 {   
     orm_transactional = _orm_transactional;
     table_name = _table_name;
+    orm_name = table_name +"_primitive_orm";
     identifier_name = _identifier_name;
     loaded = false;
     locking_thread = "";
@@ -35,6 +36,10 @@ string PSQLAbstractORM::getIdentifierName ()
 string PSQLAbstractORM::getTableName()
 {
     return table_name;
+}
+string PSQLAbstractORM::getORMName()
+{
+    return orm_name;
 }
 
 bool PSQLAbstractORM::isLoaded ()

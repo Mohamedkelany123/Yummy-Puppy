@@ -7,6 +7,7 @@ class PSQLAbstractORM
 {
     protected:
         string table_name;
+        string orm_name;
         int table_index;
         // PSQLConnection * psqlConnection;
         // AbstractDBQuery * psqlQuery;
@@ -33,6 +34,7 @@ class PSQLAbstractORM
         virtual long insert(PSQLConnection * _psqlConnection=NULL) = 0;
         virtual string getIdentifierName();
         virtual string getTableName();
+        virtual string getORMName();
         virtual bool isLoaded();
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
         PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional);

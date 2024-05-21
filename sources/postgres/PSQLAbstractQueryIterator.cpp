@@ -95,6 +95,7 @@ PSQLAbstractQueryIterator(_data_source_name,"")
         if ( table_name != "") table_name += ",";
         table_name += tables[i]->getTableName();
         orm_objects->push_back(tables[i]);
+        orm_objects_map[tables[i]->getORMName()]=tables[i];
     }
     for ( int i = 0 ; i < join_fields.size() ; i ++)
     {
