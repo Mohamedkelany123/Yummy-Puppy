@@ -57,8 +57,7 @@ int main(int argc, char** argv) {
     AccrualInterestStruct accrualInterestStruct = {
         accrualTemplateManager
     };
-    accrualQuery->process(threads_count, AccrualInterestFunc, (void*)&accrualInterestStruct);
-
+    accrualQuery->process(threads_count, AccrualInterestFunc, (void*)&accrualInterestStruct);  
 
 
     // Partial accrue interest aggregator

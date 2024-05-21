@@ -3,6 +3,7 @@
 void AccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((AccrualInterestStruct *) extras)->blnkTemplateManager);
     new_lms_installmentextension_primitive_orm * nli_orm = ORM(new_lms_installmentextension,orms);
+    loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
     string accrual_date = nli_orm->get_accrual_date();
     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
     string settled_history = gorm->get("settled_history");
@@ -11,7 +12,6 @@ void AccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_num
     accrualInterest.setupLedgerClosureService(ledgerClosureService);
     map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference();
     localTemplateManager->setEntryData(ledgerAmounts);
-
     string stamping_date = accrual_date;
     if (settled_history != "" && nli_orm->get_payment_status() == 1 && BDate(settled_history)() < BDate(nli_orm->get_undue_to_due_date())()) {
         stamping_date = settled_history;
@@ -27,6 +27,8 @@ void AccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_num
         cerr << "Can not stamp ORM objects\n";
         exit(1);
     }
+    lal_orm->set_closure_status(ledger_status::INTEREST_ACCRUAL);
+
     delete (ledgerClosureService);
 };
 
@@ -34,6 +36,7 @@ void AccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_num
 void PartialAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((AccrualInterestStruct *) extras)->blnkTemplateManager);
     new_lms_installmentextension_primitive_orm * nli_orm = ORM(new_lms_installmentextension,orms);
+    loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
     string stamping_date = nli_orm->get_partial_accrual_date();
     AccrualInterest accrualInterest(orms, 2);
     LedgerClosureService * ledgerClosureService = new LedgerClosureService(&accrualInterest);
@@ -50,12 +53,15 @@ void PartialAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partit
         cerr << "Can not stamp ORM objects\n";
         exit(1);
     }
+    lal_orm->set_closure_status(ledger_status::PARTIAL_INTEREST_ACCRUAL);
+
     delete (ledgerClosureService);
 };
 
 void SettlementAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((AccrualInterestStruct *) extras)->blnkTemplateManager);
     new_lms_installmentextension_primitive_orm * nli_orm = ORM(new_lms_installmentextension,orms);
+    loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
     string stamping_date = nli_orm->get_settlement_accrual_interest_date();
     AccrualInterest accrualInterest(orms, 3);
     LedgerClosureService * ledgerClosureService = new LedgerClosureService(&accrualInterest);
@@ -72,5 +78,7 @@ void SettlementAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int par
         cerr << "Can not stamp ORM objects\n";
         exit(1);
     }
+    lal_orm->set_closure_status(ledger_status::SETTLEMENT_INTEREST_ACCRUAL);
+
     delete (ledgerClosureService);
 };
