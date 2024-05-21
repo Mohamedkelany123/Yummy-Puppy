@@ -252,6 +252,7 @@ class PSQLQueryPartitionIterator {
             }
             else return NULL;
         }
+        
         ~PSQLQueryPartitionIterator (){}
 };
 

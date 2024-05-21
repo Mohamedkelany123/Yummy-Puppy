@@ -130,7 +130,7 @@ void PSQLAbstractORM::setExtra (string fname, string fvalue)
 string PSQLAbstractORM::getExtra (string fname)
 {
     if (extras.find(fname) != extras.end())
-    return  extras [fname];
+        return  extras [fname];
     else return "";
 }
 PSQLAbstractORM::~PSQLAbstractORM()
