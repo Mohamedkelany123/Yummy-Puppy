@@ -1,8 +1,9 @@
 #include <UndueToDue.h>
 
 void InstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
-    // loan_app_installment_primitive_orm * lai_orm = ORM(loan_app_loan,orms);
-
+    
+    loan_app_installment_primitive_orm * lai_orm = ORM(loan_app_installment,orms);
+    cout << lai_orm->get_id() << endl;
 
 
 

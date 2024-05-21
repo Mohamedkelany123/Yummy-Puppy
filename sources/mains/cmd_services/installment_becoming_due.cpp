@@ -53,21 +53,21 @@ int main (int argc, char ** argv)
     string closure_date_string = "2024-05-15"; 
 
 
-    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+    PSQLJoinQueryIterator * installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
     {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
 
     
-    psqlQueryJoin->filter(
+    installments_becoming_due_iterator->filter(
         ANDOperator 
         (
-            new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::LEDGER_UNDUE_TO_DUE-1)),
             new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
+            // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::LEDGER_UNDUE_TO_DUE-1)),
             new OROperator (
-                new UnaryOperator ("new_lms_installmentextension.undue_to_due_ledger_amount",isnull,"",true),
+                new UnaryOperator ("new_lms_installmentextension.undue_to_due_ledger_amount_id ",isnull,"",true),
                 new ANDOperator (
-                    new UnaryOperator ("new_lms_installmentextension.undue_to_due_interest_ledger_amount",isnull,"",true),
-                    new UnaryOperator ("new_lms_installmentextension.interest_expected",ne,"0")
+                    new UnaryOperator ("new_lms_installmentextension.undue_to_due_interest_ledger_amount_id ",isnull,"",true),
+                    new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
                 )
             ),
             new UnaryOperator ("loan_app_loan.status_id",nin,"12,13"),
@@ -84,11 +84,39 @@ int main (int argc, char ** argv)
     disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
     disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
 
-    psqlQueryJoin->process(threadsCount, InstallmentBecomingDueFunc,(void *)&disburseLoanStruct);
+    installments_becoming_due_iterator->process(threadsCount, InstallmentBecomingDueFunc,(void *)&disburseLoanStruct);
 
 
     delete(blnkTemplateManager);
 
     psqlController.ORMCommit(true,true,true, "main");  
+
+
+    //----------------------------------------------------------------------------------------//
+    //----------------------------------------------------------------------------------------//
+    //----------------------------------------------------------------------------------------//
+
+    PSQLJoinQueryIterator * sticky_installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
+    {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+    {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+
+    
+    sticky_installments_becoming_due_iterator->filter(
+        ANDOperator 
+        (
+            new OROperator (
+                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,closure_date_string),
+                new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
+
+            )
+            // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::LEDGER_UNDUE_TO_DUE-1)),
+
+        )
+    );
+
+
+    
+
+
     return 0;
 }
