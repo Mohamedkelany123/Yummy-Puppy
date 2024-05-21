@@ -216,6 +216,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         string column_names = "";
         string join_string = "";
         vector <PSQLAbstractORM *> * orm_objects;
+        map <string,PSQLAbstractORM *> orm_objects_map;
         void unlock_orms (map <string,PSQLAbstractORM *> *  orms);
         static void process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f);
     public:
