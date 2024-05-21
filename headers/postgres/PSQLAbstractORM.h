@@ -25,6 +25,7 @@ class PSQLAbstractORM
         map <string, int > reference_values;
         bool inserted;
         map <string,string> extras;
+        bool cached;
 
     public:
         virtual string getFromString () = 0;
@@ -39,6 +40,7 @@ class PSQLAbstractORM
         virtual bool isLoaded();
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
         PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional);
+        PSQLAbstractORM (const PSQLAbstractORM & _psqlAbstractORM);
         virtual PSQLAbstractORM * clone ()=0;
 		virtual string serialize (PSQLConnection * _psqlConnection=NULL)=0;
 		virtual void deSerialize (json orm_json,bool _read_only = false)=0;
@@ -53,6 +55,7 @@ class PSQLAbstractORM
         string compose_field_and_alias (string field_name);
         void setExtra (string fname, string fvalue);
         string getExtra (string fname);
+        virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
         virtual ~PSQLAbstractORM();
 };
 

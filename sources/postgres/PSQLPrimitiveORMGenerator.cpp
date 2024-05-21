@@ -339,6 +339,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name, bool add_to_cache, bool orm_transactional):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\", orm_transactional){\n";
     constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
     constructor_destructor += "\t\t\ttable_index="+table_index+";\n";
+    constructor_destructor += "\t\t\tcached=add_to_cache;\n";
     constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
     // constructor_destructor +="\t\t\tpsqlQuery = psqlConnection->executeQuery(\"select \"+this->getFromString()+\" from "+table_name+"\");\n";
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery(R""""(select * from ( 
@@ -353,13 +354,19 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     ORDER  BY pg_get_constraintdef(c.oid), conrelid::regclass::text, contype DESC) as t
     where "pk_table" = ')"""" +table_name+"'");
     string temp = "";
+    string default_constructor = "";
     for (;psqlQuery->fetchNextRow();)
     {
         declaration += "\t\t\tbool "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only;\n";
         constructor_destructor += "\t\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
+        default_constructor += "\t\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
         declaration += "\t\tvector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> * "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+";\n";
         constructor_destructor += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = NULL;\n";
         constructor_destructor += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only=false;\n";
+
+        default_constructor += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = _"+class_name+"."+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+";\n";
+        default_constructor += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only=_"+class_name+"."+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only;\n";
+
 
         includes += "#include <"+psqlQuery->getValue("fk_table")+"_primitive_orm.h>\n";
         temp += "\t\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"!= NULL){\n"; 
@@ -389,10 +396,35 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     }
     delete (psqlQuery);
     constructor_destructor +="\t\t}\n";
+
+    constructor_destructor += "\t\tvoid "+class_name+"::operator  = (const "+class_name+" & _"+class_name+"){\n";
+    constructor_destructor += "\t\t\t *((PSQLAbstractORM *)this) = _"+class_name+";\n";
+    constructor_destructor += "\t\t\tthis->orm_"+primary_key+"= _"+class_name+".orm_"+primary_key+";\n";
+    constructor_destructor += "\t\t\tthis->table_index=_"+class_name+".table_index;\n";
+    constructor_destructor += "\t\t\tcached=_"+class_name+".cached;\n";
+    constructor_destructor += "\t\t\tif (cached) this->addToCache();\n";
+
+    constructor_destructor += default_constructor;
+    constructor_destructor += "\t\t}\n";
+
+
+    constructor_destructor += "\t\t"+class_name+"::"+class_name+"(const "+class_name+" & _"+class_name+"): PSQLAbstractORM(_"+class_name+"){\n";
+    constructor_destructor += "\t\t\t (*this) = _"+class_name+";\n";
+    // constructor_destructor += "\t\t\tthis->orm_"+primary_key+"= _"+class_name+".orm_"+primary_key+";\n";
+    // constructor_destructor += "\t\t\tthis->table_index=_"+class_name+".table_index;\n";
+    // constructor_destructor += "\t\t\tcached=_"+class_name+".cached;\n";
+    // constructor_destructor += "\t\t\tif (cached) this->addToCache();\n";
+
+    // constructor_destructor += default_constructor;
+    constructor_destructor += "\t\t}\n";
+
+
     constructor_destructor += "\t\t "+class_name+"::~"+class_name+"(){\n";
     constructor_destructor += temp+"}\n";
 
     constructor_destructor_def = "\t\t"+class_name+"(string data_source_name, bool add_to_cache=false, bool orm_transactional=true);\n";
+    constructor_destructor_def += "\t\t"+class_name+"(const "+class_name+" & _"+class_name+");\n";
+    constructor_destructor_def += "\t\tvirtual void operator =(const "+class_name+" & _"+class_name+");\n";
     constructor_destructor_def += "\t\t virtual ~"+class_name+"();\n";
 
 }
