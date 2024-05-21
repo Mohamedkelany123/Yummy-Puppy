@@ -237,7 +237,7 @@ class PSQLQueryPartitionIterator {
         string data_source_name;
 
     public:
-        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name){ 
+        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name, void * _extras){ 
             psqlQuery = _psqlQuery;
             data_source_name = _data_source_name;
         }
