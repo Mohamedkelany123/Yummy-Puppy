@@ -12,5 +12,7 @@ typedef struct {
 } AccrualInterestStruct;
 
 void AccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras);
+void PartialAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras);
+void SettlementAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras);
 
 #endif 

@@ -32,10 +32,10 @@ void AccrualInterest::setupLedgerClosureService(LedgerClosureService *ledgerClos
 LedgerAmount *AccrualInterest::_init_ledger_amount()
 {
     LedgerAmount * lg = new LedgerAmount();
-    lg->setCashierId(lal_orm->get_cashier_id());
     lg->setCustomerId(lal_orm->get_customer_id());
     lg->setLoanId(lal_orm->get_id());
     lg->setMerchantId(lal_orm->get_merchant_id());
+    lg->setInstallmentId(lai_orm->get_id());
 
     return lg;
 }
@@ -44,13 +44,27 @@ void AccrualInterest::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts)
 {
     map<string, LedgerCompositLeg *>::iterator it = leg_amounts->begin();
     ledger_amount_primitive_orm* first_leg_amount = it->second->getLedgerCompositeLeg()->first;
-    nli_orm->setUpdateRefernce("accrual_ledger_amount_id", first_leg_amount);
-    it++;
-    if(it != leg_amounts->end()){
-        ledger_amount_primitive_orm* second_leg_amount = it->second->getLedgerCompositeLeg()->first;
-        nli_orm->setUpdateRefernce("marginalization_ledger_amount_id", second_leg_amount);
+    string accrual_key, marginalization_key;
+    if (accrual_type == 1){
+        accrual_key = "accrual_ledger_amount_id";
+        marginalization_key = "marginalization_ledger_amount_id";
+        nli_orm->set_actual_accrued_amount(abs(first_leg_amount->get_amount()));
     }
-    nli_orm->set_actual_accrued_amount(abs(first_leg_amount->get_amount()));
+    else if (accrual_type == 2) {
+        accrual_key = "partial_accrual_ledger_amount_id";
+        marginalization_key = "partial_marginalization_ledger_amount_id";
+        nli_orm->set_partial_accrual_amount(abs(first_leg_amount->get_amount()));
+    }
+    else if (accrual_type == 3) {
+        accrual_key = "settlement_accrual_ledger_amount_id";
+    }
+    
+    nli_orm->setUpdateRefernce(accrual_key, first_leg_amount);
+    it++;
+    if(it != leg_amounts->end() && accrual_type != 3){
+        ledger_amount_primitive_orm* second_leg_amount = it->second->getLedgerCompositeLeg()->first;
+        nli_orm->setUpdateRefernce(marginalization_key, second_leg_amount);
+    }
 }
 
 void AccrualInterest::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
