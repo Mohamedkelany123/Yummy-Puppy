@@ -288,22 +288,22 @@ void PSQLPrimitiveORMGenerator::generateFieldsMap (string class_name,string tabl
 }
 
 
-void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,string table_name,map<string, vector<string>> columns_definition)
-{
-    extra_methods_def += "\t\tvoid operator = (const "+class_name+" & orm);\n";
-    extra_methods += "\t\tvoid "+class_name+"::operator = (const "+class_name+" & orm){\n";
-    // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
-    {
-        if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
-            extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
-            extra_methods += " = orm.orm_" +columns_definition["column_name"][i]+ ";\n";            
-        }
-    }
-    extra_methods += "\t\t\tloaded=orm.loaded;\n";
-    extra_methods += "\t\t\tupdate_flag=orm.update_flag;\n";
-    extra_methods += "\t\t}\n";
-}
+// void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,string table_name,map<string, vector<string>> columns_definition)
+// {
+//     extra_methods_def += "\t\tvoid operator = (const "+class_name+" & orm);\n";
+//     extra_methods += "\t\tvoid "+class_name+"::operator = (const "+class_name+" & orm){\n";
+//     // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
+//     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+//     {
+//         if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
+//             extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
+//             extra_methods += " = orm.orm_" +columns_definition["column_name"][i]+ ";\n";            
+//         }
+//     }
+//     extra_methods += "\t\t\tloaded=orm.loaded;\n";
+//     extra_methods += "\t\t\tupdate_flag=orm.update_flag;\n";
+//     extra_methods += "\t\t}\n";
+// }
 
 void PSQLPrimitiveORMGenerator::generateGetIdentifier(string class_name)
 {
@@ -332,7 +332,7 @@ void PSQLPrimitiveORMGenerator::generateExternDSOEntryPoint (string class_name,s
     extern_entry_point += "#endif";
 }
 
-void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name,string table_index)
+void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name,string table_index, map<string, vector<string>> columns_definition)
 {
     includes = "#include <PSQLController.h>\n";
     includes += "#include <PSQLBool.h>\n";
@@ -397,7 +397,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     delete (psqlQuery);
     constructor_destructor +="\t\t}\n";
 
-    constructor_destructor += "\t\tvoid "+class_name+"::operator  = (const "+class_name+" & _"+class_name+"){\n";
+    constructor_destructor += "\t\tvoid "+class_name+"::operator = (const "+class_name+" & _"+class_name+"){\n";
     constructor_destructor += "\t\t\t *((PSQLAbstractORM *)this) = _"+class_name+";\n";
     constructor_destructor += "\t\t\tthis->orm_"+primary_key+"= _"+class_name+".orm_"+primary_key+";\n";
     constructor_destructor += "\t\t\tthis->table_index=_"+class_name+".table_index;\n";
@@ -405,6 +405,14 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor += "\t\t\tif (cached) this->addToCache();\n";
 
     constructor_destructor += default_constructor;
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
+            constructor_destructor += "\t\t\torm_"+columns_definition["column_name"][i];
+            constructor_destructor += " = _"+class_name+".orm_" +columns_definition["column_name"][i]+ ";\n";            
+        }
+    }
+
     constructor_destructor += "\t\t}\n";
 
 
@@ -634,11 +642,11 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         generateDecl_Setters_Getters(class_name,results);
         generateFromString(class_name,table_name,table_index,results);
         generateAssignResults(class_name,table_index,results);
-        generateAssignmentOperator(class_name,table_index,results);
+        // generateAssignmentOperator(class_name,table_index,results);
         generateGetIdentifier(class_name);
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
-        generateConstructorAndDestructor(class_name,table_name,table_index);
+        generateConstructorAndDestructor(class_name,table_name,table_index,results);
         generateUpdateQuery(class_name,table_name,results);
         generateInsertQuery(class_name,table_name,results);
         generateSerializer(class_name,table_name,results);
