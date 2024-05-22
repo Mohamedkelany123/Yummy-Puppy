@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
     psqlController.addDefault("updated_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(threads_count);
+    string closure_date_string = "2024-05-22"; 
 
     // Accrue interest aggregator
 
@@ -24,16 +25,13 @@ int main(int argc, char** argv) {
     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
 
-    string closure_date_string = "2024-05-22"; 
-
     accrualQuery->addExtraFromField("(select day from loan_app_loanstatushistroy lalsh  where loan_app_loan.id=lalsh.loan_id and status_type =0 and previous_status_id =loan_app_loan.marginalization_bucket_id and lalsh.status_id>loan_app_loan.marginalization_bucket_id and day <= new_lms_installmentextension.partial_accrual_date and status_id not in (6,7,8,12,13,14,15,16) order by id desc limit 1)","marginalization_history");
     accrualQuery->addExtraFromField("(select paid_at from payments_loanorder plo where plo.status=1 AND loan_app_loan.id=plo.loan_id order by paid_at desc limit 1)","last_order_date");
     accrualQuery->addExtraFromField("(select day from loan_app_loanstatushistroy lalsh where loan_app_loan.id=lalsh.loan_id and lalsh.reversal_order_id is null and lalsh.status_type=0 and lalsh.status_id=8 order by id desc limit 1)","settled_history");
 
-    
     accrualQuery->filter(
         ANDOperator (
-            new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
+            // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
             new OROperator (
                 new UnaryOperator("new_lms_installmentextension.accrual_date", lte, closure_date_string),
                 new ANDOperator(

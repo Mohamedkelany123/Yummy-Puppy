@@ -6,15 +6,17 @@ AccrualInterest::AccrualInterest(map<string, PSQLAbstractORM *> *_orms, int _acc
     loan_app_installment_primitive_orm * _lai_orm = ORM(loan_app_installment,_orms);
     new_lms_installmentextension_primitive_orm * _nli_orm = ORM(new_lms_installmentextension,_orms);
     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,_orms);
-    string _marginalization_history = gorm->get("_marginalization_history");
-    string _last_order_date = gorm->get("last_order_date");
-    string _settled_history = gorm->get("settled_history");
+    if(_accrual_type == 1){
+        string _marginalization_history = gorm->get("_marginalization_history");
+        string _last_order_date = gorm->get("last_order_date");
+        string _settled_history = gorm->get("settled_history");
+        marginalization_history = _marginalization_history;
+        last_order_date = _last_order_date;
+        settled_history = _settled_history;
+    }
     lal_orm = _lal_orm;  
     lai_orm =_lai_orm;
     nli_orm = _nli_orm;
-    marginalization_history = _marginalization_history;
-    last_order_date = _last_order_date;
-    settled_history = _settled_history;
     accrual_type = _accrual_type;
 }
 
