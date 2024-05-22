@@ -213,6 +213,7 @@ class PSQLAbstractQueryIterator {
 class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
 
     protected:
+        bool aggregate_flag;
         string column_names = "";
         string join_string = "";
         vector <PSQLAbstractORM *> * orm_objects;
@@ -270,6 +271,10 @@ class PSQLJoinQueryPartitionIterator {
             orm_objects = _orm_objects;
             extras = _extras;
     }
+        void reverse()
+        {
+            psqlQuery->fetchPrevRow();
+        }
         map <string,PSQLAbstractORM *> * next ()
         {
             if (psqlQuery->fetchNextRow())
