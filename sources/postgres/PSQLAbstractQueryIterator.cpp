@@ -67,7 +67,7 @@ void PSQLAbstractQueryIterator::setOrderBy(string _orderby_string)
     orderby_string= _orderby_string;
 }
 
-void PSQLAbstractQueryIterator::setDistinct(string _distinct_string)
+void PSQLAbstractQueryIterator::setDistinctString(string _distinct_string)
 {
     distinct= _distinct_string;
 }
