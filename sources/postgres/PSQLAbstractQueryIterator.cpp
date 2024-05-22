@@ -221,6 +221,25 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
     }
 }
 
+bool PSQLJoinQueryIterator::setDistinct (map <string,string> distinct_map)
+{
+    int count = 0;
+    for (auto dm : distinct_map)
+    {
+        if (orm_objects_map.find(dm.first+"_primitive_orm") != orm_objects_map.end())
+        {
+            cout << orm_objects_map[dm.first+"_primitive_orm"]->compose_field_and_alias(dm.second) << endl;
+            if (count == 0 )
+                distinct = "distinct ";
+            else distinct += ",";
+            distinct+= orm_objects_map[dm.first+"_primitive_orm"]->compose_field_and_alias(dm.second);
+            count ++;
+        }
+    }
+    return false;
+}
+
+
 PSQLJoinQueryIterator::~PSQLJoinQueryIterator()
 {
     for (auto orm_object: *orm_objects) 

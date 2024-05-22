@@ -85,7 +85,7 @@ void PSQLAbstractORM::lock_me()
 {
     std::ostringstream ss;
     ss << std::this_thread::get_id() ;
-    printf ("Locking ORM %p\n",this); 
+    // printf ("Locking ORM %p\n",this); 
 //    printf ("lock_me: %p  -   %s \n",this,ss.str().c_str()); 
     lock.lock();
     locking_thread = ss.str();
@@ -95,7 +95,7 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
     if ( locking_thread == "") return ;
     std::ostringstream ss;
     ss << std::this_thread::get_id() ;
-    printf ("Unlocking ORM %p\n",this); 
+    // printf ("Unlocking ORM %p\n",this); 
 
 //    printf ("unlock_me: %p  -   %s \n",this,ss.str().c_str()); 
     if (restrict_to_owner)
@@ -136,11 +136,11 @@ void PSQLAbstractORM::commitUpdateReferences ()
 string PSQLAbstractORM::compose_field_and_alias (string field_name)
 {
 
-    string str = "`"; 
+    string str = ""; 
     str += table_name;
-    str += "`.`";
+    str += ".";
     str += field_name;
-    str += "` as \"";
+    str += " as \"";
     str += to_string(table_index);
     str += "_";
     str += field_name;
