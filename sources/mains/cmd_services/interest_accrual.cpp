@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv) {
 
-    int threads_count = 1;
+    int threads_count = 10;
 
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_14052024_omneya","postgres","8ZozYD6DhNJgW7a");
     if (connect){
@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 
     accrualQuery->filter(
         ANDOperator (
-            // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
+            new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
             new OROperator (
                 new UnaryOperator("new_lms_installmentextension.accrual_date", lte, closure_date_string),
                 new ANDOperator(
@@ -68,14 +68,30 @@ int main(int argc, char** argv) {
     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
     
+
+   
+
     partialAccrualQuery->filter(
         ANDOperator (
             new UnaryOperator("new_lms_installmentextension.partial_accrual_date", lte, closure_date_string),
-            // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::PARTIAL_INTEREST_ACCRUAL-1),
+            new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::PARTIAL_INTEREST_ACCRUAL-1),
             new UnaryOperator("new_lms_installmentextension.partial_accrual_ledger_amount_id", isnull, "", true),
             new UnaryOperator("new_lms_installmentextension.expected_partial_accrual_amount", ne, 0),
-            new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", true),
             new OROperator(
+                new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", true),
+                new ANDOperator(
+                    new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", false),
+                    new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date",gte, "new_lms_installmentextension.partial_accrual_date", true),
+                    new UnaryOperator("loan_app_loan.status_id", eq,15)
+                ),
+                new ANDOperator(
+                    new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", false),
+                    new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date",gt, "new_lms_installmentextension.partial_accrual_date", true),
+                    new UnaryOperator("loan_app_loan.status_id", ne,15)
+                )
+            ),
+            new OROperator(
+
                 new UnaryOperator("new_lms_installmentextension.is_interest_paid", eq, true),
                 new ANDOperator(
                     new UnaryOperator("new_lms_installmentextension.status_id", nin, "8, 15"),
@@ -86,6 +102,7 @@ int main(int argc, char** argv) {
                 )
             ),
             new UnaryOperator("new_lms_installmentextension.status_id", nin, "12, 13"),
+            new UnaryOperator("loan_app_loan.status_id", nin, "12,13"),
             new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
             new UnaryOperator("new_lms_installmentextension.partial_accrual_date", ne, "new_lms_installmentextension.accrual_date", true)
         )
