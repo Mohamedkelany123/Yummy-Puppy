@@ -204,7 +204,7 @@ class PSQLAbstractQueryIterator {
         bool execute();
         long getResultCount();
         void setOrderBy(string _orderby_string);
-        void setDistinct(string _distinct_string);
+        void setDistinctString(string _distinct_string);
         void addExtraFromField (string field, string field_name);
         virtual ~PSQLAbstractQueryIterator();
 };

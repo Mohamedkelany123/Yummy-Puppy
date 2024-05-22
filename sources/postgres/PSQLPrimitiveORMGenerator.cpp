@@ -311,6 +311,10 @@ void PSQLPrimitiveORMGenerator::generateGetIdentifier(string class_name)
     extra_methods += "\t\tlong "+class_name+"::getIdentifier (){\n";
     extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
     extra_methods += "\t\t}\n";
+    extra_methods_def += "\t\tvoid setIdentifier (long id);\n";
+    extra_methods += "\t\tvoid "+class_name+"::setIdentifier (long id){\n";
+    extra_methods += "\t\t\t orm_"+primary_key+" = id;\n";
+    extra_methods += "\t\t}\n";
 }
 void PSQLPrimitiveORMGenerator::generateCloner(string class_name)
 {
@@ -402,7 +406,6 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor += "\t\t\tthis->orm_"+primary_key+"= _"+class_name+".orm_"+primary_key+";\n";
     constructor_destructor += "\t\t\tthis->table_index=_"+class_name+".table_index;\n";
     constructor_destructor += "\t\t\tcached=_"+class_name+".cached;\n";
-    constructor_destructor += "\t\t\tif (cached) this->addToCache();\n";
 
     constructor_destructor += default_constructor;
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
@@ -412,6 +415,9 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
             constructor_destructor += " = _"+class_name+".orm_" +columns_definition["column_name"][i]+ ";\n";            
         }
     }
+    constructor_destructor += "\t\t\tsetIdentifier(-1);\n";
+    constructor_destructor += "\t\t\tif (cached) this->addToCache();\n";
+
 
     constructor_destructor += "\t\t}\n";
 
