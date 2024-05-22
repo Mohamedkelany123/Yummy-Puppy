@@ -157,12 +157,9 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
             orms =psqlJoinQueryPartitionIterator.next();
             if (orms != NULL) 
             {
-               f(orms,partition_number,shared_lock,extras);
-               shared_lock->lock();
-            //    cout << "before unlock orms" << endl;
-               me->unlock_orms(orms);
-               //Here we neeed to delete grom
-            //    cout << "after unlock orms" << endl;
+                f(orms,partition_number,shared_lock,extras);
+                shared_lock->lock();
+                me->unlock_orms(orms);
                 PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
                 if (gorm != NULL) delete (gorm);
                shared_lock->unlock();
