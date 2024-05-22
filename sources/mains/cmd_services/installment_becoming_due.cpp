@@ -96,23 +96,47 @@ int main (int argc, char ** argv)
     //----------------------------------------------------------------------------------------//
     //----------------------------------------------------------------------------------------//
 
-    PSQLJoinQueryIterator * sticky_installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
-    {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
-    {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+    // PSQLJoinQueryIterator * sticky_installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
+    // {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+    // {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
 
     
-    sticky_installments_becoming_due_iterator->filter(
-        ANDOperator 
-        (
-            new OROperator (
-                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,closure_date_string),
-                new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
+    // sticky_installments_becoming_due_iterator->filter(
+    //     ANDOperator 
+    //     (
+    //         new OROperator (
+    //             // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::LEDGER_UNDUE_TO_DUE-1)),
+    //             new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,closure_date_string),
+    //             new ANDOperator(
+    //                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
+    //                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,"interest_paid_at", true)
+    //             )
+    //         ),
 
-            )
-            // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::LEDGER_UNDUE_TO_DUE-1)),
+    //         new UnaryOperator ("new_lms_installmentextension.payment_status",in,"2,4"),
+    //         new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,true),
+    //         new UnaryOperator ("new_lms_installmentextension.principal_paid_at",lte,closure_date_string),
 
-        )
-    );
+    //         new OROperator(
+    //             new UnaryOperator ("new_lms_installmentextension.undue_to_due_ledger_amount_id",isnull,"", true),
+                
+    //             new ANDOperator(
+    //                 new UnaryOperator ("new_lms_installmentextension.settlement_accrual_interest_amount",gt,"0"),
+    //                 new UnaryOperator ("new_lms_installmentextension.undue_to_due_interest_ledger_amount",isnull,"",true)
+    //             )
+    //         ),
+
+    //         new UnaryOperator ("loan_app_loan.status_id",nin,"12,13"),
+
+    //         new OROperator(
+    //             new UnaryOperator ("new_lms_installmentextension.status_id",nin,"8,12,13"),
+    //             new ANDOperator(
+    //                 new UnaryOperator ("new_lms_installmentextension.status_id",ne,"16"),
+    //                 new UnaryOperator ("new_lms_installmentextension.payment_status",ne,"3")
+    //             )                
+    //         )
+    //     )
+    // );
 
 
     
