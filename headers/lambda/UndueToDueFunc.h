@@ -1,5 +1,5 @@
-#ifndef UNDUETODUE_H
-#define UNDUETODUE_H
+#ifndef UNDUETODUEFUNC_H
+#define UNDUETODUECUNC_H
 
 #include <functional>
 #include <common.h>

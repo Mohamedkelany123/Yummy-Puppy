@@ -3,7 +3,7 @@
 #include <DisburseLoans.h>
 #include <common_orm.h>
 #include <common.h>
-#include <UndueToDue.h>
+#include <UndueToDueFunc.h>
 
 //TODO: create special type for 
 
@@ -80,11 +80,11 @@ int main (int argc, char ** argv)
     BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
     map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
 
-    DisburseLoanStruct disburseLoanStruct;
-    disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
-    disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
+    // DisburseLoanStruct disburseLoanStruct;
+    // disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
+    // disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
 
-    installments_becoming_due_iterator->process(threadsCount, InstallmentBecomingDueFunc,(void *)&disburseLoanStruct);
+    installments_becoming_due_iterator->process(threadsCount, InstallmentBecomingDueFunc,NULL);
 
 
     delete(blnkTemplateManager);
