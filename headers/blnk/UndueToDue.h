@@ -26,14 +26,12 @@ class UndueToDue : public LedgerClosureStep
         
         //Setters
         void set_loan_app_loan(loan_app_loan_bl_orm* _lal_orm);
-        void set_loan_app_loanproduct(loan_app_loanproduct_primitive_orm* _lalp_orm);
+        void set_loan_app_installment(loan_app_installment_primitive_orm* _lai_orm);
+        
         void set_template_id(int _template_id);
         void set_provision_percentage(float _provision_percentage);
-        void set_short_term_principal(float _short_term_principal);
-        void set_is_rescheduled(bool _is_rescheduled);
-        void set_long_term_principal(float _long_term_principal);
-        void set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm);
-
+        
+        
         
 
         //Getters
