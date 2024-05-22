@@ -135,10 +135,12 @@ ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_am
 
     for ( auto la : *_ledger_amounts)
         {
-            cout<<"amount" << la->get_amount()<<endl;
-           ledger_amount_primitive_orm* new_ledger_amount = new ledger_amount_primitive_orm("main", true);
-           *new_ledger_amount= *la;
+       
+            ledger_amount_primitive_orm * new_ledger_amount = new ledger_amount_primitive_orm(*la);
+
             new_ledger_amount->set_amount(-la->get_amount());
+            new_ledger_amount->set_amount_local(-la->get_amount());
+
             new_ledger_amount->setAddRefernce("entry_id", entry);
 
         }
