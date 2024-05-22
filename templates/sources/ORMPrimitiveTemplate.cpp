@@ -40,14 +40,18 @@ void  %s::process_internal(%s * psqlAbstractQueryIterator,string data_source_nam
                 for (auto e: psqlAbstractQueryIterator->extras)
 					orm->setExtra(e.first,psqlQueryPartition->getValue(e.first));
                 f(orm,partition_number,shared_lock, extra_params);
+
+                shared_lock->lock();
+                orm->unlock_me();
+                shared_lock->unlock();
             }
         } while (orm != NULL);
-    
+        psqlController.unlock_current_thread_orms(data_source_name);
 }
 
 void %s::process(int partitions_count,std::function<void(%s * orm,int partition_number,mutex * shared_lock,void * extras)> f, void * extra_params)
 {
-    if (this->execute())
+    if (this->execute() && ((PSQLQuery *)this->psqlQuery)->getRowCount() > 0)
     {
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
         vector <thread *> threads;

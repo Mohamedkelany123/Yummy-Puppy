@@ -116,7 +116,7 @@ int main (int argc, char ** argv)
      BlnkTemplateManager * blnkTemplateManager_reverse = new BlnkTemplateManager(6);
     cancelLoanStruct.blnkTemplateManager_reverse = blnkTemplateManager_reverse;
     
-    cout<<"before processs"<<endl;
+    cout<<"before processs   "<<endl;
 
     psqlQueryJoin->process(threadsCount, CancelLoanFunc,(void *)&cancelLoanStruct);
     cout<<"after processs"<<endl;

@@ -102,18 +102,22 @@ void  loan_app_loan_bl_orm_iterator::process_internal(loan_app_loan_bl_orm_itera
                 for (auto e: psqlAbstractQueryIterator->extras)
 					orm->setExtra(e.first,psqlQueryPartition->getValue(e.first));
                 f(orm,partition_number,shared_lock, extra_params);
+                shared_lock->lock();
+                orm->unlock_me();
+                shared_lock->unlock();
             }
         } while (orm != NULL);
-    
+        psqlController.unlock_current_thread_orms(data_source_name);    
 }
 
 void loan_app_loan_bl_orm_iterator::process(int partitions_count,std::function<void(loan_app_loan_bl_orm * orm,int partition_number,mutex * shared_lock,void * extras)> f, void * extra_params)
 {
-    if (this->execute())
+    if (this->execute() && ((PSQLQuery *)this->psqlQuery)->getRowCount() > 0)
     {
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
         vector <thread *> threads;
         mutex shared_lock;
+
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
             thread * t = new thread(process_internal, this,data_source_name, (*p)[i],i,&shared_lock,extra_params,f);
