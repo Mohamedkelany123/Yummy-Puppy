@@ -1150,7 +1150,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
 
         // TODO:     change to new implementation when implemented
-        psqlQueryJoin->setDistinct("distinct phone_number as \"162_phone_number\", \"crm_app_customer\".\"id\" as \"162_id\"");
+        // psqlQueryJoin->setDistinct("distinct phone_number as \"162_phone_number\", \"crm_app_customer\".\"id\" as \"162_id\"");
 
         auto beforeProcess = std::chrono::high_resolution_clock::now();
                 
