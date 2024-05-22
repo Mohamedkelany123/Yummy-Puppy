@@ -290,8 +290,8 @@ void PSQLPrimitiveORMGenerator::generateFieldsMap (string class_name,string tabl
 
 void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
-    extra_methods_def += "\t\tvoid operator = ("+class_name+" & orm);\n";
-    extra_methods += "\t\tvoid "+class_name+"::operator = ("+class_name+" & orm){\n";
+    extra_methods_def += "\t\tvoid operator = (const "+class_name+" & orm);\n";
+    extra_methods += "\t\tvoid "+class_name+"::operator = (const "+class_name+" & orm){\n";
     // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
