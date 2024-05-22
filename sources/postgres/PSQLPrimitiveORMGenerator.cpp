@@ -359,6 +359,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     where "pk_table" = ')"""" +table_name+"'");
     string temp = "";
     string default_constructor = "";
+    string default_constructor_pointer = "";
     for (;psqlQuery->fetchNextRow();)
     {
         declaration += "\t\t\tbool "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only;\n";
@@ -370,6 +371,11 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
 
         default_constructor += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = _"+class_name+"."+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+";\n";
         default_constructor += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only=_"+class_name+"."+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only;\n";
+
+
+        default_constructor_pointer += "\t\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
+        default_constructor_pointer += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = _"+class_name+"->"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+";\n";
+        default_constructor_pointer += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only=_"+class_name+"->"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only;\n";
 
 
         includes += "#include <"+psqlQuery->getValue("fk_table")+"_primitive_orm.h>\n";
@@ -421,6 +427,25 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
 
     constructor_destructor += "\t\t}\n";
 
+    constructor_destructor += "\t\tvoid "+class_name+"::operator = (const "+class_name+" * _"+class_name+"){\n";
+    constructor_destructor += "\t\t\t *((PSQLAbstractORM *)this) = _"+class_name+";\n";
+    constructor_destructor += "\t\t\tthis->orm_"+primary_key+"= _"+class_name+"->orm_"+primary_key+";\n";
+    constructor_destructor += "\t\t\tthis->table_index=_"+class_name+"->table_index;\n";
+    constructor_destructor += "\t\t\tcached=_"+class_name+"->cached;\n";
+
+    constructor_destructor += default_constructor_pointer;
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
+            constructor_destructor += "\t\t\torm_"+columns_definition["column_name"][i];
+            constructor_destructor += " = _"+class_name+"->orm_" +columns_definition["column_name"][i]+ ";\n";            
+        }
+    }
+    constructor_destructor += "\t\t\tloaded=_"+class_name+"->loaded;\n";
+    constructor_destructor += "\t\t\tupdate_flag=_"+class_name+"->update_flag;\n";
+
+    constructor_destructor += "\t\t}\n";
+
 
     constructor_destructor += "\t\t"+class_name+"::"+class_name+"(const "+class_name+" & _"+class_name+"): PSQLAbstractORM(_"+class_name+"){\n";
     constructor_destructor += "\t\t\t (*this) = _"+class_name+";\n";
@@ -439,6 +464,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor_def = "\t\t"+class_name+"(string data_source_name, bool add_to_cache=false, bool orm_transactional=true);\n";
     constructor_destructor_def += "\t\t"+class_name+"(const "+class_name+" & _"+class_name+");\n";
     constructor_destructor_def += "\t\tvirtual void operator =(const "+class_name+" & _"+class_name+");\n";
+    constructor_destructor_def += "\t\tvirtual void operator =(const "+class_name+" * _"+class_name+");\n";
     constructor_destructor_def += "\t\t virtual ~"+class_name+"();\n";
 
 }
@@ -448,7 +474,7 @@ void PSQLPrimitiveORMGenerator::generateAddToCache(string class_name)
     extra_methods += "\t\tvoid "+class_name+"::addToCache (){\n";
     extra_methods += "\t\t\t"+class_name+" * orm = ("+class_name+" *) psqlController.addToORMCache(\""+class_name+"\",this,data_source_name);\n";
     extra_methods += "\t\t\tif (orm!= NULL) {\n";
-    extra_methods += "\t\t\t\t(*this) = (*orm);\n";
+    extra_methods += "\t\t\t\t(*this) = (orm);\n";
     extra_methods += "\t\t\t\tdelete(orm);\n";
     extra_methods += "\t\t\t}\n";
     extra_methods += "\t\t}\n";

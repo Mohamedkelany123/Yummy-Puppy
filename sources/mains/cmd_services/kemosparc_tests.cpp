@@ -57,13 +57,26 @@ int main (int argc, char ** argv)
     //         {"loan_app_loan","id"}
     // });
 
+    psqlQueryJoin->setAggregates ({
+            {"crm_app_customer","id"},
+            {"loan_app_loan","id"}
+    });
+
+    class JoinResults
+    {
+        map <string,PSQLAbstractORM *> * orms;
+        map <string,vector<PSQLAbstractORM *>> * aggregates;
+            
+
+    };
 
     psqlQueryJoin->process(threadsCount, [](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
             crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
             loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
             loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
+            PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
 
-            cout << cac_orm->get_id() << "\t" << lal_orm->get_id() <<"\t" << lai_orm->get_id() << endl;
+            cout << gorm->get("aggregate") << "\t" << cac_orm->get_id() << "\t" << lal_orm->get_id() <<"\t" << lai_orm->get_id() << endl;
             
 
         });

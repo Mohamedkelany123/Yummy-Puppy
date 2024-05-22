@@ -227,6 +227,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // void filter ( Expression const & e);
         // bool execute();
         bool setDistinct (map <string,string> distinct_map);
+        bool setAggregates (map <string,string> distinct_map);
         ~PSQLJoinQueryIterator();
 };
 

@@ -49,7 +49,7 @@ bool PSQLAbstractQueryIterator::execute()
         sql = "select "+ select_stmt+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + conditions +" order by "+orderby_string;
     
-    //cout << sql << endl;
+    // cout << sql << endl;
     
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
@@ -232,9 +232,34 @@ bool PSQLJoinQueryIterator::setDistinct (map <string,string> distinct_map)
             count ++;
         }
     }
-    return false;
+    if ( count > 0 ) return true;
+    else return false;
 }
 
+bool PSQLJoinQueryIterator::setAggregates (map <string,string> distinct_map)
+{
+    int count = 0;
+    string aggregate = "";
+    for (auto dm : distinct_map)
+    {
+        if (orm_objects_map.find(dm.first+"_primitive_orm") != orm_objects_map.end())
+        {
+            cout << orm_objects_map[dm.first+"_primitive_orm"]->compose_field_and_alias(dm.second) << endl;
+            if (count == 0 )
+                aggregate = "concat(";
+            else aggregate += ",";
+            aggregate+= "lpad("+orm_objects_map[dm.first+"_primitive_orm"]->compose_field(dm.second)+"::varchar,10,'0')";
+            count ++;
+        }
+    }
+    if (count > 0)
+    {
+        aggregate += ")";
+        addExtraFromField(aggregate,"aggregate");
+        return true;
+    }
+    else return false;
+}
 
 PSQLJoinQueryIterator::~PSQLJoinQueryIterator()
 {
