@@ -128,19 +128,15 @@ ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
 ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_amount_primitive_orm*> * _ledger_amounts, BDate entry_date)
 {
     this->createEntry(entry_date);
-    if (_ledger_amounts==NULL){
-    cout<< "whaaaattt now ?? this is null "<<endl;
-    }
-        cout<<(*_ledger_amounts)[0]->get_amount()<<endl;
+
 
     for ( auto la : *_ledger_amounts)
         {
        
-            ledger_amount_primitive_orm * new_ledger_amount = new ledger_amount_primitive_orm(*la);
-
+            ledger_amount_primitive_orm * new_ledger_amount =  la;
+            cout<<"inside the loop"<<new_ledger_amount->get_loan_id()<<endl;
             new_ledger_amount->set_amount(-la->get_amount());
             new_ledger_amount->set_amount_local(-la->get_amount());
-
             new_ledger_amount->setAddRefernce("entry_id", entry);
 
         }
