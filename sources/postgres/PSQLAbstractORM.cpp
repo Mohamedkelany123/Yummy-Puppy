@@ -1,6 +1,30 @@
 #include <PSQLAbstractORM.h>
 #include <PSQLController.h>
 
+PSQLAbstractORM::PSQLAbstractORM (const PSQLAbstractORM & _psqlAbstractORM)
+{
+       (*this) = _psqlAbstractORM;
+}
+
+void PSQLAbstractORM::operator = (const PSQLAbstractORM & _psqlAbstractORM)
+{
+        table_name = _psqlAbstractORM.table_name;
+        orm_name =  _psqlAbstractORM.orm_name;
+        table_index = _psqlAbstractORM.table_index;
+        relatives_def = _psqlAbstractORM.relatives_def;
+        identifier_name = _psqlAbstractORM.identifier_name;
+        loaded = false ;
+        locking_thread = "";
+        insert_default_values = _psqlAbstractORM.insert_default_values;
+        update_default_values = _psqlAbstractORM.update_default_values;
+        data_source_name = _psqlAbstractORM.data_source_name;
+        orm_transactional =  _psqlAbstractORM.orm_transactional;
+        add_references = _psqlAbstractORM.add_references;
+        update_references = _psqlAbstractORM.update_references;
+        inserted = false;
+}
+
+
 PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional)
 {   
     orm_transactional = _orm_transactional;
