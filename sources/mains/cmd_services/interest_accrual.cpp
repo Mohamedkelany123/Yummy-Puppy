@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 
     int threads_count = 1;
 
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"ledger_closure_omneya","postgres","8ZozYD6DhNJgW7a");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_14052024_omneya","postgres","8ZozYD6DhNJgW7a");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
     
     accrualQuery->filter(
         ANDOperator (
-            // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
+            new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
             new OROperator (
                 new UnaryOperator("new_lms_installmentextension.accrual_date", lte, closure_date_string),
                 new ANDOperator(
@@ -89,7 +89,6 @@ int main(int argc, char** argv) {
         )
     );
     partialAccrualQuery->setOrderBy("loan_app_loan.id");
-
     BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8);
 
     AccrualInterestStruct partialAccrualInterestStruct = {
