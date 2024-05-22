@@ -52,10 +52,10 @@ int main (int argc, char ** argv)
         )
     );
 
-    psqlQueryJoin->setDistinct ({
-            {"crm_app_customer","id"},
-            {"loan_app_loan","id"}
-    });
+    // psqlQueryJoin->setDistinct ({
+    //         {"crm_app_customer","id"},
+    //         {"loan_app_loan","id"}
+    // });
 
 
     psqlQueryJoin->process(threadsCount, [](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {

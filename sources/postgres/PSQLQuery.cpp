@@ -186,7 +186,7 @@ string PSQLQuery::getValue(int row_index, int col_index)
 }
 vector <PSQLQueryPartition * > * PSQLQuery::partitionResults (int partition_count)
 {
-    cout << "result_count: " << result_count << endl;
+    //cout << "result_count: " << result_count << endl;
     if ( result_count < partition_count ) partition_count = result_count;
     int partition_size = result_count/partition_count;
     int last_partition_size = result_count-(partition_size*(partition_count-1));
