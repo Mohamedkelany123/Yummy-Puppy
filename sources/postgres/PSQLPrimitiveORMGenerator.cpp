@@ -209,6 +209,9 @@ void PSQLPrimitiveORMGenerator::generateDecl_Setters_Getters (string class_name,
     declaration += "\t\tbitset<";
     declaration +=std::to_string(col_count);
     declaration += "> update_flag;\n";
+    declaration += "\t\tbitset<";
+    declaration +=std::to_string(col_count);
+    declaration += "> null_flag;\n";
     for (int i  = 0 ; i  < col_count; i++) 
     {
         if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
@@ -247,14 +250,17 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string 
             AbstractDatabaseColumn * abstractDatabaseColumn = databaseColumnFactory[columns_definition["udt_name"][i]]->clone(columns_definition["column_name"][i]);
             extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
             if ( columns_definition["udt_name"][i] == "jsonb")
-                extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getJSONValue(\"" +table_name+"_"+ columns_definition["column_name"][i]+"\")")+ ";\n";            
-            else extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getValue(\"" +table_name+"_"+ columns_definition["column_name"][i]+"\")")+ ";\n";
+                extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getJSONValue(\"" +table_name+"_"+ columns_definition["column_name"][i]+"\")",i)+ ";\n";            
+            else extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getValue(\"" +table_name+"_"+ columns_definition["column_name"][i]+"\")",i)+ ";\n";
             delete(abstractDatabaseColumn);
         }
     }
     extra_methods += "\t\t\tloaded=true;\n";
     extra_methods += "\t\t\tinserted=true;\n";
-    extra_methods += "\t\t\tif (!_read_only) addToCache();\n";
+    extra_methods += "\t\t\tif (!_read_only) {\n";
+    extra_methods += "\t\t\t\taddToCache();\n";
+    extra_methods += "\t\t\t\tcached=true;\n";
+    extra_methods += "\t\t\t}\n";
     extra_methods += "\t\t}\n";
 }
 
@@ -311,12 +317,14 @@ void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,st
     }
     extra_methods += "\t\t\tloaded=orm.loaded;\n";
     extra_methods += "\t\t\tupdate_flag=orm.update_flag;\n";
+    extra_methods += "\t\t\tfor (int i = 0 ; i< update_flag.size() ; i ++) update_flag.set(i) ;\n";
+    extra_methods += "\t\t\tnull_flag=orm.null_flag;\n";
     extra_methods += "\t\t\tsetIdentifier(-1);\n";
     extra_methods += "\t\t\tif (cached) this->addToCache();\n";
 
     extra_methods += "\t\t}\n";
 
-    extra_methods_def += "\t\tvoid operator = (const "+class_name+" * orm);\n";
+    extra_methods_def += "\t\tvoid operator = (const "+class_name+" * orm); // This is a special opertaor for the cache only\n";
     extra_methods += "\t\tvoid "+class_name+"::operator = (const "+class_name+" * orm){\n";
     extra_methods += "\t\t\t *((PSQLAbstractORM *)this) = orm;\n";
     extra_methods += "\t\t\tthis->orm_"+primary_key+"= orm->orm_"+primary_key+";\n";
@@ -332,6 +340,7 @@ void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,st
     }
     extra_methods += "\t\t\tloaded=orm->loaded;\n";
     extra_methods += "\t\t\tupdate_flag=orm->update_flag;\n";
+    extra_methods += "\t\t\tnull_flag=orm->null_flag;\n";
     extra_methods += "\t\t}\n";
 
 
@@ -665,7 +674,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
                 else values_string += "(("+orm_field_name+" == \"\") ? \"null\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
             }
             else{
-                values_string += "((update_flag.test("+std::to_string(i)+"))?";
+                values_string += "((update_flag.test("+std::to_string(i)+") && ! null_flag.test("+std::to_string(i)+"))?";
                 if (string_flag )
                     values_string += "string(\"'\")+"+orm_field_name+"+string(\"'\")";
                 else if (json_flag )

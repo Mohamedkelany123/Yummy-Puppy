@@ -35,7 +35,7 @@ string PSQLJson::genGetterDef ()
 {
     return "\t\tjson get_"+column_name+"(); \n";
 }
-string PSQLJson::genFieldConversion (string field)
+string PSQLJson::genFieldConversion (string field,int col_index)
 {
     return "json::parse("+field+")";
 }

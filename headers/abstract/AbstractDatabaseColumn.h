@@ -16,7 +16,7 @@ class AbstractDatabaseColumn{
         virtual string genGetter (string class_name) = 0;
         virtual string genSetterDef () = 0;
         virtual string genGetterDef () = 0;
-        virtual string genFieldConversion (string field)=0;
+        virtual string genFieldConversion (string field,int col_index)=0;
         virtual AbstractDatabaseColumn * clone (string column_name) = 0;
         virtual ~AbstractDatabaseColumn(){}
 };
