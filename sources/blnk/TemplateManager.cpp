@@ -141,7 +141,7 @@ ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_am
             cout<<"inside the loop the amount"<<new_ledger_amount->get_amount()<<endl;
 
             new_ledger_amount->set_amount(-la->get_amount());
-            new_ledger_amount->set_amount_local(la->get_amount());
+            new_ledger_amount->set_amount_local(-la->get_amount());
             new_ledger_amount->setAddRefernce("entry_id", entry);
 
         }
