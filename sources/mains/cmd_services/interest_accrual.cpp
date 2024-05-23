@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
+    printf ("psqlController: %p\n",&psqlController);
     psqlController.addDefault("created_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",false,true);
