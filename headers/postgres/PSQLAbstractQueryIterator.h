@@ -204,7 +204,7 @@ class PSQLAbstractQueryIterator {
         bool execute();
         long getResultCount();
         void setOrderBy(string _orderby_string);
-        void setDistinct(string _distinct_string);
+        void setDistinctString(string _distinct_string);
         void addExtraFromField (string field, string field_name);
         virtual ~PSQLAbstractQueryIterator();
 };
@@ -213,9 +213,11 @@ class PSQLAbstractQueryIterator {
 class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
 
     protected:
+        bool aggregate_flag;
         string column_names = "";
         string join_string = "";
         vector <PSQLAbstractORM *> * orm_objects;
+        map <string,PSQLAbstractORM *> orm_objects_map;
         void unlock_orms (map <string,PSQLAbstractORM *> *  orms);
         static void process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f);
     public:
@@ -225,6 +227,8 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // void setNativeSQL(string _sql);
         // void filter ( Expression const & e);
         // bool execute();
+        bool setDistinct (map <string,string> distinct_map);
+        bool setAggregates (map <string,string> distinct_map);
         ~PSQLJoinQueryIterator();
 };
 
@@ -236,7 +240,7 @@ class PSQLQueryPartitionIterator {
         string data_source_name;
 
     public:
-        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name){ 
+        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name, void * _extras){ 
             psqlQuery = _psqlQuery;
             data_source_name = _data_source_name;
         }
@@ -251,6 +255,7 @@ class PSQLQueryPartitionIterator {
             }
             else return NULL;
         }
+        
         ~PSQLQueryPartitionIterator (){}
 };
 
@@ -266,6 +271,10 @@ class PSQLJoinQueryPartitionIterator {
             orm_objects = _orm_objects;
             extras = _extras;
     }
+        void reverse()
+        {
+            psqlQuery->fetchPrevRow();
+        }
         map <string,PSQLAbstractORM *> * next ()
         {
             if (psqlQuery->fetchNextRow())

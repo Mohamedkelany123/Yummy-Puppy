@@ -7,6 +7,7 @@ class PSQLAbstractORM
 {
     protected:
         string table_name;
+        string orm_name;
         int table_index;
         // PSQLConnection * psqlConnection;
         // AbstractDBQuery * psqlQuery;
@@ -23,19 +24,25 @@ class PSQLAbstractORM
         map <string, PSQLAbstractORM *> update_references;
         map <string, int > reference_values;
         bool inserted;
+        map <string,string> extras;
+        bool cached;
+        int enforced_partition_number;
 
     public:
         virtual string getFromString () = 0;
         virtual void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) = 0;
         virtual long getIdentifier() = 0;
+        virtual void setIdentifier(long id) = 0;
         virtual bool isUpdated() = 0;
         virtual bool update(PSQLConnection * _psqlConnection=NULL) = 0;
         virtual long insert(PSQLConnection * _psqlConnection=NULL) = 0;
         virtual string getIdentifierName();
         virtual string getTableName();
+        virtual string getORMName();
         virtual bool isLoaded();
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
-        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional);
+        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional,int _enforced_partition_number=-1);
+        PSQLAbstractORM (const PSQLAbstractORM & _psqlAbstractORM);
         virtual PSQLAbstractORM * clone ()=0;
 		virtual string serialize (PSQLConnection * _psqlConnection=NULL)=0;
 		virtual void deSerialize (json orm_json,bool _read_only = false)=0;
@@ -48,7 +55,12 @@ class PSQLAbstractORM
         void commitAddReferences ();
         void commitUpdateReferences ();
         string compose_field_and_alias (string field_name);
-
+        string compose_field (string field_name);
+        void setExtra (string fname, string fvalue);
+        string getExtra (string fname);
+        virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
+        virtual void operator = (const PSQLAbstractORM * _psqlAbstractORM);
+        int get_enforced_partition_number();
         virtual ~PSQLAbstractORM();
 };
 
@@ -78,6 +90,7 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
 		void deSerialize (json orm_json,bool _read_only = false){}
 	    void resolveReferences () {}
         long getIdentifier() {return -1;};
+        void setIdentifier(long id) {};
         bool isUpdated() {return false;};
         PSQLAbstractORM * clone () { return NULL;}
         ~PSQLGeneric_primitive_orm(){}

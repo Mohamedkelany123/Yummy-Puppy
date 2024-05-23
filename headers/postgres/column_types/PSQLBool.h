@@ -13,7 +13,7 @@ class PSQLBool: public AbstractDatabaseColumn{
         string genGetter (string class_name);
         string genSetterDef ();
         string genGetterDef ();
-        string genFieldConversion (string field);
+        string genFieldConversion (string field,int col_index);
         AbstractDatabaseColumn * clone (string _column_name);
         ~PSQLBool();
 };

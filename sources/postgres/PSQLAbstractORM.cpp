@@ -1,10 +1,54 @@
 #include <PSQLAbstractORM.h>
 #include <PSQLController.h>
 
-PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional)
+PSQLAbstractORM::PSQLAbstractORM (const PSQLAbstractORM & _psqlAbstractORM)
+{
+       (*this) = _psqlAbstractORM;
+}
+
+void PSQLAbstractORM::operator = (const PSQLAbstractORM & _psqlAbstractORM)
+{
+        table_name = _psqlAbstractORM.table_name;
+        orm_name =  _psqlAbstractORM.orm_name;
+        table_index = _psqlAbstractORM.table_index;
+        relatives_def = _psqlAbstractORM.relatives_def;
+        identifier_name = _psqlAbstractORM.identifier_name;
+        loaded = false ;
+        locking_thread = "";
+        insert_default_values = _psqlAbstractORM.insert_default_values;
+        update_default_values = _psqlAbstractORM.update_default_values;
+        data_source_name = _psqlAbstractORM.data_source_name;
+        orm_transactional =  _psqlAbstractORM.orm_transactional;
+        add_references = _psqlAbstractORM.add_references;
+        update_references = _psqlAbstractORM.update_references;
+        inserted = false;
+        enforced_partition_number=_psqlAbstractORM.enforced_partition_number;
+}
+void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
+{
+        table_name = _psqlAbstractORM->table_name;
+        orm_name =  _psqlAbstractORM->orm_name;
+        table_index = _psqlAbstractORM->table_index;
+        relatives_def = _psqlAbstractORM->relatives_def;
+        identifier_name = _psqlAbstractORM->identifier_name;
+        loaded = false ;
+        locking_thread = _psqlAbstractORM->locking_thread;
+        insert_default_values = _psqlAbstractORM->insert_default_values;
+        update_default_values = _psqlAbstractORM->update_default_values;
+        data_source_name = _psqlAbstractORM->data_source_name;
+        orm_transactional =  _psqlAbstractORM->orm_transactional;
+        add_references = _psqlAbstractORM->add_references;
+        update_references = _psqlAbstractORM->update_references;
+        inserted = false;
+        enforced_partition_number=_psqlAbstractORM->enforced_partition_number;
+}
+
+
+PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional,int _enforced_partition_number)
 {   
     orm_transactional = _orm_transactional;
     table_name = _table_name;
+    orm_name = table_name +"_primitive_orm";
     identifier_name = _identifier_name;
     loaded = false;
     locking_thread = "";
@@ -21,6 +65,7 @@ PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,s
     insert_default_values = psqlController.getInsertDefaultValues();
     update_default_values = psqlController.getUpdateDefaultValues();
     data_source_name = _data_source_name;
+    enforced_partition_number=_enforced_partition_number;
 }
 
 bool PSQLAbstractORM::isOrmTransactional(){
@@ -35,6 +80,10 @@ string PSQLAbstractORM::getIdentifierName ()
 string PSQLAbstractORM::getTableName()
 {
     return table_name;
+}
+string PSQLAbstractORM::getORMName()
+{
+    return orm_name;
 }
 
 bool PSQLAbstractORM::isLoaded ()
@@ -56,7 +105,6 @@ void PSQLAbstractORM::lock_me()
 {
     std::ostringstream ss;
     ss << std::this_thread::get_id() ;
-//    printf ("lock_me: %p  -   %s \n",this,ss.str().c_str()); 
     lock.lock();
     locking_thread = ss.str();
 }
@@ -65,7 +113,6 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
     if ( locking_thread == "") return ;
     std::ostringstream ss;
     ss << std::this_thread::get_id() ;
-//    printf ("unlock_me: %p  -   %s \n",this,ss.str().c_str()); 
     if (restrict_to_owner)
         if (ss.str() != locking_thread) return;
     locking_thread = "";
@@ -89,6 +136,7 @@ void PSQLAbstractORM::commitAddReferences ()
     {
         ref.second->lock_me();
         int reference_orm_id = ref.second->insert();
+        ref.second->unlock_me();
         reference_values[ref.first] = reference_orm_id;
         ref.second->unlock_me();
     }
@@ -98,7 +146,9 @@ void PSQLAbstractORM::commitUpdateReferences ()
 {
     for (auto& ref : this->update_references) 
     {
+        ref.second->lock_me();
         int reference_orm_id = ref.second->insert();
+        ref.second->unlock_me();
         reference_values[ref.first] = reference_orm_id;
     }
 }
@@ -106,11 +156,11 @@ void PSQLAbstractORM::commitUpdateReferences ()
 string PSQLAbstractORM::compose_field_and_alias (string field_name)
 {
 
-    string str = "`"; 
+    string str = ""; 
     str += table_name;
-    str += "`.`";
+    str += ".";
     str += field_name;
-    str += "` as \"";
+    str += " as \"";
     str += to_string(table_index);
     str += "_";
     str += field_name;
@@ -119,6 +169,33 @@ string PSQLAbstractORM::compose_field_and_alias (string field_name)
 
 }
 
+string PSQLAbstractORM::compose_field (string field_name)
+{
+
+    string str = ""; 
+    str += table_name;
+    str += ".";
+    str += field_name;
+    return str;
+
+}
+
+void PSQLAbstractORM::setExtra (string fname, string fvalue)
+{
+    extras [fname] = fvalue;
+
+}
+string PSQLAbstractORM::getExtra (string fname)
+{
+    if (extras.find(fname) != extras.end())
+        return  extras [fname];
+    else return "";
+}
+
+int PSQLAbstractORM::get_enforced_partition_number()
+{
+    return enforced_partition_number;
+}
 
 PSQLAbstractORM::~PSQLAbstractORM()
 {

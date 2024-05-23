@@ -34,9 +34,9 @@ string PSQLInt2::genGetterDef ()
 {
     return "\t\tshort get_"+column_name+"(); \n";
 }
-string PSQLInt2::genFieldConversion (string field)
+string PSQLInt2::genFieldConversion (string field,int col_index)
 {
-    return "("+field+" == \"\" ? : stoi("+field+"))";
+    return "("+field+" == \"\" ? (null_flag.set("+std::to_string(col_index)+").size() == 0 ) : stoi("+field+"))";
 }
 AbstractDatabaseColumn * PSQLInt2::clone (string _column_name)
 {

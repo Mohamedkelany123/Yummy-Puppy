@@ -94,10 +94,10 @@ void LedgerCompositLeg::validateEntry(TemplateLeg * template_leg,  LedgerAmount 
         }
 
 }
-std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_entry_primitive_orm * entry)
+std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_entry_primitive_orm * entry,int _cache_partition_number)
 {
-        ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm("main", true);
-        ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm("main", true);
+        ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm("main", true,true,_cache_partition_number);
+        ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm("main", true, true , _cache_partition_number);
 
         debit->setAddRefernce("entry_id",entry);
         credit->setAddRefernce("entry_id",entry);

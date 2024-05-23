@@ -17,7 +17,7 @@ class LedgerCompositLeg
     public:
         LedgerCompositLeg();
         void setAmount (float _amount);
-        pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* build(TemplateLeg * _template,  LedgerAmount * _ledger_amount,ledger_entry_primitive_orm * entry);
+        pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* build(TemplateLeg * _template,  LedgerAmount * _ledger_amount,ledger_entry_primitive_orm * entry, int _cache_partition_number=-1);
         void buildLeg(TemplateLeg * _template,  LedgerAmount * _ledger_amount, ledger_amount_primitive_orm * _leg_side, bool _is_debit);
         void validateEntry(TemplateLeg * _template,  LedgerAmount * _ledger_amount); 
         int getBondId(int _installment_id);

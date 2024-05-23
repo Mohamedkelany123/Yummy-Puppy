@@ -17,16 +17,19 @@ class BlnkTemplateManager {
         map <string,LedgerCompositLeg *> ledger_amounts;
         map <string,LedgerAmount*> * entry_data;
         ledger_entry_primitive_orm * entry;
+        int cache_partition_number;
         void constructTemplateLegs(); 
         void loadTemplate ();
         bool buildLegs();
         bool validate ();
     public:
-        BlnkTemplateManager(int _template_id);
-        BlnkTemplateManager(BlnkTemplateManager * _blnkTemplateManager=NULL);
+        BlnkTemplateManager(int _template_id,int _cache_partition_number=-1);
+        BlnkTemplateManager(BlnkTemplateManager * _blnkTemplateManager=NULL,int _cache_partition_number=-1);
         map <string , TemplateLeg>* getTemplateLegs(); //return this->templatelegs
 
         ledger_entry_primitive_orm* buildEntry (BDate _entry_date);
+        ledger_entry_primitive_orm* reverseEntry (vector <ledger_amount_primitive_orm*> * _ledger_amounts, BDate _entry_date);
+
         void setEntryData(map <string,LedgerAmount*> * _entry_data);
         void createEntry(BDate _entry_date);
 

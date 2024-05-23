@@ -39,7 +39,7 @@ string PSQLText::genGetterDef ()
 {
     return "\t\tstring get_"+column_name+"(); \n";
 }
-string PSQLText::genFieldConversion (string field)
+string PSQLText::genFieldConversion (string field,int col_index)
 {
     return field;
 }
