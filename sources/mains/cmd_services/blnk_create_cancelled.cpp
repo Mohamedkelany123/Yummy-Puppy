@@ -44,7 +44,7 @@ int main (int argc, char ** argv)
 {
 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","postgres","8ZozYD6DhNJgW7a");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -94,9 +94,7 @@ int main (int argc, char ** argv)
     loan_app_loan_bl_orm_iterator *  psqlQueryJoin = new loan_app_loan_bl_orm_iterator ("main");
 
     psqlQueryJoin->addExtraFromField("(select count(*)>0 from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id)","is_included");
-//    psqlQueryJoin->addExtraFromField("(select count(*) from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id)","is_included");
-    // psqlQueryJoin->addExtraFromField("(select count(*) from loan_app_installment lai where lai.loan_id = loan_app_loan.id)","ins_count");
-
+    psqlQueryJoin->addExtraFromField("(select distinct lal.day from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.loan_id = loan_app_loan.id)","cancellation_day");
     psqlQueryJoin->filter(
         ANDOperator 
         (
