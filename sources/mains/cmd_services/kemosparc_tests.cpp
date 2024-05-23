@@ -13,7 +13,7 @@
 int main (int argc, char ** argv)
 {
 
-    int threadsCount = 1;
+    int threadsCount = 10;
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","development","5k6MLFM9CLN3bD1");
     // bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_25102023","postgres","postgres");
     if (connect){
@@ -58,10 +58,10 @@ int main (int argc, char ** argv)
     //         {"loan_app_loan","id"}
     // });
 
-    psqlQueryJoin->setAggregates ({
-            {"crm_app_customer","id"},
-            {"loan_app_loan","id"}
-    });
+    // psqlQueryJoin->setAggregates ({
+    //         {"crm_app_customer","id"},
+    //         {"loan_app_loan","id"}
+    // });
     psqlQueryJoin->setOrderBy(" crm_app_customer.id asc , loan_app_loan.id asc, loan_app_installment.id asc ");
 
     class JoinResults
@@ -75,10 +75,11 @@ int main (int argc, char ** argv)
             loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
             loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
             PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+            shared_lock->lock();
             if (gorm != NULL)
                 cout << gorm->get("aggregate") << "\t";
             cout << lal_orm->get_num_periods() << "\t" <<cac_orm->get_id() << "\t" << lal_orm->get_id() <<"\t" << lai_orm->get_id() << endl;
-        
+            shared_lock->unlock();
         });
 
 
