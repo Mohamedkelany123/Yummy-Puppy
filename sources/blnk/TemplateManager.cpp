@@ -2,7 +2,7 @@
 
 BlnkTemplateManager::BlnkTemplateManager(int _template_id,int _cache_partition_number)
 {
-    cout << "lnkTemplateManager::BlnkTemplateManager(int _template_id,int _cache_partition_number)" << endl;
+    // cout << "lnkTemplateManager::BlnkTemplateManager(int _template_id,int _cache_partition_number)" << endl;
     template_id = _template_id;
     parent_flag = true;
     loadTemplate();
@@ -10,12 +10,12 @@ BlnkTemplateManager::BlnkTemplateManager(int _template_id,int _cache_partition_n
     constructTemplateLegs();
     entry = NULL;
     cache_partition_number = _cache_partition_number;
-    cout  << "End of default constructor BlnkTemplateManager" << endl;
+    // cout  << "End of default constructor BlnkTemplateManager" << endl;
 }
 
 BlnkTemplateManager::BlnkTemplateManager(BlnkTemplateManager *_blnkTemplateManager,int _cache_partition_number)
 {
-    cout << "BlnkTemplateManager::BlnkTemplateManager(BlnkTemplateManager *_blnkTemplateManager,int _cache_partition_number)" <<  endl;
+    // cout << "BlnkTemplateManager::BlnkTemplateManager(BlnkTemplateManager *_blnkTemplateManager,int _cache_partition_number)" <<  endl;
     this->template_id = _blnkTemplateManager->template_id;
     parent_flag = false;
     this->template_legs = _blnkTemplateManager->template_legs;
@@ -23,7 +23,7 @@ BlnkTemplateManager::BlnkTemplateManager(BlnkTemplateManager *_blnkTemplateManag
     if (_cache_partition_number == -1)
         this->cache_partition_number = _blnkTemplateManager->cache_partition_number;
     else this->cache_partition_number = _cache_partition_number;
-    cout << "this->cache_partition_number: " << this->cache_partition_number << endl;
+    // cout << "this->cache_partition_number: " << this->cache_partition_number << endl;
 }
 
 map<string, TemplateLeg> *BlnkTemplateManager::getTemplateLegs() { return template_legs; }
@@ -98,7 +98,7 @@ bool BlnkTemplateManager::buildLegs()
 
 
         LedgerCompositLeg * lc = new LedgerCompositLeg();
-        std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc->build(&(*template_legs)[leg_name], entry_values, entry);
+        std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc->build(&(*template_legs)[leg_name], entry_values, entry,cache_partition_number);
         ledger_amounts[leg_name]=lc;
         if(leg_pair == NULL){
             return false;

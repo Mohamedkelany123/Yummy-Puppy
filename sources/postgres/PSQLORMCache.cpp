@@ -93,17 +93,20 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
 {
     std::lock_guard<std::mutex> guard(lock);
     PSQLAbstractORM * orm = NULL;
-    cout << "PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractORM)";
     int enforced_cache_index = psqlAbstractORM->get_enforced_partition_number();
-    cout << "   enforced_cache_index: " << enforced_cache_index << endl;
     if (threads_count < enforced_cache_index+1)
     {
+        // cout << "PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractORM)";
+        // cout << "   enforced_cache_index: " << enforced_cache_index << endl;
         threads_count = enforced_cache_index+1;
         for ( int i  = insert_thread_cache.size() ; i < threads_count +1 ; i++)
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
+        for ( int i  = update_thread_cache.size() ; i < threads_count +1 ; i++)
+            update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
     }
     if (psqlAbstractORM->getIdentifier() == -1 )
     {
+        cout << "Adding to add cache: " <<  enforced_cache_index << endl;
         insert_cache[name].push_back(psqlAbstractORM);
         for ( int i  = insert_thread_cache.size() ; i < insert_cache_items_count%threads_count +1 ; i++)
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
