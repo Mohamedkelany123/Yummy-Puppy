@@ -36,7 +36,7 @@ string PSQLBool::genGetterDef ()
 {
     return "\t\tbool get_"+column_name+"(); \n";
 }
-string PSQLBool::genFieldConversion (string field)
+string PSQLBool::genFieldConversion (string field,int col_index)
 {
     return "(("+field+" == \"f\") ? false: true)";
 }
