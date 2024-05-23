@@ -96,6 +96,7 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
 
     if (psqlAbstractORM->getIdentifier() == -1 )
     {
+        cout<<"added to insert cache"<<endl;
         insert_cache[name].push_back(psqlAbstractORM);
         for ( int i  = insert_thread_cache.size() ; i < insert_cache_items_count%threads_count +1 ; i++)
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
