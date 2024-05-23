@@ -87,8 +87,10 @@ void PSQLAbstractORM::commitAddReferences ()
 {
     for (auto& ref : this->add_references) 
     {
+        ref.second->lock_me();
         int reference_orm_id = ref.second->insert();
         reference_values[ref.first] = reference_orm_id;
+        ref.second->unlock_me();
     }
 }
 

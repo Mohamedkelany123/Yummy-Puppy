@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 
     int threads_count = 10;
 
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"ledger_closure_omneya","postgres","8ZozYD6DhNJgW7a");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     psqlController.addDefault("updated_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(threads_count);
-    string closure_date_string = "2024-05-22";
+    string closure_date_string = "2024-05-01";
 
 
      // Partial accrue interest aggregator
@@ -61,7 +61,8 @@ int main(int argc, char** argv) {
             new UnaryOperator("new_lms_installmentextension.status_id", nin, "12, 13"),
             new UnaryOperator("loan_app_loan.status_id", nin, "12,13"),
             new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
-            new UnaryOperator("new_lms_installmentextension.partial_accrual_date", ne, "new_lms_installmentextension.accrual_date", true)
+            new UnaryOperator("new_lms_installmentextension.partial_accrual_date", ne, "new_lms_installmentextension.accrual_date", true),
+            new UnaryOperator ("loan_app_loan.id",ne,"14312")
         )
     );
     partialAccrualQuery->setOrderBy("loan_app_loan.id");
@@ -71,7 +72,7 @@ int main(int argc, char** argv) {
         partialAccrualTemplateManager
     };
 
-    partialAccrualQuery->process(threads_count, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
+    // partialAccrualQuery->process(threads_count, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
 
     delete(partialAccrualTemplateManager);
     delete(partialAccrualQuery);
@@ -103,7 +104,8 @@ int main(int argc, char** argv) {
             new UnaryOperator("new_lms_installmentextension.status_id", nin, "12, 13"),
             new UnaryOperator("loan_app_loan.status_id", nin, "12, 13"),
             new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
-            new UnaryOperator("new_lms_installmentextension.status_id", nin, "8, 15, 16")
+            new UnaryOperator("new_lms_installmentextension.status_id", nin, "8, 15, 16"),
+            new UnaryOperator ("loan_app_loan.id",ne,"14312")
         )
     );
 
@@ -115,7 +117,7 @@ int main(int argc, char** argv) {
         accrualTemplateManager
     };
     
-    // accrualQuery->process(threads_count, AccrualInterestFunc, (void*)&accrualInterestStruct);
+    accrualQuery->process(threads_count, AccrualInterestFunc, (void*)&accrualInterestStruct);
 
     delete(accrualTemplateManager);
     delete(accrualQuery);
@@ -133,12 +135,13 @@ int main(int argc, char** argv) {
     settlementAccrualQuery->filter(
         ANDOperator (
             new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", lte, closure_date_string),
-            new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_INTEREST_ACCRUAL-1),
+            // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_INTEREST_ACCRUAL-1),
             new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_ledger_amount_id", isnull, "", true),
             new UnaryOperator("new_lms_installmentextension.status_id", nin, "12, 13"),
             new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_amount", ne, 0),
             new UnaryOperator("loan_app_loan.status_id", nin, "12, 13"),
-            new UnaryOperator("loan_app_installment.interest_expected", ne, 0)
+            new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
+            new UnaryOperator ("loan_app_loan.id",ne,"14312")
         )
     );
 
@@ -150,7 +153,7 @@ int main(int argc, char** argv) {
         settlementAccrualTemplateManager
     };
 
-    // settlementAccrualQuery->process(threads_count, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
+    settlementAccrualQuery->process(threads_count, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
 
     delete(settlementAccrualTemplateManager);
     delete(settlementAccrualQuery);

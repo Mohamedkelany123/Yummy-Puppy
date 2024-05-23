@@ -42,7 +42,7 @@ int main (int argc, char ** argv)
 {
 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","postgres","8ZozYD6DhNJgW7a");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -65,7 +65,7 @@ int main (int argc, char ** argv)
     psqlQueryJoin->filter(
         ANDOperator 
         (
-            new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
+            // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
             new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
             new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string)
         )
