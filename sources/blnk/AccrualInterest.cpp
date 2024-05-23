@@ -153,15 +153,15 @@ LedgerAmount *AccrualInterest::_get_marginalization_interest(LedgerClosureStep *
 
     // 1) accrual 2) partial accrual 3) settlement accrual
     if (accrual_type == 3) {
-        return 0;
+        return ledgerAmount;
     }
 
     if (accrual_type == 2 && partialMarginalizationLedgerAmountId == 0) {
-        return 0;
+        return ledgerAmount;
     }
 
     if (accrual_type != 2 && marginalizationLedgerAmountId == 0) {
-        return 0;
+        return ledgerAmount;
     }
     bool is_marginalized = nli_orm->get_is_marginalized();
     bool is_partially_marginalized = nli_orm->get_is_partially_marginalized();
