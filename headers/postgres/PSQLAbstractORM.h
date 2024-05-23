@@ -54,9 +54,11 @@ class PSQLAbstractORM
         void commitAddReferences ();
         void commitUpdateReferences ();
         string compose_field_and_alias (string field_name);
+        string compose_field (string field_name);
         void setExtra (string fname, string fvalue);
         string getExtra (string fname);
         virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
+        virtual void operator = (const PSQLAbstractORM * _psqlAbstractORM);
         virtual ~PSQLAbstractORM();
 };
 

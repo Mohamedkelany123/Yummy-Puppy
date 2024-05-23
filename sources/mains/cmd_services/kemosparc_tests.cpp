@@ -14,7 +14,8 @@ int main (int argc, char ** argv)
 {
 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","postgres","8ZozYD6DhNJgW7a");
+    // bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","postgres","8ZozYD6DhNJgW7a");
+    bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_25102023","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -48,7 +49,7 @@ int main (int argc, char ** argv)
     psqlQueryJoin->filter(
         ANDOperator 
         (
-            new UnaryOperator ("loan_app_loan.id",lte,500)
+            new UnaryOperator ("crm_app_customer.id",lte,510)
         )
     );
 
@@ -57,15 +58,27 @@ int main (int argc, char ** argv)
     //         {"loan_app_loan","id"}
     // });
 
+    psqlQueryJoin->setAggregates ({
+            {"crm_app_customer","id"},
+            {"loan_app_loan","id"}
+    });
+    psqlQueryJoin->setOrderBy(" crm_app_customer.id asc , loan_app_loan.id asc, loan_app_installment.id asc ");
+
+    class JoinResults
+    {
+        map <string,PSQLAbstractORM *> * orms;
+        map <string,vector<PSQLAbstractORM *>> * aggregates;
+    };
 
     psqlQueryJoin->process(threadsCount, [](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
             crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
             loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
             loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
-
-            cout << cac_orm->get_id() << "\t" << lal_orm->get_id() <<"\t" << lai_orm->get_id() << endl;
-            
-
+            PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+            if (gorm != NULL)
+                cout << gorm->get("aggregate") << "\t";
+            cout << lal_orm->get_num_periods() << "\t" <<cac_orm->get_id() << "\t" << lal_orm->get_id() <<"\t" << lai_orm->get_id() << endl;
+        
         });
 
 
