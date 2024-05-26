@@ -204,7 +204,7 @@ class PSQLAbstractQueryIterator {
         bool execute();
         long getResultCount();
         void setOrderBy(string _orderby_string);
-        void setDistinct(string _distinct_string);
+        void setDistinctString(string _distinct_string);
         void addExtraFromField (string field, string field_name);
         virtual ~PSQLAbstractQueryIterator();
 };
@@ -213,6 +213,7 @@ class PSQLAbstractQueryIterator {
 class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
 
     protected:
+        bool aggregate_flag;
         string column_names = "";
         string join_string = "";
         vector <PSQLAbstractORM *> * orm_objects;
@@ -226,6 +227,8 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // void setNativeSQL(string _sql);
         // void filter ( Expression const & e);
         // bool execute();
+        bool setDistinct (map <string,string> distinct_map);
+        bool setAggregates (map <string,string> distinct_map);
         ~PSQLJoinQueryIterator();
 };
 
@@ -268,6 +271,10 @@ class PSQLJoinQueryPartitionIterator {
             orm_objects = _orm_objects;
             extras = _extras;
     }
+        void reverse()
+        {
+            psqlQuery->fetchPrevRow();
+        }
         map <string,PSQLAbstractORM *> * next ()
         {
             if (psqlQuery->fetchNextRow())

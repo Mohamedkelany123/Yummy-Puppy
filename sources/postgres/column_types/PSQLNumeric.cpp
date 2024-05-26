@@ -34,9 +34,9 @@ string PSQLNumeric::genGetterDef ()
 {
     return "\t\tdouble get_"+column_name+"(); \n";
 }
-string PSQLNumeric::genFieldConversion (string field)
+string PSQLNumeric::genFieldConversion (string field,int col_index)
 {
-    return "("+field+" == \"\" ? : stod("+field+"))";
+    return "("+field+" == \"\" ? (null_flag.set("+std::to_string(col_index)+").size() == 0 )  : stod("+field+"))";
 }
 
 AbstractDatabaseColumn * PSQLNumeric::clone (string _column_name)

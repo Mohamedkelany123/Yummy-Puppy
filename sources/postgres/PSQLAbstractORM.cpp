@@ -23,6 +23,23 @@ void PSQLAbstractORM::operator = (const PSQLAbstractORM & _psqlAbstractORM)
         update_references = _psqlAbstractORM.update_references;
         inserted = false;
 }
+void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
+{
+        table_name = _psqlAbstractORM->table_name;
+        orm_name =  _psqlAbstractORM->orm_name;
+        table_index = _psqlAbstractORM->table_index;
+        relatives_def = _psqlAbstractORM->relatives_def;
+        identifier_name = _psqlAbstractORM->identifier_name;
+        loaded = false ;
+        locking_thread = _psqlAbstractORM->locking_thread;
+        insert_default_values = _psqlAbstractORM->insert_default_values;
+        update_default_values = _psqlAbstractORM->update_default_values;
+        data_source_name = _psqlAbstractORM->data_source_name;
+        orm_transactional =  _psqlAbstractORM->orm_transactional;
+        add_references = _psqlAbstractORM->add_references;
+        update_references = _psqlAbstractORM->update_references;
+        inserted = false;
+}
 
 
 PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional)
@@ -85,8 +102,6 @@ void PSQLAbstractORM::lock_me()
 {
     std::ostringstream ss;
     ss << std::this_thread::get_id() ;
-    printf ("Locking ORM %p\n",this); 
-//    printf ("lock_me: %p  -   %s \n",this,ss.str().c_str()); 
     lock.lock();
     locking_thread = ss.str();
 }
@@ -95,9 +110,6 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
     if ( locking_thread == "") return ;
     std::ostringstream ss;
     ss << std::this_thread::get_id() ;
-    printf ("Unlocking ORM %p\n",this); 
-
-//    printf ("unlock_me: %p  -   %s \n",this,ss.str().c_str()); 
     if (restrict_to_owner)
         if (ss.str() != locking_thread) return;
     locking_thread = "";
@@ -136,15 +148,26 @@ void PSQLAbstractORM::commitUpdateReferences ()
 string PSQLAbstractORM::compose_field_and_alias (string field_name)
 {
 
-    string str = "`"; 
+    string str = ""; 
     str += table_name;
-    str += "`.`";
+    str += ".";
     str += field_name;
-    str += "` as \"";
+    str += " as \"";
     str += to_string(table_index);
     str += "_";
     str += field_name;
     str += "\"";
+    return str;
+
+}
+
+string PSQLAbstractORM::compose_field (string field_name)
+{
+
+    string str = ""; 
+    str += table_name;
+    str += ".";
+    str += field_name;
     return str;
 
 }

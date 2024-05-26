@@ -49,7 +49,7 @@ bool PSQLAbstractQueryIterator::execute()
         sql = "select "+ select_stmt+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + conditions +" order by "+orderby_string;
     
-    //cout << sql << endl;
+    // cout << sql << endl;
     
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
@@ -67,7 +67,7 @@ void PSQLAbstractQueryIterator::setOrderBy(string _orderby_string)
     orderby_string= _orderby_string;
 }
 
-void PSQLAbstractQueryIterator::setDistinct(string _distinct_string)
+void PSQLAbstractQueryIterator::setDistinctString(string _distinct_string)
 {
     distinct= _distinct_string;
 }
@@ -87,6 +87,7 @@ PSQLAbstractQueryIterator::~PSQLAbstractQueryIterator()
 PSQLJoinQueryIterator::PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields):
 PSQLAbstractQueryIterator(_data_source_name,"")
 {
+    aggregate_flag = false;
     orm_objects = new vector <PSQLAbstractORM *> ();
     for ( int i =0 ; i  < tables.size() ; i ++)
     {
@@ -152,22 +153,56 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
 
         PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras);
         map <string,PSQLAbstractORM *> *  orms = NULL;
+        string aggregate = "";
+        bool finished = false;
         do {
             if ( orms!= NULL) delete(orms);
-            orms =psqlJoinQueryPartitionIterator.next();
+            orms = psqlJoinQueryPartitionIterator.next();
+            if ( me->aggregate_flag)
+            {
+                if (orms == NULL)
+                {
+                    psqlJoinQueryPartitionIterator.reverse();
+                    psqlJoinQueryPartitionIterator.reverse();
+                    orms = psqlJoinQueryPartitionIterator.next();
+                    finished = true;
+                }
+                else
+                {
+                    PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+                    if ( gorm != NULL) {
+                        string agg = gorm->get("aggregate");
+                        shared_lock->lock();
+                        me->unlock_orms(orms);
+                        PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+                        if (gorm != NULL) delete (gorm);
+                        shared_lock->unlock();
+                        if ( aggregate == "") 
+                        {
+                            aggregate = agg;
+                            continue;
+                        }
+                        else if ( aggregate != agg )
+                        {
+                            psqlJoinQueryPartitionIterator.reverse();
+                            psqlJoinQueryPartitionIterator.reverse();
+                            orms = psqlJoinQueryPartitionIterator.next();
+                        }
+                        else continue;
+                    }
+                }
+            }
             if (orms != NULL) 
             {
-               f(orms,partition_number,shared_lock,extras);
-               shared_lock->lock();
-            //    cout << "before unlock orms" << endl;
-               me->unlock_orms(orms);
-               //Here we neeed to delete grom
-            //    cout << "after unlock orms" << endl;
+                f(orms,partition_number,shared_lock,extras);
+                shared_lock->lock();
+                me->unlock_orms(orms);
                 PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
                 if (gorm != NULL) delete (gorm);
                shared_lock->unlock();
+               aggregate = "";
             }
-        } while (orms != NULL);
+        } while (orms != NULL && !finished);
         // shared_lock->lock();
         // cout << "Exiting process_internal" << endl;
         // me->unlock_orms(orms);
@@ -194,7 +229,6 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         cout << "Starting multi-threading execution" << endl;
 
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
-        cout << p->size() << endl;
         vector <thread *> threads;
         mutex shared_lock;
         for ( int i  = 0 ; i < p->size() ; i ++)
@@ -219,6 +253,52 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         time_t time_snapshot2 = time (NULL);
         cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
     }
+}
+
+bool PSQLJoinQueryIterator::setDistinct (map <string,string> distinct_map)
+{
+    int count = 0;
+    for (auto dm : distinct_map)
+    {
+        if (orm_objects_map.find(dm.first+"_primitive_orm") != orm_objects_map.end())
+        {
+            cout << orm_objects_map[dm.first+"_primitive_orm"]->compose_field_and_alias(dm.second) << endl;
+            if (count == 0 )
+                distinct = "distinct ";
+            else distinct += ",";
+            distinct+= orm_objects_map[dm.first+"_primitive_orm"]->compose_field_and_alias(dm.second);
+            count ++;
+        }
+    }
+    if ( count > 0 ) return true;
+    else return false;
+}
+
+bool PSQLJoinQueryIterator::setAggregates (map <string,string> distinct_map)
+{
+    int count = 0;
+    string aggregate = "";
+    aggregate_flag=false;
+    for (auto dm : distinct_map)
+    {
+        if (orm_objects_map.find(dm.first+"_primitive_orm") != orm_objects_map.end())
+        {
+            cout << orm_objects_map[dm.first+"_primitive_orm"]->compose_field_and_alias(dm.second) << endl;
+            if (count == 0 )
+                aggregate = "concat(";
+            else aggregate += ",";
+            aggregate+= "lpad("+orm_objects_map[dm.first+"_primitive_orm"]->compose_field(dm.second)+"::varchar,10,'0')";
+            count ++;
+        }
+    }
+    if (count > 0)
+    {
+        aggregate += ")";
+        addExtraFromField(aggregate,"aggregate");
+        aggregate_flag = true;
+        return true;
+    }
+    else return false;
 }
 
 PSQLJoinQueryIterator::~PSQLJoinQueryIterator()

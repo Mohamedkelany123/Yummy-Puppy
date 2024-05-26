@@ -31,6 +31,7 @@ class PSQLAbstractORM
         virtual string getFromString () = 0;
         virtual void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) = 0;
         virtual long getIdentifier() = 0;
+        virtual void setIdentifier(long id) = 0;
         virtual bool isUpdated() = 0;
         virtual bool update(PSQLConnection * _psqlConnection=NULL) = 0;
         virtual long insert(PSQLConnection * _psqlConnection=NULL) = 0;
@@ -53,9 +54,11 @@ class PSQLAbstractORM
         void commitAddReferences ();
         void commitUpdateReferences ();
         string compose_field_and_alias (string field_name);
+        string compose_field (string field_name);
         void setExtra (string fname, string fvalue);
         string getExtra (string fname);
         virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
+        virtual void operator = (const PSQLAbstractORM * _psqlAbstractORM);
         virtual ~PSQLAbstractORM();
 };
 
@@ -85,6 +88,7 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
 		void deSerialize (json orm_json,bool _read_only = false){}
 	    void resolveReferences () {}
         long getIdentifier() {return -1;};
+        void setIdentifier(long id) {};
         bool isUpdated() {return false;};
         PSQLAbstractORM * clone () { return NULL;}
         ~PSQLGeneric_primitive_orm(){}
