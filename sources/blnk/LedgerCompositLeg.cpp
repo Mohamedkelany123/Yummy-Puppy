@@ -134,9 +134,9 @@ int LedgerCompositLeg::getBondId (int installment_id)
         while(bond != nullptr){
                 int _bond = bond->get_fundingfacility_ptr_id();
                 bond_ids.push_back(_bond);
+                delete(bond);
                 bond = _tms_app_bond_primitive_orm_iterator->next(true);
         }
-        delete(bond);
 
 
 

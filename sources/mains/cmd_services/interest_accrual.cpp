@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
         settlementAccrualTemplateManager
     };
 
-    settlementAccrualQuery->process(threads_count, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
+    // settlementAccrualQuery->process(threads_count, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
 
     delete(settlementAccrualTemplateManager);
     delete(settlementAccrualQuery);
