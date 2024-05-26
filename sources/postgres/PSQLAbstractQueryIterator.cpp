@@ -158,6 +158,8 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
         do {
             if ( orms!= NULL) delete(orms);
             orms = psqlJoinQueryPartitionIterator.next();
+
+            // This piece of code for skipping aggregate redunadant
             if ( me->aggregate_flag)
             {
                 if (orms == NULL)
