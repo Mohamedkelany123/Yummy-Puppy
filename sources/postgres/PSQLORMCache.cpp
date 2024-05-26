@@ -142,7 +142,7 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
             {
                 psqlAbstractORM->lock_me();
                 update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
-                for ( int i  = update_thread_cache.size() ; i < update_cache_items_count%threads_count +1 ; i++)
+                for ( int i  = update_thread_cache.size() ; i < (update_cache_items_count%threads_count) +1 ; i++)
                     update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
                 update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
                 update_cache_items_count++;

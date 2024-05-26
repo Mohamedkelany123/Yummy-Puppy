@@ -110,7 +110,7 @@ std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCom
                 return NULL;
         }
         
-        this->bond_id =  getBondId(entry_data->getInstallmentId());
+        // this->bond_id =  getBondId(entry_data->getInstallmentId());
         buildLeg (template_leg, entry_data,debit, true);
         buildLeg (template_leg, entry_data,credit, false);
         leg->first = debit;
