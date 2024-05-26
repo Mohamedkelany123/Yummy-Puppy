@@ -7,9 +7,9 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
     int counter =0;
     int return_flag = true;
 
-    cout << "Started commit internal for " << t_index 
-        << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
-        << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
+    // cout << "Started commit internal for " << t_index 
+    //     << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
+    //     << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
 
     if (me->insert_thread_cache.size() > t_index)
     {
@@ -94,9 +94,12 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     std::lock_guard<std::mutex> guard(lock);
     PSQLAbstractORM * orm = NULL;
     int enforced_cache_index = psqlAbstractORM->get_enforced_partition_number();
+    cout << "threads_count " << threads_count << endl;
+    cout << "enforced_cache_index " << enforced_cache_index << endl;
     if (threads_count < enforced_cache_index)
-    {
         threads_count = enforced_cache_index;
+    if (enforced_cache_index >=0 )
+    {
         for ( int i  = insert_thread_cache.size() ; i < threads_count + 1 ; i++)
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
         for ( int i  = update_thread_cache.size() ; i < threads_count + 1 ; i++)
@@ -109,7 +112,11 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
         if (enforced_cache_index == -1)
             insert_thread_cache[insert_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
-        else insert_thread_cache[enforced_cache_index][psqlAbstractORM]=psqlAbstractORM;
+        else
+        {
+            cout <<  "insert_thread_cache.size = " << insert_thread_cache.size() << endl;
+            insert_thread_cache[enforced_cache_index][psqlAbstractORM]=psqlAbstractORM;
+        }
         insert_cache_items_count++;
     }
     else
