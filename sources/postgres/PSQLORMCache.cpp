@@ -94,8 +94,6 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     std::lock_guard<std::mutex> guard(lock);
     PSQLAbstractORM * orm = NULL;
     int enforced_cache_index = psqlAbstractORM->get_enforced_partition_number();
-    cout << "threads_count " << threads_count << endl;
-    cout << "enforced_cache_index " << enforced_cache_index << endl;
     if (threads_count < enforced_cache_index)
         threads_count = enforced_cache_index;
     if (enforced_cache_index >=0 )
@@ -113,10 +111,7 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
         if (enforced_cache_index == -1)
             insert_thread_cache[insert_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
         else
-        {
-            cout <<  "insert_thread_cache.size = " << insert_thread_cache.size() << endl;
             insert_thread_cache[enforced_cache_index][psqlAbstractORM]=psqlAbstractORM;
-        }
         insert_cache_items_count++;
     }
     else
@@ -141,13 +136,13 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
                 }
 
                 lock.unlock();
-                psqlAbstractORM->lock_me();
-                orm->lock_me();
+                psqlAbstractORM->lock_me(true);
+                orm->lock_me(true);
                 lock.lock();
             }
             else
             {
-                psqlAbstractORM->lock_me();
+                psqlAbstractORM->lock_me(true);
                 update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
                 for ( int i  = update_thread_cache.size() ; i < (update_cache_items_count%threads_count) +1 ; i++)
                     update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
@@ -157,7 +152,7 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
         }
         else
         {
-            psqlAbstractORM->lock_me();
+            psqlAbstractORM->lock_me(true);
             // std::ostringstream ss;
             // ss << std::this_thread::get_id() ;
             // printf("assigning new %p for old %p   -   %s\n",psqlAbstractORM,orm,ss.str().c_str());

@@ -47,7 +47,7 @@ class PSQLAbstractORM
 		virtual string serialize (PSQLConnection * _psqlConnection=NULL)=0;
 		virtual void deSerialize (json orm_json,bool _read_only = false)=0;
 	    virtual void resolveReferences ()=0;
-        virtual void lock_me();
+        virtual void lock_me(bool skip_owner = false);
         virtual void unlock_me(bool restrict_to_owner = false);        
         bool isOrmTransactional();
         void setAddRefernce (string field_name,PSQLAbstractORM * reference);

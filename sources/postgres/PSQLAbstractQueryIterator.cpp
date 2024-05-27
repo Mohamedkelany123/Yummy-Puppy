@@ -1,6 +1,6 @@
 #include <PSQLAbstractQueryIterator.h>
 #include <PSQLController.h>
-
+#include <loan_app_loan_primitive_orm.h>
 PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,string _table_name)
 {
     data_source_name = _data_source_name;
@@ -146,6 +146,97 @@ void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
             orm_pair.second->unlock_me();
 
 }
+void PSQLJoinQueryIterator::adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list)
+{
+    for ( int i = orms_list->size()-1 ; i >= 0 ;i--)
+    {
+        map <string,PSQLAbstractORM *> * m = (*orms_list)[i];
+        for ( auto ag : aggregate_map)
+            (*m)[ag.first] = (*((*orms_list)[orms_list->size()-1])) [ag.first];
+    }
+
+}
+void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(vector<map <string,PSQLAbstractORM *> * > * orms_list,int partition_number,mutex * shared_lock,void * extras)> f)
+{
+        auto begin = std::chrono::high_resolution_clock::now();
+
+        PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras);
+        map <string,PSQLAbstractORM *> *  orms = NULL;
+        vector<map <string,PSQLAbstractORM *> *> *  orms_list = NULL;
+        orms_list = new vector<map <string,PSQLAbstractORM *> *> ();
+        string aggregate = "";
+        bool finished = false;
+        do {
+            do {
+                // if ( orms!= NULL) delete(orms);
+                orms = psqlJoinQueryPartitionIterator.next();
+
+                // This piece of code for skipping aggregate redunadant
+                if (orms == NULL)
+                {
+                    psqlJoinQueryPartitionIterator.reverse();
+                    // psqlJoinQueryPartitionIterator.reverse();
+                    // orms = psqlJoinQueryPartitionIterator.next();
+                    // orms_list->push_back(orms);
+                    finished = true;
+                    aggregate = "";
+                }
+                else
+                {
+                    PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+                    string agg = gorm->get("aggregate");
+                    // cout << "agg: " << agg << "   " << aggregate << " " << orms_list->size()  << endl;
+                    if ( aggregate == "") 
+                    {
+                        aggregate = agg;
+                        orms_list->clear();
+                        orms_list->push_back(orms);
+                    }
+                    else if ( aggregate != agg )
+                    {
+                        // cout << "different agg here" << endl;
+                        shared_lock->lock();
+                        me->unlock_orms(orms);
+                        PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+                        if (gorm != NULL) delete (gorm);
+                        shared_lock->unlock();
+                        psqlJoinQueryPartitionIterator.reverse();
+                        aggregate = "";
+                    }
+                    else orms_list->push_back(orms); 
+                }
+            } while ( aggregate != "");
+
+            if (orms_list->size() != 0) 
+            {
+                me->adjust_orms_list(orms_list);
+                f(orms_list,partition_number,shared_lock,extras);
+                shared_lock->lock();
+                for (auto o : *orms_list)
+                {
+                    me->unlock_orms(o);
+                    PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,o);
+                    if (gorm != NULL) delete (gorm);
+                    delete (o);
+                }
+                shared_lock->unlock();
+            }
+        } while (orms_list->size() != 0 && !finished);
+        delete (orms_list);
+        // shared_lock->lock();
+        // cout << "Exiting process_internal" << endl;
+        // me->unlock_orms(orms);
+        // cout << "Start freeing relative resources" << endl;
+        psqlController.unlock_current_thread_orms(data_source_name);
+        // cout << "After psqlController.unlock_current_thread_orms()" << endl;
+
+        // Stop measuring time and calculate the elapsed time
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+        printf("THREADTIME  Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
+}
+
 
 void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f)
 {
@@ -159,41 +250,6 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
             if ( orms!= NULL) delete(orms);
             orms = psqlJoinQueryPartitionIterator.next();
 
-            // This piece of code for skipping aggregate redunadant
-            if ( me->aggregate_flag)
-            {
-                if (orms == NULL)
-                {
-                    psqlJoinQueryPartitionIterator.reverse();
-                    psqlJoinQueryPartitionIterator.reverse();
-                    orms = psqlJoinQueryPartitionIterator.next();
-                    finished = true;
-                }
-                else
-                {
-                    PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
-                    if ( gorm != NULL) {
-                        string agg = gorm->get("aggregate");
-                        shared_lock->lock();
-                        me->unlock_orms(orms);
-                        PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
-                        if (gorm != NULL) delete (gorm);
-                        shared_lock->unlock();
-                        if ( aggregate == "") 
-                        {
-                            aggregate = agg;
-                            continue;
-                        }
-                        else if ( aggregate != agg )
-                        {
-                            psqlJoinQueryPartitionIterator.reverse();
-                            psqlJoinQueryPartitionIterator.reverse();
-                            orms = psqlJoinQueryPartitionIterator.next();
-                        }
-                        else continue;
-                    }
-                }
-            }
             if (orms != NULL) 
             {
                 f(orms,partition_number,shared_lock,extras);
@@ -202,15 +258,9 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
                 PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
                 if (gorm != NULL) delete (gorm);
                shared_lock->unlock();
-               aggregate = "";
             }
         } while (orms != NULL && !finished);
-        // shared_lock->lock();
-        // cout << "Exiting process_internal" << endl;
-        // me->unlock_orms(orms);
-        // cout << "Start freeing relative resources" << endl;
         psqlController.unlock_current_thread_orms(data_source_name);
-        // cout << "After psqlController.unlock_current_thread_orms()" << endl;
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
@@ -235,30 +285,72 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         mutex shared_lock;
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
-            cout << "----------------------In for LOOP-----------------------:"<< data_source_name << (*p)[i]<< &shared_lock<< endl;
-
-            thread * t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+            // cout << "----------------------In for LOOP-----------------------:"<< data_source_name << (*p)[i]<< &shared_lock<< endl;
+            thread * t = NULL;
+            /* if (aggregate_flag)
+                t = new thread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+            else  */ t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
             threads.push_back(t);
         }
         cout << "After Threads Creation" << endl;
 
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
-                // cout << "Start freeing thread # " << i << endl;
                 thread * t = threads[i];
                 t->join();
-                // cout << "Out of Join thread # " << i << endl;
                 delete (t);
-                // cout << "After Delete thread # " << i << endl;
                 delete((*p)[i]);
-                // cout << "After Delete partition of thread # " << i << endl;
-
         }
         time_t time_snapshot2 = time (NULL);
         cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
     }
 }
 
+void PSQLJoinQueryIterator::process1(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
+{
+    time_t start = time (NULL);
+    cout << "Executing PSQL Query on the remote server" << endl;
+    if (this->execute() && this->psqlQuery->getRowCount() > 0)
+    {
+        time_t time_snapshot1 = time (NULL);
+
+        cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
+        cout << "Starting multi-threading execution" << endl;
+
+        vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
+        // for ( int i  = 0 ; i < p->size() ; i ++)
+        //     (*p)[i]->dump();
+        int start_index = 0;
+        // for ( int i  = 0 ; i < p->size() ; i ++)
+        //     start_index = (*p)[i]->adjust_for_aggregation(start_index);
+        // cout << endl << endl;
+        // for ( int i  = 0 ; i < p->size() ; i ++)
+        //     (*p)[i]->dump();
+        // exit(1);
+        vector <thread *> threads;
+        mutex shared_lock;
+        for ( int i  = 0 ; i < p->size() ; i ++)
+        {
+            // cout << "----------------------In for LOOP-----------------------:"<< data_source_name << (*p)[i]<< &shared_lock<< endl;
+            thread * t = NULL;
+            if (aggregate_flag)
+                t = new thread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+            //else  t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+            threads.push_back(t);
+        }
+        cout << "After Threads Creation" << endl;
+
+        for ( int i  = 0 ; i < p->size() ; i ++)
+        {
+                thread * t = threads[i];
+                t->join();
+                delete (t);
+                delete((*p)[i]);
+        }
+        time_t time_snapshot2 = time (NULL);
+        cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
+    }
+}
 bool PSQLJoinQueryIterator::setDistinct (map <string,string> distinct_map)
 {
     int count = 0;
@@ -278,20 +370,21 @@ bool PSQLJoinQueryIterator::setDistinct (map <string,string> distinct_map)
     else return false;
 }
 
-bool PSQLJoinQueryIterator::setAggregates (map <string,string> distinct_map)
+bool PSQLJoinQueryIterator::setAggregates (map <string,string> _aggregate_map)
 {
+    aggregate_map = _aggregate_map;
     int count = 0;
     string aggregate = "";
     aggregate_flag=false;
-    for (auto dm : distinct_map)
+    for (auto agg : aggregate_map)
     {
-        if (orm_objects_map.find(dm.first+"_primitive_orm") != orm_objects_map.end())
+        if (orm_objects_map.find(agg.first+"_primitive_orm") != orm_objects_map.end())
         {
-            cout << orm_objects_map[dm.first+"_primitive_orm"]->compose_field_and_alias(dm.second) << endl;
+            cout << orm_objects_map[agg.first+"_primitive_orm"]->compose_field_and_alias(agg.second) << endl;
             if (count == 0 )
                 aggregate = "concat(";
             else aggregate += ",";
-            aggregate+= "lpad("+orm_objects_map[dm.first+"_primitive_orm"]->compose_field(dm.second)+"::varchar,10,'0')";
+            aggregate+= "lpad("+orm_objects_map[agg.first+"_primitive_orm"]->compose_field(agg.second)+"::varchar,10,'0')";
             count ++;
         }
     }

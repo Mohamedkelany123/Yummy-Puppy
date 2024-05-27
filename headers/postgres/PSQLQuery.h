@@ -45,6 +45,8 @@ class PSQLQueryPartition : public PSQLQuery
     public:
         PSQLQueryPartition (PGresult * _pgresult,int _start_index,int result_count);
         virtual vector <PSQLQueryPartition * > * partitionResults (int partition_count);
+        int adjust_for_aggregation (int _start_index);
+        void dump();
         ~PSQLQueryPartition();
 };
 
