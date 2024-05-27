@@ -1,6 +1,5 @@
 #include <PSQLAbstractQueryIterator.h>
 #include <PSQLController.h>
-#include <crm_app_customer_primitive_orm.h>
 
 PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,string _table_name)
 {
@@ -279,7 +278,7 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
     }
 }
 
-void PSQLJoinQueryIterator::process1(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
+void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
 {
     time_t start = time (NULL);
     cout << "Executing PSQL Query on the remote server" << endl;

@@ -158,10 +158,11 @@ int PSQLQuery::getColumnSize(int index)
 string PSQLQuery::getNextResultField(int index)
 {
 
-    if (result_index-start_index < result_count - 1) return "";
-
+    if (!(result_index-start_index < result_count - 1)) return "";
+    result_index ++;
     if (index >=0 && result_index >=0 && index < column_count )
     {
+        result_index --;
         return PQgetvalue(pgresult, result_index+1, index);
     }
     else
