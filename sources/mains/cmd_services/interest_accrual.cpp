@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     partialAccrualQuery->filter(
         ANDOperator (
             new UnaryOperator("new_lms_installmentextension.partial_accrual_date", lte, closure_date_string),
-            new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::PARTIAL_INTEREST_ACCRUAL-1),
+            // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::PARTIAL_INTEREST_ACCRUAL-1),
             new UnaryOperator("new_lms_installmentextension.partial_accrual_ledger_amount_id", isnull, "", true),
             new UnaryOperator("new_lms_installmentextension.expected_partial_accrual_amount", ne, 0),
             new OROperator(
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
         partialAccrualTemplateManager
     };
 
-    // partialAccrualQuery->process(threads_count, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
+    partialAccrualQuery->process(threads_count, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
 
     delete(partialAccrualTemplateManager);
     delete(partialAccrualQuery);
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 
     accrualQuery->filter(
         ANDOperator (
-            new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
+            // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
             new OROperator (
                 new UnaryOperator("new_lms_installmentextension.accrual_date", lte, closure_date_string),
                 new ANDOperator(
