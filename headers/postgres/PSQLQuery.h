@@ -24,6 +24,7 @@ class PSQLQuery : public AbstractDBQuery
         virtual int getColumnCount();
         virtual int getRowCount();
         virtual string getValue(string column_name);
+        virtual string getNextValue(string column_name);
         virtual string getJSONValue(string column_name);
         virtual string getValue(int col_index, int row_index);
         virtual PGresult *getPGresult() { return pgresult; }
@@ -32,6 +33,7 @@ class PSQLQuery : public AbstractDBQuery
         virtual string getColumnType(int index);
         virtual int getColumnSize(int index);
         virtual string getResultField(int index);
+        virtual string getNextResultField(int index);
         virtual map<string, vector<string>> getResultAsString();
         virtual vector <PSQLQueryPartition * > * partitionResults (int partition_count);
         virtual ~PSQLQuery();
@@ -45,6 +47,8 @@ class PSQLQueryPartition : public PSQLQuery
     public:
         PSQLQueryPartition (PGresult * _pgresult,int _start_index,int result_count);
         virtual vector <PSQLQueryPartition * > * partitionResults (int partition_count);
+        int adjust_for_aggregation (int _start_index);
+        void dump();
         ~PSQLQueryPartition();
 };
 
