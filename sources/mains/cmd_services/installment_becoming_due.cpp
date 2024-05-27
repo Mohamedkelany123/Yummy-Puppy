@@ -42,7 +42,7 @@ int main (int argc, char ** argv)
 {
 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","postgres","8ZozYD6DhNJgW7a");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -57,7 +57,19 @@ int main (int argc, char ** argv)
     {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
 
-    
+    /*
+    42797
+    54805
+    95039
+    100081
+    100617
+    107858
+    109008
+    109487
+    133639
+    139067
+    137184
+    */
     installments_becoming_due_iterator->filter(
         ANDOperator 
         (
@@ -71,23 +83,24 @@ int main (int argc, char ** argv)
                 )
             ),
             new UnaryOperator ("loan_app_loan.status_id",nin,"12,13"),
+            
+            new UnaryOperator ("loan_app_loan.id",eq,"42797"),
+
             new UnaryOperator ("new_lms_installmentextension.status_id",nin,"8,15,16,12,13")
         )
     );
     
-    // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
+    installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=8 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_paid_off_day");
+    installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=15 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_charge_off_day_status");
+    
+    BlnkTemplateManager * undueToDueTemplateManager = new BlnkTemplateManager(10);
 
-    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
-    map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
+    UndueToDueStruct undueToDueStruct;
+    undueToDueStruct.blnkTemplateManager = undueToDueTemplateManager;
 
-    // DisburseLoanStruct disburseLoanStruct;
-    // disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
-    // disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
+    installments_becoming_due_iterator->process(threadsCount, InstallmentBecomingDueFunc, (void *)&undueToDueStruct);
 
-    installments_becoming_due_iterator->process(threadsCount, InstallmentBecomingDueFunc,NULL);
-
-
-    delete(blnkTemplateManager);
+    delete(undueToDueTemplateManager);
 
     psqlController.ORMCommit(true,true,true, "main");  
 

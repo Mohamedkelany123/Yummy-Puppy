@@ -18,48 +18,47 @@ class UndueToDue : public LedgerClosureStep
         new_lms_installmentextension_primitive_orm * nli_orm;
 
         int template_id;
-        float prov_percentage;
+        // float prov_percentage;
+        BDate closing_day;
+        BDate lsh_settle_paid_off_day;
+        BDate lsh_settle_charge_off_day;
+        int partial_settle_status;
+        int settle_charge_off_status;
 
     public:
         map<string, funcPtr> funcMap;
-        UndueToDue(map <string,PSQLAbstractORM *> * _orms, float _percentage);
+        UndueToDue(map <string,PSQLAbstractORM *> * _orms, BDate _closing_day);
         
         //Setters
         void set_loan_app_loan(loan_app_loan_bl_orm* _lal_orm);
         void set_loan_app_installment(loan_app_installment_primitive_orm* _lai_orm);
+        void set_loan_app_installment(new_lms_installmentextension_primitive_orm* _nli_orm);
         
         void set_template_id(int _template_id);
         void set_provision_percentage(float _provision_percentage);
         
-        
-        
-
         //Getters
         loan_app_loan_bl_orm* get_loan_app_loan();
-        loan_app_loanproduct_primitive_orm* get_loan_app_loanproduct();
-        crm_app_customer_primitive_orm *get_crm_app_customer();
-
-        float get_provision_percentage();
-        float get_short_term_principal();
+        loan_app_installment_primitive_orm* get_loan_app_installment();
+        new_lms_installmentextension_primitive_orm *get_new_lms_installment_extention();
         int get_template_id();
-        float get_long_term_principal();
-        bool get_is_rescheduled();
+        float get_provision_percentage();
+
+        BDate get_closing_day();
+        BDate get_lsh_settle_paid_off_day();
+        BDate get_lsh_settle_charge_off_day();
+        
+        int get_partial_settle_status();
+        int get_settle_charge_off_status();
 
 
-
-        float _calculate_loan_upfront_fee();
         LedgerAmount * _init_ledger_amount();
 
-        void stampORMs(ledger_entry_primitive_orm* entry, ledger_amount_primitive_orm * la_orm);
+        // void stampORMs(ledger_entry_primitive_orm* entry, ledger_amount_primitive_orm * la_orm);
 
         // //static methods
-        static LedgerAmount * _calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan);
-        static LedgerAmount * _calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan);
-        static LedgerAmount * _calc_provision_percentage(LedgerClosureStep *disburseLoan);
-        static LedgerAmount * _calc_cashier_fee(LedgerClosureStep *disburseLoan);
-        static LedgerAmount * _calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan);
-        static LedgerAmount * _calc_loan_upfront_fee(LedgerClosureStep *disburseLoan);
-        static LedgerAmount * _calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan);
+        static LedgerAmount * _get_installment_insterest(LedgerClosureStep *UndueToDue);
+        static LedgerAmount * _get_installment_principal(LedgerClosureStep *UndueToDue);
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
         

@@ -3,7 +3,6 @@
 LedgerClosureService::LedgerClosureService(LedgerClosureStep * _ledgerClosureStep)
 {
     la = new map <string,LedgerAmount *>();
-
     ledgerClosureStep = _ledgerClosureStep;
 }
 
@@ -17,6 +16,7 @@ map <string,LedgerAmount*> * LedgerClosureService::inference ()
 
     for (auto f : funcMap)
     {
+        cout << "FUNCMAP NAME:" << f.first << endl;
         LedgerAmount * temp = (f.second)(ledgerClosureStep);
         if(temp->getAmount() != 0)
             (*la)[f.first] = temp;

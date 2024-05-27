@@ -1,18 +1,17 @@
-#include <UndueToDue.h>
+#include <UndueToDueFunc.h>
 
 void InstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
     
-    loan_app_installment_primitive_orm * lai_orm = ORM(loan_app_installment,orms);
-    cout << lai_orm->get_id() << endl;
+    BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((UndueToDueStruct *) extras)->blnkTemplateManager);
+    BDate closing_day = ((UndueToDueStruct *) extras)->closing_day;
+    UndueToDue undueToDue = UndueToDue(orms, closing_day);
+
+    LedgerClosureService* ledgerClosureService = new LedgerClosureService(&undueToDue);    
+    undueToDue.setupLedgerClosureService(ledgerClosureService);
+    map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
 
 
 
-    // BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((DisburseLoanStruct *) extras)->blnkTemplateManager);
-    // DisburseLoan disburseLoan(orms, ((DisburseLoanStruct *) extras)->current_provision_percentage);
-    // LedgerClosureService* ledgerClosureService = new LedgerClosureService(&disburseLoan);
-
-    // disburseLoan.setupLedgerClosureService(ledgerClosureService);
-    // map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
     // localTemplateManager->setEntryData(ledgerAmounts);
 
     // ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate("2024-05-15"));
