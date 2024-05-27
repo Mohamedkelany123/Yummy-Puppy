@@ -154,6 +154,20 @@ int PSQLQuery::getColumnSize(int index)
 
 }
 
+
+string PSQLQuery::getNextResultField(int index)
+{
+
+    if (result_index-start_index < result_count - 1) return "";
+
+    if (index >=0 && result_index >=0 && index < column_count )
+    {
+        return PQgetvalue(pgresult, result_index+1, index);
+    }
+    else
+        return "";
+}
+
 string PSQLQuery::getResultField(int index)
 {
     if (index >=0 && result_index >=0 && index < column_count )
@@ -167,6 +181,15 @@ string PSQLQuery::getValue(string column_name)
 {
     return getResultField (getColumnIndex(column_name));
 }
+
+
+string PSQLQuery::getNextValue(string column_name)
+{
+    return getNextResultField (getColumnIndex(column_name));
+}
+
+
+
 string PSQLQuery::getJSONValue(string column_name)
 {
     string s = getResultField (getColumnIndex(column_name));
@@ -247,17 +270,17 @@ int PSQLQueryPartition::adjust_for_aggregation (int _start_index)
     if (result_index < total_result_count)
     {
         string aggregate = this->getValue("aggregate");
-        cout << "aggregate: " << aggregate<< endl;
-        cout << "r_index before: "<< result_index<< endl;
+        // cout << "aggregate: " << aggregate<< endl;
+        // cout << "r_index before: "<< result_index<< endl;
         do { 
             result_index ++ ;
         } while (result_index < total_result_count && aggregate == this->getValue("aggregate"));
-        cout << "r_index after: "<< result_index<< endl;
+        // cout << "r_index after: "<< result_index<< endl;
         end_index = result_index-1; 
     }
     result_count = end_index - start_index+1;
     result_index = start_index-1;
-    cout << "end_index: "<< end_index << endl;
+    // cout << "end_index: "<< end_index << endl;
     if ( end_index + 1 < total_result_count)
         return end_index+1;
     else return -1;

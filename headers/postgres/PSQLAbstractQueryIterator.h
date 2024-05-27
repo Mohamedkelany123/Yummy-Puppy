@@ -279,6 +279,11 @@ class PSQLJoinQueryPartitionIterator {
         {
             psqlQuery->fetchPrevRow();
         }
+
+        string exploreNextAggregate ()
+        {
+            return psqlQuery->getNextValue("aggregate");
+        }
         map <string,PSQLAbstractORM *> * next ()
         {
             if (psqlQuery->fetchNextRow())

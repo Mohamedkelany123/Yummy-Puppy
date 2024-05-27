@@ -1,6 +1,7 @@
 #include <PSQLAbstractQueryIterator.h>
 #include <PSQLController.h>
-#include <loan_app_loan_primitive_orm.h>
+#include <crm_app_customer_primitive_orm.h>
+
 PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,string _table_name)
 {
     data_source_name = _data_source_name;
@@ -143,7 +144,7 @@ void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
 {
     for (auto orm_pair: (*orms))
         if (orm_pair.second != NULL)
-            orm_pair.second->unlock_me();
+            orm_pair.second->unlock_me(true);
 
 }
 void PSQLJoinQueryIterator::adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list)
@@ -167,61 +168,33 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
         string aggregate = "";
         bool finished = false;
         do {
-            do {
-                // if ( orms!= NULL) delete(orms);
-                orms = psqlJoinQueryPartitionIterator.next();
+            // do {
 
-                // This piece of code for skipping aggregate redunadant
-                if (orms == NULL)
+                if (aggregate == "")
+                   aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
+                // if ( orms!= NULL) delete(orms);
+                if (aggregate == psqlJoinQueryPartitionIterator.exploreNextAggregate())
                 {
-                    psqlJoinQueryPartitionIterator.reverse();
-                    // psqlJoinQueryPartitionIterator.reverse();
-                    // orms = psqlJoinQueryPartitionIterator.next();
-                    // orms_list->push_back(orms);
-                    finished = true;
-                    aggregate = "";
+                    orms = psqlJoinQueryPartitionIterator.next();
+                    orms_list->push_back(orms);
                 }
                 else
                 {
-                    PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
-                    string agg = gorm->get("aggregate");
-                    // cout << "agg: " << agg << "   " << aggregate << " " << orms_list->size()  << endl;
-                    if ( aggregate == "") 
+                    me->adjust_orms_list(orms_list);
+                    f(orms_list,partition_number,shared_lock,extras);
+                    shared_lock->lock();
+                    for (auto o : *orms_list)
                     {
-                        aggregate = agg;
-                        orms_list->clear();
-                        orms_list->push_back(orms);
-                    }
-                    else if ( aggregate != agg )
-                    {
-                        // cout << "different agg here" << endl;
-                        shared_lock->lock();
-                        me->unlock_orms(orms);
-                        PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+                        me->unlock_orms(o);
+                        PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,o);
                         if (gorm != NULL) delete (gorm);
-                        shared_lock->unlock();
-                        psqlJoinQueryPartitionIterator.reverse();
-                        aggregate = "";
+                        delete (o);
                     }
-                    else orms_list->push_back(orms); 
+                    shared_lock->unlock();
+                    aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
+                    orms_list->clear();
                 }
-            } while ( aggregate != "");
-
-            if (orms_list->size() != 0) 
-            {
-                me->adjust_orms_list(orms_list);
-                f(orms_list,partition_number,shared_lock,extras);
-                shared_lock->lock();
-                for (auto o : *orms_list)
-                {
-                    me->unlock_orms(o);
-                    PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,o);
-                    if (gorm != NULL) delete (gorm);
-                    delete (o);
-                }
-                shared_lock->unlock();
-            }
-        } while (orms_list->size() != 0 && !finished);
+        } while (aggregate != "");
         delete (orms_list);
         // shared_lock->lock();
         // cout << "Exiting process_internal" << endl;
@@ -321,8 +294,9 @@ void PSQLJoinQueryIterator::process1(int partitions_count,std::function<void(vec
         // for ( int i  = 0 ; i < p->size() ; i ++)
         //     (*p)[i]->dump();
         int start_index = 0;
-        // for ( int i  = 0 ; i < p->size() ; i ++)
-        //     start_index = (*p)[i]->adjust_for_aggregation(start_index);
+        if ( p->size() > 1)
+            for ( int i  = 0 ; i < p->size() ; i ++)
+                start_index = (*p)[i]->adjust_for_aggregation(start_index);
         // cout << endl << endl;
         // for ( int i  = 0 ; i < p->size() ; i ++)
         //     (*p)[i]->dump();
