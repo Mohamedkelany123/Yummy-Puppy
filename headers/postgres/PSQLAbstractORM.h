@@ -52,8 +52,8 @@ class PSQLAbstractORM
         bool isOrmTransactional();
         void setAddRefernce (string field_name,PSQLAbstractORM * reference);
         void setUpdateRefernce (string field_name,PSQLAbstractORM * reference);
-        void commitAddReferences ();
-        void commitUpdateReferences ();
+        void commitAddReferences (PSQLConnection * _psqlConnection=NULL);
+        void commitUpdateReferences (PSQLConnection * _psqlConnection=NULL);
         string compose_field_and_alias (string field_name);
         string compose_field (string field_name);
         void setExtra (string fname, string fvalue);
