@@ -58,7 +58,7 @@ void AccrualInterest::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts)
         nli_orm->set_partial_accrual_amount(abs(first_leg_amount->get_amount()));
     }
     else if (accrual_type == 3) {
-        accrual_key = "settlement_accrual_ledger_amount_id";
+        accrual_key = "settlement_accrual_interest_ledger_amount_id";
     }
     
     nli_orm->setUpdateRefernce(accrual_key, first_leg_amount);
