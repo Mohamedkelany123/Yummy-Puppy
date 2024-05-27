@@ -132,10 +132,11 @@ void PSQLPrimitiveORMGenerator::write_headers_and_sources(string class_name)
 {
     string lower_case= "";
     for(auto& c : class_name) lower_case += tolower(c);
-    class_name= class_name;
+    class_name= lower_case;
 
     string h_file_name = SOURCES_H_FILENAME +class_name+".h";
     string cpp_file_name = SOURCES_CPP_FILENAME +class_name+".cpp";
+    
     FILE * f = fopen (h_file_name.c_str(),"wt");
     if ( f != NULL )
     {

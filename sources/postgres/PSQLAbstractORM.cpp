@@ -101,10 +101,13 @@ void PSQLAbstractORM::addDefault(string name,string value, bool is_insert, bool 
     else update_default_values[name]= p;
 }
 
-void PSQLAbstractORM::lock_me()
+void PSQLAbstractORM::lock_me(bool skip_owner)
 {
     std::ostringstream ss;
     ss << std::this_thread::get_id() ;
+    // cout << "locking :" << ss.str();
+    // printf (" object %p\n",this);
+    if (skip_owner && ss.str() == locking_thread) return;
     lock.lock();
     locking_thread = ss.str();
 }
@@ -115,6 +118,8 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
     ss << std::this_thread::get_id() ;
     if (restrict_to_owner)
         if (ss.str() != locking_thread) return;
+    // cout << "unlocking :" << ss.str();
+    // printf (" object %p\n",this);
     locking_thread = "";
     lock.try_lock();
     lock.unlock();
