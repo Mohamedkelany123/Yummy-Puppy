@@ -158,6 +158,8 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
         do {
             if ( orms!= NULL) delete(orms);
             orms = psqlJoinQueryPartitionIterator.next();
+
+            // This piece of code for skipping aggregate redunadant
             if ( me->aggregate_flag)
             {
                 if (orms == NULL)
@@ -233,6 +235,8 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         mutex shared_lock;
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
+            cout << "----------------------In for LOOP-----------------------:"<< data_source_name << (*p)[i]<< &shared_lock<< endl;
+
             thread * t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
             threads.push_back(t);
         }

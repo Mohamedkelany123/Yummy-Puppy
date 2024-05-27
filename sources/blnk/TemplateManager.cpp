@@ -1,21 +1,29 @@
 #include <TemplateManager.h>
 
-BlnkTemplateManager::BlnkTemplateManager(int _template_id)
+BlnkTemplateManager::BlnkTemplateManager(int _template_id,int _cache_partition_number)
 {
+    // cout << "lnkTemplateManager::BlnkTemplateManager(int _template_id,int _cache_partition_number)" << endl;
     template_id = _template_id;
     parent_flag = true;
     loadTemplate();
     template_legs = new map<string, TemplateLeg>();
     constructTemplateLegs();
     entry = NULL;
+    cache_partition_number = _cache_partition_number;
+    // cout  << "End of default constructor BlnkTemplateManager" << endl;
 }
 
-BlnkTemplateManager::BlnkTemplateManager(BlnkTemplateManager *_blnkTemplateManager)
+BlnkTemplateManager::BlnkTemplateManager(BlnkTemplateManager *_blnkTemplateManager,int _cache_partition_number)
 {
+    // cout << "BlnkTemplateManager::BlnkTemplateManager(BlnkTemplateManager *_blnkTemplateManager,int _cache_partition_number)" <<  endl;
     this->template_id = _blnkTemplateManager->template_id;
     parent_flag = false;
     this->template_legs = _blnkTemplateManager->template_legs;
     entry = NULL;
+    if (_cache_partition_number == -1)
+        this->cache_partition_number = _blnkTemplateManager->cache_partition_number;
+    else this->cache_partition_number = _cache_partition_number;
+    // cout << "this->cache_partition_number: " << this->cache_partition_number << endl;
 }
 
 map<string, TemplateLeg> *BlnkTemplateManager::getTemplateLegs() { return template_legs; }
@@ -90,7 +98,7 @@ bool BlnkTemplateManager::buildLegs()
 
 
         LedgerCompositLeg * lc = new LedgerCompositLeg();
-        std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc->build(&(*template_legs)[leg_name],  entry_values,entry);
+        std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc->build(&(*template_legs)[leg_name], entry_values, entry,cache_partition_number);
         ledger_amounts[leg_name]=lc;
         if(leg_pair == NULL){
             return false;
@@ -152,7 +160,8 @@ void BlnkTemplateManager::setEntryData(map<string, LedgerAmount *> *_entry_data)
 }
 void BlnkTemplateManager::createEntry(BDate entry_date)
 {
-    entry  = new ledger_entry_primitive_orm("main", true);
+    cout << "createEntry :: cache_partition_number "<< cache_partition_number << endl;
+    entry  = new ledger_entry_primitive_orm("main", true,true,cache_partition_number);
     entry->set_entry_date(entry_date.getDateString());
     entry->set_template_id(template_id);
     entry->set_month_code(1);

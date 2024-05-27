@@ -96,7 +96,8 @@
         "any": "cpp",
         "forward_list": "cpp",
         "execution": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "text_encoding": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++"
 }

@@ -42,6 +42,7 @@ class BDate
         void inc_day ();
         void inc_days (int days=1);
         void dec_days (int days=1);
+        int get_day();
         string getDateString();
         ~BDate ();
 };

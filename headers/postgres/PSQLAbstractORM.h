@@ -26,6 +26,7 @@ class PSQLAbstractORM
         bool inserted;
         map <string,string> extras;
         bool cached;
+        int enforced_partition_number;
 
     public:
         virtual string getFromString () = 0;
@@ -40,7 +41,7 @@ class PSQLAbstractORM
         virtual string getORMName();
         virtual bool isLoaded();
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
-        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional);
+        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional,int _enforced_partition_number=-1);
         PSQLAbstractORM (const PSQLAbstractORM & _psqlAbstractORM);
         virtual PSQLAbstractORM * clone ()=0;
 		virtual string serialize (PSQLConnection * _psqlConnection=NULL)=0;
@@ -59,6 +60,7 @@ class PSQLAbstractORM
         string getExtra (string fname);
         virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
         virtual void operator = (const PSQLAbstractORM * _psqlAbstractORM);
+        int get_enforced_partition_number();
         virtual ~PSQLAbstractORM();
 };
 

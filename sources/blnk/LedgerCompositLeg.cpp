@@ -94,10 +94,10 @@ void LedgerCompositLeg::validateEntry(TemplateLeg * template_leg,  LedgerAmount 
         }
 
 }
-std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_entry_primitive_orm * entry)
+std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCompositLeg::build (TemplateLeg * template_leg,  LedgerAmount * entry_data, ledger_entry_primitive_orm * entry,int _cache_partition_number)
 {
-        ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm("main", true);
-        ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm("main", true);
+        ledger_amount_primitive_orm * debit = new ledger_amount_primitive_orm("main", true,true,_cache_partition_number);
+        ledger_amount_primitive_orm  * credit  = new ledger_amount_primitive_orm("main", true, true , _cache_partition_number);
 
         debit->setAddRefernce("entry_id",entry);
         credit->setAddRefernce("entry_id",entry);
@@ -110,7 +110,7 @@ std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* LedgerCom
                 return NULL;
         }
         
-        this->bond_id =  getBondId(entry_data->getInstallmentId());
+        // this->bond_id =  getBondId(entry_data->getInstallmentId());
         buildLeg (template_leg, entry_data,debit, true);
         buildLeg (template_leg, entry_data,credit, false);
         leg->first = debit;
@@ -134,9 +134,9 @@ int LedgerCompositLeg::getBondId (int installment_id)
         while(bond != nullptr){
                 int _bond = bond->get_fundingfacility_ptr_id();
                 bond_ids.push_back(_bond);
+                delete(bond);
                 bond = _tms_app_bond_primitive_orm_iterator->next(true);
         }
-        delete(bond);
 
 
 
@@ -166,7 +166,7 @@ int LedgerCompositLeg::getBondId (int installment_id)
 
 std::pair <ledger_amount_primitive_orm *,ledger_amount_primitive_orm *> * LedgerCompositLeg::getLedgerCompositeLeg ()
 {
-        return leg;
+return leg;
 }
 
 LedgerCompositLeg::~LedgerCompositLeg()

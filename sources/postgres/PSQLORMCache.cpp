@@ -93,13 +93,30 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
 {
     std::lock_guard<std::mutex> guard(lock);
     PSQLAbstractORM * orm = NULL;
-
+    int enforced_cache_index = psqlAbstractORM->get_enforced_partition_number();
+    cout << "threads_count " << threads_count << endl;
+    cout << "enforced_cache_index " << enforced_cache_index << endl;
+    if (threads_count < enforced_cache_index)
+        threads_count = enforced_cache_index;
+    if (enforced_cache_index >=0 )
+    {
+        for ( int i  = insert_thread_cache.size() ; i < threads_count + 1 ; i++)
+            insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
+        for ( int i  = update_thread_cache.size() ; i < threads_count + 1 ; i++)
+            update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
+    }
     if (psqlAbstractORM->getIdentifier() == -1 )
     {
         insert_cache[name].push_back(psqlAbstractORM);
-        for ( int i  = insert_thread_cache.size() ; i < insert_cache_items_count%threads_count +1 ; i++)
+        for ( int i  = insert_thread_cache.size() ; i < (insert_cache_items_count%threads_count) +1 ; i++)
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
-        insert_thread_cache[insert_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+        if (enforced_cache_index == -1)
+            insert_thread_cache[insert_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+        else
+        {
+            cout <<  "insert_thread_cache.size = " << insert_thread_cache.size() << endl;
+            insert_thread_cache[enforced_cache_index][psqlAbstractORM]=psqlAbstractORM;
+        }
         insert_cache_items_count++;
     }
     else
@@ -117,27 +134,22 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
                 }
                 else
                 {  
-                    for ( int i  = update_thread_cache.size() ; i < update_cache_items_count%threads_count +1 ; i++)
+                    for ( int i  = update_thread_cache.size() ; i < (update_cache_items_count%threads_count) +1 ; i++)
                         update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
                     update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
                     update_cache_items_count++;
                 }
 
-                // printf ("locking old orm (%p) and psqlAbstractORM(%p) \n",orm,psqlAbstractORM );
                 lock.unlock();
                 psqlAbstractORM->lock_me();
                 orm->lock_me();
                 lock.lock();
-                // cout << "replacing an ORM of type "<< name << endl;
             }
             else
             {
-                // printf ("First time locking %p\n",psqlAbstractORM );
                 psqlAbstractORM->lock_me();
-                // std::ostringstream ss;
-                // ss << std::this_thread::get_id() ;
                 update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
-                for ( int i  = update_thread_cache.size() ; i < update_cache_items_count%threads_count +1 ; i++)
+                for ( int i  = update_thread_cache.size() ; i < (update_cache_items_count%threads_count) +1 ; i++)
                     update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
                 update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
                 update_cache_items_count++;

@@ -17,13 +17,14 @@ class BlnkTemplateManager {
         map <string,LedgerCompositLeg *> ledger_amounts;
         map <string,LedgerAmount*> * entry_data;
         ledger_entry_primitive_orm * entry;
+        int cache_partition_number;
         void constructTemplateLegs(); 
         void loadTemplate ();
         bool buildLegs();
         bool validate ();
     public:
-        BlnkTemplateManager(int _template_id);
-        BlnkTemplateManager(BlnkTemplateManager * _blnkTemplateManager=NULL);
+        BlnkTemplateManager(int _template_id,int _cache_partition_number=-1);
+        BlnkTemplateManager(BlnkTemplateManager * _blnkTemplateManager=NULL,int _cache_partition_number=-1);
         map <string , TemplateLeg>* getTemplateLegs(); //return this->templatelegs
 
         ledger_entry_primitive_orm* buildEntry (BDate _entry_date);
@@ -38,17 +39,5 @@ class BlnkTemplateManager {
 
 };
 
-
-
-/*
-
-BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
-
-blnkTemplateManager->buildEntry(nlohmann::json({'Booking new loan - short term; and': [{'amount': Decimal('2000.00'), 'loan_id': 133416, 'customer_id': 359786, 'cashier_id': 126935, 'merchant_id': 2}], 'Booking new loan - long term, if applicable': [{'amount': 0, 'loan_id': 133416, 'customer_id': 359786, 'cashier_id': 126935, 'merchant_id': 2}], 'Booking the transaction upfront fee': [{'amount': 0.0, 'loan_id': 133416, 'customer_id': 359786, 'cashier_id': 126935, 'merchant_id': 2}], "Booking the merchant's commission expense": [{'amount': Decimal('0.00'), 'loan_id': 133416, 'customer_id': 359786, 'cashier_id': 126935, 'merchant_id': 2}], "Booking the cashier's commission expense": [{'amount': Decimal('0.00'), 'loan_id': 133416, 'customer_id': 359786, 'cashier_id': 126935, 'merchant_id': 2}], 'Booking an impairment provision': [{'amount': Decimal('20.00'), 'loan_id': 133416, 'customer_id': 359786, 'cashier_id': 126935, 'merchant_id': 2}], 'Booking the merchant's commission income': [{'amount': Decimal('280.00'), 'loan_id': 133416, 'customer_id': 359786, 'cashier_id': 126935, 'merchant_id': 2}]}));
-    
-delete (blnkTemplateManager);
-
-
-*/
 
 #endif
