@@ -1,7 +1,7 @@
 #include <CancelFunc.h>
 
 void CancelLoanFunc (loan_app_loan_bl_orm * _lal_orm, int partition_number, mutex* shared_lock,void * extras) {
- 
+    cout << "FIRST LEGGG AMOUNTTT" <<endl;
     string is_included = _lal_orm->getExtra("is_included");
     string cancellation_day = _lal_orm->getExtra("cancellation_day");
     cout<< "loan id is "<<_lal_orm->get_id()<<endl;
