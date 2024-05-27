@@ -24,6 +24,8 @@ class UndueToDue : public LedgerClosureStep
         BDate lsh_settle_charge_off_day;
         int partial_settle_status;
         int settle_charge_off_status;
+        int undue_to_due_amount;
+        int undue_to_due_interest_amount;
 
     public:
         map<string, funcPtr> funcMap;
@@ -54,11 +56,12 @@ class UndueToDue : public LedgerClosureStep
 
         LedgerAmount * _init_ledger_amount();
 
-        // void stampORMs(ledger_entry_primitive_orm* entry, ledger_amount_primitive_orm * la_orm);
+        void stampORMs(ledger_entry_primitive_orm* entry, ledger_amount_primitive_orm * la_orm);
 
         // //static methods
         static LedgerAmount * _get_installment_insterest(LedgerClosureStep *UndueToDue);
         static LedgerAmount * _get_installment_principal(LedgerClosureStep *UndueToDue);
+        bool checkAmounts();
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
         

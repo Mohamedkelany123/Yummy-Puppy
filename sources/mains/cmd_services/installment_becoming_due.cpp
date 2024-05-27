@@ -83,20 +83,20 @@ int main (int argc, char ** argv)
                 )
             ),
             new UnaryOperator ("loan_app_loan.status_id",nin,"12,13"),
-            
-            new UnaryOperator ("loan_app_loan.id",eq,"42797"),
-
             new UnaryOperator ("new_lms_installmentextension.status_id",nin,"8,15,16,12,13")
         )
     );
     
     installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=8 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_paid_off_day");
     installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=15 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_charge_off_day_status");
+    installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_amount");
+    installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_interest_amount");
     
     BlnkTemplateManager * undueToDueTemplateManager = new BlnkTemplateManager(10);
 
     UndueToDueStruct undueToDueStruct;
     undueToDueStruct.blnkTemplateManager = undueToDueTemplateManager;
+    undueToDueStruct.closing_day = BDate(closure_date_string);
 
     installments_becoming_due_iterator->process(threadsCount, InstallmentBecomingDueFunc, (void *)&undueToDueStruct);
 

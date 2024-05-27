@@ -10,6 +10,8 @@ UndueToDue::UndueToDue(map <string,PSQLAbstractORM *> * _orm, BDate _closing_day
     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,_orm);
     lsh_settle_paid_off_day = BDate(gorm->get("settled_paid_off_day"));
     lsh_settle_charge_off_day = BDate(gorm->get("settled_charge_off_day_status"));
+    undue_to_due_amount = gorm->toInt("undue_to_due_amount");
+    undue_to_due_interest_amount= gorm->toInt("undue_to_due_interest_amount");
     
     closing_day = _closing_day;
     template_id = 10;
@@ -40,7 +42,7 @@ LedgerAmount * UndueToDue::_init_ledger_amount()
 
 void UndueToDue::setupLedgerClosureService (LedgerClosureService * ledgerClosureService)
 {
-    // ledgerClosureService->addHandler("Interest income becoming due", UndueToDue::_get_installment_insterest);
+    ledgerClosureService->addHandler("Interest income becoming due", UndueToDue::_get_installment_insterest);
     ledgerClosureService->addHandler("Loan principal becoming due", UndueToDue::_get_installment_principal);
 }
 
@@ -57,93 +59,138 @@ LedgerAmount * UndueToDue::_get_installment_insterest(LedgerClosureStep *undueTo
 
     
     BDate lai_undue_to_due_date(BDate(nli_orm->get_undue_to_due_date()));
+    
+    bool checkAmounts = ((UndueToDue*)undueToDue)->checkAmounts();
+    if(checkAmounts)
+    {
+        cout << "LOLOLOLOLLOLOLOLOLOLOLOLOLO" << endl;
+        la->setAmount(0);
+        return la;
+    }        
+
 
 
     if (nli_orm->get_undue_to_due_interest_ledger_amount_id() == 0)
     {
-        cout << "------------------------------------------\nStatus_id =" << lal_orm->get_status_id() << "\n";
+        // cout << "------------------------------------------\nStatus_id =" << lal_orm->get_status_id() << "\n";
+        // cout << "InsId= " << lai_orm->get_id() << endl;
         if((lal_orm->get_status_id()) == (((UndueToDue*)undueToDue)->get_settle_charge_off_status() || ((UndueToDue*)undueToDue)->get_partial_settle_status()))
         {
-            if(lsh_settle_charge_off_day.getDateString() == "")
+            if(lsh_settle_charge_off_day.getDateString() != "")
             {   
-                cout << "1111111111111111111111111111" << endl;
-                la->setAmount(0);
-                return la;
-                // return NULL;
-            }
-            if((lsh_settle_charge_off_day() <  lai_undue_to_due_date()) && (nli_orm->get_is_interest_paid() == false))
-            {
-                if(nli_orm->get_is_extra_interest_paid() == true)
+                if((lsh_settle_charge_off_day() <  lai_undue_to_due_date()) && (nli_orm->get_is_interest_paid() == false))
                 {
-                    cout << "22222222222222222222222" << endl;
-                    la->setAmount(ROUND(nli_orm->get_first_installment_interest_adjustment()));
-                    return la;
-                }else{
-                    cout << "33333333333333333333" << endl;
-                    la->setAmount(0);
-                    return la;
-                    // return NULL;
-                }
-            }else if ((lsh_settle_charge_off_day() < lai_undue_to_due_date()) && (nli_orm->get_is_interest_paid() == true))
-            {
-                if(nli_orm->get_is_extra_interest_paid() == true)
+                    if(nli_orm->get_is_extra_interest_paid() == true)
+                    {
+                        // cout << "22222222222222222222222" << endl;
+                        la->setAmount(ROUND(nli_orm->get_first_installment_interest_adjustment()));
+                        return la;
+                    }else{
+                        // cout << "33333333333333333333" << endl;
+                        la->setAmount(0);
+                        return la;
+                    }
+                }else if ((lsh_settle_charge_off_day() < lai_undue_to_due_date()) && (nli_orm->get_is_interest_paid() == true))
                 {
-                    cout << "4444444444444444444444" << endl;
-                    la->setAmount(ROUND(nli_orm->get_first_installment_interest_adjustment() + lai_orm->get_interest_expected()));
+                    if(nli_orm->get_is_extra_interest_paid() == true)
+                    {
+                        // cout << "4444444444444444444444" << endl;
+                        la->setAmount(ROUND(nli_orm->get_first_installment_interest_adjustment() + lai_orm->get_interest_expected()));
+                        return la;
+                    }
+                    // cout << "555555555555555555" << endl;
+                    la->setAmount(lai_orm->get_interest_expected());
                     return la;
                 }
-                cout << "555555555555555555" << endl;
-                la->setAmount(lai_orm->get_interest_expected());
-                return la;
             }
+
         }
     }
-    if((lsh_settle_paid_off_day.getDateString() == "") || (nli_orm->get_payment_status() == 1) && (lsh_settle_paid_off_day() < closing_day()) && (lsh_settle_paid_off_day() < lai_undue_to_due_date())){
-        cout << "666666666666666" << endl;
-        la->setAmount(0);
-        return la;
-        // return NULL;
+    if(lsh_settle_paid_off_day.getDateString() != "")
+    {
+        if((nli_orm->get_payment_status() == 1) && (lsh_settle_paid_off_day() <= closing_day()) && (lsh_settle_paid_off_day() < lai_undue_to_due_date())){
+            // cout << "666666666666666" << endl;
+            la->setAmount(0);
+            return la;
+        }
     }
     
     if(lai_undue_to_due_date() <= closing_day()){
-        cout << "77777777777777" << endl;
-        la->setAmount(ROUND(lai_orm->get_interest_expected() && nli_orm->get_first_installment_interest_adjustment()));
+        // cout << "77777777777777" << endl;
+        la->setAmount(ROUND(lai_orm->get_interest_expected() + nli_orm->get_first_installment_interest_adjustment()));
         return la;
-    }else{
-        cout << "8888888888888888" << endl;
-        la->setAmount(0);
-        return la;
-        // return NULL;
     }
+    la->setAmount(0);
     return la;
+
+
 }
 
 
 LedgerAmount * UndueToDue::_get_installment_principal(LedgerClosureStep *undueToDue)
 {  
 
-    // new_lms_installmentextension_primitive_orm* nli_orm = ((UndueToDue*)undueToDue)->get_new_lms_installment_extention();
-    // loan_app_installment_primitive_orm* lai_orm = ((UndueToDue*)undueToDue)->get_loan_app_installment();
-    cout << "HIIIIIIIIIIIIIIIIIIII" << endl;
+    new_lms_installmentextension_primitive_orm* nli_orm = ((UndueToDue*)undueToDue)->get_new_lms_installment_extention();
+    loan_app_installment_primitive_orm* lai_orm = ((UndueToDue*)undueToDue)->get_loan_app_installment();
     LedgerAmount * la = ((UndueToDue*)undueToDue)->_init_ledger_amount();
-    // BDate lsh_settle_paid_off_day =  ((UndueToDue*)undueToDue)->get_lsh_settle_paid_off_day();
-    // BDate closing_day = ((UndueToDue*)undueToDue)->get_closing_day(); 
-    // BDate lai_undue_to_due_date(BDate(nli_orm->get_undue_to_due_date()));
+    BDate lsh_settle_paid_off_day =  ((UndueToDue*)undueToDue)->get_lsh_settle_paid_off_day();
+    BDate closing_day = ((UndueToDue*)undueToDue)->get_closing_day(); 
+    BDate lai_undue_to_due_date(BDate(nli_orm->get_undue_to_due_date()));
 
-    // if ((nli_orm->get_undue_to_due_interest_ledger_amount_id() != 0) || ( (lsh_settle_paid_off_day.getDateString() != "")  &&  (nli_orm->get_payment_status() == 1) && (lsh_settle_paid_off_day() <= closing_day()) && (lsh_settle_paid_off_day() < lai_undue_to_due_date())))
-    // {
-    //     //Todo:: What should we do if we set the amount to 0
-    //     la->setAmount(0);
-    //     return la;
-    //     // return NULL;
-    // }else{
-    //     // cout << "AMOUNT:" << ROUND(lai_orm->get_principal_expected()) << endl;
-    //     la->setAmount(ROUND(lai_orm->get_principal_expected()));
-    //     return la;
-    // }
+    bool checkAmounts = ((UndueToDue*)undueToDue)->checkAmounts();
+    if(checkAmounts)
+    {
+        cout << "LOLOLOLOLLOLOLOLOLOLOLOLOLO" << endl;
+        la->setAmount(0);
+        return la;
+    }        
+
+    
+    if ((nli_orm->get_undue_to_due_ledger_amount_id() != 0) || ( (lsh_settle_paid_off_day.getDateString() != "")  &&  (nli_orm->get_payment_status() == 1) && (lsh_settle_paid_off_day() <= closing_day()) && (lsh_settle_paid_off_day() < lai_undue_to_due_date())))
+    {
+        // cout << "InsId= " << lai_orm->get_id() << endl;
+        // cout << "P1111111111111111" <<endl;
+        la->setAmount(0);
+        return la;
+    }else{
+        cout << "InsId= " << lai_orm->get_id() << endl;
+        // cout << "P222222222222222" <<endl;
+        la->setAmount(ROUND(lai_orm->get_principal_expected()));
+        return la;
+    }
 
     return la;
 }
+
+bool UndueToDue::checkAmounts(){
+    if ((undue_to_due_amount != 0) && (undue_to_due_interest_amount != 0))
+    {
+        nli_orm->set_undue_to_due_ledger_amount_id(undue_to_due_amount);
+        nli_orm->set_undue_to_due_interest_ledger_amount_id(undue_to_due_interest_amount); 
+        return true;
+    }
+
+    if (undue_to_due_amount != 0)
+        nli_orm->set_undue_to_due_ledger_amount_id(undue_to_due_amount);
+    if (undue_to_due_interest_amount != 0)
+        nli_orm->set_undue_to_due_interest_ledger_amount_id(undue_to_due_interest_amount);
+    
+    return false;
+}
+
+void UndueToDue::stampORMs(ledger_entry_primitive_orm* _entry, ledger_amount_primitive_orm * _la_orm){
+    cout << "UndueToDue InstallmentID: " << lai_orm->get_id() << endl;
+    lal_orm->setUpdateRefernce("loan_creation_ledger_entry_id", _entry);
+    lal_orm->set_lms_closure_status(ledger_status::DISBURSE_LOAN);
+    
+    if (la_orm != NULL){
+        
+    }
+
+    cout << "ERROR in fetching first leg of the entry " << endl;
+}
+
+
 
 
 UndueToDue::~UndueToDue(){}
