@@ -59,9 +59,11 @@ void PartialAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partit
 };
 
 void SettlementAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
+    
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((AccrualInterestStruct *) extras)->blnkTemplateManager,partition_number);
     new_lms_installmentextension_primitive_orm * nli_orm = ORM(new_lms_installmentextension,orms);
     loan_app_loan_primitive_orm * lal_orm = ORM(loan_app_loan,orms);
+    cout << "PRINTING LOAN ID: " << lal_orm->get_id() << endl;
     string stamping_date = nli_orm->get_settlement_accrual_interest_date();
     AccrualInterest accrualInterest(orms, 3);
     LedgerClosureService * ledgerClosureService = new LedgerClosureService(&accrualInterest);

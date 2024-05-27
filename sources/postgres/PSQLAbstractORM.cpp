@@ -140,7 +140,7 @@ void PSQLAbstractORM::commitAddReferences (PSQLConnection * _psqlConnection)
     for (auto& ref : this->add_references) 
     {
         ref.second->lock_me();
-        int reference_orm_id = ref.second->insert(_psqlConnection);
+        int reference_orm_id = ref.second->insert();
         reference_values[ref.first] = reference_orm_id;
         ref.second->unlock_me();
     }
@@ -151,9 +151,10 @@ void PSQLAbstractORM::commitUpdateReferences (PSQLConnection * _psqlConnection)
     for (auto& ref : this->update_references) 
     {
         ref.second->lock_me();
-        int reference_orm_id = ref.second->insert(_psqlConnection);
+        int reference_orm_id = ref.second->insert();
         reference_values[ref.first] = reference_orm_id;
         ref.second->unlock_me();
+        
     }
 }
 
