@@ -22,6 +22,7 @@ void PSQLAbstractORM::operator = (const PSQLAbstractORM & _psqlAbstractORM)
         add_references = _psqlAbstractORM.add_references;
         update_references = _psqlAbstractORM.update_references;
         inserted = false;
+        enforced_partition_number=_psqlAbstractORM.enforced_partition_number;
 }
 void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
 {
@@ -39,10 +40,11 @@ void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
         add_references = _psqlAbstractORM->add_references;
         update_references = _psqlAbstractORM->update_references;
         inserted = false;
+        enforced_partition_number=_psqlAbstractORM->enforced_partition_number;
 }
 
 
-PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional)
+PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional,int _enforced_partition_number)
 {   
     orm_transactional = _orm_transactional;
     table_name = _table_name;
@@ -63,6 +65,7 @@ PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,s
     insert_default_values = psqlController.getInsertDefaultValues();
     update_default_values = psqlController.getUpdateDefaultValues();
     data_source_name = _data_source_name;
+    enforced_partition_number=_enforced_partition_number;
 }
 
 bool PSQLAbstractORM::isOrmTransactional(){
@@ -131,8 +134,11 @@ void PSQLAbstractORM::commitAddReferences ()
 {
     for (auto& ref : this->add_references) 
     {
+        ref.second->lock_me();
         int reference_orm_id = ref.second->insert();
+        ref.second->unlock_me();
         reference_values[ref.first] = reference_orm_id;
+        ref.second->unlock_me();
     }
 }
 
@@ -140,7 +146,9 @@ void PSQLAbstractORM::commitUpdateReferences ()
 {
     for (auto& ref : this->update_references) 
     {
+        ref.second->lock_me();
         int reference_orm_id = ref.second->insert();
+        ref.second->unlock_me();
         reference_values[ref.first] = reference_orm_id;
     }
 }
@@ -183,6 +191,12 @@ string PSQLAbstractORM::getExtra (string fname)
         return  extras [fname];
     else return "";
 }
+
+int PSQLAbstractORM::get_enforced_partition_number()
+{
+    return enforced_partition_number;
+}
+
 PSQLAbstractORM::~PSQLAbstractORM()
 {
     // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << endl;

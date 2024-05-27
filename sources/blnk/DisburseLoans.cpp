@@ -13,7 +13,6 @@ DisburseLoan::DisburseLoan(map <string,PSQLAbstractORM *> * _orms, float _percen
     lal_orm = _lal_orm;    
     cac_orm = _cac_orm;
     lalp_orm = _lalp_orm;
-    template_id = 4;
     prov_percentage = _percentage;
     short_term_principal = _short_term_principal;
     is_rescheduled = _is_rescheduled;
@@ -144,19 +143,12 @@ void DisburseLoan::set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm
     cac_orm = _cac_orm;
 }
 
-int DisburseLoan::get_template_id()  {
-    return template_id;
-}
 
 float DisburseLoan::get_long_term_principal()
 {
     return long_term_principal;
 }
 
-void DisburseLoan::set_template_id(int _template_id)
-{
-    template_id = _template_id;
-}
 
 void DisburseLoan::set_long_term_principal(float _long_term_principal)
 {
@@ -168,14 +160,14 @@ bool DisburseLoan::get_is_rescheduled()  {
 }
 void DisburseLoan::set_is_rescheduled(bool _is_rescheduled)
 {
-    template_id =  _is_rescheduled;
+    is_rescheduled =  _is_rescheduled;
 }
 
 
 LedgerAmount * DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan)
  {  
     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-    la->setAmount(round(((DisburseLoan*)disburseLoan)->get_short_term_principal()));
+    la->setAmount(ROUND(((DisburseLoan*)disburseLoan)->get_short_term_principal()));
     return la;
 
 }
@@ -195,7 +187,7 @@ LedgerAmount * DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disbu
 {
     loan_app_loan_bl_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double perc = ((DisburseLoan*)disburseLoan)->get_provision_percentage()/100;
-    double amount = round(loan_orm->get_principle()*perc);
+    double amount = ROUND(loan_orm->get_principle()*perc);
 
     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     la->setAmount(amount);
@@ -209,7 +201,7 @@ LedgerAmount * DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     
     float cashier_fee = (lal_orm->get_principle() * (lal_orm->get_cashier_fee()/ 100));
-    la->setCashierId(ROUND(cashier_fee));
+    la->setAmount(ROUND(cashier_fee));
  
     return la;
 }
@@ -217,7 +209,7 @@ LedgerAmount * DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
 {
     loan_app_loan_bl_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double perc = loan_orm->get_bl_t_mer_fee()/100;
-    double amount = round(loan_orm->get_principle()*perc);
+    double amount = ROUND(loan_orm->get_principle()*perc);
     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     la->setAmount(amount);
     return la;

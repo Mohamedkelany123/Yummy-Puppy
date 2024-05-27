@@ -75,10 +75,11 @@ int main (int argc, char ** argv)
             loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
             loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
             PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
+            shared_lock->lock();
             if (gorm != NULL)
                 cout << gorm->get("aggregate") << "\t";
             cout << lal_orm->get_num_periods() << "\t" <<cac_orm->get_id() << "\t" << lal_orm->get_id() <<"\t" << lai_orm->get_id() << endl;
-        
+            shared_lock->unlock();
         });
 
 
