@@ -160,7 +160,7 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
 {
         auto begin = std::chrono::high_resolution_clock::now();
 
-        PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras);
+        PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras,partition_number);
         map <string,PSQLAbstractORM *> *  orms = NULL;
         vector<map <string,PSQLAbstractORM *> *> *  orms_list = NULL;
         orms_list = new vector<map <string,PSQLAbstractORM *> *> ();
@@ -214,7 +214,7 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
 {
         auto begin = std::chrono::high_resolution_clock::now();
 
-        PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras);
+        PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras,partition_number);
         map <string,PSQLAbstractORM *> *  orms = NULL;
         string aggregate = "";
         bool finished = false;

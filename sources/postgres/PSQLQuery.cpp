@@ -268,6 +268,7 @@ int PSQLQueryPartition::adjust_for_aggregation (int _start_index)
     }
     int end_index = start_index+ result_count-1;
     result_index = end_index;
+    // cout << "r_index after: "<< result_index<< endl;
     if (result_index < total_result_count)
     {
         string aggregate = this->getValue("aggregate");
@@ -276,12 +277,15 @@ int PSQLQueryPartition::adjust_for_aggregation (int _start_index)
         do { 
             result_index ++ ;
         } while (result_index < total_result_count && aggregate == this->getValue("aggregate"));
-        // cout << "r_index after: "<< result_index<< endl;
         end_index = result_index-1; 
     }
+    else result_index = total_result_count;
+    end_index = result_index-1; 
+    // cout << "end_index: "<< end_index << endl;
+    // cout << "total_result_count: "<< total_result_count << endl;
+    // cout << "______________" << endl;
     result_count = end_index - start_index+1;
     result_index = start_index-1;
-    // cout << "end_index: "<< end_index << endl;
     if ( end_index + 1 < total_result_count)
         return end_index+1;
     else return -1;
