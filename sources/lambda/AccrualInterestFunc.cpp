@@ -11,6 +11,8 @@ void AccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_num
     LedgerClosureService * ledgerClosureService = new LedgerClosureService(&accrualInterest);
     accrualInterest.setupLedgerClosureService(ledgerClosureService);
     map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference();
+
+    
     localTemplateManager->setEntryData(ledgerAmounts);
     string stamping_date = accrual_date;
     if (settled_history != "" && nli_orm->get_payment_status() == 1 && BDate(settled_history)() < BDate(nli_orm->get_undue_to_due_date())()) {

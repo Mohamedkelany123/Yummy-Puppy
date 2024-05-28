@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv) {
 
-    int threads_count = 10;
+    int threads_count = 1;
 
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya2","development","5k6MLFM9CLN3bD1");
     if (connect){

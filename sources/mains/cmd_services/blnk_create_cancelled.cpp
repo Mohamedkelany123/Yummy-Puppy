@@ -43,8 +43,8 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
 
-    int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","development","5k6MLFM9CLN3bD1");
+    int threadsCount = 10;
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya2","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
