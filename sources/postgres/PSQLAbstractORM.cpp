@@ -135,26 +135,25 @@ void PSQLAbstractORM::setUpdateRefernce (string field_name,PSQLAbstractORM * ref
 }
 
 
-void PSQLAbstractORM::commitAddReferences ()
+void PSQLAbstractORM::commitAddReferences (PSQLConnection * _psqlConnection)
 {
     for (auto& ref : this->add_references) 
     {
         ref.second->lock_me();
-        int reference_orm_id = ref.second->insert();
-        ref.second->unlock_me();
+        int reference_orm_id = ref.second->insert(_psqlConnection);
         reference_values[ref.first] = reference_orm_id;
         ref.second->unlock_me();
     }
 }
 
-void PSQLAbstractORM::commitUpdateReferences ()
+void PSQLAbstractORM::commitUpdateReferences (PSQLConnection * _psqlConnection)
 {
     for (auto& ref : this->update_references) 
     {
         ref.second->lock_me();
-        int reference_orm_id = ref.second->insert();
-        ref.second->unlock_me();
+        int reference_orm_id = ref.second->insert(_psqlConnection);
         reference_values[ref.first] = reference_orm_id;
+        ref.second->unlock_me();
     }
 }
 
@@ -200,6 +199,10 @@ string PSQLAbstractORM::getExtra (string fname)
 int PSQLAbstractORM::get_enforced_partition_number()
 {
     return enforced_partition_number;
+}
+void PSQLAbstractORM::set_enforced_partition_number(int _enforced_partition_number)
+{
+    enforced_partition_number = _enforced_partition_number;
 }
 
 PSQLAbstractORM::~PSQLAbstractORM()
