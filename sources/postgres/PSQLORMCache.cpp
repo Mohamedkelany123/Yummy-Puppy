@@ -131,7 +131,13 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
                 {  
                     for ( int i  = update_thread_cache.size() ; i < (update_cache_items_count%threads_count) +1 ; i++)
                         update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
-                    update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+                    if (enforced_cache_index == -1)
+                        update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+                    else
+                    { 
+                        update_thread_cache[enforced_cache_index][psqlAbstractORM]=psqlAbstractORM;
+                        // cout << "Enforcing cache " << enforced_cache_index << endl;
+                    }
                     update_cache_items_count++;
                 }
 
@@ -146,7 +152,13 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
                 update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
                 for ( int i  = update_thread_cache.size() ; i < (update_cache_items_count%threads_count) +1 ; i++)
                     update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
-                update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+                if (enforced_cache_index == -1)
+                    update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+                else
+                {
+                    // cout << "=== Enforcing cache " << enforced_cache_index << endl; 
+                    update_thread_cache[enforced_cache_index][psqlAbstractORM]=psqlAbstractORM;
+                }
                 update_cache_items_count++;
             }
         }

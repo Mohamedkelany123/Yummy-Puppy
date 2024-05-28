@@ -61,6 +61,8 @@ class PSQLAbstractORM
         virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
         virtual void operator = (const PSQLAbstractORM * _psqlAbstractORM);
         int get_enforced_partition_number();
+        void set_enforced_partition_number(int _enforced_partition_number);
+        
         virtual ~PSQLAbstractORM();
 };
 

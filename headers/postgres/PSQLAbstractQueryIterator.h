@@ -268,13 +268,15 @@ class PSQLJoinQueryPartitionIterator {
         AbstractDBQuery * psqlQuery;
         vector <PSQLAbstractORM *> * orm_objects;
         map <string,string> extras;
+        int partition_number;
 
     public:
-        PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects, map <string,string> _extras){ 
+        PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects, map <string,string> _extras,int _partition_number){ 
             psqlQuery = _psqlQuery;
             orm_objects = _orm_objects;
             extras = _extras;
-    }
+            partition_number = _partition_number;
+        }
         void reverse()
         {
             psqlQuery->fetchPrevRow();
@@ -292,6 +294,7 @@ class PSQLJoinQueryPartitionIterator {
                 for (auto orm_object: *orm_objects) 
                 {
                     PSQLAbstractORM * orm = orm_object->clone();
+                    orm->set_enforced_partition_number(partition_number);
                     // printf ("cloning ORM %p from %p\n",orm,orm_object);
                     // cout << "before assignresults" << endl;
                     orm->assignResults(psqlQuery);

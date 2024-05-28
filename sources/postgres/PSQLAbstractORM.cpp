@@ -201,6 +201,10 @@ int PSQLAbstractORM::get_enforced_partition_number()
 {
     return enforced_partition_number;
 }
+void PSQLAbstractORM::set_enforced_partition_number(int _enforced_partition_number)
+{
+    enforced_partition_number = _enforced_partition_number;
+}
 
 PSQLAbstractORM::~PSQLAbstractORM()
 {
