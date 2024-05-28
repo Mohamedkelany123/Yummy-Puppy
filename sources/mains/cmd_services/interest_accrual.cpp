@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv) {
 
-    int threads_count = 1;
+    int threads_count = 10;
 
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya2","development","5k6MLFM9CLN3bD1");
     if (connect){
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
         )
     );
     partialAccrualQuery->setOrderBy("loan_app_loan.id");
-    BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8);
+    BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
 
     AccrualInterestStruct partialAccrualInterestStruct = {
         partialAccrualTemplateManager
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 
     accrualQuery->setOrderBy("loan_app_loan.id");
     
-    BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8);
+    BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8, -1);
 
     AccrualInterestStruct accrualInterestStruct = {
         accrualTemplateManager
@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
 
     settlementAccrualQuery->setOrderBy("loan_app_loan.id");
 
-    BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8);
+    BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8, -1);
 
     AccrualInterestStruct settlementAccrualInterestStruct = {
         settlementAccrualTemplateManager

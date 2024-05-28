@@ -8,12 +8,12 @@ void CancelLoanFunc (loan_app_loan_bl_orm * _lal_orm, int partition_number, mute
 
     if (is_included=="t"){
 
-        BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((CancelLoanStruct *) extras)->blnkTemplateManager_reverse, partition_number);
+        BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((CancelLoanStruct *) extras)->blnkTemplateManager_reverse,partition_number);
         vector <ledger_amount_primitive_orm*>* la_orms = _lal_orm->get_ledger_amount_loan_id() ;   
         ledger_entry_primitive_orm* entry = localTemplateManager->reverseEntry(la_orms,BDate(cancellation_day));
 
         if (_lal_orm->get_loan_upfront_fee()>0 && !_lal_orm->get_refund_upfront_fee_bool()){
-            BlnkTemplateManager* localTemplateManager_cancel = new BlnkTemplateManager(((CancelLoanStruct *) extras)->blnkTemplateManager_cancel);
+            BlnkTemplateManager* localTemplateManager_cancel = new BlnkTemplateManager(((CancelLoanStruct *) extras)->blnkTemplateManager_cancel,partition_number);
             CancelLoan cancelLoan(_lal_orm);
 
             LedgerClosureService* ledgerClosureService = new LedgerClosureService(&cancelLoan);

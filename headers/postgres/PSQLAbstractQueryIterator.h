@@ -197,8 +197,9 @@ class PSQLAbstractQueryIterator {
         string orderby_string;
         string distinct;
         map <string,string> extras;
+        int partition_number;
     public:
-        PSQLAbstractQueryIterator(string _data_source_name,string _table_name);
+        PSQLAbstractQueryIterator(string _data_source_name,string _table_name, int _partition_number=-1);
         void setNativeSQL(string _sql);
         void filter ( Expression const & e,bool print_sql=false);
         bool execute();
@@ -242,17 +243,19 @@ class PSQLQueryPartitionIterator {
     private:
         AbstractDBQuery * psqlQuery;
         string data_source_name;
+        int partition_number;
 
     public:
-        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name, void * _extras){ 
+        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name, void * _extras, int _partition_number=-1){ 
             psqlQuery = _psqlQuery;
             data_source_name = _data_source_name;
+            partition_number = _partition_number;
         }
         T * next ()
         {
             if (psqlQuery->fetchNextRow())
             {
-                T * obj = new T(data_source_name);
+                T * obj = new T(data_source_name, partition_number);
                 // printf ("----- cloning ORM %p \n",obj);
                 obj->assignResults(psqlQuery);
                 return obj;

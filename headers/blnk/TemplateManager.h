@@ -23,8 +23,8 @@ class BlnkTemplateManager {
         bool buildLegs();
         bool validate ();
     public:
-        BlnkTemplateManager(int _template_id,int _cache_partition_number=-1);
-        BlnkTemplateManager(BlnkTemplateManager * _blnkTemplateManager=NULL,int _cache_partition_number=-1);
+        BlnkTemplateManager(int _template_id,int _cache_partition_number);
+        BlnkTemplateManager(BlnkTemplateManager * _blnkTemplateManager,int _cache_partition_number);
         map <string , TemplateLeg>* getTemplateLegs(); //return this->templatelegs
 
         ledger_entry_primitive_orm* buildEntry (BDate _entry_date);

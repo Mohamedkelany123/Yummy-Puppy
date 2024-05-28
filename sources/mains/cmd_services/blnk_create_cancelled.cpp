@@ -43,7 +43,7 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
 
-    int threadsCount = 10;
+    int threadsCount = 1;
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya2","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
@@ -109,10 +109,15 @@ int main (int argc, char ** argv)
 
     CancelLoanStruct cancelLoanStruct;
 
-    BlnkTemplateManager *  blnkTemplateManager_cancel = new BlnkTemplateManager(5);
+    cout << "1" << endl;
+    BlnkTemplateManager *  blnkTemplateManager_cancel = new BlnkTemplateManager(5, -1);
+    cout << "2" << endl;
     cancelLoanStruct.blnkTemplateManager_cancel = blnkTemplateManager_cancel;
-     BlnkTemplateManager * blnkTemplateManager_reverse = new BlnkTemplateManager(6);
+    cout << "3" << endl;
+     BlnkTemplateManager * blnkTemplateManager_reverse = new BlnkTemplateManager(6, -1);
+    cout << "4" << endl;
     cancelLoanStruct.blnkTemplateManager_reverse = blnkTemplateManager_reverse;
+    cout << "5" << endl;
     
     cout<<"before processs   "<<endl;
 

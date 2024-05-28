@@ -22,7 +22,7 @@ vector <ledger_amount_primitive_orm *> * loan_app_loan_bl_orm::get_ledger_amount
 		if (ledger_amount_loan_id == NULL) {
 			ledger_amount_loan_id_read_only = _read_only;
 			ledger_amount_loan_id = new vector <ledger_amount_primitive_orm *> ();
-			ledger_amount_primitive_orm_iterator * i = new ledger_amount_primitive_orm_iterator("main");
+			ledger_amount_primitive_orm_iterator * i = new ledger_amount_primitive_orm_iterator("main", -1);
 			i->filter (ANDOperator(new UnaryOperator("loan_id",eq,to_string(get_id()))));
 			i->execute();
 			ledger_amount_primitive_orm * orm = NULL;
@@ -93,7 +93,7 @@ loan_app_loan_bl_orm * loan_app_loan_bl_orm_iterator::back ()
 
 void  loan_app_loan_bl_orm_iterator::process_internal(loan_app_loan_bl_orm_iterator * psqlAbstractQueryIterator,string data_source_name, PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extra_params,std::function<void(loan_app_loan_bl_orm * orm,int partition_number,mutex * shared_lock,void * extra_params)> f)
 {
-        PSQLQueryPartitionIterator <loan_app_loan_bl_orm> psqlQueryPartitionIterator (psqlQueryPartition, data_source_name, extra_params);
+        PSQLQueryPartitionIterator <loan_app_loan_bl_orm> psqlQueryPartitionIterator (psqlQueryPartition, data_source_name, extra_params, partition_number);
         loan_app_loan_bl_orm * orm = NULL;
         do {
             orm =psqlQueryPartitionIterator.next();

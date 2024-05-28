@@ -82,6 +82,7 @@ void BlnkTemplateManager::loadTemplate ()
     _lms_entrytemplate_primitive_orm_iterator->execute();
 
     lms_entrytemplate_primitive_orm * temp = _lms_entrytemplate_primitive_orm_iterator->next();
+    cout << temp->get_id() << endl;
     json _template = temp->get_template();
     this->template_json = _template;
 

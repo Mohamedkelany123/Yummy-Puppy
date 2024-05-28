@@ -7,15 +7,15 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
     int counter =0;
     int return_flag = true;
 
-    // cout << "Started commit internal for " << t_index 
-    //     << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
-    //     << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
+    cout << "Started commit internal for " << t_index 
+        << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
+        << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
 
     if (me->insert_thread_cache.size() > t_index)
     {
         for (auto orm_cache_item: me->insert_thread_cache[t_index])
         {
-            // cout << transactional << "& (" << orm_transaction << "==" << orm_cache_item.second->isOrmTransactional() << ") || " << !transactional << ")" << endl;
+//            cout << transactional << "& (" << orm_transaction << "==" << orm_cache_item.second->isOrmTransactional() << ") || " << !transactional << ")" << endl;
             if((transactional && (orm_transaction == orm_cache_item.second->isOrmTransactional())) || !transactional){
                 orm_cache_item.second->lock_me();
                 if (orm_cache_item.second->insert(_psqlConnection) == -1)
@@ -63,7 +63,7 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
         }
     }
     (*threads_results)[t_index] = return_flag;
-
+    cout << "Finished process internal" <<endl;
     return return_flag;
 }
 
@@ -94,6 +94,7 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     std::lock_guard<std::mutex> guard(lock);
     PSQLAbstractORM * orm = NULL;
     int enforced_cache_index = psqlAbstractORM->get_enforced_partition_number();
+    cout << "enforced_cache_index" << enforced_cache_index << endl;
     if (threads_count < enforced_cache_index)
         threads_count = enforced_cache_index;
     if (enforced_cache_index >=0 )
@@ -105,6 +106,12 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     }
     if (psqlAbstractORM->getIdentifier() == -1 )
     {
+
+        if ( psqlAbstractORM->getORMName() == "lms_entrytemplate_primitive_orm")
+        {
+            cout <<"Error hereeeeee"<< endl;
+            exit(1);
+        }
         insert_cache[name].push_back(psqlAbstractORM);
         for ( int i  = insert_thread_cache.size() ; i < (insert_cache_items_count%threads_count) +1 ; i++)
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
@@ -171,7 +178,14 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
             update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
             for ( int i  = update_thread_cache.size() ; i < update_cache_items_count%threads_count +1 ; i++)
                 update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
-            update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+            if (enforced_cache_index == -1)
+                update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+            else
+            {
+                // cout << "=== Enforcing cache " << enforced_cache_index << endl; 
+                update_thread_cache[enforced_cache_index][psqlAbstractORM]=psqlAbstractORM;
+            }
+            // update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
             update_cache_items_count++;
         }
     }
@@ -212,7 +226,7 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
     mutex shared_lock;
     for ( int i  = 0 ; i < threads_count ; i ++)
     {
-        
+    
         PSQLConnection * psqlConnection = NULL;
         psqlConnection = psqlController.getPSQLConnection(data_source_name);
 

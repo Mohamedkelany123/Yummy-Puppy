@@ -108,6 +108,7 @@ void PSQLAbstractORM::lock_me(bool skip_owner)
     // cout << "locking :" << ss.str();
     // printf (" object %p\n",this);
     if (skip_owner && ss.str() == locking_thread) return;
+    if (orm_name == "lms_entrytemplate_primitive_orm") printf ("locking -> %p\n",this);
     lock.lock();
     locking_thread = ss.str();
 }
@@ -123,6 +124,8 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
     locking_thread = "";
     lock.try_lock();
     lock.unlock();
+    if (orm_name == "lms_entrytemplate_primitive_orm") printf ("unlocking -> %p\n",this);
+
 }
 
 void PSQLAbstractORM::setAddRefernce (string field_name,PSQLAbstractORM * reference)
@@ -140,7 +143,7 @@ void PSQLAbstractORM::commitAddReferences (PSQLConnection * _psqlConnection)
     for (auto& ref : this->add_references) 
     {
         ref.second->lock_me();
-        int reference_orm_id = ref.second->insert();
+        int reference_orm_id = ref.second->insert(_psqlConnection);
         reference_values[ref.first] = reference_orm_id;
         ref.second->unlock_me();
     }
@@ -151,7 +154,7 @@ void PSQLAbstractORM::commitUpdateReferences (PSQLConnection * _psqlConnection)
     for (auto& ref : this->update_references) 
     {
         ref.second->lock_me();
-        int reference_orm_id = ref.second->insert();
+        int reference_orm_id = ref.second->insert(_psqlConnection);
         reference_values[ref.first] = reference_orm_id;
         ref.second->unlock_me();
         
