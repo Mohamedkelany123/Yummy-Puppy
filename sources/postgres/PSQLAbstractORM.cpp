@@ -108,6 +108,7 @@ void PSQLAbstractORM::lock_me(bool skip_owner)
     // cout << "locking :" << ss.str();
     // printf (" object %p\n",this);
     if (skip_owner && ss.str() == locking_thread) return;
+    if (orm_name == "lms_entrytemplate_primitive_orm") printf ("locking -> %p\n",this);
     lock.lock();
     locking_thread = ss.str();
 }
@@ -123,6 +124,8 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
     locking_thread = "";
     lock.try_lock();
     lock.unlock();
+    if (orm_name == "lms_entrytemplate_primitive_orm") printf ("unlocking -> %p\n",this);
+
 }
 
 void PSQLAbstractORM::setAddRefernce (string field_name,PSQLAbstractORM * reference)
@@ -154,6 +157,7 @@ void PSQLAbstractORM::commitUpdateReferences (PSQLConnection * _psqlConnection)
         int reference_orm_id = ref.second->insert(_psqlConnection);
         reference_values[ref.first] = reference_orm_id;
         ref.second->unlock_me();
+        
     }
 }
 
@@ -207,7 +211,7 @@ void PSQLAbstractORM::set_enforced_partition_number(int _enforced_partition_numb
 
 PSQLAbstractORM::~PSQLAbstractORM()
 {
-    // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << endl;
+    // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << orm_name<< endl;
     // if (psqlConnection != NULL) delete (psqlConnection);
     // if (psqlQuery != NULL) delete (psqlQuery);
     unlock_me();

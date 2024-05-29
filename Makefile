@@ -155,12 +155,17 @@ $(BIN)/%: $(OBJECTS)/mains/%.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(O
 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $< -o $@ $(LINKER_FLAGS)
 
 
+# $(BIN)/blnk_create_cancelled: $(OBJECTS)/mains/cmd_services/blnk_create_cancelled.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) 
+# 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJECTS)/mains/cmd_services/blnk_create_cancelled.cpp.o -o $(BIN)/blnk_create_cancelled $(LINKER_FLAGS)
+
+
 # $(ORM_C++): $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $(OBJS_POSTGRES_COLUMN_TYPES)
 # 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $(OBJS_POSTGRES_COLUMN_TYPES) -o $(ORM_C++) $(LINKER_FLAGS) 
 
 #$(MAIN_BINS)
 orm_c++: build_tree  $(MAIN_BINS)
 	@echo "Generating Executable"
+
 
 services: build_tree  $(MAIN_CMD_BINS)
 	@echo "Generating Executable"

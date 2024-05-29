@@ -1,7 +1,7 @@
 #include <PSQLAbstractQueryIterator.h>
 #include <PSQLController.h>
 
-PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,string _table_name)
+PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,string _table_name, int _partition_number)
 {
     data_source_name = _data_source_name;
     table_name = _table_name;
@@ -12,6 +12,8 @@ PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,st
     orderby_string = "";
     sql = "";
     psqlQuery= NULL;
+    partition_number = _partition_number;
+
 }
 void PSQLAbstractQueryIterator::setNativeSQL(string _sql)
 {
@@ -122,6 +124,7 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next (bool read_only)
         for (auto orm_object: *orm_objects) 
         {
             PSQLAbstractORM * orm = orm_object->clone();
+            orm->set_enforced_partition_number(partition_number);
             orm->assignResults(psqlQuery, read_only);
             (*results)[orm->getTableName()] = orm;
         }

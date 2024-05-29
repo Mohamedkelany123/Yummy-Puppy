@@ -22,7 +22,7 @@ vector <ledger_amount_primitive_orm *> * loan_app_loan_bl_orm::get_ledger_amount
 		if (ledger_amount_loan_id == NULL) {
 			ledger_amount_loan_id_read_only = _read_only;
 			ledger_amount_loan_id = new vector <ledger_amount_primitive_orm *> ();
-			ledger_amount_primitive_orm_iterator * i = new ledger_amount_primitive_orm_iterator("main");
+			ledger_amount_primitive_orm_iterator * i = new ledger_amount_primitive_orm_iterator("main", enforced_partition_number);
 			i->filter (ANDOperator(new UnaryOperator("loan_id",eq,to_string(get_id()))));
 			i->execute();
 			ledger_amount_primitive_orm * orm = NULL;
@@ -36,11 +36,13 @@ vector <ledger_amount_primitive_orm *> * loan_app_loan_bl_orm::get_ledger_amount
 }
 
 
-loan_app_loan_bl_orm::loan_app_loan_bl_orm(string _data_source_name, bool add_to_cache, bool orm_transactional): loan_app_loan_primitive_orm(_data_source_name,  add_to_cache,  orm_transactional) {
+loan_app_loan_bl_orm::loan_app_loan_bl_orm(string _data_source_name, bool add_to_cache, bool orm_transactional,int _enforced_partition_number): loan_app_loan_primitive_orm(_data_source_name,  add_to_cache,  orm_transactional,_enforced_partition_number) {
 	new_lms_installmentextension_loan_id_read_only = false;
 	new_lms_installmentextension_loan_id=NULL;
 	ledger_amount_loan_id=NULL;
 	ledger_amount_loan_id_read_only= false;
+
+	// orm_name is not set right in this
 
 }
 PSQLAbstractORM * loan_app_loan_bl_orm::clone (){
@@ -93,7 +95,7 @@ loan_app_loan_bl_orm * loan_app_loan_bl_orm_iterator::back ()
 
 void  loan_app_loan_bl_orm_iterator::process_internal(loan_app_loan_bl_orm_iterator * psqlAbstractQueryIterator,string data_source_name, PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extra_params,std::function<void(loan_app_loan_bl_orm * orm,int partition_number,mutex * shared_lock,void * extra_params)> f)
 {
-        PSQLQueryPartitionIterator <loan_app_loan_bl_orm> psqlQueryPartitionIterator (psqlQueryPartition, data_source_name, extra_params);
+        PSQLQueryPartitionIterator <loan_app_loan_bl_orm> psqlQueryPartitionIterator (psqlQueryPartition, data_source_name, extra_params, partition_number);
         loan_app_loan_bl_orm * orm = NULL;
         do {
             orm =psqlQueryPartitionIterator.next();

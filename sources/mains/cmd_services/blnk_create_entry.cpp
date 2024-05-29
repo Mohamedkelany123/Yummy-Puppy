@@ -71,7 +71,7 @@ int main (int argc, char ** argv)
         )
     );
 
-    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4);
+    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4, -1);
     map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
 
     DisburseLoanStruct disburseLoanStruct;

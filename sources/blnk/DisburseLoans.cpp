@@ -50,7 +50,7 @@ LedgerAmount*  DisburseLoan::_init_ledger_amount(){
 }
 
 void DisburseLoan::stampORMs(ledger_entry_primitive_orm *entry, ledger_amount_primitive_orm *la_orm){
-    cout << "Disbursing loan id: " << la_orm->get_loan_id() << endl;
+    // cout << "Disbursing loan id: " << la_orm->get_loan_id() << endl;
     lal_orm->setUpdateRefernce("loan_creation_ledger_entry_id", entry);
     lal_orm->set_lms_closure_status(ledger_status::DISBURSE_LOAN);
     vector <new_lms_installmentextension_primitive_orm *> * ie_list = lal_orm->get_new_lms_installmentextension_loan_id();

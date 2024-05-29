@@ -15,7 +15,7 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
     {
         for (auto orm_cache_item: me->insert_thread_cache[t_index])
         {
-            // cout << transactional << "& (" << orm_transaction << "==" << orm_cache_item.second->isOrmTransactional() << ") || " << !transactional << ")" << endl;
+//            cout << transactional << "& (" << orm_transaction << "==" << orm_cache_item.second->isOrmTransactional() << ") || " << !transactional << ")" << endl;
             if((transactional && (orm_transaction == orm_cache_item.second->isOrmTransactional())) || !transactional){
                 orm_cache_item.second->lock_me();
                 if (orm_cache_item.second->insert(_psqlConnection) == -1)
@@ -28,9 +28,9 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
                 if (counter % 1000 == 0 )
                 {
                     shared_lock->lock();
-                    if(orm_transaction)
-                        cout << "Transaction Thread # " << t_index <<" Committed " << counter << " inserts" << endl;
-                    else cout << "Non-Transaction Thread # " << t_index <<" Committed " << counter << " inserts" << endl;
+                    // if(orm_transaction)
+                    //     cout << "Transaction Thread # " << t_index <<" Committed " << counter << " inserts" << endl;
+                    // else cout << "Non-Transaction Thread # " << t_index <<" Committed " << counter << " inserts" << endl;
                     shared_lock->unlock();
                 }
             }
@@ -63,7 +63,7 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
         }
     }
     (*threads_results)[t_index] = return_flag;
-
+    cout << "Finished process internal" <<endl;
     return return_flag;
 }
 
@@ -94,6 +94,7 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     std::lock_guard<std::mutex> guard(lock);
     PSQLAbstractORM * orm = NULL;
     int enforced_cache_index = psqlAbstractORM->get_enforced_partition_number();
+    // cout << "enforced_cache_index" << enforced_cache_index << endl;
     if (threads_count < enforced_cache_index)
         threads_count = enforced_cache_index;
     if (enforced_cache_index >=0 )
@@ -105,6 +106,11 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     }
     if (psqlAbstractORM->getIdentifier() == -1 )
     {
+        // if ( psqlAbstractORM->getORMName() == "loan_app_loan_primitive_orm")
+        // {
+        //     cout <<"Error hereeeeee"<< endl;
+        //     exit(1);
+        // }
         insert_cache[name].push_back(psqlAbstractORM);
         for ( int i  = insert_thread_cache.size() ; i < (insert_cache_items_count%threads_count) +1 ; i++)
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
@@ -171,7 +177,14 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
             update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
             for ( int i  = update_thread_cache.size() ; i < update_cache_items_count%threads_count +1 ; i++)
                 update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
-            update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+            if (enforced_cache_index == -1)
+                update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
+            else
+            {
+                // cout << "=== Enforcing cache " << enforced_cache_index << endl; 
+                update_thread_cache[enforced_cache_index][psqlAbstractORM]=psqlAbstractORM;
+            }
+            // update_thread_cache[update_cache_items_count%threads_count][psqlAbstractORM]=psqlAbstractORM;
             update_cache_items_count++;
         }
     }
@@ -212,7 +225,7 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
     mutex shared_lock;
     for ( int i  = 0 ; i < threads_count ; i ++)
     {
-        
+    
         PSQLConnection * psqlConnection = NULL;
         psqlConnection = psqlController.getPSQLConnection(data_source_name);
 
@@ -271,10 +284,16 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
 }
 
 void PSQLORMCache::clear_cache(bool clean_updates){
+    // cout << "starting cache clear" << endl;
     for (auto orm_cache: insert_cache)
     {
+        // int counter = 0 ;
         for (auto orm_cache_item:orm_cache.second) 
-                delete (orm_cache_item);
+        // {
+            // cout << "deleting insert cache #" << counter << endl;
+            // counter ++;
+            delete (orm_cache_item);
+        // }
         insert_cache[orm_cache.first].clear();
     }
     insert_cache.clear();
@@ -286,9 +305,14 @@ void PSQLORMCache::clear_cache(bool clean_updates){
 
     if (clean_updates)
     {
+        // int counter = 0 ;
         for (auto orm_cache: update_cache)
             for (auto orm_cache_item:orm_cache.second) 
+            // {
+            //     cout << "deleting update cache #" << counter << endl;
+            //     counter++;
                     delete (orm_cache_item.second);
+            // }
 
         for (auto orm_cache: update_cache)
             orm_cache.second.clear();

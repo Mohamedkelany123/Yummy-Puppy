@@ -2,7 +2,7 @@
 
 void DisburseLoanFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
 
-    BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((DisburseLoanStruct *) extras)->blnkTemplateManager);
+    BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((DisburseLoanStruct *) extras)->blnkTemplateManager, partition_number);
     DisburseLoan disburseLoan(orms, ((DisburseLoanStruct *) extras)->current_provision_percentage);
     LedgerClosureService* ledgerClosureService = new LedgerClosureService(&disburseLoan);
 

@@ -82,6 +82,7 @@ void BlnkTemplateManager::loadTemplate ()
     _lms_entrytemplate_primitive_orm_iterator->execute();
 
     lms_entrytemplate_primitive_orm * temp = _lms_entrytemplate_primitive_orm_iterator->next();
+    cout << temp->get_id() << endl;
     json _template = temp->get_template();
     this->template_json = _template;
 
@@ -140,16 +141,11 @@ ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_am
 
     for ( auto la : *_ledger_amounts)
         {
-       
-            // ledger_amount_primitive_orm  new_ledger_amount = *la;
-            //or
-            ledger_amount_primitive_orm * new_ledger_amount = new ledger_amount_primitive_orm(*la);
-             
-            cout<<"inside the loop"<<new_ledger_amount->get_loan_id()<<endl;
-            cout<<"inside the loop the amount"<<new_ledger_amount->get_amount()<<endl;
-
+            ledger_amount_primitive_orm * new_ledger_amount = new ledger_amount_primitive_orm("main");
+            *new_ledger_amount = *la;
+            new_ledger_amount->set_account_id( new_ledger_amount->get_account_id());
             new_ledger_amount->set_amount(-la->get_amount());
-            new_ledger_amount->set_amount_local(la->get_amount());
+            new_ledger_amount->set_amount_local(-la->get_amount());
             new_ledger_amount->setAddRefernce("entry_id", entry);
 
         }
@@ -160,7 +156,7 @@ void BlnkTemplateManager::setEntryData(map<string, LedgerAmount *> *_entry_data)
 }
 void BlnkTemplateManager::createEntry(BDate entry_date)
 {
-    cout << "createEntry :: cache_partition_number "<< cache_partition_number << endl;
+    // cout << "createEntry :: cache_partition_number "<< cache_partition_number << endl;
     entry  = new ledger_entry_primitive_orm("main", true,true,cache_partition_number);
     entry->set_entry_date(entry_date.getDateString());
     entry->set_template_id(template_id);

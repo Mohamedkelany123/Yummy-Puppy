@@ -5,7 +5,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/cmd_services/interest_accrual",
+            "program": "${workspaceFolder}/bin/cmd_services/blnk_create_cancelled",
             // "program": "${workspaceFolder}/bin/cmd_services/ledger_closure",
             // "args":["192.168.65.216", "5432", "django_ostaz_30042024_omneya", "postgres", "8ZozYD6DhNJgW7a", "full_closure", "2024-05-15",  "1", "0", "0"],
             "stopAtEntry": false,

@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 
     int threads_count = 10;
 
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya","development","5k6MLFM9CLN3bD1");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya2","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     partialAccrualQuery->filter(
         ANDOperator (
             new UnaryOperator("new_lms_installmentextension.partial_accrual_date", lte, closure_date_string),
-            new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::PARTIAL_INTEREST_ACCRUAL-1),
+            // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::PARTIAL_INTEREST_ACCRUAL-1),
             new UnaryOperator("new_lms_installmentextension.partial_accrual_ledger_amount_id", isnull, "", true),
             new UnaryOperator("new_lms_installmentextension.expected_partial_accrual_amount", ne, 0),
             new OROperator(
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
         )
     );
     partialAccrualQuery->setOrderBy("loan_app_loan.id");
-    BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8);
+    BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
 
     AccrualInterestStruct partialAccrualInterestStruct = {
         partialAccrualTemplateManager
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 
     accrualQuery->filter(
         ANDOperator (
-            new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
+            // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
             new OROperator (
                 new UnaryOperator("new_lms_installmentextension.accrual_date", lte, closure_date_string),
                 new ANDOperator(
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 
     accrualQuery->setOrderBy("loan_app_loan.id");
     
-    BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8);
+    BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8, -1);
 
     AccrualInterestStruct accrualInterestStruct = {
         accrualTemplateManager
@@ -148,13 +148,13 @@ int main(int argc, char** argv) {
 
     settlementAccrualQuery->setOrderBy("loan_app_loan.id");
 
-    BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8);
+    BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8, -1);
 
     AccrualInterestStruct settlementAccrualInterestStruct = {
         settlementAccrualTemplateManager
     };
 
-    settlementAccrualQuery->process(threads_count, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
+    // settlementAccrualQuery->process(threads_count, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
 
     delete(settlementAccrualTemplateManager);
     delete(settlementAccrualQuery);
