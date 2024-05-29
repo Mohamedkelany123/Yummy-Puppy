@@ -136,20 +136,22 @@ ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
 
 ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_amount_primitive_orm*> * _ledger_amounts, BDate entry_date)
 {
-    this->createEntry(entry_date);
+    if(!_ledger_amounts->empty()){
+        this->createEntry(entry_date);
 
 
-    for ( auto la : *_ledger_amounts)
-        {
-            ledger_amount_primitive_orm * new_ledger_amount = new ledger_amount_primitive_orm("main");
-            *new_ledger_amount = *la;
-            new_ledger_amount->set_account_id( new_ledger_amount->get_account_id());
-            new_ledger_amount->set_amount(-la->get_amount());
-            new_ledger_amount->set_amount_local(-la->get_amount());
-            new_ledger_amount->setAddRefernce("entry_id", entry);
+        for ( auto la : *_ledger_amounts)
+            {
+                ledger_amount_primitive_orm * new_ledger_amount = new ledger_amount_primitive_orm("main");
+                *new_ledger_amount = *la;
+                new_ledger_amount->set_account_id( new_ledger_amount->get_account_id());
+                new_ledger_amount->set_amount(-la->get_amount());
+                new_ledger_amount->set_amount_local(-la->get_amount());
+                new_ledger_amount->setAddRefernce("entry_id", entry);
 
-        }
-    return entry;
+            }
+        return entry;
+    }else return nullptr;
 }
 void BlnkTemplateManager::setEntryData(map<string, LedgerAmount *> *_entry_data) {
     entry_data = _entry_data;

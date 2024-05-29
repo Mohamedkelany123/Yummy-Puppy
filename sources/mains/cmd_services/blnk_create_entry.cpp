@@ -42,7 +42,7 @@ int main (int argc, char ** argv)
 {
 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya","development","5k6MLFM9CLN3bD1");
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_closure","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -60,7 +60,7 @@ int main (int argc, char ** argv)
     psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
     psqlQueryJoin->addExtraFromField("(SELECT cap2.is_rescheduled FROM crm_app_purchase cap INNER JOIN crm_app_purchase cap2 ON cap.parent_purchase_id = cap2.id WHERE  cap.id = crm_app_purchase.id)","is_rescheduled");
 
-    string closure_date_string = "2024-05-15"; 
+    string closure_date_string = "2024-06-01"; 
     
     psqlQueryJoin->filter(
         ANDOperator 

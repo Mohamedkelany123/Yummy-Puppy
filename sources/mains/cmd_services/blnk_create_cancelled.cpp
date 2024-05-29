@@ -44,7 +44,7 @@ int main (int argc, char ** argv)
 {
 
     int threadsCount = 10;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya2","development","5k6MLFM9CLN3bD1");
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -89,7 +89,7 @@ int main (int argc, char ** argv)
 
     //  -------------------------------------------- setp 2 --------------------------------------------
     // cout<<"hereeeerrrrrr at first"<<endl;
-    string closure_date_string = "2024-05-15"; 
+    string closure_date_string = "2024-06-01"; 
 
     loan_app_loan_bl_orm_iterator *  psqlQueryJoin = new loan_app_loan_bl_orm_iterator ("main");
 

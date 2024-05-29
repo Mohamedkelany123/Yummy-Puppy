@@ -41,8 +41,8 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
 
-    int threadsCount = 2;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","development","5k6MLFM9CLN3bD1");
+    int threadsCount = 10;
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -50,7 +50,7 @@ int main (int argc, char ** argv)
     psqlController.addDefault("updated_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(threadsCount);
-    string closure_date_string = "2024-06-15"; 
+    string closure_date_string = "2024-06-01"; 
 
 
     PSQLJoinQueryIterator * installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
@@ -148,7 +148,7 @@ int main (int argc, char ** argv)
     stickyUndueToDueStruct.blnkTemplateManager = undueToDueTemplateManager;
     stickyUndueToDueStruct.closing_day = BDate(closure_date_string);
 
-    // sticky_installments_becoming_due_iterator->process(threadsCount, StickyInstallmentBecomingDueFunc, (void *)&stickyUndueToDueStruct);
+    sticky_installments_becoming_due_iterator->process(threadsCount, StickyInstallmentBecomingDueFunc, (void *)&stickyUndueToDueStruct);
 
     delete(undueToDueTemplateManager);
 

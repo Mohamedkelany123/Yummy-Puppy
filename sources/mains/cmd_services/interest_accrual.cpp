@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 
     int threads_count = 10;
 
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya2","development","5k6MLFM9CLN3bD1");
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     psqlController.addDefault("updated_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(threads_count);
-    string closure_date_string = "2024-05-01";
+    string closure_date_string = "2024-06-01"; 
 
 
      // Partial accrue interest aggregator
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
         partialAccrualTemplateManager
     };
 
-    // partialAccrualQuery->process(threads_count, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
+    partialAccrualQuery->process(threads_count, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
 
     delete(partialAccrualTemplateManager);
     delete(partialAccrualQuery);
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
         settlementAccrualTemplateManager
     };
 
-    // settlementAccrualQuery->process(threads_count, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
+    settlementAccrualQuery->process(threads_count, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
 
     delete(settlementAccrualTemplateManager);
     delete(settlementAccrualQuery);
