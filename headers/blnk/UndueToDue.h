@@ -27,9 +27,12 @@ class UndueToDue : public LedgerClosureStep
         int undue_to_due_amount;
         int undue_to_due_interest_amount;
 
+        //Type 1 Both, 2 Interest Only, 3 LoanPrincipal. 
+        int ledger_closure_service_type;
+
     public:
         map<string, funcPtr> funcMap;
-        UndueToDue(map <string,PSQLAbstractORM *> * _orms, BDate _closing_day);
+        UndueToDue(map <string,PSQLAbstractORM *> * _orms, BDate _closing_day, int _ledger_closure_service_type=1);
         
         //Setters
         void set_loan_app_loan(loan_app_loan_bl_orm* _lal_orm);
@@ -56,7 +59,7 @@ class UndueToDue : public LedgerClosureStep
 
         LedgerAmount * _init_ledger_amount();
 
-        void stampORMs(ledger_entry_primitive_orm* entry, ledger_amount_primitive_orm * la_orm);
+        void stampORMs(map<string, LedgerCompositLeg *> *leg_amounts);
 
         // //static methods
         static LedgerAmount * _get_installment_insterest(LedgerClosureStep *UndueToDue);

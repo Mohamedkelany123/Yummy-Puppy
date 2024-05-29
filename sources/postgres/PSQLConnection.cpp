@@ -139,10 +139,12 @@ void PSQLConnection::startTransaction ()
 }
 void PSQLConnection::commitTransaction()
 {
+    cout << "Inside committ-------" << endl;
     PQexec(psql_connection,"COMMIT");
 }
 void PSQLConnection::rollbackTransaction()
 {
+    cout << "Inside rollbackkk-------" << endl;
     PQexec(psql_connection,"ROLLBACK");
 }
 

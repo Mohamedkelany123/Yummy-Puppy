@@ -21,7 +21,12 @@ map <string,LedgerAmount*> * LedgerClosureService::inference ()
         if(temp->getAmount() != 0)
             (*la)[f.first] = temp;
     }
-    return la;
+
+    if (la->empty()) {
+        return nullptr;  
+    } else {
+        return la; 
+    }
 }
 
 LedgerClosureService::~LedgerClosureService()

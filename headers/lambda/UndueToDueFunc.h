@@ -13,5 +13,6 @@ typedef struct {
 } UndueToDueStruct;
 
 void InstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras);
+void StickyInstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras);
 
 #endif 
