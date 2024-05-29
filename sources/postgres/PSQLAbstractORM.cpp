@@ -211,7 +211,7 @@ void PSQLAbstractORM::set_enforced_partition_number(int _enforced_partition_numb
 
 PSQLAbstractORM::~PSQLAbstractORM()
 {
-    // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << endl;
+    // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << orm_name<< endl;
     // if (psqlConnection != NULL) delete (psqlConnection);
     // if (psqlQuery != NULL) delete (psqlQuery);
     unlock_me();

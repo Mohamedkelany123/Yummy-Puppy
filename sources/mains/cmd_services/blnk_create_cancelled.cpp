@@ -8,7 +8,7 @@
 
 
 //TODO: create special type for 
-
+// Testing make file
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
 {
@@ -43,7 +43,7 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
 
-    int threadsCount = 1;
+    int threadsCount = 10;
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_29042024_omneya2","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
@@ -88,7 +88,7 @@ int main (int argc, char ** argv)
     // psqlController.ORMCommit(true,true,true, "main");  
 
     //  -------------------------------------------- setp 2 --------------------------------------------
-    cout<<"hereeeerrrrrr at first"<<endl;
+    // cout<<"hereeeerrrrrr at first"<<endl;
     string closure_date_string = "2024-05-15"; 
 
     loan_app_loan_bl_orm_iterator *  psqlQueryJoin = new loan_app_loan_bl_orm_iterator ("main");
@@ -105,24 +105,24 @@ int main (int argc, char ** argv)
 
         )
     );
-    cout<<"after query"<<endl;
+    // cout<<"after query"<<endl;
 
     CancelLoanStruct cancelLoanStruct;
 
-    cout << "1" << endl;
+    // cout << "1" << endl;
     BlnkTemplateManager *  blnkTemplateManager_cancel = new BlnkTemplateManager(5, -1);
-    cout << "2" << endl;
+    // cout << "2" << endl;
     cancelLoanStruct.blnkTemplateManager_cancel = blnkTemplateManager_cancel;
-    cout << "3" << endl;
+    // cout << "3" << endl;
      BlnkTemplateManager * blnkTemplateManager_reverse = new BlnkTemplateManager(6, -1);
-    cout << "4" << endl;
+    // cout << "4" << endl;
     cancelLoanStruct.blnkTemplateManager_reverse = blnkTemplateManager_reverse;
-    cout << "5" << endl;
+    // cout << "5" << endl;
     
-    cout<<"before processs   "<<endl;
+    // cout<<"before processs   "<<endl;
 
     psqlQueryJoin->process(threadsCount, CancelLoanFunc,(void *)&cancelLoanStruct);
-    cout<<"after processs"<<endl;
+    // cout<<"after processs"<<endl;
 
 
     delete(blnkTemplateManager_cancel);

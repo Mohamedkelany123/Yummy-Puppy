@@ -255,7 +255,7 @@ class PSQLQueryPartitionIterator {
         {
             if (psqlQuery->fetchNextRow())
             {
-                T * obj = new T(data_source_name, partition_number);
+                T * obj = new T(data_source_name, false,true,partition_number);
                 // printf ("----- cloning ORM %p \n",obj);
                 obj->assignResults(psqlQuery);
                 return obj;
