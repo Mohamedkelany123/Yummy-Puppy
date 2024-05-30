@@ -74,7 +74,6 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
         PSQLGeneric_primitive_orm (string _data_source_name):PSQLAbstractORM (_data_source_name, "","", false){}
         void add (string name, string value){
             values[name] = value;
-
         }
         string get (string name){
             return values[name];

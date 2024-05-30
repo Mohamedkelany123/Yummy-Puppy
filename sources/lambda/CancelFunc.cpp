@@ -1,15 +1,21 @@
 #include <CancelFunc.h>
 
-void CancelLoanFunc (loan_app_loan_bl_orm * _lal_orm, int partition_number, mutex* shared_lock,void * extras) {
-    cout << "FIRST LEGGG AMOUNTTT" <<endl;
-    string is_included = _lal_orm->getExtra("is_included");
-    string cancellation_day = _lal_orm->getExtra("cancellation_day");
-    cout<< "loan id is "<<_lal_orm->get_id()<<endl;
+void CancelLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras) {
+    loan_app_loan_primitive_orm * _lal_orm  = ORML(loan_app_loan,orms_list,0);
+    
+    PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms_list,0);
+    string is_included = gorm->get("is_included");
+    string cancellation_day = gorm->get("cancellation_day");
 
 
     if (is_included=="t"){
         BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((CancelLoanStruct *) extras)->blnkTemplateManager_reverse,partition_number);
-        vector <ledger_amount_primitive_orm*>* la_orms = _lal_orm->get_ledger_amount_loan_id() ;   
+
+        vector <ledger_amount_primitive_orm*>* la_orms = new vector<ledger_amount_primitive_orm*>;
+        for ( int i = 0 ;i < ORML_SIZE(orms_list) ; i ++)
+        {
+            la_orms->push_back(ORML(ledger_amount,orms_list,i));
+        }
         ledger_entry_primitive_orm* entry = localTemplateManager->reverseEntry(la_orms,BDate(cancellation_day));
         if (_lal_orm->get_loan_upfront_fee()>0 && !_lal_orm->get_refund_upfront_fee_bool()){
             BlnkTemplateManager* localTemplateManager_cancel = new BlnkTemplateManager(((CancelLoanStruct *) extras)->blnkTemplateManager_cancel,partition_number);
@@ -32,3 +38,4 @@ void CancelLoanFunc (loan_app_loan_bl_orm * _lal_orm, int partition_number, mute
         delete localTemplateManager;
     }
 };
+

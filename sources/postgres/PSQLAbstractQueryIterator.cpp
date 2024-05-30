@@ -196,6 +196,7 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
                     aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
                     orms_list->clear();
                 }
+                
         } while (aggregate != "");
         delete (orms_list);
         // shared_lock->lock();

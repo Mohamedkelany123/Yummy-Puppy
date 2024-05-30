@@ -15,6 +15,6 @@ typedef struct {
 
 } CancelLoanStruct;
 
-void CancelLoanFunc (loan_app_loan_bl_orm * _lal_orm, int partition_number, mutex* shared_lock,void * extras);
+void CancelLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras);
 
 #endif 

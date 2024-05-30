@@ -1,14 +1,10 @@
 #include <CancelLoans.h>
 
 
-CancelLoan::CancelLoan(loan_app_loan_bl_orm * _lal_orm):LedgerClosureStep ()
+CancelLoan::CancelLoan(loan_app_loan_primitive_orm * _lal_orm):LedgerClosureStep ()
 {
-
     lal_orm = _lal_orm;    
-    
     template_id = 5;
-   
-
 }
 
 
@@ -33,11 +29,11 @@ LedgerAmount*  CancelLoan::_init_ledger_amount(){
 
 
 
-loan_app_loan_bl_orm* CancelLoan::get_loan_app_loan()  {
+loan_app_loan_primitive_orm* CancelLoan::get_loan_app_loan()  {
     return lal_orm;
 }
 
-void CancelLoan::set_loan_app_loan(loan_app_loan_bl_orm *_lal_orm)
+void CancelLoan::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
 {
     lal_orm = _lal_orm;
 }
@@ -61,7 +57,7 @@ void CancelLoan::set_template_id(int _template_id)
 
 LedgerAmount * CancelLoan::_get_upfront_fee(LedgerClosureStep *cancelLoan)
 {
-    loan_app_loan_bl_orm* loan_orm = ((CancelLoan*)cancelLoan)->get_loan_app_loan();
+    loan_app_loan_primitive_orm* loan_orm = ((CancelLoan*)cancelLoan)->get_loan_app_loan();
     double amount = ROUND(loan_orm->get_loan_upfront_fee() * !(loan_orm->get_refund_upfront_fee_bool()));
     LedgerAmount * ledgerAmount = ((CancelLoan*)cancelLoan)->_init_ledger_amount();
     ledgerAmount->setAmount(amount);

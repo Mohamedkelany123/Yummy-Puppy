@@ -108,7 +108,6 @@ void PSQLAbstractORM::lock_me(bool skip_owner)
     // cout << "locking :" << ss.str();
     // printf (" object %p\n",this);
     if (skip_owner && ss.str() == locking_thread) return;
-    if (orm_name == "lms_entrytemplate_primitive_orm") printf ("locking -> %p\n",this);
     lock.lock();
     locking_thread = ss.str();
 }
@@ -124,7 +123,6 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
     locking_thread = "";
     lock.try_lock();
     lock.unlock();
-    if (orm_name == "lms_entrytemplate_primitive_orm") printf ("unlocking -> %p\n",this);
 
 }
 

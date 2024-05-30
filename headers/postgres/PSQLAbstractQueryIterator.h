@@ -312,7 +312,6 @@ class PSQLJoinQueryPartitionIterator {
                     (*results)["PSQLGeneric"] = orm;            
                 }
                 else (*results)["PSQLGeneric"] = NULL;
-
                 return results;
             }
             else return NULL;
