@@ -178,7 +178,7 @@ LedgerAmount * DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
     loan_app_loan_bl_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double principal = loan_orm->get_principle();
     double merchant_to_blnk_fee = loan_orm->get_mer_t_bl_fee();
-    double amount = ROUND(principal * (merchant_to_blnk_fee / 100));
+    double amount = ROUND((principal * (merchant_to_blnk_fee / 100)));
     LedgerAmount * ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     ledgerAmount->setAmount(amount);
     return ledgerAmount;
@@ -187,7 +187,7 @@ LedgerAmount * DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disbu
 {
     loan_app_loan_bl_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double perc = ((DisburseLoan*)disburseLoan)->get_provision_percentage()/100;
-    double amount = ROUND(loan_orm->get_principle()*perc);
+    double amount = ROUND((loan_orm->get_principle()*perc));
 
     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     la->setAmount(amount);
@@ -209,7 +209,7 @@ LedgerAmount * DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
 {
     loan_app_loan_bl_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
     double perc = loan_orm->get_bl_t_mer_fee()/100;
-    double amount = ROUND(loan_orm->get_principle()*perc);
+    double amount = ROUND((loan_orm->get_principle()*perc));
     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
     la->setAmount(amount);
     return la;

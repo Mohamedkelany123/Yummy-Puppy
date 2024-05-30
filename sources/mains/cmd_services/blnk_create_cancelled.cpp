@@ -44,7 +44,7 @@ int main (int argc, char ** argv)
 {
 
     int threadsCount = 10;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }

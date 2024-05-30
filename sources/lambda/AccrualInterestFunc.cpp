@@ -11,25 +11,28 @@ void AccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partition_num
     LedgerClosureService * ledgerClosureService = new LedgerClosureService(&accrualInterest);
     accrualInterest.setupLedgerClosureService(ledgerClosureService);
     map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference();
-
     
-    localTemplateManager->setEntryData(ledgerAmounts);
-    string stamping_date = accrual_date;
-    if (settled_history != "" && nli_orm->get_payment_status() == 1 && BDate(settled_history)() < BDate(nli_orm->get_undue_to_due_date())()) {
-        stamping_date = settled_history;
-    }
+    if(ledgerAmounts != nullptr)
+    {
+        localTemplateManager->setEntryData(ledgerAmounts);
+        string stamping_date = accrual_date;
+        if (settled_history != "" && nli_orm->get_payment_status() == 1 && BDate(settled_history)() < BDate(nli_orm->get_undue_to_due_date())()) {
+            stamping_date = settled_history;
+        }
 
-    ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate(stamping_date));
-    map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
+        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate(stamping_date));
+        map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
 
-    if (entry) {
-        accrualInterest.stampORMs(leg_amounts);
+        if (entry) {
+            accrualInterest.stampORMs(leg_amounts);
+        }
+        else {
+            cerr << "Can not stamp ORM objects\n";
+            exit(1);
+        }
+        //We already update all the loans status after we finish the step
+        // lal_orm->set_closure_status(ledger_status::INTEREST_ACCRUAL);
     }
-    else {
-        cerr << "Can not stamp ORM objects\n";
-        exit(1);
-    }
-    lal_orm->set_closure_status(ledger_status::INTEREST_ACCRUAL);
 
     delete (ledgerClosureService);
 };
@@ -44,18 +47,23 @@ void PartialAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int partit
     LedgerClosureService * ledgerClosureService = new LedgerClosureService(&accrualInterest);
     accrualInterest.setupLedgerClosureService(ledgerClosureService);
     map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference();
-    localTemplateManager->setEntryData(ledgerAmounts);
-    ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate(stamping_date));
-    map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
+    if(ledgerAmounts != nullptr)
+    {
 
-    if (entry) {
-        accrualInterest.stampORMs(leg_amounts);
+        localTemplateManager->setEntryData(ledgerAmounts);
+        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate(stamping_date));
+        map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
+
+        if (entry) {
+            accrualInterest.stampORMs(leg_amounts);
+        }
+        else {
+            cerr << "Can not stamp ORM objects\n";
+            exit(1);
+        }
+        // lal_orm->set_closure_status(ledger_status::PARTIAL_INTEREST_ACCRUAL);
+
     }
-    else {
-        cerr << "Can not stamp ORM objects\n";
-        exit(1);
-    }
-    lal_orm->set_closure_status(ledger_status::PARTIAL_INTEREST_ACCRUAL);
 
     delete (ledgerClosureService);
 };
@@ -71,18 +79,22 @@ void SettlementAccrualInterestFunc (map<string, PSQLAbstractORM*>* orms, int par
     LedgerClosureService * ledgerClosureService = new LedgerClosureService(&accrualInterest);
     accrualInterest.setupLedgerClosureService(ledgerClosureService);
     map <string,LedgerAmount*> * ledgerAmounts = ledgerClosureService->inference();
-    localTemplateManager->setEntryData(ledgerAmounts);
-    ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate(stamping_date));
-    map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
+    if(ledgerAmounts != nullptr)
+    {
 
-    if (entry) {
-        accrualInterest.stampORMs(leg_amounts);
+        localTemplateManager->setEntryData(ledgerAmounts);
+        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate(stamping_date));
+        map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
+
+        if (entry) {
+            accrualInterest.stampORMs(leg_amounts);
+        }
+        else {
+            cerr << "Can not stamp ORM objects\n";
+            exit(1);
+        }
+        // lal_orm->set_closure_status(ledger_status::SETTLEMENT_INTEREST_ACCRUAL);
     }
-    else {
-        cerr << "Can not stamp ORM objects\n";
-        exit(1);
-    }
-    lal_orm->set_closure_status(ledger_status::SETTLEMENT_INTEREST_ACCRUAL);
 
     delete (ledgerClosureService);
 };

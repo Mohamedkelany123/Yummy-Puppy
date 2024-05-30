@@ -8,16 +8,20 @@ void DisburseLoanFunc (map<string, PSQLAbstractORM*>* orms, int partition_number
 
     disburseLoan.setupLedgerClosureService(ledgerClosureService);
     map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
-    localTemplateManager->setEntryData(ledgerAmounts);
+    if (ledgerAmounts != nullptr)
+    {
 
-    ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate("2024-05-15"));
-    ledger_amount_primitive_orm* la_orm = localTemplateManager->getFirstLedgerAmountORM();
+        localTemplateManager->setEntryData(ledgerAmounts);
 
-    if (entry && la_orm) {
-        disburseLoan.stampORMs(entry, la_orm);
-    } else {
-        cerr << "Cannot stamp ORM objects\n";
-        exit(1);
+        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate("2024-05-15"));
+        ledger_amount_primitive_orm* la_orm = localTemplateManager->getFirstLedgerAmountORM();
+
+        if (entry && la_orm) {
+            disburseLoan.stampORMs(entry, la_orm);
+        } else {
+            cerr << "Cannot stamp ORM objects\n";
+            exit(1);
+        }
     }
 
     delete localTemplateManager;

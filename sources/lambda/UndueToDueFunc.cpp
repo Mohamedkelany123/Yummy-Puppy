@@ -1,7 +1,6 @@
 #include <UndueToDueFunc.h>
 
 void InstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
-    cout << "Partitio numm: " << partition_number << endl;
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((UndueToDueStruct *) extras)->blnkTemplateManager, partition_number);
     BDate closing_day = ((UndueToDueStruct *) extras)->closing_day;
     
@@ -45,7 +44,6 @@ void StickyInstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int 
     BDate installment_day(lai_orm->get_day());
 
     //INTEREST--------------------------------------------------------------------------------------//
-    cout << "\n\nINTERESTT\n\n" << endl;
     UndueToDue undueToDueInterest = UndueToDue(orms, closing_day, 2);
     LedgerClosureService* interest_service = new LedgerClosureService(&undueToDueInterest);    
     undueToDueInterest.setupLedgerClosureService(interest_service);
@@ -57,7 +55,6 @@ void StickyInstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int 
             {
                 if((lsh_settle_charge_off_day() <= closing_day()) && (lsh_settle_charge_off_day() < installment_day()) && (nli_orm->get_is_interest_paid()) && ((*ledgerInterestAmounts)["Interest income becoming due"]->getAmount() != 0) )
                 {
-                    cout << "INTEREESTTTTTTTTTTTTTTTTT" << endl;
                     localTemplateManager->setEntryData(ledgerInterestAmounts);
                     ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(lsh_settle_charge_off_day);
                     nli_orm->set_undue_to_due_interest_ledger_amount_id(undue_to_due_interest_amount);
@@ -65,10 +62,9 @@ void StickyInstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int 
             }
         }
     }else{
-        cout << "No Amounts Were Created For Sticky Undue To Due Interest" << endl;
+        cout << "Nothing Created For Sticky Undue To Due Interest For InsId:" << lai_orm->get_id() << endl;
     }
     //PRINCIPAL--------------------------------------------------------------------------------------//
-    cout << "\n\nPRINCIPALLLLL\n\n" << endl;
     UndueToDue undueToDuePrincipal = UndueToDue(orms, closing_day, 3);
     LedgerClosureService* principal_service = new LedgerClosureService(&undueToDuePrincipal);    
     undueToDuePrincipal.setupLedgerClosureService(principal_service);
@@ -81,7 +77,7 @@ void StickyInstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int 
         ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(principal_entry_date);
         nli_orm->set_undue_to_due_ledger_amount_id(undue_to_due_amount);
     }else{
-        cout << "No Amounts Were Created For Sticky Undue To Due Principal" << endl;
+        cout << "Nothing Created For Sticky Undue To Due Principal For InsID:" << lai_orm->get_id() << endl;
     }
 
     //--------------------------------------------------------------------------------------//
