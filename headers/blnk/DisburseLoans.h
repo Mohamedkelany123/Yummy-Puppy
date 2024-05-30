@@ -13,19 +13,20 @@
 class DisburseLoan : public LedgerClosureStep
 {
     private:
-        loan_app_loan_bl_orm * lal_orm;
+        loan_app_loan_primitive_orm * lal_orm;
         loan_app_loanproduct_primitive_orm* lalp_orm;
         crm_app_customer_primitive_orm* cac_orm;
         float prov_percentage;
         float short_term_principal, long_term_principal;
         bool is_rescheduled;
+        vector <new_lms_installmentextension_primitive_orm *> * ie_list;
 
     public:
         map<string, funcPtr> funcMap;
-        DisburseLoan(map <string,PSQLAbstractORM *> * _orms, float _percentage);
+        DisburseLoan(vector<map <string,PSQLAbstractORM *> * > * _orms_list, float _percentage);
         
         //Setters
-        void set_loan_app_loan(loan_app_loan_bl_orm* _lal_orm);
+        void set_loan_app_loan(loan_app_loan_primitive_orm* _lal_orm);
         void set_loan_app_loanproduct(loan_app_loanproduct_primitive_orm* _lalp_orm);
         void set_template_id(int _template_id);
         void set_provision_percentage(float _provision_percentage);
@@ -37,7 +38,7 @@ class DisburseLoan : public LedgerClosureStep
         
 
         //Getters
-        loan_app_loan_bl_orm* get_loan_app_loan();
+        loan_app_loan_primitive_orm* get_loan_app_loan();
         loan_app_loanproduct_primitive_orm* get_loan_app_loanproduct();
         crm_app_customer_primitive_orm *get_crm_app_customer();
 

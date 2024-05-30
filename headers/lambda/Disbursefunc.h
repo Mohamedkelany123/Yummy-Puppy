@@ -12,6 +12,6 @@
         float current_provision_percentage;    
     } DisburseLoanStruct;
 
-    void DisburseLoanFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras);
+    void DisburseLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras);
 
     #endif 

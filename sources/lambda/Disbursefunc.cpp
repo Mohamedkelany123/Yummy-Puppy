@@ -1,16 +1,15 @@
 #include <Disbursefunc.h>
 
-void DisburseLoanFunc (map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
+void DisburseLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras) {
 
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((DisburseLoanStruct *) extras)->blnkTemplateManager, partition_number);
-    DisburseLoan disburseLoan(orms, ((DisburseLoanStruct *) extras)->current_provision_percentage);
+    DisburseLoan disburseLoan(orms_list, ((DisburseLoanStruct *) extras)->current_provision_percentage);
     LedgerClosureService* ledgerClosureService = new LedgerClosureService(&disburseLoan);
 
     disburseLoan.setupLedgerClosureService(ledgerClosureService);
     map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
     if (ledgerAmounts != nullptr)
     {
-
         localTemplateManager->setEntryData(ledgerAmounts);
 
         ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate("2024-05-15"));
