@@ -25,7 +25,7 @@ ThorsAnvil_MakeTrait(KeyValue, key, value);
 
 class POSTFawryInquiryInput
 {
-    private:
+    public:
         string msgCode;
         string sender;
         string receiver;
@@ -42,8 +42,7 @@ class POSTFawryInquiryInput
         string signature;
         vector<KeyValue>  extraBillingAccts;
         vector<KeyValue>  customProperties;
-    public:
-        
+
         friend struct ThorsAnvil::Serialize::Traits<POSTFawryInquiryInput>;
 };
 
