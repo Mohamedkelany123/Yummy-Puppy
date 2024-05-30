@@ -1,0 +1,36 @@
+{
+    "postFawryInquiryInput":{
+        "msgCode":"AHMED",
+        "sender":"AHMED",
+        "receiver":"AHMED",
+        "custLang":"AHMED",
+        "clientDt":"2022-01-15T13:24:11.329471",
+        "rqUID":"AHMED",
+        "asyncRqUID":"AHMED",
+        "terminalId":"AHMED",
+        "billingAcct":"01155689007",
+        "bankId":"AHMED",
+        "billTypeCode":"76586",
+        "deliveryMethod":"AHMED",
+        "signature":"JTYDWQR0mPY9c6FwOq7/Kh1WPbOdpxQlALw5fPzl8Mk=",
+        "extraBillingAccts":[],
+        "customProperties":[
+            {
+                "key": "PosSerialNumber",
+                "value": "1170648539"
+            },
+            {
+                "key": "BCR_VERSION",
+                "value": "1.7.119.146"
+            },
+            {
+                "key": "KeyToken",
+                "value": "fdb3bf60c8ce4c4a"
+            },
+            {
+                "key": "GWTK",
+                "value": "ocY5ucFwh5qSXUA32xWlYBxCM6bGmKPybNMqU39nbFGV4JMFxiMYyr5kTDeZNyiZ"
+            }
+        ]
+    }
+}
