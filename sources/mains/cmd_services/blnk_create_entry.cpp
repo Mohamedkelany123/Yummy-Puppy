@@ -4,6 +4,13 @@
 #include <common_orm.h>
 #include <common.h>
 #include <Disbursefunc.h>
+#include <CancelFunc.h>
+#include <AccrualInterest.h>
+#include <AccrualInterestFunc.h>
+#include <UndueToDueFunc.h>
+#include <PSQLUpdateQuery.h>
+
+
 
 //TODO: create special type for 
 
@@ -40,8 +47,10 @@ map<int,float> get_loan_status_provisions_percentage()
 
 int main (int argc, char ** argv)
 {
-
-    int threadsCount = 1;
+    // const char * step = "full_closure"; 
+    const char * step = "disburse"; 
+    string closure_date_string = "2024-06-01"; 
+    int threadsCount = 10;
     bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
@@ -52,46 +61,394 @@ int main (int argc, char ** argv)
     psqlController.setORMCacheThreads(threadsCount);
 
 
-    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-    {new loan_app_loan_bl_orm("main"),new loan_app_loanproduct_primitive_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
-    {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}, {{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}, {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
+    PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        ANDOperator(
+            new UnaryOperator ("loan_app_loan.id",ne,"14312")
+        ),
+        {{"closure_status",to_string(ledger_status::LEDGER_START)}}
+        );
+    psqlUpdateQuery.update();
 
-    psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
-    psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
-    psqlQueryJoin->addExtraFromField("(SELECT cap2.is_rescheduled FROM crm_app_purchase cap INNER JOIN crm_app_purchase cap2 ON cap.parent_purchase_id = cap2.id WHERE  cap.id = crm_app_purchase.id)","is_rescheduled");
+    if ( strcmp (step,"disburse") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+        {new loan_app_loan_bl_orm("main"),new loan_app_loanproduct_primitive_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+        {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}, {{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}, {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
 
-    string closure_date_string = "2024-06-01"; 
+        psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
+        psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
+        psqlQueryJoin->addExtraFromField("(SELECT cap2.is_rescheduled FROM crm_app_purchase cap INNER JOIN crm_app_purchase cap2 ON cap.parent_purchase_id = cap2.id WHERE  cap.id = crm_app_purchase.id)","is_rescheduled");
+
+        
+        psqlQueryJoin->filter(
+            ANDOperator 
+            (
+                // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
+                new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string)
+            )
+        );
+
+        psqlQueryJoin->setAggregates ({
+            {"loan_app_loan","id"},
+            {"loan_app_loanproduct","id"},
+            {"crm_app_customer","id"},
+            {"crm_app_purchase", "id"}
+        });
+
+        psqlQueryJoin->setOrderBy("loan_app_loan asc, loan_app_installment asc");
+
+        BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4, -1);
+        map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
+
+        DisburseLoanStruct disburseLoanStruct;
+        disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
+        disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
+
+        psqlQueryJoin->process_aggregate(threadsCount, DisburseLoanFunc,(void *)&disburseLoanStruct);
+
+
+        delete(blnkTemplateManager);
+        delete(psqlQueryJoin);
+
+        psqlController.ORMCommit(true,true,true, "main");  
+        
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+            ANDOperator(
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                //TODO: Change To update status comparing to the closure status of the step before it not gt 0
+                new UnaryOperator ("loan_app_loan.closure_status",gte,0)
+            ),
+            {{"closure_status",to_string(ledger_status::DISBURSE_LOAN)}}
+            );
+        psqlUpdateQuery.update();   
+    }
+
+
+
+    if ( strcmp (step,"cancel") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+        {new loan_app_loan_bl_orm("main"), new ledger_amount_primitive_orm("main")},
+        {{{"loan_app_loan","id"},{"ledger_amount","loan_id"}}});
+
+        psqlQueryJoin->addExtraFromField("(select count(*)>0 from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ closure_date_string +"\' and lal.loan_id = loan_app_loan.id)","is_included");
+        psqlQueryJoin->addExtraFromField("(select distinct lal.day from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.loan_id = loan_app_loan.id)","cancellation_day");
+        psqlQueryJoin->filter(
+            ANDOperator 
+            (
+                // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::CANCEL_LOAN-1)),
+                new UnaryOperator ("loan_app_loan.cancel_ledger_entry_id",isnull,"",true),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string),
+                new UnaryOperator ("loan_app_loan.status_id",in,"12,13")
+
+            )
+        );
+
+        psqlQueryJoin->setOrderBy("loan_app_loan.id asc, ledger_amount.id asc");
+        psqlQueryJoin->setAggregates ({
+            {"loan_app_loan","id"}
+        });
+
+        CancelLoanStruct cancelLoanStruct;
+
+        BlnkTemplateManager *  blnkTemplateManager_cancel = new BlnkTemplateManager(5, -1);
+        cancelLoanStruct.blnkTemplateManager_cancel = blnkTemplateManager_cancel;
+        BlnkTemplateManager * blnkTemplateManager_reverse = new BlnkTemplateManager(6, -1);
+        cancelLoanStruct.blnkTemplateManager_reverse = blnkTemplateManager_reverse;
+        
+        psqlQueryJoin->process_aggregate(threadsCount, CancelLoanFunc,(void *)&cancelLoanStruct);
+
+        delete(blnkTemplateManager_cancel);
+        delete(blnkTemplateManager_reverse);
+        delete(psqlQueryJoin);
+        
+        cout << "Startingggggggg Committtttttttt" << endl;
+        psqlController.ORMCommit(true,true,true, "main"); 
+
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+            ANDOperator(
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                new UnaryOperator ("loan_app_loan.closure_status",gte,0)
+            ),
+            {{"closure_status",to_string(ledger_status::DISBURSE_LOAN)}}
+
+            );
+        psqlUpdateQuery.update();   
+    }
+
+    if ( strcmp (step,"accrual") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        // Partial accrue interest aggregator
+        PSQLJoinQueryIterator * partialAccrualQuery = new PSQLJoinQueryIterator ("main",
+        {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+        {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
+        
+
     
-    psqlQueryJoin->filter(
-        ANDOperator 
-        (
-            // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
-            new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
-            new UnaryOperator ("loan_app_loan.loan_booking_day",lte,closure_date_string)
-        )
-    );
 
-    psqlQueryJoin->setAggregates ({
-        {"loan_app_loan","id"},
-        {"loan_app_loanproduct","id"},
-        {"crm_app_customer","id"},
-        {"crm_app_purchase", "id"}
-    });
+        partialAccrualQuery->filter(
+            ANDOperator (
+                new UnaryOperator("new_lms_installmentextension.partial_accrual_date", lte, closure_date_string),
+                // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::PARTIAL_INTEREST_ACCRUAL-1),
+                new UnaryOperator("new_lms_installmentextension.partial_accrual_ledger_amount_id", isnull, "", true),
+                new UnaryOperator("new_lms_installmentextension.expected_partial_accrual_amount", ne, 0),
+                new OROperator(
+                    new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", true),
+                    new ANDOperator(
+                        new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", false),
+                        new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date",gte, "new_lms_installmentextension.partial_accrual_date", true),
+                        new UnaryOperator("loan_app_loan.status_id", eq,15)
+                    ),
+                    new ANDOperator(
+                        new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", false),
+                        new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date",gt, "new_lms_installmentextension.partial_accrual_date", true),
+                        new UnaryOperator("loan_app_loan.status_id", ne,15)
+                    )
+                ),
+                new OROperator(
 
-    psqlQueryJoin->setOrderBy("loan_app_loan asc, loan_app_installment asc");
+                    new UnaryOperator("new_lms_installmentextension.is_interest_paid", eq, true),
+                    new ANDOperator(
+                        new UnaryOperator("new_lms_installmentextension.status_id", nin, "8, 15"),
+                        new OROperator(
+                            new UnaryOperator("new_lms_installmentextension.status_id", ne, 16),
+                            new UnaryOperator("new_lms_installmentextension.payment_status", ne, 3)
+                        )
+                    )
+                ),
+                new UnaryOperator("new_lms_installmentextension.status_id", nin, "12, 13"),
+                new UnaryOperator("loan_app_loan.status_id", nin, "12,13"),
+                new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
+                new UnaryOperator("new_lms_installmentextension.partial_accrual_date", ne, "new_lms_installmentextension.accrual_date", true),
+                new UnaryOperator ("loan_app_loan.id",ne,"14312")
+            )
+        );
+        partialAccrualQuery->setOrderBy("loan_app_loan.id");
+        BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
 
-    BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4, -1);
-    map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
+        AccrualInterestStruct partialAccrualInterestStruct = {
+            partialAccrualTemplateManager
+        };
 
-    DisburseLoanStruct disburseLoanStruct;
-    disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
-    disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
+        partialAccrualQuery->process(threadsCount, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
 
-    psqlQueryJoin->process_aggregate(threadsCount, DisburseLoanFunc,(void *)&disburseLoanStruct);
+        delete(partialAccrualTemplateManager);
+        delete(partialAccrualQuery);
+
+        psqlController.ORMCommit(true,true,true, "main"); 
+
+        //-------------------------------------------------------------------------------------------------------------------------------------------
+        // Accrue interest aggregator
+
+        PSQLJoinQueryIterator * accrualQuery = new PSQLJoinQueryIterator ("main",
+        {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+        {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
+
+        accrualQuery->addExtraFromField("(select day from loan_app_loanstatushistroy lalsh  where loan_app_loan.id=lalsh.loan_id and status_type =0 and previous_status_id =loan_app_loan.marginalization_bucket_id and lalsh.status_id>loan_app_loan.marginalization_bucket_id and day <= new_lms_installmentextension.partial_accrual_date and status_id not in (6,7,8,12,13,14,15,16) order by id desc limit 1)","marginalization_history");
+        accrualQuery->addExtraFromField("(select paid_at from payments_loanorder plo where plo.status=1 AND loan_app_loan.id=plo.loan_id order by paid_at desc limit 1)","last_order_date");
+        accrualQuery->addExtraFromField("(select day from loan_app_loanstatushistroy lalsh where loan_app_loan.id=lalsh.loan_id and lalsh.reversal_order_id is null and lalsh.status_type=0 and lalsh.status_id=8 order by id desc limit 1)","settled_history");
+
+        accrualQuery->filter(
+            ANDOperator (
+                // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
+                new OROperator (
+                    new UnaryOperator("new_lms_installmentextension.accrual_date", lte, closure_date_string),
+                    new ANDOperator(
+                        new UnaryOperator("new_lms_installmentextension.payment_status", eq, 1),
+                        new UnaryOperator("new_lms_installmentextension.accrual_date", gt, closure_date_string)
+                    )
+                ),
+                new UnaryOperator("new_lms_installmentextension.accrual_ledger_amount_id", isnull, "", true),
+                new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", true),
+                new UnaryOperator("new_lms_installmentextension.status_id", nin, "12, 13"),
+                new UnaryOperator("loan_app_loan.status_id", nin, "12, 13"),
+                new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
+                new UnaryOperator("new_lms_installmentextension.status_id", nin, "8, 15, 16"),
+                new UnaryOperator ("loan_app_loan.id",ne,"14312")
+            )
+        );
+
+        accrualQuery->setOrderBy("loan_app_loan.id");
+        
+        BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8, -1);
+
+        AccrualInterestStruct accrualInterestStruct = {
+            accrualTemplateManager
+        };
+        
+        accrualQuery->process(threadsCount, AccrualInterestFunc, (void*)&accrualInterestStruct);
+
+        delete(accrualTemplateManager);
+        delete(accrualQuery);
+        
+        psqlController.ORMCommit(true,true,true, "main");  
+
+        //-------------------------------------------------------------------------------------------------------------------------------------------
+        // Settlement accrue interest aggregator
+        PSQLJoinQueryIterator * settlementAccrualQuery = new PSQLJoinQueryIterator ("main",
+        {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+        {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
+        
+        settlementAccrualQuery->filter(
+            ANDOperator (
+                new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", lte, closure_date_string),
+                // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_INTEREST_ACCRUAL-1),
+                new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_ledger_amount_id", isnull, "", true),
+                new UnaryOperator("new_lms_installmentextension.status_id", nin, "12, 13"),
+                new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_amount", ne, 0),
+                new UnaryOperator("loan_app_loan.status_id", nin, "12, 13"),
+                new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
+                new UnaryOperator ("loan_app_loan.id",ne,"14312")
+            )
+        );
+
+        settlementAccrualQuery->setOrderBy("loan_app_loan.id");
+
+        BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8, -1);
+
+        AccrualInterestStruct settlementAccrualInterestStruct = {
+            settlementAccrualTemplateManager
+        };
+
+        settlementAccrualQuery->process(threadsCount, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
+
+        delete(settlementAccrualTemplateManager);
+        delete(settlementAccrualQuery);
+
+        psqlController.ORMCommit(true,true,true, "main");  
+
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        ANDOperator(
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            new UnaryOperator ("loan_app_loan.closure_status",gte,0)
+        ),
+        {{"closure_status",to_string(ledger_status::SETTLEMENT_INTEREST_ACCRUAL)}}
+
+        );
+        psqlUpdateQuery.update(); 
+    }
 
 
-    delete(blnkTemplateManager);
 
-    psqlController.ORMCommit(true,true,true, "main");  
+
+
+    if ( strcmp (step,"undueToDue") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator * installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
+        {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+        {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+
+
+        installments_becoming_due_iterator->filter(
+            ANDOperator 
+            (
+                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,closure_date_string),
+                // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::LEDGER_UNDUE_TO_DUE-1)),
+                new OROperator (
+                    new UnaryOperator ("new_lms_installmentextension.undue_to_due_ledger_amount_id ",isnull,"",true),
+                    new ANDOperator (
+                        new UnaryOperator ("new_lms_installmentextension.undue_to_due_interest_ledger_amount_id ",isnull,"",true),
+                        new UnaryOperator ("loan_app_installment.interest_expected",ne,"0")
+                    )
+                ),
+                new UnaryOperator ("loan_app_loan.status_id",nin,"12,13"),
+                new UnaryOperator ("new_lms_installmentextension.status_id",nin,"8,15,16,12,13")
+            )
+        );
+        
+        installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=8 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_paid_off_day");
+        installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=15 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_charge_off_day_status");
+        installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_amount");
+        installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_interest_amount");
+        
+        BlnkTemplateManager * undueToDueTemplateManager = new BlnkTemplateManager(10, -1);
+
+        UndueToDueStruct undueToDueStruct;
+        undueToDueStruct.blnkTemplateManager = undueToDueTemplateManager;
+        undueToDueStruct.closing_day = BDate(closure_date_string);
+
+        installments_becoming_due_iterator->process(threadsCount, InstallmentBecomingDueFunc, (void *)&undueToDueStruct);
+
+        delete(installments_becoming_due_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+
+
+        //----------------------------------------------------------------------------------------//
+        //----------------------------------------------------------------------------------------//
+        //----------------------------------------------------------------------------------------//
+
+        PSQLJoinQueryIterator * sticky_installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
+        {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+        {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
+
+        
+        sticky_installments_becoming_due_iterator->filter(
+            ANDOperator 
+            (
+                new OROperator (
+                    // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::LEDGER_UNDUE_TO_DUE-1)),
+                    new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,closure_date_string),
+                    new ANDOperator(
+                        new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
+                        new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,"interest_paid_at", true)
+                    )
+                ),
+
+                new UnaryOperator ("new_lms_installmentextension.payment_status",in,"2,4"),
+                new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,true),
+                new UnaryOperator ("new_lms_installmentextension.principal_paid_at",lte,closure_date_string),
+
+                new OROperator(
+                    new UnaryOperator ("new_lms_installmentextension.undue_to_due_ledger_amount_id",isnull,"", true),
+                    
+                    new ANDOperator(
+                        new UnaryOperator ("new_lms_installmentextension.settlement_accrual_interest_amount",gt,"0"),
+                        new UnaryOperator ("new_lms_installmentextension.undue_to_due_interest_ledger_amount_id",isnull,"",true)
+                    )
+                ),
+
+                new UnaryOperator ("loan_app_loan.status_id",nin,"12,13"),
+
+
+
+                new OROperator(
+                    new UnaryOperator ("new_lms_installmentextension.status_id",nin,"8,12,13"),
+                    new ANDOperator(
+                        new UnaryOperator ("new_lms_installmentextension.status_id",ne,"16"),
+                        new UnaryOperator ("new_lms_installmentextension.payment_status",ne,"3")
+                    )                
+                )
+            )
+        );
+
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=8 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_paid_off_day");
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=15 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_charge_off_day_status");
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 27 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_amount");
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_interest_amount");
+
+        UndueToDueStruct stickyUndueToDueStruct;
+        stickyUndueToDueStruct.blnkTemplateManager = undueToDueTemplateManager;
+        stickyUndueToDueStruct.closing_day = BDate(closure_date_string);
+
+        sticky_installments_becoming_due_iterator->process(threadsCount, StickyInstallmentBecomingDueFunc, (void *)&stickyUndueToDueStruct);
+
+        delete(sticky_installments_becoming_due_iterator);
+        delete(undueToDueTemplateManager);
+
+        psqlController.ORMCommit(true,true,true, "main");  
+        
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+            ANDOperator(
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                new UnaryOperator ("loan_app_loan.closure_status",gte,0)
+            ),
+            {{"closure_status",to_string(ledger_status::LEDGER_UNDUE_TO_DUE)}}
+
+            );
+        psqlUpdateQuery.update();  
+    }
+
+
     return 0;
 }

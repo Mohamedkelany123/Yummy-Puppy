@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 
     int threads_count = 10;
 
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     string closure_date_string = "2024-06-01"; 
 
 
-     // Partial accrue interest aggregator
+    // Partial accrue interest aggregator
     PSQLJoinQueryIterator * partialAccrualQuery = new PSQLJoinQueryIterator ("main",
     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});

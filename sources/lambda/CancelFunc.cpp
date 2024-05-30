@@ -38,4 +38,3 @@ void CancelLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int 
         delete localTemplateManager;
     }
 };
-
