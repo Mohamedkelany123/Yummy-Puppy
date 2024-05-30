@@ -42,7 +42,6 @@ class POSTFawryInquiryInput
         string signature;
         vector<KeyValue>  extraBillingAccts;
         vector<KeyValue>  customProperties;
-
         friend struct ThorsAnvil::Serialize::Traits<POSTFawryInquiryInput>;
 };
 
