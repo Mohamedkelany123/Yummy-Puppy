@@ -328,7 +328,7 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
         cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
     }
 }
-bool PSQLJoinQueryIterator::setDistinct (map <string,string> distinct_map)
+bool PSQLJoinQueryIterator::setDistinct (vector<pair<string,string>> distinct_map)
 {
     int count = 0;
     for (auto dm : distinct_map)

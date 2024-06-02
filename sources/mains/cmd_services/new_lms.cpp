@@ -1150,8 +1150,13 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
 
         // TODO:     change to new implementation when implemented
-        psqlQueryJoin->setDistinctString("distinct phone_number as \"162_phone_number\", \"crm_app_customer\".\"id\" as \"162_id\"");
-
+        // psqlQueryJoin->setDistinctString("distinct phone_number as \"162_phone_number\", \"crm_app_customer\".\"id\" as \"162_id\"");
+        vector<pair<string, string>> distinct_map = {
+        {"crm_app_customer", "id"},
+        {"crm_app_customer", "phone_number"}
+        };
+        psqlQueryJoin->setDistinct(distinct_map);
+        
         auto beforeProcess = std::chrono::high_resolution_clock::now();
                 
         string failed_customers_ids = "";

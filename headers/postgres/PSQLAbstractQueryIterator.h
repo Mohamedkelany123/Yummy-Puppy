@@ -232,7 +232,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // void setNativeSQL(string _sql);
         // void filter ( Expression const & e);
         // bool execute();
-        bool setDistinct (map <string,string> distinct_map);
+        bool setDistinct (vector<pair<string,string>> _distinct_map);
         bool setAggregates (map <string,string> _aggregate_map);
         ~PSQLJoinQueryIterator();
 };
