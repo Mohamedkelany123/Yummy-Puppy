@@ -4,13 +4,15 @@
 DisburseLoan::DisburseLoan(vector<map <string,PSQLAbstractORM *> * > * _orms_list, float _percentage):LedgerClosureStep ()
 {
     lal_orm = ORML(loan_app_loan,_orms_list,0);
-    lalp_orm = ORML(loan_app_loanproduct,_orms_list, 0);
     cac_orm = ORML(crm_app_customer,_orms_list,0);
 
     PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,_orms_list,0);
     short_term_principal = gorm->toFloat("short_term_principal");
     long_term_principal = gorm->toFloat("long_term_principal");
     is_rescheduled = gorm->toBool("is_rescheduled");  
+    transaction_upfront_income_banked = gorm->toJson("transaction_upfront_income_banked");  
+    transaction_upfront_income_unbanked = gorm->toJson("transaction_upfront_income_unbanked");  
+
     prov_percentage = _percentage;
     
     vector <new_lms_installmentextension_primitive_orm*>* nli_orms = new vector<new_lms_installmentextension_primitive_orm*>;
@@ -70,15 +72,14 @@ void DisburseLoan::stampORMs(ledger_entry_primitive_orm *entry, ledger_amount_pr
 float DisburseLoan::_calculate_loan_upfront_fee(){
     loan_app_loan_primitive_orm* lal_orm = get_loan_app_loan();
     crm_app_customer_primitive_orm* cac_orm = get_crm_app_customer();
-    loan_app_loanproduct_primitive_orm* lp_orm = get_loan_app_loanproduct();
     json upfront_fee;  
     float fee = 0.0;
 
     if (cac_orm->get_limit_source() == 1) {
-        upfront_fee = lp_orm-> get_transaction_upfront_income_banked();
+        upfront_fee = get_transaction_upfront_income_banked();
     }
     else {
-        upfront_fee = lp_orm-> get_transaction_upfront_income_unbanked();
+        upfront_fee = get_transaction_upfront_income_unbanked();
     }
     if (upfront_fee["type"] == "Paid in Cash") {
         if (upfront_fee["data"]["option"] == "flat_fee"){
@@ -103,12 +104,11 @@ float DisburseLoan::_calculate_loan_upfront_fee(){
     
 }
 
+json DisburseLoan::get_transaction_upfront_income_banked(){return transaction_upfront_income_banked;}
+json DisburseLoan::get_transaction_upfront_income_unbanked(){return transaction_upfront_income_unbanked;}
+
 loan_app_loan_primitive_orm* DisburseLoan::get_loan_app_loan()  {
     return lal_orm;
-}
-loan_app_loanproduct_primitive_orm *DisburseLoan::get_loan_app_loanproduct()
-{
-    return lalp_orm;
 }
 crm_app_customer_primitive_orm *DisburseLoan::get_crm_app_customer()
 {
@@ -132,11 +132,6 @@ void DisburseLoan::set_short_term_principal(float _short_term_principal){
 void DisburseLoan::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
 {
     lal_orm = _lal_orm;
-}
-
-void DisburseLoan::set_loan_app_loanproduct(loan_app_loanproduct_primitive_orm *_lalp_orm)
-{
-    lalp_orm = _lalp_orm;
 }
 void DisburseLoan::set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm)
 {

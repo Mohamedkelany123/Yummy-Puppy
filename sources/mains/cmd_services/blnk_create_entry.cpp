@@ -72,14 +72,16 @@ int main (int argc, char ** argv)
     if ( strcmp (step,"disburse") == 0 || strcmp (step,"full_closure") == 0)
     {
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new loan_app_loan_bl_orm("main"),new loan_app_loanproduct_primitive_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
-        {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}, {{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}, {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
+        {new loan_app_loan_bl_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+        {{{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}, {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
 
         psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
         psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
         psqlQueryJoin->addExtraFromField("(SELECT cap2.is_rescheduled FROM crm_app_purchase cap INNER JOIN crm_app_purchase cap2 ON cap.parent_purchase_id = cap2.id WHERE  cap.id = crm_app_purchase.id)","is_rescheduled");
 
-        
+        psqlQueryJoin->addExtraFromField("(select transaction_upfront_income_banked from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_banked");
+        psqlQueryJoin->addExtraFromField("(select  transaction_upfront_income_unbanked  from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_unbanked");
+
         psqlQueryJoin->filter(
             ANDOperator 
             (
@@ -91,12 +93,11 @@ int main (int argc, char ** argv)
 
         psqlQueryJoin->setAggregates ({
             {"loan_app_loan","id"},
-            {"loan_app_loanproduct","id"},
             {"crm_app_customer","id"},
             {"crm_app_purchase", "id"}
         });
 
-        psqlQueryJoin->setOrderBy("loan_app_loan asc, loan_app_installment asc");
+        psqlQueryJoin->setOrderBy("loan_app_loan.id asc, crm_app_customer.id asc , crm_app_purchase.id asc");
 
         BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4, -1);
         map<int,float> status_provision_percentage =  get_loan_status_provisions_percentage();
@@ -328,9 +329,6 @@ int main (int argc, char ** argv)
         );
         psqlUpdateQuery.update(); 
     }
-
-
-
 
 
     if ( strcmp (step,"undueToDue") == 0 || strcmp (step,"full_closure") == 0)

@@ -5,6 +5,7 @@ void DisburseLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, in
     DisburseLoan disburseLoan(orms_list, ((DisburseLoanStruct *) extras)->current_provision_percentage);
     LedgerClosureService* ledgerClosureService = new LedgerClosureService(&disburseLoan);
 
+
     disburseLoan.setupLedgerClosureService(ledgerClosureService);
     map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
 

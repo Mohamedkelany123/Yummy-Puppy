@@ -82,6 +82,7 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
         float toFloat (string name) { return atof(values[name].c_str());}
         double toLong (string name) { return atol(values[name].c_str());}
         bool toBool (string name) { return (values[name] == "t");}
+        json toJson (string name) { return (nlohmann::json::parse(values[name]));}
         // double toDouble (name) { return atoll(values[name].c_str());} need to be implemented using strtod
         string getFromString () { return "";}
         void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) {}
