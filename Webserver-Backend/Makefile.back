@@ -1,0 +1,85 @@
+OBJECTS=./objects
+SOURCES=./sources
+HEADERS=./headers
+BIN=./bin
+INCLUDES=-I$(HEADERS) -I$(SOURCES)
+DEBUG= -g
+C_PLUS_PLUS_FLAGS= -std=c++17 -fPIC 
+LINKFLAGS = -lpthread -ldl
+C_PLUS_PLUS= g++ 
+OBJECT_FILES= $(OBJECTS)/GarbageCollector.cpp.o \
+    $(OBJECTS)/HTTPExceptionHandler.cpp.o \
+    $(OBJECTS)/HTTPGETRequest.cpp.o \
+    $(OBJECTS)/HTTPMethodNotAllowedExceptionHandler.cpp.o \
+    $(OBJECTS)/HTTPNotAcceptableExceptionHandler.cpp.o \
+    $(OBJECTS)/HTTPNotFoundExceptionHandler.cpp.o \
+    $(OBJECTS)/HTTPPOSTRequest.cpp.o \
+    $(OBJECTS)/HTTPRequest.cpp.o \
+    $(OBJECTS)/HTTPRequestManager.cpp.o \
+    $(OBJECTS)/HTTPResponseHeader.cpp.o \
+    $(OBJECTS)/HTTPService.cpp.o \
+    $(OBJECTS)/HTTPServiceManager.cpp.o \
+    $(OBJECTS)/HTTPTransaction.cpp.o \
+    $(OBJECTS)/TCPServerSocket.cpp.o \
+    $(OBJECTS)/TCPSocket.cpp.o \
+	$(OBJECTS)/SharedObjectsManager.cpp.o \
+	$(OBJECTS)/ConfigFile.cpp.o	\
+	$(OBJECTS)/Logger.cpp.o \
+    $(OBJECTS)/blnk-ml.cpp.o 
+
+$(BIN)/blnk-ml:$(OBJECT_FILES)
+	$(C_PLUS_PLUS) $(DEBUG) $(OBJECT_FILES) -o $(BIN)/blnk-ml $(LINKFLAGS)
+$(OBJECTS)/blnk-ml.cpp.o: $(SOURCES)/blnk-ml.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/blnk-ml.cpp -o $(OBJECTS)/blnk-ml.cpp.o
+$(OBJECTS)/TCPSocket.cpp.o: $(SOURCES)/TCPSocket.cpp $(HEADERS)/TCPSocket.h
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/TCPSocket.cpp -o $(OBJECTS)/TCPSocket.cpp.o
+$(OBJECTS)/TCPServerSocket.cpp.o: $(SOURCES)/TCPServerSocket.cpp $(HEADERS)/TCPServerSocket.h
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/TCPServerSocket.cpp -o $(OBJECTS)/TCPServerSocket.cpp.o
+$(OBJECTS)/HTTPTransaction.cpp.o: $(SOURCES)/HTTPTransaction.cpp $(HEADERS)/HTTPTransaction.h
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPTransaction.cpp -o $(OBJECTS)/HTTPTransaction.cpp.o
+$(OBJECTS)/HTTPServiceManager.cpp.o: $(SOURCES)/HTTPServiceManager.cpp $(HEADERS)/HTTPServiceManager.h
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPServiceManager.cpp -o $(OBJECTS)/HTTPServiceManager.cpp.o
+$(OBJECTS)/HTTPService.cpp.o: $(SOURCES)/HTTPService.cpp $(HEADERS)/HTTPService.h
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPService.cpp -o $(OBJECTS)/HTTPService.cpp.o
+$(OBJECTS)/HTTPResponseHeader.cpp.o: $(SOURCES)/HTTPResponseHeader.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPResponseHeader.cpp -o $(OBJECTS)/HTTPResponseHeader.cpp.o
+$(OBJECTS)/HTTPRequestManager.cpp.o: $(SOURCES)/HTTPRequestManager.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPRequestManager.cpp -o $(OBJECTS)/HTTPRequestManager.cpp.o
+$(OBJECTS)/HTTPRequest.cpp.o: $(SOURCES)/HTTPRequest.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPRequest.cpp -o $(OBJECTS)/HTTPRequest.cpp.o
+$(OBJECTS)/HTTPPOSTRequest.cpp.o: $(SOURCES)/HTTPPOSTRequest.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPPOSTRequest.cpp -o $(OBJECTS)/HTTPPOSTRequest.cpp.o
+$(OBJECTS)/HTTPNotFoundExceptionHandler.cpp.o: $(SOURCES)/HTTPNotFoundExceptionHandler.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPNotFoundExceptionHandler.cpp -o $(OBJECTS)/HTTPNotFoundExceptionHandler.cpp.o
+$(OBJECTS)/HTTPNotAcceptableExceptionHandler.cpp.o: $(SOURCES)/HTTPNotAcceptableExceptionHandler.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPNotAcceptableExceptionHandler.cpp -o $(OBJECTS)/HTTPNotAcceptableExceptionHandler.cpp.o
+$(OBJECTS)/HTTPMethodNotAllowedExceptionHandler.cpp.o: $(SOURCES)/HTTPMethodNotAllowedExceptionHandler.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPMethodNotAllowedExceptionHandler.cpp -o $(OBJECTS)/HTTPMethodNotAllowedExceptionHandler.cpp.o
+$(OBJECTS)/HTTPGETRequest.cpp.o: $(SOURCES)/HTTPGETRequest.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPGETRequest.cpp -o $(OBJECTS)/HTTPGETRequest.cpp.o
+$(OBJECTS)/HTTPExceptionHandler.cpp.o: $(SOURCES)/HTTPExceptionHandler.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/HTTPExceptionHandler.cpp -o $(OBJECTS)/HTTPExceptionHandler.cpp.o
+$(OBJECTS)/GarbageCollector.cpp.o: $(SOURCES)/GarbageCollector.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/GarbageCollector.cpp -o $(OBJECTS)/GarbageCollector.cpp.o
+$(OBJECTS)/SharedObjectsManager.cpp.o: $(SOURCES)/SharedObjectsManager.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/SharedObjectsManager.cpp -o $(OBJECTS)/SharedObjectsManager.cpp.o
+$(OBJECTS)/ConfigFile.cpp.o: $(SOURCES)/ConfigFile.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/ConfigFile.cpp -o $(OBJECTS)/ConfigFile.cpp.o
+$(OBJECTS)/Logger.cpp.o: $(SOURCES)/Logger.cpp
+	$(C_PLUS_PLUS) $(DEBUG) $(C_PLUS_PLUS_FLAGS) -c $(INCLUDES) $(SOURCES)/Logger.cpp -o $(OBJECTS)/Logger.cpp.o
+
+
+
+clean:
+	rm -rf $(OBJECTS)/* $(BIN)/*
+all:
+	make $(BIN)/blnk-ml
+rebuild:
+	make clean
+	make all
+
+install:
+	mkdir -p /usr/local/bin/
+	cp ./bin/blnk-ml /usr/local/bin/
+	cp ./conf/blnk-ml.init /etc/init.d/blnk-ml
+	chmod a+x /etc/init.d/blnk-ml

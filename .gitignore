@@ -5,5 +5,9 @@ dso/*
 temp/*
 test/*
 factory/db_primitive_orm/*
+factory/db_business_logic_orm/objects
 makefile.vars
+Webserver-Backend/objects/*
+Webserver-Backend/objects_fpic/*
+Webserver-Backend/bin/*
 .vscode

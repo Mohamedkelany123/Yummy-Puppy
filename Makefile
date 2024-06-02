@@ -37,6 +37,10 @@ $(BIN_SHARED):
 	@mkdir -p $(BIN_SHARED)
 	@echo $(BIN_SHARED)
 
+$(ENDPOINTS_SHARED):
+	@mkdir -p $(ENDPOINTS_SHARED)
+	@echo $(ENDPOINTS_SHARED)
+
 $(DB_PRIMITIVE_ORM):
 	@mkdir -p $(DB_PRIMITIVE_ORM)
 	@echo $(DB_PRIMITIVE_ORM)
@@ -62,7 +66,7 @@ $(DB_BUSINESS_LOGIC_ORM_HEADERS):
 	@echo $(DB_BUSINESS_LOGIC_ORM_HEADERS)
 
 
-build_tree: $(SOURCES) $(OBJECTS) $(OBJECTS_MAIN) $(OBJECTS_CMD_MAIN) $(HEADERS) $(BIN) $(BIN_SERVICES) $(BIN_SHARED) $(DB_PRIMITIVE_ORM) $(DB_PRIMITIVE_ORM_SOURCES) $(DB_PRIMITIVE_ORM_HEADERS) $(DB_BUSINESS_LOGIC_ORM) $(DB_BUSINESS_LOGIC_ORM_SOURCES) $(DB_BUSINESS_LOGIC_ORM_HEADERS)
+build_tree: $(SOURCES) $(OBJECTS) $(OBJECTS_MAIN) $(OBJECTS_CMD_MAIN) $(HEADERS) $(BIN) $(BIN_SERVICES) $(ENDPOINTS_SHARED) $(BIN_SHARED) $(DB_PRIMITIVE_ORM) $(DB_PRIMITIVE_ORM_SOURCES) $(DB_PRIMITIVE_ORM_HEADERS) $(DB_BUSINESS_LOGIC_ORM) $(DB_BUSINESS_LOGIC_ORM_SOURCES) $(DB_BUSINESS_LOGIC_ORM_HEADERS)
 	@echo "Tree Built ....."
 
 clean:
@@ -78,10 +82,6 @@ SRC_MAINS = $(wildcard $(SOURCES)/mains/*.cpp)
 OBJS_MAINS = $(patsubst $(SOURCES)/mains/%.cpp, $(OBJECTS)/mains/%.cpp.o, $(SRC_MAINS))
 MAIN_BINS = $(patsubst $(SOURCES)/mains/%.cpp, $(BIN)/%, $(SRC_MAINS))
 
-SRC_CMD_MAINS = $(wildcard $(SOURCES)/mains/cmd_services/*.cpp)
-OBJS_CMD_MAINS = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(OBJECTS)/mains/cmd_services/%.cpp.o, $(SRC_CMD_MAINS))
-MAIN_CMD_BINS = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(BIN)/cmd_services/%, $(SRC_CMD_MAINS))
-MAIN_CMD_SHARED = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(BIN_SHARED)/%.so, $(SRC_CMD_MAINS))
 
 SRC_ABSTRACT = $(wildcard $(SOURCES)/abstract/*.cpp)
 OBJS_ABSTRACT = $(patsubst $(SOURCES)/abstract/%.cpp, $(OBJECTS)/%.cpp.o, $(SRC_ABSTRACT))
@@ -93,8 +93,16 @@ OBJS_POSTGRES = $(patsubst $(SOURCES)/postgres/%.cpp, $(OBJECTS)/%.cpp.o, $(SRC_
 SRC_BLNK = $(wildcard $(SOURCES)/blnk/*.cpp)
 OBJS_BLNK = $(patsubst $(SOURCES)/blnk/%.cpp, $(OBJECTS)/%.cpp.o, $(SRC_BLNK))
 
+SRC_BACKEND = $(wildcard $(BACKEND_SERVER_SOURCES)/*.cpp)
+OBJS_BACKEND = $(patsubst $(BACKEND_SERVER_SOURCES)/%.cpp, $(BACKEND_SERVER_OBJECTS)/%.cpp.o, $(SRC_BACKEND))
+
+
+
+SRC_ENDPOINTS = $(wildcard $(SOURCES)/endpoints/*.cpp)
+OBJS_ENDPOINTS = $(patsubst $(SOURCES)/endpoints/%.cpp, $(OBJECTS)/endpoints/%.cpp.o, $(SRC_ENDPOINTS))
+
 SRC_LAMBDA = $(wildcard $(SOURCES)/lambda/*.cpp)
-OBJS_LAMBDA = $(patsubst $(SOURCES)/lambda/%.cpp, $(OBJECTS)/%.cpp.o, $(SRC_LAMBDA))
+OBJS_LAMBDA = $(patsubst $(SOURCES)/lambda/%.cpp, $(OBJECTS)/lambda/%.cpp.o, $(SRC_LAMBDA))
 
 SRC_FACTORY = $(wildcard $(DB_PRIMITIVE_ORM_SOURCES)/*.cpp)
 OBJS_FACTORY = $(patsubst $(DB_PRIMITIVE_ORM_SOURCES)/%.cpp, $(OBJECTS)/%.cpp.o, $(SRC_FACTORY))
@@ -105,6 +113,15 @@ OBJS_BL_FACTORY = $(patsubst $(DB_BUSINESS_LOGIC_ORM_SOURCES)/%.cpp, $(OBJECTS)/
 
 SRC_POSTGRES_COLUMN_TYPES = $(wildcard $(SOURCES)/postgres/column_types/*.cpp)
 OBJS_POSTGRES_COLUMN_TYPES = $(patsubst $(SOURCES)/postgres/column_types/%.cpp, $(OBJECTS)/%.cpp.o, $(SRC_POSTGRES_COLUMN_TYPES))
+
+
+
+SRC_CMD_MAINS = $(wildcard $(SOURCES)/mains/cmd_services/*.cpp)
+OBJS_CMD_MAINS = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(OBJECTS)/mains/cmd_services/%.cpp.o, $(SRC_CMD_MAINS))
+MAIN_CMD_BINS = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(BIN)/cmd_services/%, $(SRC_CMD_MAINS))
+MAIN_CMD_SHARED = $(patsubst $(SOURCES)/mains/cmd_services/%.cpp, $(BIN_SHARED)/%.so, $(SRC_CMD_MAINS))
+MAIN_ENDPOINT_SHARED = $(patsubst $(SOURCES)/endpoints/%.cpp, $(ENDPOINTS_SHARED)/%.so, $(SRC_ENDPOINTS))
+
 
 
 
@@ -129,7 +146,10 @@ $(OBJECTS)/%.cpp.o: $(SOURCES)/postgres/%.cpp
 
 $(OBJECTS)/%.cpp.o: $(SOURCES)/blnk/%.cpp
 	$(GCC)  $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
-	
+
+$(OBJECTS)/endpoints/%.cpp.o: $(SOURCES)/endpoints/%.cpp
+	$(GCC)  $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
+
 $(OBJECTS)/%.cpp.o: $(SOURCES)/lambda/%.cpp
 	$(GCC)  $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
 
@@ -143,16 +163,20 @@ $(OBJECTS)/%.cpp.o: $(SOURCES)/%.cpp
 # $(ORM_C_PLUS_PLUS): $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(ORM_C_PLUS_PLUS_OBJ)
 # 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(ORM_C_PLUS_PLUS_OBJ) -o $(ORM_C_PLUS_PLUS) $(LINKER_FLAGS) 
 
-.SECONDARY: $(OBJS_MAINS) $(OBJS) $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $(OBJS_CMD_MAINS)
+.SECONDARY: $(OBJS_MAINS) $(OBJS) $(OBJS_ENDPOINTS) $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $(OBJS_CMD_MAINS)
 
 $(BIN_SERVICES)/%: $(OBJECTS)/mains/cmd_services/%.cpp.o $(OBJS) $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  
-	$(GCC) $(INCLUDES) $(LEDGERINCLUDES)  $(LIBS) $(OBJS) $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)   $< -o $@ $(LINKER_FLAGS)
+	$(GCC) $(INCLUDES) $(LEDGERINCLUDES)  $(LIBS) $(OBJS)  $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)   $< -o $@ $(LINKER_FLAGS)
 
-$(BIN_SHARED)/%.so: $(OBJECTS)/mains/cmd_services/%.cpp.o $(OBJS) $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  
-	$(GCC) -shared $(INCLUDES) $(LEDGERINCLUDES) $(LIBS) $(OBJS) $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $< -o $@ $(LINKER_FLAGS)
+$(BIN_SHARED)/%.so: $(OBJECTS)/mains/cmd_services/%.cpp.o $(OBJS)  $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  
+	$(GCC) -shared $(INCLUDES) $(LEDGERINCLUDES) $(LIBS) $(OBJS)  $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $< -o $@ $(LINKER_FLAGS)
 
 $(BIN)/%: $(OBJECTS)/mains/%.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) 
 	$(GCC) $(INCLUDES) $(LIBS) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $< -o $@ $(LINKER_FLAGS)
+
+
+$(ENDPOINTS_SHARED)/%.so: $(OBJECTS)/endpoints/%.cpp.o $(OBJS) $(OBJS_BACKEND) $(OBJS_BLNK) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  
+	$(GCC) -shared $(INCLUDES) $(LEDGERINCLUDES) $(LIBS) $(OBJS) $(OBJS_BACKEND) $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $< -o $@ $(LINKER_FLAGS)
 
 
 # $(BIN)/blnk_create_cancelled: $(OBJECTS)/mains/cmd_services/blnk_create_cancelled.cpp.o $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) 
@@ -168,10 +192,14 @@ orm_c++: build_tree  $(MAIN_BINS)
 
 
 services: build_tree  $(MAIN_CMD_BINS)
+	@echo $(MAIN_CMD_BINS)
 	@echo "Generating Executable"
 
 services_dso: build_tree  $(MAIN_CMD_SHARED)
 	@echo "Generating Executable"
+
+endpoints: build_tree $(MAIN_ENDPOINT_SHARED)
+	@echo "Generating Endpoints"
 
 closure_go: 
 	bash closure_go.sh
@@ -183,7 +211,7 @@ TEST_OBJ = $(patsubst $(TEST_DIR)/%.cpp, $(TEST_OBJ_DIR)/%.cpp.o, $(TEST_SRC))
 
 
 $(TEST_BIN): $(TEST_OBJ) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $(TEST_BIN_DIR)
-	$(GCC) $(INCLUDES) $(LIBS) $(GTEST_INCLUDE) -g -o $@ $(TEST_OBJ) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $(GTEST_LIB) $(LINKER_FLAGS)
+	$(GCC) $(INCLUDES) $(LIBS) $(GTEST_INCLUDE) -g -o $@ $(TEST_OBJ) $(OBJS) $(OBJS_ABSTRACT) $(OBJS_ENDPOINTS) $(OBJS_BLNK) $(OBJS_LAMBDA) $(OBJS_POSTGRES) $(OBJS_POSTGRES_COLUMN_TYPES) $(OBJS_FACTORY) $(OBJS_BL_FACTORY)  $(GTEST_LIB) $(LINKER_FLAGS)
 
 $(TEST_OBJ_DIR)/%.cpp.o: $(TEST_DIR)/%.cpp $(TEST_OBJ_DIR)
 	$(GCC) $(GCC_FLAGS) $(INCLUDES) -g -c $< -o $@

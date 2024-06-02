@@ -1,0 +1,24 @@
+include leaf_makefile.vars
+
+
+CUR_DIR=$(shell pwd)
+OBJ_DIR=$(subst sources,objects,$(CUR_DIR))
+SRC = $(wildcard $(CUR_DIR)/*.cpp)
+OBJS = $(patsubst $(CUR_DIR)/%.cpp, $(OBJ_DIR)/%.cpp.oo, $(SRC))
+
+$(OBJ_DIR)/%.cpp.oo: $(CUR_DIR)/%.cpp
+	$(GCC) -D SKIP_ENTRY_POINT $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
+$(OBJ_DIR):
+	@mkdir -p $(OBJ_DIR)
+#	@echo $(OBJ_DIR)
+
+build_tree: $(OBJ_DIR)
+	@echo "Tree Built"
+
+all: build_tree $(OBJS)
+#	@echo $(CUR_DIR)
+#	@echo $(OBJ_DIR)
+#	@echo $(OBJS)
+
+clean:
+	rm -rf $(OBJ_DIR)/*

@@ -1,0 +1,75 @@
+#!/bin/bash
+#                                                                                                                     
+# Init file for initialization of Blnk ML environment
+#
+# chkconfig: 2345 90 10
+# description: blnk-ml initialization script
+# 
+#. /etc/rc.d/init.d/functions
+
+RETVAL=0
+
+start_blnkml()
+{
+        PID=`/bin/pidof blnk-ml`
+        if [ -z "$PID" ]; then
+                LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu/:/usr/local/lib/ /usr/local/bin/blnk-ml 2> /dev/null
+                PID=`/bin/pidof blnk-ml`
+                echo "Blnk ML daemon initiated: $PID"
+        else
+                echo "Blnk ML is already started: $PID"
+        fi
+}
+
+kill_blnkml ()
+{
+        PID=`/bin/pidof blnk-ml`
+        if [ -z "$PID" ]; then
+                echo "Blnk-ML server daemon not started"
+        else
+                kill -9 $PID
+                echo "Blnk-ML server daemon killed: $PID"
+        fi
+}
+
+services_status ()
+{
+        PID=`/bin/pidof blnk-ml`
+        echo "Blnk-ML Process alive: $PID"
+}
+
+start()
+{
+        start_blnkml
+}
+
+stop()
+{
+        kill_blnkml
+}
+
+
+case "$1" in
+start)
+start
+;;
+stop)
+stop
+;;
+status)
+services_status
+;;
+restart)
+stop
+start
+;;
+condrestart)
+echo "not implemented"
+;;
+
+*)
+echo $"Usage: $0 {start|stop|restart|status}"
+RETVAL=1
+esac
+
+exit $RETVAL

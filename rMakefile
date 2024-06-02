@@ -1,0 +1,15 @@
+SUBDIRS := $(wildcard sources/*/.)
+RULE_NAME=abc
+
+
+all: all_rule_name $(SUBDIRS)
+
+$(SUBDIRS):
+	$(MAKE) -C $@ $(RULE_NAME)
+#	@echo $(SUBDIRS)
+
+all_rule_name:
+	$(eval RULE_NAME := all)
+	@echo $(RULE_NAME)
+
+.PHONY: all $(SUBDIRS)

@@ -1,0 +1,73 @@
+include leaf_makefile.vars
+
+
+CUR_DIR=$(shell pwd)
+BIN_DIR=$(subst sources,bin,$(CUR_DIR))
+OBJ_DIR=$(subst sources,objects,$(CUR_DIR))
+SRC = $(wildcard $(CUR_DIR)/*.cpp)
+BINS = $(patsubst $(CUR_DIR)/%.cpp, $(BIN_DIR)/%, $(SRC))
+
+ALL_OBJECTS = $(shell find $(HOME_PATH) -name "*.cpp.o" )
+
+
+# SRC = $(wildcard $(SOURCES)/*.cpp)
+# OBJS = $(patsubst $(SOURCES)/%.cpp, $(OBJECTS)/%.cpp.o, $(SRC))
+
+
+# SRC_MAINS = $(wildcard $(SOURCES)/mains/*.cpp)
+# OBJS_MAINS = $(patsubst $(SOURCES)/mains/%.cpp, $(OBJECTS)/mains/%.cpp.o, $(SRC_MAINS))
+
+
+SRC_ABSTRACT = $(wildcard $(SOURCES)/abstract/*.cpp)
+OBJS_ABSTRACT = $(patsubst $(SOURCES)/abstract/%.cpp, $(OBJECTS)/abstract/%.cpp.o, $(SRC_ABSTRACT))
+
+
+SRC_POSTGRES = $(wildcard $(SOURCES)/postgres/*.cpp)
+OBJS_POSTGRES = $(patsubst $(SOURCES)/postgres/%.cpp, $(OBJECTS)/postgres/%.cpp.o, $(SRC_POSTGRES))
+
+SRC_BLNK = $(wildcard $(SOURCES)/blnk/*.cpp)
+OBJS_BLNK = $(patsubst $(SOURCES)/blnk/%.cpp, $(OBJECTS)/blnk/%.cpp.o, $(SRC_BLNK))
+
+
+SRC_UTILS = $(wildcard $(SOURCES)/utils/*.cpp)
+OBJS_UTILS = $(patsubst $(SOURCES)/utils/%.cpp, $(OBJECTS)/utils/%.cpp.o, $(SRC_UTILS))
+
+SRC_BACKEND = $(wildcard $(BACKEND_SERVER_SOURCES)/*.cpp)
+OBJS_BACKEND = $(patsubst $(BACKEND_SERVER_SOURCES)/%.cpp, $(BACKEND_SERVER_OBJECTS)/%.cpp.o, $(SRC_BACKEND))
+
+SRC_ENDPOINTS = $(wildcard $(SOURCES)/endpoints/*.cpp)
+OBJS_ENDPOINTS = $(patsubst $(SOURCES)/endpoints/%.cpp, $(OBJECTS)/endpoints/%.cpp.o, $(SRC_ENDPOINTS))
+
+SRC_LAMBDA = $(wildcard $(SOURCES)/lambda/*.cpp)
+OBJS_LAMBDA = $(patsubst $(SOURCES)/lambda/%.cpp, $(OBJECTS)/lambda/%.cpp.o, $(SRC_LAMBDA))
+
+SRC_FACTORY = $(wildcard $(DB_PRIMITIVE_ORM_SOURCES)/*.cpp)
+OBJS_FACTORY = $(patsubst $(DB_PRIMITIVE_ORM_SOURCES)/%.cpp, $(DB_PRIMITIVE_ORM_OBJECTS)/%.cpp.o, $(SRC_FACTORY))
+
+
+SRC_BL_FACTORY = $(wildcard $(DB_BUSINESS_LOGIC_ORM_SOURCES)/*.cpp)
+OBJS_BL_FACTORY = $(patsubst $(DB_BUSINESS_LOGIC_ORM_SOURCES)/%.cpp, $(DB_BUSINESS_LOGIC_ORM_OBJECTS)/%.cpp.o, $(SRC_BL_FACTORY))
+
+SRC_POSTGRES_COLUMN_TYPES = $(wildcard $(SOURCES)/column_types/*.cpp)
+OBJS_POSTGRES_COLUMN_TYPES = $(patsubst $(SOURCES)/column_types/%.cpp, $(OBJECTS)/column_types/%.cpp.o, $(SRC_POSTGRES_COLUMN_TYPES))
+
+
+
+$(BIN_DIR)/%: $(OBJ_DIR)/%.cpp.oo
+	$(GCC) -std=c++17 $(LIBS) $(ALL_OBJECTS) $< -o $@ $(LINKER_FLAGS)
+#	$(GCC) -std=c++17 $(INCLUDES) $(LIBS) $(OBJS_ABSTRACT) $(OBJS_UTILS)  $(OBJS_POSTGRES) $(OBJS_BLNK) $(OBJS_FACTORY) $(OBJS_LAMBDA) $(OBJS_BL_FACTORY)  $(OBJS_POSTGRES_COLUMN_TYPES) $< -o $@ $(LINKER_FLAGS)
+
+$(BIN_DIR):
+	@mkdir -p $(BIN_DIR)
+#	@echo $(OBJ_DIR)
+
+build_tree: $(BIN_DIR)
+	@echo "Tree Built"
+
+all: build_tree $(BINS)
+#	@echo $(CUR_DIR)
+#	@echo $(OBJ_DIR)
+#	@echo $(OBJS)
+
+clean:
+	rm -rf $(BIN_DIR)/*

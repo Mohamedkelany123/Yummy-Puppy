@@ -1,0 +1,17 @@
+MAKE_DIR_TEMP=$(shell find ./*/ -maxdepth 1 -iname "*makefile*" )
+MAKE_DIR=$(subst /Makefile,.,$(MAKE_DIR_TEMP))
+
+
+all:
+	$(foreach src, $(MAKE_DIR), echo  ${src})
+
+#$(SUBDIRS):
+#ifeq (,$(wildcard $@/Makefile))
+#	@echo $@
+#endif
+
+#$(files):
+#	@echo $(files)
+#	$(MAKE) -C $@ all
+
+.PHONY: $(SUBDIRS) $(MAKE_DIR) $(files)

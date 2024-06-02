@@ -1,0 +1,50 @@
+SUBDIRS := $(wildcard */.)
+MAKE_DIR_TEMP=$(shell find ./*/ -maxdepth 1 -iname "Makefile" )
+MAKE_DIR=$(subst /Makefile,.,$(MAKE_DIR_TEMP))
+RULE_NAME=abc
+
+make_target: 
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/Makefile ]; then \
+				echo "processing folder $$a"; \
+				$(MAKE) -C $$a $(RULE_NAME); \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/bin_makefile ]; then \
+				echo "processing folder $$a"; \
+				$(MAKE) -C $$a -f bin_makefile $(RULE_NAME); \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+
+all: all_rule_name make_target
+#	$(foreach src, $(MAKE_DIR), $(shell echo $(src) $(RULE_NAME)) )
+
+#all: all_rule_name $(SUBDIRS)
+#	@echo "Hello all"
+
+#$(SUBDIRS):
+#	-$(MAKE) -s -C $@ $(RULE_NAME)
+#	@echo $(SUBDIRS)
+
+all_rule_name:
+	$(eval RULE_NAME := all)
+#	@echo $(RULE_NAME)
+
+clean_rule_name:
+	$(eval RULE_NAME := clean)
+#	@echo $(RULE_NAME)
+
+clean: clean_rule_name make_target
+
+.PHONY: all clean
+
+
