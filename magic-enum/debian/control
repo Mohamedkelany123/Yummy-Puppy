@@ -1,0 +1,22 @@
+Source: magic-enum
+Priority: optional
+Section: libs
+Maintainer: Stephan Lachnit <stephanlachnit@debian.org>
+Build-Depends: debhelper-compat (= 13),
+               cmake,
+Rules-Requires-Root: no
+Standards-Version: 4.6.2
+Homepage: https://github.com/Neargye/magic_enum
+Vcs-Git: https://salsa.debian.org/debian/magic-enum.git
+Vcs-Browser: https://salsa.debian.org/debian/magic-enum
+
+Package: libmagicenum-dev
+Section: libdevel
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}
+Description: C++ library providing static reflection for enums
+ magic_enum is a popular C++17 header-only library that provides static
+ reflection for enums. It works with any enum type and does not require any
+ macros or boilerplate code. It provides static reflection features such as
+ to_string, from_string, iteration, etc., to C++ enums.

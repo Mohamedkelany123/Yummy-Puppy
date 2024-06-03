@@ -1,0 +1,17 @@
+{
+    "server_config":{
+        "listen_address" : "0.0.0.0",
+        "port_number" : "8080",
+        "listen queue": "100000",
+        "post_max_size" : "100000000",
+        "logfile" : "/Users/kmsobh/blnk/Webserver-Backend/LogFile.log",
+        "loglevel" : "LOG_LEVEL_DEBUG",
+        "logtype" : "CONSOLE",
+        "daemon": false
+        },
+        "AdvancedBlnkML": {
+            "http_path": "/testing",
+            "so_path" : "/Users/kmsobh/blnk/orm_c++/dso/endpoints/first.so",
+	        "New_BlnkML_ConfigFile" : "/Users/kmsobh/blnk/repos/New-blnk-ml/ml-config.json"
+        }
+}

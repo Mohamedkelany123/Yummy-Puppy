@@ -1,0 +1,91 @@
+SUBDIRS := $(wildcard */.)
+MAKE_DIR_TEMP=$(shell find ./*/ -maxdepth 1 -iname "Makefile" )
+MAKE_DIR=$(subst /Makefile,.,$(MAKE_DIR_TEMP))
+RULE_NAME=all
+
+
+
+
+make_target_cpp: 
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/Makefile ]; then \
+				echo "processing folder $$a"; \
+				if ! $(MAKE) -C $$a -f Makefile make_target_cpp ; then \
+					exit 1;\
+				fi; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+make_target_bin: make_target_cpp
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/bin_makefile ]; then \
+				echo "processing folder $$a"; \
+				if ! $(MAKE) -C $$a -f bin_makefile all; then \
+					exit 1; \
+				fi; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+make_target_dso: make_target_cpp
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/dso_makefile ]; then \
+				echo "processing folder $$a"; \
+				if ! $(MAKE) -C $$a -f dso_makefile all; then \
+					exit 1;\
+				fi; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+all:   make_target_dso make_target_bin
+
+
+make_target_cpp_clean: 
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/Makefile ]; then \
+				echo "processing folder $$a"; \
+				if ! $(MAKE) -C $$a -f Makefile clean ; then \
+					exit 1;\
+				fi; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+
+make_target_bin_clean:
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/bin_makefile ]; then \
+				echo "processing folder $$a"; \
+				$(MAKE) -C $$a -f bin_makefile clean; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+make_target_dso_clean: 
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/dso_makefile ]; then \
+				echo "processing folder $$a"; \
+				$(MAKE) -C $$a -f dso_makefile clean ; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+clean: make_target_cpp_clean make_target_bin_clean make_target_dso_clean
+
+.PHONY: all clean make_target_cpp make_target_bin make_target_dso make_target_cpp_clean make_target_bin_clean make_target_dso_clean
+
+

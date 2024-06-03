@@ -1,0 +1,2 @@
+Tests: examples
+Depends: @, build-essential, cmake, ninja-build
