@@ -14,3 +14,8 @@ orm_c++:
 	$(MAKE) -C sources/utils make_target_cpp
 	$(MAKE) -C sources/mains/orm_generator make_target_cpp
 	$(MAKE) -C sources/mains/orm_generator -f bin_makefile  all
+
+clean_primitive:
+	rm -rf ./factory/db_primitive_orm/headers/*.h
+	rm -rf ./factory/db_primitive_orm/sources/*.cpp
+
