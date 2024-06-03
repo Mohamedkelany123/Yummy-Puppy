@@ -1,50 +1,87 @@
 SUBDIRS := $(wildcard */.)
 MAKE_DIR_TEMP=$(shell find ./*/ -maxdepth 1 -iname "Makefile" )
 MAKE_DIR=$(subst /Makefile,.,$(MAKE_DIR_TEMP))
-RULE_NAME=abc
+RULE_NAME=all
 
-make_target: 
+
+
+
+make_target_cpp: 
 	@for a in $$(ls); do \
 		if [ -d $$a ]; then \
 			if [ -f $$a/Makefile ]; then \
 				echo "processing folder $$a"; \
-				$(MAKE) -C $$a $(RULE_NAME); \
+				if ! $(MAKE) -C $$a -f Makefile make_target_cpp ; then \
+					exit 1;\
+				fi; \
 			fi; \
 		fi; \
 	done;
 	@echo "Done!"
 
+make_target_bin: make_target_cpp
 	@for a in $$(ls); do \
 		if [ -d $$a ]; then \
 			if [ -f $$a/bin_makefile ]; then \
 				echo "processing folder $$a"; \
-				$(MAKE) -C $$a -f bin_makefile $(RULE_NAME); \
+				$(MAKE) -C $$a -f bin_makefile all; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+make_target_dso: make_target_cpp
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/dso_makefile ]; then \
+				echo "processing folder $$a"; \
+				$(MAKE) -C $$a -f dso_makefile all; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
+
+all:   make_target_dso make_target_bin
+
+
+make_target_cpp_clean: 
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/Makefile ]; then \
+				echo "processing folder $$a"; \
+				if ! $(MAKE) -C $$a -f Makefile clean ; then \
+					exit 1;\
+				fi; \
 			fi; \
 		fi; \
 	done;
 	@echo "Done!"
 
 
-all: all_rule_name make_target
-#	$(foreach src, $(MAKE_DIR), $(shell echo $(src) $(RULE_NAME)) )
+make_target_bin_clean:
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/bin_makefile ]; then \
+				echo "processing folder $$a"; \
+				$(MAKE) -C $$a -f bin_makefile clean; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
 
-#all: all_rule_name $(SUBDIRS)
-#	@echo "Hello all"
+make_target_dso_clean: 
+	@for a in $$(ls); do \
+		if [ -d $$a ]; then \
+			if [ -f $$a/dso_makefile ]; then \
+				echo "processing folder $$a"; \
+				$(MAKE) -C $$a -f dso_makefile clean ; \
+			fi; \
+		fi; \
+	done;
+	@echo "Done!"
 
-#$(SUBDIRS):
-#	-$(MAKE) -s -C $@ $(RULE_NAME)
-#	@echo $(SUBDIRS)
+clean: make_target_cpp_clean make_target_bin_clean make_target_dso_clean
 
-all_rule_name:
-	$(eval RULE_NAME := all)
-#	@echo $(RULE_NAME)
-
-clean_rule_name:
-	$(eval RULE_NAME := clean)
-#	@echo $(RULE_NAME)
-
-clean: clean_rule_name make_target
-
-.PHONY: all clean
+.PHONY: all clean make_target_cpp make_target_bin make_target_dso make_target_cpp_clean make_target_bin_clean make_target_dso_clean
 
 
