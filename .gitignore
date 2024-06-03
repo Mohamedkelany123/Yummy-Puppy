@@ -4,7 +4,11 @@ bin/*
 dso/*
 temp/*
 test/*
-factory/db_primitive_orm/*
+factory/db_primitive_orm/headers/*.h
+!factory/db_primitive_orm/headers/
+factory/db_primitive_orm/sources/*.cpp
+!factory/db_primitive_orm/sources/
+factory/db_primitive_orm/objects
 factory/db_business_logic_orm/objects
 makefile.vars
 Webserver-Backend/objects/*

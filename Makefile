@@ -7,3 +7,10 @@ clean:
 closure_go: 
 	bash closure_go.sh
 
+orm_c++:
+	$(MAKE) -C sources/abstract make_target_cpp
+	$(MAKE) -C sources/column_types make_target_cpp
+	$(MAKE) -C sources/postgres make_target_cpp
+	$(MAKE) -C sources/utils make_target_cpp
+	$(MAKE) -C sources/mains/orm_generator make_target_cpp
+	$(MAKE) -C sources/mains/orm_generator -f bin_makefile  all

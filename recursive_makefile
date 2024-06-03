@@ -24,7 +24,9 @@ make_target_bin: make_target_cpp
 		if [ -d $$a ]; then \
 			if [ -f $$a/bin_makefile ]; then \
 				echo "processing folder $$a"; \
-				$(MAKE) -C $$a -f bin_makefile all; \
+				if ! $(MAKE) -C $$a -f bin_makefile all; then \
+					exit 1; \
+				fi; \
 			fi; \
 		fi; \
 	done;
@@ -35,7 +37,9 @@ make_target_dso: make_target_cpp
 		if [ -d $$a ]; then \
 			if [ -f $$a/dso_makefile ]; then \
 				echo "processing folder $$a"; \
-				$(MAKE) -C $$a -f dso_makefile all; \
+				if ! $(MAKE) -C $$a -f dso_makefile all; then \
+					exit 1;\
+				fi; \
 			fi; \
 		fi; \
 	done;
