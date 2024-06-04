@@ -282,6 +282,48 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
     }
 }
 
+void PSQLJoinQueryIterator::process_sequential(std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras){
+    time_t start = time (NULL);
+    cout << "Executing PSQL Query on the remote server" << endl;
+    if (this->execute() && this->psqlQuery->getRowCount() > 0)
+    {
+        time_t time_snapshot1 = time (NULL);
+
+        cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
+        cout << "Starting execution" << endl;
+
+        vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(1);
+        mutex shared_lock;
+        process_internal(data_source_name,this,(*p)[0],0,&shared_lock,extras,f);
+        delete((*p)[0]);
+
+        time_t time_snapshot2 = time (NULL);
+        cout << "Finished Process Internal Sequential" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
+    }
+}
+
+void PSQLJoinQueryIterator::process_aggregate_sequential(std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras){
+    time_t start = time (NULL);
+    cout << "Executing PSQL Query on the remote server" << endl;
+    if (this->execute() && this->psqlQuery->getRowCount() > 0)
+    {
+        time_t time_snapshot1 = time (NULL);
+
+        cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
+        cout << "Starting execution" << endl;
+
+        vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(1);
+
+        mutex shared_lock;
+        process_internal_aggregate(data_source_name,this,(*p)[0],0,&shared_lock,extras,f);
+        delete((*p)[0]);
+
+        time_t time_snapshot2 = time (NULL);
+        cout << "Finished Process Internal Aggregate" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
+    }
+}
+
+
 void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
 {
     time_t start = time (NULL);
