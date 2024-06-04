@@ -17,7 +17,7 @@ class TestSerializer {
         bool generate_aggregate();
     public:
         TestSerializer(string _store_location,PSQLJoinQueryIterator * _psqlQueryJoin);
-        bool generate(is_aggregate);
+        bool generate(bool is_aggregate);
         ~TestSerializer();
 
 };

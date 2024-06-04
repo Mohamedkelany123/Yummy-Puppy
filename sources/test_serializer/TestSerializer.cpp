@@ -15,20 +15,20 @@ TestSerializer::TestSerializer(string  _store_location, PSQLJoinQueryIterator * 
 bool TestSerializer::generate_simple()
 {
    
-    return false
+    return false;
 }
 
 bool TestSerializer::generate_aggregate()
 {
    
-    return false
+    return false;
 }
 
 
 bool TestSerializer::commit_to_stream()
 {
    
-    return false
+    return false;
 }
 
 bool TestSerializer::generate(bool is_aggregate)
@@ -37,7 +37,7 @@ bool TestSerializer::generate(bool is_aggregate)
     this->generate_aggregate();
    else
     this->generate_simple(); 
-   
+   return true;
 
 }
 
@@ -46,7 +46,7 @@ bool TestSerializer::generate(bool is_aggregate)
 
 bool TestSerializer::write_to_stream(string orm_serialized)
 {
-    ofstream file(this->store);
+    ofstream file(this->store_location);
     file << orm_serialized << endl;
     file.close();
     return false;
