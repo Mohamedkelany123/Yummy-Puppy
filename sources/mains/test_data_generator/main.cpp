@@ -28,7 +28,7 @@ int main(int argc, char ** argv){
     
     PSQLQueryJoin->filter(
         ANDOperator (
-            new UnaryOperator("loan_app_loan.id", in, "1666, 15125")
+            new UnaryOperator("loan_app_loan.id", eq, "1666")
         )
     );
 
