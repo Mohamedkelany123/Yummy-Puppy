@@ -78,6 +78,7 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
         string get (string name){
             return values[name];
         }
+        map <string, string> getExtraFieldsMap(){return values;}
         int toInt (string name) { return atoi(values[name].c_str());}
         float toFloat (string name) { return atof(values[name].c_str());}
         double toLong (string name) { return atol(values[name].c_str());}

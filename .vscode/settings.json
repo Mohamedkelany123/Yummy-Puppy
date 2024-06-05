@@ -99,7 +99,8 @@
         "typeindex": "cpp",
         "text_encoding": "cpp",
         "stdfloat": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "regex": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++"
 }
