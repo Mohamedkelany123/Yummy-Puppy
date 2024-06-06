@@ -16,7 +16,7 @@ class LedgerClosure:
         self.color_options = color_options
 
         self.webhook_url = "https://hooks.slack.com/services/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"
-        self.current_date = datetime.now().strftime("%Y/%m/%d")
+        self.current_date = datetime.now().strftime("%Y-%m-%d")
 
 
     def test(self):
@@ -29,11 +29,11 @@ class LedgerClosure:
 
     #1- ledger amount
     def ledger_amount(self):
-        print_colored("Test 12 :: Ledger Amount ", self.color_options.YELLOW ,bold=True)
+        print_colored("Test 1:: Ledger Amount ", self.color_options.YELLOW ,bold=True)
         query = f"""
                     select * from ledger_amount la 
-                    where created_at::date = '2024-06-06'
-                    order by loan_id desc, amount desc, leg_temple_id desc
+                    where created_at::date = '{self.current_date}'
+                    order by loan_id desc, amount desc, leg_temple_id desc, account_id desc
                 """
         excluded_columns = ['id', 'created_at', 'updated_at', 'entry_id']
         compare_amount_attributes = ['amount', 'amount_local']
@@ -44,10 +44,10 @@ class LedgerClosure:
 
     #2- ledger entries
     def ledger_entry(self):
-        print_colored("Test 13 :: Ledger Entry ", self.color_options.YELLOW ,bold=True)
+        print_colored("Test 2 :: Ledger Entry ", self.color_options.YELLOW ,bold=True)
         query = f"""
                     select * from ledger_entry le 
-                    where created_at::date = '2024-06-06'
+                    where created_at::date = '{self.current_date}'
                     order by entry_date  desc, template_id  desc
                 """
         excluded_columns = [ 'id', 'created_at', 'updated_at', 'description']
