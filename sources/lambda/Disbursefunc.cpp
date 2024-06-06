@@ -5,6 +5,9 @@ void DisburseLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, in
     DisburseLoan disburseLoan(orms_list, ((DisburseLoanStruct *) extras)->current_provision_percentage);
     LedgerClosureService* ledgerClosureService = new LedgerClosureService(&disburseLoan);
 
+    loan_app_loan_primitive_orm * lal_orm = ORML(loan_app_loan,orms_list,0);
+
+
 
     disburseLoan.setupLedgerClosureService(ledgerClosureService);
     map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
@@ -13,7 +16,7 @@ void DisburseLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, in
     {
         localTemplateManager->setEntryData(ledgerAmounts);
 
-        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate("2024-05-15"));
+        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(lal_orm->get_loan_booking_day());
         ledger_amount_primitive_orm* la_orm = localTemplateManager->getFirstLedgerAmountORM();
 
         if (entry && la_orm) {

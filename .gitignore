@@ -14,4 +14,5 @@ makefile.vars
 Webserver-Backend/objects/*
 Webserver-Backend/objects_fpic/*
 Webserver-Backend/bin/*
+*.pyc
 .vscode

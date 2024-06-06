@@ -165,7 +165,7 @@ void BlnkTemplateManager::createEntry(BDate entry_date)
     entry->set_month_code(1);
     entry->set_type("NO");
     entry->set_status("PO");
-    entry->set_created_by(0);
+    entry->set_created_by(1);
 }
 
 BlnkTemplateManager::~BlnkTemplateManager()
