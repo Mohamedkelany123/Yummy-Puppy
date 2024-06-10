@@ -23,6 +23,7 @@ class AccrualInterest : public LedgerClosureStep {
         PSQLJoinQueryIterator* settlement_accrual_agg(string _closure_date_string);
     public:
         map<string, funcPtr> funcMap;
+        AccrualInterest();
         AccrualInterest(map <string,PSQLAbstractORM *> * _orms, int _accrual_type);
         ~AccrualInterest();
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);

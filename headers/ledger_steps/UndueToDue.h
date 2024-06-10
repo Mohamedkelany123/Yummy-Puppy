@@ -6,6 +6,8 @@
 #include <TemplateManager.h>
 #include <LedgerClosureStep.h>
 #include <LedgerClosureService.h>
+#include <PSQLController.h>
+#include <PSQLUpdateQuery.h>
 
 
 
@@ -30,8 +32,11 @@ class UndueToDue : public LedgerClosureStep
         //Type 1 Both, 2 Interest Only, 3 LoanPrincipal. 
         int ledger_closure_service_type;
 
+        PSQLJoinQueryIterator* installments_becoming_due_agg(string _closure_date_string);
+        PSQLJoinQueryIterator* sticky_nstallments_becoming_due_agg(string _closure_date_string);
     public:
         map<string, funcPtr> funcMap;
+        UndueToDue();
         UndueToDue(map <string,PSQLAbstractORM *> * _orms, BDate _closing_day, int _ledger_closure_service_type=1);
         
         //Setters
@@ -67,7 +72,8 @@ class UndueToDue : public LedgerClosureStep
         bool checkAmounts();
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
-        
+        static PSQLJoinQueryIterator* aggregator(string _closure_date_string, int _agg_number=0);
+        static void update_step(); 
 
     ~UndueToDue();
 };
