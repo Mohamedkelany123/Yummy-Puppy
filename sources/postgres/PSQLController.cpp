@@ -30,6 +30,12 @@ PSQLAbstractORM * PSQLController::addToORMCache(string name,PSQLAbstractORM * ps
     data_source_name = checkDefaultDatasource(data_source_name);
     return psqlORMCaches[data_source_name]->add(name,psqlAbstractORM);
 }
+PSQLAbstractORM * PSQLController::addToORMCache(PSQLAbstractORM * seeder, AbstractDBQuery * _psqlQuery, int _partition_number, string data_source_name )
+{
+    data_source_name = checkDefaultDatasource(data_source_name);
+    return psqlORMCaches[data_source_name]->add(seeder,_psqlQuery,_partition_number);
+}
+
 void PSQLController::ORMCommitAll(bool parallel,bool transaction,bool clean_updates)
 {
     for (auto cache : psqlORMCaches){

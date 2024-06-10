@@ -80,8 +80,20 @@ loan_app_loan_bl_orm * loan_app_loan_bl_orm_iterator::next (bool _read_only)
 {
     if (psqlQuery->fetchNextRow())
     {
-        loan_app_loan_bl_orm * obj = new loan_app_loan_bl_orm(data_source_name);
-        obj->assignResults(psqlQuery,_read_only);
+		loan_app_loan_bl_orm * obj = NULL;
+
+		if ( _read_only)
+		{
+			obj = new loan_app_loan_bl_orm(data_source_name);
+			obj->assignResults(psqlQuery,_read_only);
+		}
+		else
+		{
+			loan_app_loan_bl_orm * seeder = new loan_app_loan_bl_orm(data_source_name);
+            obj= (loan_app_loan_bl_orm *)psqlController.addToORMCache(seeder,psqlQuery,-1,data_source_name);
+			delete (seeder);
+
+		}
         for (auto e: extras)
 			obj->setExtra(e.first,psqlQuery->getValue(e.first));
         return obj;

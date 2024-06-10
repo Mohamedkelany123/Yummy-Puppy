@@ -15,6 +15,10 @@ orm_c++:
 	$(MAKE) -C sources/mains/orm_generator make_target_cpp
 	$(MAKE) -C sources/mains/orm_generator -f bin_makefile  all
 
+build_factory:
+	@echo "Setting up factory"
+	$(MAKE) -C factory
+
 clean_primitive:
 	rm -rf ./factory/db_primitive_orm/headers/*.h
 	rm -rf ./factory/db_primitive_orm/sources/*.cpp

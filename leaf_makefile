@@ -6,7 +6,7 @@ OBJ_DIR=$(subst sources,objects,$(CUR_DIR))
 SRC = $(wildcard $(CUR_DIR)/*.cpp)
 OBJS = $(patsubst $(CUR_DIR)/%.cpp, $(OBJ_DIR)/%.cpp.o, $(SRC))
 
-$(OBJ_DIR)/%.cpp.o: $(CUR_DIR)/%.cpp 
+$(OBJ_DIR)/%.cpp.o: $(CUR_DIR)/%.cpp $(ALL_H)
 	$(GCC) -D SKIP_ENTRY_POINT $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)

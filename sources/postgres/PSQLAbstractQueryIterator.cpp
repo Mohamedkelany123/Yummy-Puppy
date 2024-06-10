@@ -123,9 +123,10 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next (bool read_only)
         map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
         for (auto orm_object: *orm_objects) 
         {
-            PSQLAbstractORM * orm = orm_object->clone();
-            orm->set_enforced_partition_number(partition_number);
-            orm->assignResults(psqlQuery, read_only);
+            // PSQLAbstractORM * orm = orm_object->clone();
+            // orm->set_enforced_partition_number(partition_number);
+            // orm->assignResults(psqlQuery, read_only);
+            PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,data_source_name);
             (*results)[orm->getTableName()] = orm;
         }
 
@@ -146,11 +147,7 @@ void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
 {
     for (auto orm_pair: (*orms))
         if (orm_pair.second != NULL)
-        {
-            cout << orm_pair.second->getORMName() << endl;
             orm_pair.second->unlock_me(true);
-        }
-
 }
 void PSQLJoinQueryIterator::adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list)
 {
@@ -185,13 +182,13 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
                 }
                 else
                 {
-                    me->adjust_orms_list(orms_list);
-                    cout << "Partition number: " << partition_number << endl;
-                    // f(orms_list,partition_number,shared_lock,extras);
+                    // me->adjust_orms_list(orms_list);
+                    // cout << "Partition number: " << partition_number << endl;
+                    f(orms_list,partition_number,shared_lock,extras);
                     shared_lock->lock();
                     for (auto o : *orms_list)
                     {
-                        cout << "Destroying orm row" << endl;
+                        // cout << "Destroying orm row" << endl;
                         me->unlock_orms(o);
                         PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,o);
                         if (gorm != NULL) delete (gorm);
@@ -200,7 +197,7 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
                     shared_lock->unlock();
                     aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
                     orms_list->clear();
-                    cout << "AFTER Partition number: " << partition_number << endl;
+                    // cout << "AFTER Partition number: " << partition_number << endl;
                 }
                 
         } while (aggregate != "");
@@ -368,9 +365,9 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
                 thread * t = threads[i];
-                cout << "BEFORE Joining on thread #" << i << endl;
+                // cout << "BEFORE Joining on thread #" << i << endl;
                 t->join();
-                cout << "AFTER Joining on thread #" << i << endl;
+                // cout << "AFTER Joining on thread #" << i << endl;
 
                 delete (t);
                 delete((*p)[i]);

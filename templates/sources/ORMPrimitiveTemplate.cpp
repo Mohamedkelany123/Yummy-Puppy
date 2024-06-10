@@ -16,8 +16,20 @@
 {
     if (psqlQuery->fetchNextRow())
     {
-        %s * obj = new %s(data_source_name, false,true, partition_number);
-        obj->assignResults(psqlQuery,_read_only);
+		%s * obj = NULL;
+
+		if ( _read_only)
+		{
+			obj = new %s(data_source_name);
+			obj->assignResults(psqlQuery,_read_only);
+		}
+		else
+		{
+			%s * seeder = new %s(data_source_name);
+            obj= (%s *)psqlController.addToORMCache(seeder,psqlQuery,-1,data_source_name);
+			delete (seeder);
+
+		}
         for (auto e: extras)
 			obj->setExtra(e.first,psqlQuery->getValue(e.first));
         return obj;

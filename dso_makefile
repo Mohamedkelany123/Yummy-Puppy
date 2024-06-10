@@ -9,7 +9,7 @@ DSOS = $(patsubst $(CUR_DIR)/%.cpp, $(DSO_DIR)/%.so, $(SRC))
 
 ALL_OBJECTS = $(shell find $(HOME_PATH) -name "*.cpp.o" )
 
-$(DSO_DIR)/%.so: $(OBJ_DIR)/%.cpp.dso
+$(DSO_DIR)/%.so: $(OBJ_DIR)/%.cpp.dso $(ALL_CPP)
 	$(GCC) -shared -std=c++17 $(LIBS) $(ALL_OBJECTS) $< -o $@ $(LINKER_FLAGS)
 
 $(DSO_DIR):

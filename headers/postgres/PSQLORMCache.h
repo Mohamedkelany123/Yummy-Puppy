@@ -20,6 +20,9 @@ class PSQLORMCache
         PSQLORMCache();
         void set_threads_count (int _threads_count);
         int search_update_thread_cache(PSQLAbstractORM * psqlAbstractORM);
+        bool doesExist (string name,long _identifier);
+        PSQLAbstractORM * fetch (string name,long _identifier);
+        PSQLAbstractORM * add(PSQLAbstractORM * seeder,AbstractDBQuery * psqlQuery,int partition_number=-1);
         PSQLAbstractORM * add(string name,PSQLAbstractORM * psqlAbstractORM);
         bool release(string name,PSQLAbstractORM * psqlAbstractORM);
         void release();

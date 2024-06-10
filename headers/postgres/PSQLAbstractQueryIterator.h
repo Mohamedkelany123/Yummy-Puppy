@@ -2,6 +2,8 @@
 #define PSQLABSTRACTQUERYITERATOR_H
 
 #include <PSQLAbstractORM.h>
+#include <PSQLController.h>
+
 enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin,isnull,isnotnull };
 enum math_operator { mod, plus };
 
@@ -293,18 +295,22 @@ class PSQLJoinQueryPartitionIterator {
         }
         map <string,PSQLAbstractORM *> * next ()
         {
+            int counter = 0 ;
             if (psqlQuery->fetchNextRow())
             {
                 map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
                 for (auto orm_object: *orm_objects) 
                 {
-                    PSQLAbstractORM * orm = orm_object->clone();
+                    PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
+                    (*results)[orm->getTableName()] = orm;
+
+/*                    PSQLAbstractORM * orm = orm_object->clone();
                     orm->set_enforced_partition_number(partition_number);
                     // printf ("cloning ORM %p from %p\n",orm,orm_object);
                     // cout << "before assignresults" << endl;
                     orm->assignResults(psqlQuery);
                     // cout << "after assignresults" << endl;
-                    (*results)[orm->getTableName()] = orm;
+                    (*results)[orm->getTableName()] = orm;*/
                 }
                 if (extras.size() > 0)
                 {

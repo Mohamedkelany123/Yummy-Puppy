@@ -11,7 +11,7 @@ ALL_OBJECTS = $(shell find $(HOME_PATH) -name "*.cpp.o" )
 
 
 
-$(BIN_DIR)/%: $(OBJ_DIR)/%.cpp.oo
+$(BIN_DIR)/%: $(OBJ_DIR)/%.cpp.oo $(ALL_CPP)
 	$(GCC) -std=c++17 $(LIBS) $(ALL_OBJECTS) $< -o $@ $(LINKER_FLAGS)
 
 $(BIN_DIR):

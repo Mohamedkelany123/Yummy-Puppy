@@ -78,6 +78,11 @@ string PSQLAbstractORM::getIdentifierName ()
     return identifier_name;
 }
 
+long PSQLAbstractORM::getIdentifier (AbstractDBQuery * _psqlQuery)
+{
+    return stoi(_psqlQuery->getValue(compose_field_with_index ( identifier_name)));
+}
+
 string PSQLAbstractORM::getTableName()
 {
     return table_name;
@@ -90,6 +95,10 @@ string PSQLAbstractORM::getORMName()
 bool PSQLAbstractORM::isLoaded ()
 {
     return loaded;
+}
+string PSQLAbstractORM::get_data_source_name ()
+{
+    return data_source_name;
 }
 
 void PSQLAbstractORM::addDefault(string name,string value, bool is_insert, bool is_func)
@@ -183,6 +192,14 @@ string PSQLAbstractORM::compose_field_and_alias (string field_name)
 
 }
 
+
+string PSQLAbstractORM::compose_field_with_index (string field_name)
+{
+    string str = to_string(table_index);
+    str += "_";
+    str += field_name;
+    return str;
+}
 string PSQLAbstractORM::compose_field (string field_name)
 {
 

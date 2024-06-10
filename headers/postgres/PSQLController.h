@@ -18,6 +18,7 @@ class PSQLController
         PSQLConnection * getPSQLConnection(string data_source_name);
         bool releaseConnection (string data_source_name,PSQLConnection * psqlConnection);
         PSQLAbstractORM * addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM, string data_source_name = "");
+        PSQLAbstractORM * addToORMCache(PSQLAbstractORM * seeder, AbstractDBQuery * _psqlQuery, int _partition_number=-1, string data_source_name = "");
         void ORMCommitAll(bool parallel=false,bool transaction=false,bool clean_updates=false);
         void ORMCommitAll(string name);
         void ORMCommit(string name,long id);

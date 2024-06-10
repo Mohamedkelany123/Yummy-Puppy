@@ -89,6 +89,45 @@ int PSQLORMCache::search_update_thread_cache(PSQLAbstractORM * psqlAbstractORM)
     return -1;
 }
 
+
+PSQLAbstractORM * PSQLORMCache::fetch (string name,long _identifier)
+{
+    if (doesExist(name,_identifier)){
+        update_cache[name][_identifier]->lock_me(true);
+        return update_cache[name][_identifier];
+    }
+    return NULL;
+}
+
+bool PSQLORMCache::doesExist (string name,long _identifier)
+{
+   if (update_cache.find(name) != update_cache.end()) 
+        if (update_cache[name].find(_identifier) != update_cache[name].end()) return true;
+    return false;
+}
+
+
+PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * psqlQuery,int partition_number)
+{
+    std::lock_guard<std::mutex> guard(lock);
+    long identifier = seeder->getIdentifier(psqlQuery);
+    string name = seeder->getORMName();
+    PSQLAbstractORM * orm  = fetch(name,identifier);
+    if (orm != NULL) return orm;
+ 
+    orm = seeder->clone();
+    orm->set_enforced_partition_number(partition_number);
+    orm->assignResults(psqlQuery, true);
+    // cout << "before lokcing "<< name << endl;
+   // orm->lock_me(true);
+    // cout << "after lokcing "<< name << endl;
+    update_cache[name][identifier] = orm;
+    return orm;
+
+
+}
+
+
 PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractORM)
 {
     std::lock_guard<std::mutex> guard(lock);

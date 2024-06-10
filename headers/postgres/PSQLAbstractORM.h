@@ -37,9 +37,11 @@ class PSQLAbstractORM
         virtual bool update(PSQLConnection * _psqlConnection=NULL) = 0;
         virtual long insert(PSQLConnection * _psqlConnection=NULL) = 0;
         virtual string getIdentifierName();
+        virtual long getIdentifier (AbstractDBQuery * _psqlQuery);
         virtual string getTableName();
         virtual string getORMName();
         virtual bool isLoaded();
+        string get_data_source_name ();
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
         PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional,int _enforced_partition_number=-1);
         PSQLAbstractORM (const PSQLAbstractORM & _psqlAbstractORM);
@@ -56,6 +58,7 @@ class PSQLAbstractORM
         void commitUpdateReferences (PSQLConnection * _psqlConnection=NULL);
         string compose_field_and_alias (string field_name);
         string compose_field (string field_name);
+        string compose_field_with_index (string field_name);
         void setExtra (string fname, string fvalue);
         string getExtra (string fname);
         virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
