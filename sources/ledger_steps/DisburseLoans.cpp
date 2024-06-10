@@ -223,3 +223,82 @@ LedgerAmount * DisburseLoan::_calc_long_term_receivable_balance(LedgerClosureSte
     return ledgerAmount;
 }
 
+
+
+// PSQLJoinQueryIterator* DisburseLoan::aggregator(string _closure_date_string, int _agg_number){
+
+//     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+//         {new loan_app_loan_bl_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+//         {{{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}, {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
+
+//         psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
+//         psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
+//         psqlQueryJoin->addExtraFromField("(SELECT cap2.is_rescheduled FROM crm_app_purchase cap INNER JOIN crm_app_purchase cap2 ON cap.parent_purchase_id = cap2.id WHERE  cap.id = crm_app_purchase.id)","is_rescheduled");
+
+//         psqlQueryJoin->addExtraFromField("(select transaction_upfront_income_banked from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_banked");
+//         psqlQueryJoin->addExtraFromField("(select  transaction_upfront_income_unbanked  from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_unbanked");
+
+//         psqlQueryJoin->filter(
+//             ANDOperator 
+//             (
+//                 // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
+//                 new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
+//                 new UnaryOperator ("loan_app_loan.loan_booking_day",lte,_closure_date_string)
+//             )
+//         );
+
+//         psqlQueryJoin->setAggregates ({
+//             {"loan_app_loan","id"},
+//             {"crm_app_customer","id"},
+//             {"crm_app_purchase", "id"}
+//         });
+
+//         psqlQueryJoin->setOrderBy("loan_app_loan.id asc, crm_app_customer.id asc , crm_app_purchase.id asc");
+
+//         return psqlQueryJoin;
+// }
+
+PSQLJoinQueryIterator* DisburseLoan::aggregator(string _closure_date_string, int _agg_number){
+
+    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+        {new loan_app_loan_bl_orm("main"), new crm_app_customer_primitive_orm("main"), new crm_app_purchase_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
+        {{{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}, {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
+
+        psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
+        psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
+        psqlQueryJoin->addExtraFromField("(SELECT cap2.is_rescheduled FROM crm_app_purchase cap INNER JOIN crm_app_purchase cap2 ON cap.parent_purchase_id = cap2.id WHERE  cap.id = crm_app_purchase.id)","is_rescheduled");
+
+        psqlQueryJoin->addExtraFromField("(select transaction_upfront_income_banked from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_banked");
+        psqlQueryJoin->addExtraFromField("(select  transaction_upfront_income_unbanked  from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_unbanked");
+
+        psqlQueryJoin->filter(
+            ANDOperator 
+            (
+                // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
+                new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,_closure_date_string)
+            )
+        );
+
+        psqlQueryJoin->setAggregates ({
+            {"crm_app_customer","id"}
+        });
+
+        psqlQueryJoin->setOrderBy("crm_app_customer.id asc ,loan_app_loan.id asc,  crm_app_purchase.id asc");
+
+        return psqlQueryJoin;
+}
+
+
+void DisburseLoan::update_step(){
+
+        PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        ANDOperator(
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            //TODO: Change To update status comparing to the closure status of the step before it not gt 0
+            new UnaryOperator ("loan_app_loan.closure_status",gte,0)
+        ),
+        {{"closure_status",to_string(ledger_status::DISBURSE_LOAN)}}
+        );
+        psqlUpdateQuery.update();   
+}

@@ -51,7 +51,7 @@ bool PSQLAbstractQueryIterator::execute()
         sql = "select "+ select_stmt+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + conditions +" order by "+orderby_string;
     
-    // cout << sql << endl;
+    cout << sql << endl;
     
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
@@ -146,7 +146,10 @@ void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
 {
     for (auto orm_pair: (*orms))
         if (orm_pair.second != NULL)
+        {
+            cout << orm_pair.second->getORMName() << endl;
             orm_pair.second->unlock_me(true);
+        }
 
 }
 void PSQLJoinQueryIterator::adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list)
@@ -183,10 +186,12 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
                 else
                 {
                     me->adjust_orms_list(orms_list);
-                    f(orms_list,partition_number,shared_lock,extras);
+                    cout << "Partition number: " << partition_number << endl;
+                    // f(orms_list,partition_number,shared_lock,extras);
                     shared_lock->lock();
                     for (auto o : *orms_list)
                     {
+                        cout << "Destroying orm row" << endl;
                         me->unlock_orms(o);
                         PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,o);
                         if (gorm != NULL) delete (gorm);
@@ -195,6 +200,7 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
                     shared_lock->unlock();
                     aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
                     orms_list->clear();
+                    cout << "AFTER Partition number: " << partition_number << endl;
                 }
                 
         } while (aggregate != "");
@@ -336,15 +342,15 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
         cout << "Starting multi-threading execution" << endl;
 
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
-        // for ( int i  = 0 ; i < p->size() ; i ++)
-        //     (*p)[i]->dump();
+        for ( int i  = 0 ; i < p->size() ; i ++)
+            (*p)[i]->dump();
         int start_index = 0;
         if ( p->size() > 1)
             for ( int i  = 0 ; i < p->size() ; i ++)
                 start_index = (*p)[i]->adjust_for_aggregation(start_index);
-        // cout << endl << endl;
-        // for ( int i  = 0 ; i < p->size() ; i ++)
-        //     (*p)[i]->dump();
+        cout << endl << endl;
+        for ( int i  = 0 ; i < p->size() ; i ++)
+            (*p)[i]->dump();
         // exit(1);
         vector <thread *> threads;
         mutex shared_lock;
@@ -362,7 +368,10 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
                 thread * t = threads[i];
+                cout << "BEFORE Joining on thread #" << i << endl;
                 t->join();
+                cout << "AFTER Joining on thread #" << i << endl;
+
                 delete (t);
                 delete((*p)[i]);
         }

@@ -1,5 +1,6 @@
 #include <PSQLAbstractORM.h>
 #include <PSQLController.h>
+// #include <crm_app_customer_primitive_orm.h>
 
 PSQLAbstractORM::PSQLAbstractORM (const PSQLAbstractORM & _psqlAbstractORM)
 {
@@ -108,7 +109,11 @@ void PSQLAbstractORM::lock_me(bool skip_owner)
     // cout << "locking :" << ss.str();
     // printf (" object %p\n",this);
     if (skip_owner && ss.str() == locking_thread) return;
+    // if ( orm_name == "crm_app_customer" || table_name == "crm_app_customer")
+    //     cout << ss.str() << "Locking " << orm_name << ((crm_app_customer_primitive_orm *)this)->get_id()<< endl;
     lock.lock();
+    // if ( orm_name == "crm_app_customer" || table_name == "crm_app_customer")
+    //     cout << ss.str() << " Done Locking " << orm_name << ((crm_app_customer_primitive_orm *)this)->get_id()<< endl;
     locking_thread = ss.str();
 }
 void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
@@ -120,6 +125,9 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
         if (ss.str() != locking_thread) return;
     // cout << "unlocking :" << ss.str();
     // printf (" object %p\n",this);
+    // if ( orm_name == "crm_app_customer" || table_name == "crm_app_customer")
+    //     cout << ss.str() << "Unlocking " << orm_name << ((crm_app_customer_primitive_orm *)this)->get_id()<< endl;
+
     locking_thread = "";
     lock.try_lock();
     lock.unlock();

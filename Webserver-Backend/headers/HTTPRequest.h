@@ -1,6 +1,6 @@
 #ifndef HTTPREQUEST_H
 #define HTTPREQUEST_H
-#include "common.h"
+#include "common_ws.h"
 #include "TCPSocket.h"
 
 // A class representing an HTTP Request Header

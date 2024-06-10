@@ -6,6 +6,9 @@
 #include <TemplateManager.h>
 #include <LedgerClosureStep.h>
 #include <LedgerClosureService.h>
+#include <PSQLUpdateQuery.h>
+
+
 
 
 
@@ -69,6 +72,10 @@ class DisburseLoan : public LedgerClosureStep
         static LedgerAmount * _calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan);
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
+
+        static PSQLJoinQueryIterator* aggregator(string _closure_date_string, int _agg_number=0);
+        static void update_step(); 
+
         
 
     ~DisburseLoan();

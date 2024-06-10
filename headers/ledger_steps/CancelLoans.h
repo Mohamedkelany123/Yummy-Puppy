@@ -6,6 +6,8 @@
 #include <TemplateManager.h>
 #include <LedgerClosureStep.h>
 #include <LedgerClosureService.h>
+#include <PSQLUpdateQuery.h>
+
 
 class CancelLoan : public LedgerClosureStep
 {
@@ -35,6 +37,10 @@ class CancelLoan : public LedgerClosureStep
 
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
+
+        static PSQLJoinQueryIterator* aggregator(string _closure_date_string, int _agg_number=0);
+        static void update_step(); 
+
 
     ~CancelLoan();
 };

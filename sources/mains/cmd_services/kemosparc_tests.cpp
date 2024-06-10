@@ -60,8 +60,8 @@ int main (int argc, char ** argv)
     // });
 
     psqlQueryJoin->setAggregates ({
-            {"crm_app_customer","id"},
-            {"loan_app_loan","id"}
+            {"crm_app_customer","id"}
+            //,{"loan_app_loan","id"}
     });
     psqlQueryJoin->setOrderBy(" crm_app_customer.id asc , loan_app_loan.id asc, loan_app_installment.id asc ");
 

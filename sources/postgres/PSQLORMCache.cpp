@@ -106,11 +106,6 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     }
     if (psqlAbstractORM->getIdentifier() == -1 )
     {
-        // if ( psqlAbstractORM->getORMName() == "loan_app_loan_primitive_orm")
-        // {
-        //     cout <<"Error hereeeeee"<< endl;
-        //     exit(1);
-        // }
         insert_cache[name].push_back(psqlAbstractORM);
         for ( int i  = insert_thread_cache.size() ; i < (insert_cache_items_count%threads_count) +1 ; i++)
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
@@ -142,7 +137,6 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
                     else
                     { 
                         update_thread_cache[enforced_cache_index][psqlAbstractORM]=psqlAbstractORM;
-                        // cout << "Enforcing cache " << enforced_cache_index << endl;
                     }
                     update_cache_items_count++;
                 }
@@ -260,13 +254,14 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
                 cout << "Rolling Back for thread #" << i <<  endl;
                 break;
             }
+            rollback_flag = true;
         for ( int i = 0 ; i < threads_count ; i ++)
         {
             if ( rollback_flag )
                 psqlConnections[i]->rollbackTransaction();
             else
             { 
-                // psqlConnections[i]->rollbackTransaction();.
+                // psqlConnections[i]->rollbackTransaction();
                 psqlConnections[i]->commitTransaction();
             }
             psqlController.releaseConnection(data_source_name,psqlConnections[i]);

@@ -1,6 +1,6 @@
 #ifndef HTTPRESPONSEHEADER_H
 #define HTTPRESPONSEHEADER_H
-#include "common.h"
+#include "common_ws.h"
 #include "TCPSocket.h"
 
 

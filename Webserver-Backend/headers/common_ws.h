@@ -1,5 +1,5 @@
-#ifndef COMMON_H_
-#define COMMON_H_
+#ifndef COMMON_WS_H_
+#define COMMON_WS_H_
 #include <iostream>
 #include <fstream>
 #include <string>
