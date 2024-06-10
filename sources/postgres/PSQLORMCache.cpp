@@ -294,7 +294,7 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
                 cout << "Rolling Back for thread #" << i <<  endl;
                 break;
             }
-            rollback_flag = true;
+            // rollback_flag = true;
         for ( int i = 0 ; i < threads_count ; i ++)
         {
             if ( rollback_flag )
