@@ -122,6 +122,7 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
    // orm->lock_me(true);
     // cout << "after lokcing "<< name << endl;
     update_cache[name][identifier] = orm;
+    orm->setCached(true);
     return orm;
 
 

@@ -232,6 +232,12 @@ void PSQLAbstractORM::set_enforced_partition_number(int _enforced_partition_numb
     enforced_partition_number = _enforced_partition_number;
 }
 
+void PSQLAbstractORM::setCached(bool _cached)
+{
+    cached=_cached;
+}
+
+
 PSQLAbstractORM::~PSQLAbstractORM()
 {
     // cout << "PSQLAbstractORM::~PSQLAbstractORM()" << orm_name<< endl;
@@ -259,10 +265,10 @@ PSQLQueryJoin::PSQLQueryJoin (string _data_source_name,vector <PSQLAbstractORM *
     }
     for ( int i = 0 ; i < join_fields.size() ; i ++)
     {
-        cout << join_fields[i].first.first << endl;
-        cout << join_fields[i].first.second << endl;
-        cout << join_fields[i].second.first << endl;
-        cout << join_fields[i].second.second << endl;
+            // cout << join_fields[i].first.first << endl;
+            // cout << join_fields[i].first.second << endl;
+            // cout << join_fields[i].second.first << endl;
+            // cout << join_fields[i].second.second << endl;
         if ( join_string != "") join_string += " and ";
         join_string += "\""+join_fields[i].first.first+"\"."+
         "\""+join_fields[i].first.second+"\" = "+

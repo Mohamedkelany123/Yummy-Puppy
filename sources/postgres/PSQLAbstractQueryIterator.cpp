@@ -51,7 +51,7 @@ bool PSQLAbstractQueryIterator::execute()
         sql = "select "+ select_stmt+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + conditions +" order by "+orderby_string;
     
-    cout << sql << endl;
+    // cout << sql << endl;
     
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
@@ -123,11 +123,17 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next (bool read_only)
         map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
         for (auto orm_object: *orm_objects) 
         {
-            // PSQLAbstractORM * orm = orm_object->clone();
-            // orm->set_enforced_partition_number(partition_number);
-            // orm->assignResults(psqlQuery, read_only);
-            PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,data_source_name);
+            PSQLAbstractORM * orm = NULL;
+            if ( read_only)
+            {
+                orm = orm_object->clone();
+                orm->set_enforced_partition_number(partition_number);
+                orm->assignResults(psqlQuery, read_only);
+            }
+            else
+                orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,data_source_name);
             (*results)[orm->getTableName()] = orm;
+
         }
 
         if (extras.size() > 0)
@@ -145,9 +151,15 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next (bool read_only)
 
 void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
 {
+    // cout << "************> " << orms->size() << endl;
+
     for (auto orm_pair: (*orms))
         if (orm_pair.second != NULL)
+        {
+            // cout << orm_pair.first << ": " << orm_pair.second->getORMName() << endl;
             orm_pair.second->unlock_me(true);
+        }
+    // cout << "************< " << orms->size() << endl;
 }
 void PSQLJoinQueryIterator::adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list)
 {
@@ -182,10 +194,15 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
                 }
                 else
                 {
+                    // if (aggregate == "")
+                    // {
+                    //         cout << "Bug is here "<< endl;
+                    // }
                     // me->adjust_orms_list(orms_list);
                     // cout << "Partition number: " << partition_number << endl;
                     f(orms_list,partition_number,shared_lock,extras);
                     shared_lock->lock();
+                    // cout <<"+++++++orms_list->size(): "<< orms_list->size() << "   "<<  aggregate << endl;
                     for (auto o : *orms_list)
                     {
                         // cout << "Destroying orm row" << endl;
@@ -271,7 +288,7 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
             else  */ t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
             threads.push_back(t);
         }
-        cout << "After Threads Creation" << endl;
+        // cout << "After Threads Creation" << endl;
 
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
@@ -339,15 +356,15 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
         cout << "Starting multi-threading execution" << endl;
 
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
-        for ( int i  = 0 ; i < p->size() ; i ++)
-            (*p)[i]->dump();
+        // for ( int i  = 0 ; i < p->size() ; i ++)
+        //     (*p)[i]->dump();
         int start_index = 0;
         if ( p->size() > 1)
             for ( int i  = 0 ; i < p->size() ; i ++)
                 start_index = (*p)[i]->adjust_for_aggregation(start_index);
-        cout << endl << endl;
-        for ( int i  = 0 ; i < p->size() ; i ++)
-            (*p)[i]->dump();
+        // cout << endl << endl;
+        // for ( int i  = 0 ; i < p->size() ; i ++)
+        //     (*p)[i]->dump();
         // exit(1);
         vector <thread *> threads;
         mutex shared_lock;
@@ -360,7 +377,7 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
             //else  t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
             threads.push_back(t);
         }
-        cout << "After Threads Creation" << endl;
+        // cout << "After Threads Creation" << endl;
 
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
@@ -383,7 +400,7 @@ bool PSQLJoinQueryIterator::setDistinct (vector<pair<string,string>> distinct_ma
     {
         if (orm_objects_map.find(dm.first+"_primitive_orm") != orm_objects_map.end())
         {
-            cout << orm_objects_map[dm.first+"_primitive_orm"]->compose_field_and_alias(dm.second) << endl;
+            // cout << orm_objects_map[dm.first+"_primitive_orm"]->compose_field_and_alias(dm.second) << endl;
             if (count == 0 )
                 distinct = "distinct ";
             else distinct += ",";
@@ -405,7 +422,7 @@ bool PSQLJoinQueryIterator::setAggregates (map <string,string> _aggregate_map)
     {
         if (orm_objects_map.find(agg.first+"_primitive_orm") != orm_objects_map.end())
         {
-            cout << orm_objects_map[agg.first+"_primitive_orm"]->compose_field_and_alias(agg.second) << endl;
+            // cout << orm_objects_map[agg.first+"_primitive_orm"]->compose_field_and_alias(agg.second) << endl;
             if (count == 0 )
                 aggregate = "concat(";
             else aggregate += ",";
