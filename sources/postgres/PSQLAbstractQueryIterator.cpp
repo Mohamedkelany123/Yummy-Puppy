@@ -243,7 +243,7 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
         string aggregate = "";
         bool finished = false;
         int counter = 1;
-        cout << "PROCESS INTERNAL START: " << partition_number << endl;
+        // cout << "PROCESS INTERNAL START: " << partition_number << endl;
         do {
             if ( orms!= NULL) delete(orms);
 
@@ -260,7 +260,7 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
                shared_lock->unlock();
             }
         } while (orms != NULL && !finished);
-        cout << "PROCESS INTERNAL END: " << partition_number << endl;
+        // cout << "PROCESS INTERNAL END: " << partition_number << endl;
 
 
         psqlController.unlock_current_thread_orms(data_source_name);
@@ -483,16 +483,13 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryPartitionIterator::next ()
         map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
         for (auto orm_object: *orm_objects) 
         {
-            PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
-            (*results)[orm->getTableName()] = orm;
+            // PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
+            // (*results)[orm->getTableName()] = orm;
 
-/*            PSQLAbstractORM * orm = orm_object->clone();
+            PSQLAbstractORM * orm = orm_object->clone();
             orm->set_enforced_partition_number(partition_number);
-            // printf ("cloning ORM %p from %p\n",orm,orm_object);
-            // cout << "before assignresults" << endl;
             orm->assignResults(psqlQuery);
-            // cout << "after assignresults" << endl;
-            (*results)[orm->getTableName()] = orm;*/
+            (*results)[orm->getTableName()] = orm;
         }
         if (extras.size() > 0)
         {
