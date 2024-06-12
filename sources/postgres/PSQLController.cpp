@@ -103,7 +103,6 @@ void PSQLController::unlock_all_current_thread_orms()
 void PSQLController::unlock_current_thread_orms(string data_source_name)
 {
     data_source_name = checkDefaultDatasource(data_source_name);
-    // cout << "data_source_name: " << data_source_name << endl;
     psqlORMCaches[data_source_name]->unlock_current_thread_orms();
 }
 
@@ -133,6 +132,10 @@ PSQLController::~PSQLController()
         delete (cache.second);
     }
     delete (psqlConnectionManager);
+}
+int PSQLController::getCacheCounter ()
+{
+    return psqlORMCaches["main"]->cache_counter;
 }
 
 

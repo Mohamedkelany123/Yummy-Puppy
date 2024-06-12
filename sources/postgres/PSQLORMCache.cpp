@@ -73,6 +73,7 @@ PSQLORMCache::PSQLORMCache()
         insert_cache_items_count=0;
         update_cache_items_count=0;
         threads_count = 1;
+        cache_counter=0;
 }
 void PSQLORMCache::set_threads_count (int _threads_count)
 {
@@ -93,8 +94,9 @@ int PSQLORMCache::search_update_thread_cache(PSQLAbstractORM * psqlAbstractORM)
 PSQLAbstractORM * PSQLORMCache::fetch (string name,long _identifier)
 {
     if (doesExist(name,_identifier)){
-        update_cache[name][_identifier]->lock_me(true);
-        return update_cache[name][_identifier];
+        PSQLAbstractORM * orm = update_cache[name][_identifier];
+        // orm->lock_me(true);
+        return orm;
     }
     return NULL;
 }
@@ -109,20 +111,40 @@ bool PSQLORMCache::doesExist (string name,long _identifier)
 
 PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * psqlQuery,int partition_number)
 {
-    std::lock_guard<std::mutex> guard(lock);
+    PSQLAbstractORM * orm = NULL;
     long identifier = seeder->getIdentifier(psqlQuery);
     string name = seeder->getORMName();
-    PSQLAbstractORM * orm  = fetch(name,identifier);
-    if (orm != NULL) return orm;
- 
+    // std::lock_guard<std::mutex> guard(lock);
+    lock.lock();
+    orm  = fetch(name,identifier);
+    if (orm != NULL) 
+    {
+        lock.unlock();
+        orm->lock_me();
+        return orm;
+    }
     orm = seeder->clone();
+    update_cache[name][identifier] = orm;
+    orm->lock_me();
+    lock.unlock();
     orm->set_enforced_partition_number(partition_number);
     orm->assignResults(psqlQuery, true);
-    // cout << "before lokcing "<< name << endl;
-   // orm->lock_me(true);
-    // cout << "after lokcing "<< name << endl;
-    update_cache[name][identifier] = orm;
     orm->setCached(true);
+
+    lock.lock();
+    if (threads_count < partition_number)
+        threads_count = partition_number;
+
+    for ( int i  = update_thread_cache.size() ; i < threads_count + 1 ; i++)
+            update_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
+
+    if (partition_number == -1)
+        update_thread_cache[update_cache_items_count%threads_count][orm]=orm;
+    else
+        update_thread_cache[partition_number][orm]=orm;
+    
+    update_cache_items_count++;
+    lock.unlock();
     return orm;
 
 
@@ -132,6 +154,7 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
 PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractORM)
 {
     std::lock_guard<std::mutex> guard(lock);
+    cache_counter++;
     PSQLAbstractORM * orm = NULL;
     int enforced_cache_index = psqlAbstractORM->get_enforced_partition_number();
     // cout << "enforced_cache_index" << enforced_cache_index << endl;

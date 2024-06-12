@@ -268,10 +268,10 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
                 new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte,closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,"f"),
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"0,4"),
-                new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::DUE_TO_OVERDUE-1)),
+                // new UnaryOperator ("loan_app_loan.lms_closure_status",eq,to_string(closure_status::DUE_TO_OVERDUE-1)),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"6, 7, 8, 12, 13, 15, 16"),
                 isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,mod_value,eq,offset) : new BinaryOperator(),
-                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator() 
+                isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, loan_ids) : new UnaryOperator()
             )
         );
 

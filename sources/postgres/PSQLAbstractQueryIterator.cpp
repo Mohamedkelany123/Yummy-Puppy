@@ -242,13 +242,17 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
         map <string,PSQLAbstractORM *> *  orms = NULL;
         string aggregate = "";
         bool finished = false;
+        int counter = 1;
+        cout << "PROCESS INTERNAL START: " << partition_number << endl;
         do {
             if ( orms!= NULL) delete(orms);
+
             orms = psqlJoinQueryPartitionIterator.next();
+            counter++;
 
             if (orms != NULL) 
             {
-                f(orms,partition_number,shared_lock,extras);
+                //f(orms,partition_number,shared_lock,extras);
                 shared_lock->lock();
                 me->unlock_orms(orms);
                 PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
@@ -256,6 +260,9 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
                shared_lock->unlock();
             }
         } while (orms != NULL && !finished);
+        cout << "PROCESS INTERNAL END: " << partition_number << endl;
+
+
         psqlController.unlock_current_thread_orms(data_source_name);
 
         // Stop measuring time and calculate the elapsed time
@@ -277,6 +284,9 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         cout << "Starting multi-threading execution" << endl;
 
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
+        for ( int i  = 0 ; i < p->size() ; i ++)
+             (*p)[i]->dump();
+
         vector <thread *> threads;
         mutex shared_lock;
         for ( int i  = 0 ; i < p->size() ; i ++)
@@ -299,6 +309,7 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
         }
         time_t time_snapshot2 = time (NULL);
         cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
+        cout << "cache counter: " << psqlController.getCacheCounter() << endl;
     }
 }
 
@@ -447,3 +458,52 @@ PSQLJoinQueryIterator::~PSQLJoinQueryIterator()
     delete (orm_objects);
 
 }
+
+
+
+PSQLJoinQueryPartitionIterator::PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects, map <string,string> _extras,int _partition_number){ 
+            psqlQuery = _psqlQuery;
+            orm_objects = _orm_objects;
+            extras = _extras;
+            partition_number = _partition_number;
+        }
+void PSQLJoinQueryPartitionIterator::reverse()
+{
+    psqlQuery->fetchPrevRow();
+}
+
+string PSQLJoinQueryPartitionIterator::exploreNextAggregate ()
+{
+    return psqlQuery->getNextValue("aggregate");
+}
+map <string,PSQLAbstractORM *> * PSQLJoinQueryPartitionIterator::next ()
+{
+    if (psqlQuery->fetchNextRow())
+    {
+        map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
+        for (auto orm_object: *orm_objects) 
+        {
+            PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
+            (*results)[orm->getTableName()] = orm;
+
+/*            PSQLAbstractORM * orm = orm_object->clone();
+            orm->set_enforced_partition_number(partition_number);
+            // printf ("cloning ORM %p from %p\n",orm,orm_object);
+            // cout << "before assignresults" << endl;
+            orm->assignResults(psqlQuery);
+            // cout << "after assignresults" << endl;
+            (*results)[orm->getTableName()] = orm;*/
+        }
+        if (extras.size() > 0)
+        {
+            PSQLGeneric_primitive_orm * orm = new PSQLGeneric_primitive_orm("");
+            for (auto e : extras)
+                orm->add(e.first,psqlQuery->getValue(e.first));
+            (*results)["PSQLGeneric"] = orm;            
+        }
+        else (*results)["PSQLGeneric"] = NULL;
+        return results;
+    }
+    else return NULL;
+}
+PSQLJoinQueryPartitionIterator::~PSQLJoinQueryPartitionIterator (){}

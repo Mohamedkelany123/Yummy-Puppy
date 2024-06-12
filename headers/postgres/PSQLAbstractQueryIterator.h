@@ -278,53 +278,11 @@ class PSQLJoinQueryPartitionIterator {
         int partition_number;
 
     public:
-        PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects, map <string,string> _extras,int _partition_number){ 
-            psqlQuery = _psqlQuery;
-            orm_objects = _orm_objects;
-            extras = _extras;
-            partition_number = _partition_number;
-        }
-        void reverse()
-        {
-            psqlQuery->fetchPrevRow();
-        }
-
-        string exploreNextAggregate ()
-        {
-            return psqlQuery->getNextValue("aggregate");
-        }
-        map <string,PSQLAbstractORM *> * next ()
-        {
-            int counter = 0 ;
-            if (psqlQuery->fetchNextRow())
-            {
-                map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
-                for (auto orm_object: *orm_objects) 
-                {
-                    PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
-                    (*results)[orm->getTableName()] = orm;
-
-/*                    PSQLAbstractORM * orm = orm_object->clone();
-                    orm->set_enforced_partition_number(partition_number);
-                    // printf ("cloning ORM %p from %p\n",orm,orm_object);
-                    // cout << "before assignresults" << endl;
-                    orm->assignResults(psqlQuery);
-                    // cout << "after assignresults" << endl;
-                    (*results)[orm->getTableName()] = orm;*/
-                }
-                if (extras.size() > 0)
-                {
-                    PSQLGeneric_primitive_orm * orm = new PSQLGeneric_primitive_orm("");
-                    for (auto e : extras)
-                        orm->add(e.first,psqlQuery->getValue(e.first));
-                    (*results)["PSQLGeneric"] = orm;            
-                }
-                else (*results)["PSQLGeneric"] = NULL;
-                return results;
-            }
-            else return NULL;
-        }
-        ~PSQLJoinQueryPartitionIterator (){}
+        PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects, map <string,string> _extras,int _partition_number);
+        void reverse();
+        string exploreNextAggregate ();
+        map <string,PSQLAbstractORM *> * next ();
+        ~PSQLJoinQueryPartitionIterator ();
 };
 
 
