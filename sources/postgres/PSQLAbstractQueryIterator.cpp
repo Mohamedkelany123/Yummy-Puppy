@@ -252,7 +252,7 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
 
             if (orms != NULL) 
             {
-                //f(orms,partition_number,shared_lock,extras);
+                f(orms,partition_number,shared_lock,extras);
                 shared_lock->lock();
                 me->unlock_orms(orms);
                 PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
@@ -483,13 +483,13 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryPartitionIterator::next ()
         map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
         for (auto orm_object: *orm_objects) 
         {
-            // PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
-            // (*results)[orm->getTableName()] = orm;
-
-            PSQLAbstractORM * orm = orm_object->clone();
-            orm->set_enforced_partition_number(partition_number);
-            orm->assignResults(psqlQuery);
+            PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
             (*results)[orm->getTableName()] = orm;
+
+            // PSQLAbstractORM * orm = orm_object->clone();
+            // orm->set_enforced_partition_number(partition_number);
+            // orm->assignResults(psqlQuery);
+            // (*results)[orm->getTableName()] = orm;
         }
         if (extras.size() > 0)
         {

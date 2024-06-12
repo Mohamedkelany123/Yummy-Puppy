@@ -10,8 +10,8 @@ DB_NAME="django_ostaz_before_closure"
 USERNAME="postgres"
 PASSWORD="postgres"
 #STEP="full_closure"
-STEP="due_to_overdue"
-DATE="2024-06-11"
+STEP="full_closure"
+DATE="2025-07-08"
 THREADS_COUNT="16"
 
 # mod 2 offset(0,1) ....
