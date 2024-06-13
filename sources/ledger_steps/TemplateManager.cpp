@@ -148,7 +148,7 @@ ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_am
                 new_ledger_amount->set_amount(-la->get_amount());
                 new_ledger_amount->set_amount_local(-la->get_amount());
                 new_ledger_amount->setAddRefernce("entry_id", entry);
-
+                new_ledger_amount->set_leg_temple_id(0,true);
             }
         return entry;
     }else return nullptr;

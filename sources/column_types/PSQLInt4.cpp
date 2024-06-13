@@ -21,7 +21,7 @@ string PSQLInt4::genDeclaration ()
 }
 string PSQLInt4::genSetter (string class_name,int col_index)
 {
-    return "\t\tvoid "+class_name+"::set_"+column_name+"( int _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value;} \n";
+    return "\t\tvoid "+class_name+"::set_"+column_name+"( int _value, bool set_null) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value; if(set_null) null_flag.set("+std::to_string(col_index)+"); } \n";
 }
 string PSQLInt4::genGetter (string class_name)
 {
@@ -29,7 +29,7 @@ string PSQLInt4::genGetter (string class_name)
 }
 string PSQLInt4::genSetterDef ()
 {
-    return "\t\tvoid set_"+column_name+"( int _value); \n";
+    return "\t\tvoid set_"+column_name+"( int _value, bool set_null = false); \n";
 }
 string PSQLInt4::genGetterDef ()
 {

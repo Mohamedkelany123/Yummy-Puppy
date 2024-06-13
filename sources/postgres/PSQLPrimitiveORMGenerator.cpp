@@ -207,12 +207,45 @@ void PSQLPrimitiveORMGenerator::generateDecl_Setters_Getters (string class_name,
     setters_def = "";
     getters_def = "";
     int col_count = columns_definition["column_name"].size();
+    
+    declaration += "\t\tstatic mutex "+class_name+"_lock;\n";
+    declaration += "\t\tstatic string "+class_name+"_locking_thread;\n";
+
     declaration += "\t\tbitset<";
     declaration +=std::to_string(col_count);
     declaration += "> update_flag;\n";
     declaration += "\t\tbitset<";
     declaration +=std::to_string(col_count);
     declaration += "> null_flag;\n";
+
+    //Static lock and unlock for all orm objects
+    setters_def += "\t\tvoid static_lock(bool skip_owner = false); \n";
+    setters_def += "\t\tvoid static_unlock(bool restrict_to_owner = false); \n";
+    //static var decleration in cpp
+    setters += "\t\tmutex "+class_name+"::"+class_name+"_lock;\n";
+    setters += "\t\tstring "+class_name+"::"+class_name+"_locking_thread;\n";
+
+    //Static_lock
+    setters +=  "\t\tvoid "+class_name+"::static_lock(bool skip_owner){\n";
+    setters += "\t\t\tstd::ostringstream ss;\n";
+    setters += "\t\t\tss << std::this_thread::get_id();\n";
+    setters += "\t\t\tif (skip_owner && ss.str() == "+class_name+"_locking_thread) return;\n";    
+    setters += "\t\t\t"+class_name+"_lock.lock();\n";
+    setters += "\t\t\t"+class_name+"_locking_thread = ss.str();\n";
+    setters += "\t\t}\n";
+
+    //Static_unlock
+    setters +=  "\t\tvoid "+class_name+"::static_unlock(bool restrict_to_owner){\n";
+    setters += "\t\t\tif ( "+class_name+"_locking_thread == \"\") return ;\n";
+    setters += "\t\t\tstd::ostringstream ss;\n";
+    setters += "\t\t\tss << std::this_thread::get_id();\n";
+    setters += "\t\t\tif (restrict_to_owner)\n";
+    setters += "\t\t\t\tif (ss.str() != "+class_name+"_locking_thread) return;\n";
+    setters += "\t\t\t"+class_name+"_locking_thread = \"\";\n";
+    setters += "\t\t\t"+class_name+"_lock.try_lock();\n";
+    setters += "\t\t\t"+class_name+"_lock.unlock();\n";
+    setters += "\t\t}\n";
+
     for (int i  = 0 ; i  < col_count; i++) 
     {
         if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {

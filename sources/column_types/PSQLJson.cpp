@@ -19,8 +19,8 @@ string PSQLJson::genDeclaration ()
 }
 string PSQLJson::genSetter (string class_name,int col_index)
 {
-    return  "\t\tvoid "+class_name+"::set_"+column_name+"( json _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value;} \n"+
-        "\t\tvoid "+class_name+"::set_"+column_name+"( string _value) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=json::parse(_value);} \n";
+    return  "\t\tvoid "+class_name+"::set_"+column_name+"( json _value, bool set_null) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value; if(set_null) null_flag.set("+std::to_string(col_index)+"); } \n"+
+        "\t\tvoid "+class_name+"::set_"+column_name+"( string _value, bool set_null) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=json::parse(_value); if(set_null) null_flag.set("+std::to_string(col_index)+"); } \n";
 }
 string PSQLJson::genGetter (string class_name)
 {
@@ -28,8 +28,8 @@ string PSQLJson::genGetter (string class_name)
 }
 string PSQLJson::genSetterDef ()
 {
-    return  "\t\tvoid set_"+column_name+"( json _value); \n"+
-    "\t\tvoid set_"+column_name+"( string _value); \n";
+    return  "\t\tvoid set_"+column_name+"( json _value, bool set_null = false); \n"+
+    "\t\tvoid set_"+column_name+"( string _value, bool set_null = false); \n";
 }
 string PSQLJson::genGetterDef ()
 {

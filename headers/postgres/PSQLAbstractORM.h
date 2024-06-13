@@ -29,6 +29,8 @@ class PSQLAbstractORM
         int enforced_partition_number;
 
     public:
+        virtual void static_lock(bool skip_owner = false) = 0; 
+		virtual void static_unlock(bool restrict_to_owner = false) = 0; 
         virtual string getFromString () = 0;
         virtual void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) = 0;
         virtual long getIdentifier() = 0;
@@ -74,6 +76,8 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
     private:
         map <string, string> values;
     public:
+        void static_lock(bool skip_owner = false) {}; 
+		void static_unlock(bool restrict_to_owner = false){}; 
         PSQLGeneric_primitive_orm (string _data_source_name):PSQLAbstractORM (_data_source_name, "","", false){}
         void add (string name, string value){
             values[name] = value;

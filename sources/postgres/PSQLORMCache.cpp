@@ -28,9 +28,9 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
                 if (counter % 1000 == 0 )
                 {
                     shared_lock->lock();
-                    // if(orm_transaction)
-                    //     cout << "Transaction Thread # " << t_index <<" Committed " << counter << " inserts" << endl;
-                    // else cout << "Non-Transaction Thread # " << t_index <<" Committed " << counter << " inserts" << endl;
+                    if(orm_transaction)
+                        cout << "Transaction Thread # " << t_index <<" Committed " << counter << " inserts" << endl;
+                    else cout << "Non-Transaction Thread # " << t_index <<" Committed " << counter << " inserts" << endl;
                     shared_lock->unlock();
                 }
             }
@@ -154,18 +154,18 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
     PSQLAbstractORM * orm = NULL;
     string name = seeder->getORMName();
     long identifier = seeder->getIdentifier(psqlQuery);
-    seeder->lock_me();
+    seeder->static_lock(true);
     orm  = fetch(name,identifier);
     if (orm != NULL) 
     {
-        seeder->unlock_me();
-        orm->lock_me();
+        seeder->static_unlock();
+        orm->lock_me(true);
         return orm;
     }
     orm = seeder->clone();
     update_cache[name][identifier] = orm;
     orm->lock_me(true);
-    seeder->unlock_me();
+    seeder->static_unlock();
     orm->set_enforced_partition_number(partition_number);
     orm->assignResults(psqlQuery, true);
     orm->setCached(true);
@@ -353,7 +353,7 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
                 cout << "Rolling Back for thread #" << i <<  endl;
                 break;
             }
-        rollback_flag = true;
+        // rollback_flag = true;
         for ( int i = 0 ; i < threads_count ; i ++)
         {
             if ( rollback_flag )

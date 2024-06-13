@@ -44,9 +44,9 @@ int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "disburse"; 
-    string closure_date_string = "2024-06-10"; 
-    int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
+    string closure_date_string = "2024-06-13"; 
+    int threadsCount = 8;
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
