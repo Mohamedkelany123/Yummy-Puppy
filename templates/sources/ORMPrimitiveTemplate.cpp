@@ -7,6 +7,7 @@
     %s * orm = new %s(_data_source_name);
     from_string =orm->getFromString();
     orderby_string = orm->getIdentifierName() + " asc";
+    delete (orm); // This is add and need to be tested 
 }
 %s * %s::operator [] (long index)
 {

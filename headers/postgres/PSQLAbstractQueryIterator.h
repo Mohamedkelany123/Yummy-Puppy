@@ -248,18 +248,21 @@ class PSQLQueryPartitionIterator {
         AbstractDBQuery * psqlQuery;
         string data_source_name;
         int partition_number;
-
+        vector <string> field_clear_mask;
     public:
-        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name, void * _extras, int _partition_number=-1){ 
+        PSQLQueryPartitionIterator (AbstractDBQuery * _psqlQuery, string _data_source_name, void * _extras, int _partition_number=-1 , vector <string> _field_clear_mask={}){ 
             psqlQuery = _psqlQuery;
             data_source_name = _data_source_name;
             partition_number = _partition_number;
+            field_clear_mask =  _field_clear_mask;
         }
         T * next ()
         {
             if (psqlQuery->fetchNextRow())
             {
-                T * obj = new T(data_source_name, false,true,partition_number);
+
+                // We need to fix this to use the new cache add routine and to be able to apply mask as well
+                T * obj = new T(data_source_name, false,true,partition_number,field_clear_mask);
                 // printf ("----- cloning ORM %p \n",obj);
                 obj->assignResults(psqlQuery);
                 return obj;
