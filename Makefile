@@ -22,4 +22,3 @@ build_factory:
 clean_primitive:
 	rm -rf ./factory/db_primitive_orm/headers/*.h
 	rm -rf ./factory/db_primitive_orm/sources/*.cpp
-
