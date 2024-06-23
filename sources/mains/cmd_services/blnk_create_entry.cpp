@@ -8,6 +8,7 @@
 #include <AccrualInterest.h>
 #include <AccrualInterestFunc.h>
 #include <UndueToDueFunc.h>
+#include <DueToOverdue.h>
 #include <PSQLUpdateQuery.h>
 
 //<BuckedId,Percentage>
@@ -43,10 +44,10 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "disburse"; 
-    string closure_date_string = "2024-06-13"; 
+    const char * step = "accrual"; 
+    string closure_date_string = "2024-06-23"; 
     int threadsCount = 8;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -173,6 +174,11 @@ int main (int argc, char ** argv)
         delete(undueToDueTemplateManager);
         psqlController.ORMCommit(true,true,true, "main");  
         UndueToDue::update_step(); 
+    }
+
+    if (strcmp(step, "duetooverdue")==0 || strcmp(step, "full_closure")==0) {
+        PSQLJoinQueryIterator*  loans_becoming_overdue = DueToOverdue::aggregator(closure_date_string, 1);
+
     }
 
 
