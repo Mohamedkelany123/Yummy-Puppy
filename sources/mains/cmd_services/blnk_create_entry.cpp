@@ -8,6 +8,7 @@
 #include <AccrualInterest.h>
 #include <AccrualInterestFunc.h>
 #include <UndueToDueFunc.h>
+#include <DueToOverdueFunc.h>
 #include <DueToOverdue.h>
 #include <PSQLUpdateQuery.h>
 
@@ -44,7 +45,7 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "accrual"; 
+    const char * step = "disburse"; 
     string closure_date_string = "2024-06-23"; 
     int threadsCount = 8;
     bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
@@ -177,8 +178,17 @@ int main (int argc, char ** argv)
     }
 
     if (strcmp(step, "duetooverdue")==0 || strcmp(step, "full_closure")==0) {
-        PSQLJoinQueryIterator*  loans_becoming_overdue = DueToOverdue::aggregator(closure_date_string, 1);
+        PSQLJoinQueryIterator*  installmentsBecomingOverdueIterator = DueToOverdue::aggregator(closure_date_string);
+        BlnkTemplateManager* dueToOverdueTemplateManager = new BlnkTemplateManager(12, -1);
+        DueToOverdueStruct dueToOverdueStruct;
+        dueToOverdueStruct.blnkTemplateManager = dueToOverdueTemplateManager;
+        dueToOverdueStruct.closing_day = BDate(closure_date_string);
+        installmentsBecomingOverdueIterator->process_aggregate(threadsCount, InstallmentBecomingOverdueFunc, (void *)&dueToOverdueStruct);
 
+        delete(installmentsBecomingOverdueIterator);
+        psqlController.ORMCommit(true, true, true, "main");
+        delete(dueToOverdueTemplateManager);
+        DueToOverdue::update_step();
     }
 
 

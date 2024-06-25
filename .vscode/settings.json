@@ -104,5 +104,6 @@
         "__assert": "cpp",
         "*.tpp": "cpp"
     },
-    "C_Cpp.default.compilerPath": "/usr/bin/g++"
+    "C_Cpp.default.compilerPath": "/usr/bin/g++",
+    "cmake.sourceDirectory": "/home/abdallah/blnk/ORM-C_plus_plus/magic-enum"
 }

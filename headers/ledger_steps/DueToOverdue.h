@@ -16,24 +16,19 @@ class DueToOverdue : public LedgerClosureStep
 {
     private:
         loan_app_loan_bl_orm * lal_orm;
-        loan_app_installment_primitive_orm * lai_orm;
-        new_lms_installmentextension_primitive_orm * nli_orm;
-        new_lms_installmentlatefees_primitive_orm* nlilf_orm;
+        vector<loan_app_installment_primitive_orm*>* lai_orms;
+        vector<new_lms_installmentextension_primitive_orm*> * nlie_orms;
 
         int template_id;
         // float prov_percentage;
         BDate closing_day;
-        BDate lsh_settle_paid_off_day;
-        BDate lsh_settle_charge_off_day;
-        int partial_settle_status;
-        int settle_charge_off_status;
-        int due_to_overdue_amount;
-        int due_to_overdue_interest_amount;
+        BDate due_to_overdue_date;
 
         PSQLJoinQueryIterator* installments_becoming_overdue_agg(string _closure_date_string);
     public:
         map<string, funcPtr> funcMap;
         DueToOverdue();
+        DueToOverdue(loan_app_loan_primitive_orm * _lal_orm, vector<loan_app_installment_primitive_orm*>* _lai_orms, vector<new_lms_installmentextension_primitive_orm*>* _nlie_orms);
         DueToOverdue(map <string,PSQLAbstractORM *> * _orms, BDate _closing_day, int _ledger_closure_service_type=1);
         
         //Setters
@@ -64,8 +59,9 @@ class DueToOverdue : public LedgerClosureStep
         void stampORMs(map<string, LedgerCompositLeg *> *leg_amounts);
 
         // //static methods
-        static LedgerAmount * _get_installment_insterest(LedgerClosureStep *DueToOverdue);
-        static LedgerAmount * _get_installment_principal(LedgerClosureStep *DueToOverdue);
+        static LedgerAmount * _get_installment_insterest(LedgerClosureStep *dueToOverdue);
+        static LedgerAmount * _get_installment_principal(LedgerClosureStep *dueToOverdue);
+        static LedgerAmount * _calc_installment_late_fees(LedgerClosureStep *dueToOverdue);
         bool checkAmounts();
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
@@ -74,6 +70,7 @@ class DueToOverdue : public LedgerClosureStep
 
     ~DueToOverdue();
 };
+
 
 
 
