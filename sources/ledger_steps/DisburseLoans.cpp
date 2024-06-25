@@ -279,10 +279,10 @@ PSQLJoinQueryIterator* DisburseLoan::aggregator(string _closure_date_string, int
             )
         );
 
-        psqlQueryJoin->setAggregates ({
-            {"crm_app_customer","id"},
-            {"loan_app_loan","id"},
-            {"crm_app_purchase","id"}
+        psqlQueryJoin->setAggregates({
+            {"crm_app_customer", {"id", 1}},  
+            {"loan_app_loan", {"id", 1}},  
+            {"crm_app_purchase", {"id", 1}}
         });
 
         psqlQueryJoin->setOrderBy("crm_app_customer.id asc ,loan_app_loan.id asc,  crm_app_purchase.id asc");

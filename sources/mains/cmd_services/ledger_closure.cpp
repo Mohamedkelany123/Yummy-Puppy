@@ -8,6 +8,8 @@
 #include <AccrualInterest.h>
 #include <AccrualInterestFunc.h>
 #include <UndueToDueFunc.h>
+#include <InitialLoanInterestAccrualFunc.h>
+#include <InitialLoanInterestAccrual.h>
 #include <PSQLUpdateQuery.h>
 
 //<BuckedId,Percentage>
@@ -44,11 +46,12 @@ int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "disburse"; 
-    string closure_date_string = "2024-06-13"; 
-    int threadsCount = 8;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
+    string closure_date_string = "2024-07-02"; 
+    int threadsCount = 1;
+    string databaseName = "c_plus_plus";
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
     if (connect){
-        cout << "Connected to DATABASE"  << endl;
+        cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
     }
     psqlController.addDefault("created_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",true,true);
@@ -85,6 +88,50 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main");  
         DisburseLoan::update_step();
     }
+
+
+    if ( strcmp (step,"ledger_accruel_initial_interest") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        cout << "First Accrual" << endl;
+        //FIRST ACCRUAL s
+        loan_app_loan_primitive_orm_iterator*  loans_to_get_first_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 1);
+        
+        BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(135, -1);
+
+        InitialLoanInterestAccrualStruct initialLoanInterestAccrualStruct;
+        initialLoanInterestAccrualStruct.blnkTemplateManager = blnkTemplateManager;
+        initialLoanInterestAccrualStruct.is_first_date = true;
+
+        loans_to_get_first_accrual_agg->process(threadsCount, InitialLoanInterestAccrualFunc,(void *)&initialLoanInterestAccrualStruct);
+
+        delete(blnkTemplateManager);
+        delete(loans_to_get_first_accrual_agg);
+
+        psqlController.ORMCommit(true,true,true, "main");  
+        InitialLoanInterestAccrual::update_step();
+        //-----------------------------------------------------------------------------------
+
+        // //SECOND ACCRUAL
+        // cout << "Second Accrual" << endl;
+        // loan_app_loan_primitive_orm_iterator*  loans_to_get_second_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 1);
+        
+        // BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(135, -1);
+
+        // InitialLoanInterestAccrualStruct initialLoanInterestAccrualStruct;
+        // initialLoanInterestAccrualStruct.blnkTemplateManager = blnkTemplateManager;
+        // initialLoanInterestAccrualStruct.is_first_date = false;
+
+        // loans_to_get_second_accrual_agg->process(threadsCount, InitialLoanInterestAccrualFunc,(void *)&initialLoanInterestAccrualStruct);
+
+        // delete(blnkTemplateManager);
+        // delete(loans_to_get_second_accrual_agg);
+
+        // psqlController.ORMCommit(true,true,true, "main");  
+        // InitialLoanInterestAccrual::update_step();
+    }
+
+
+
 
     if ( strcmp (step,"cancel") == 0 || strcmp (step,"full_closure") == 0)
     {

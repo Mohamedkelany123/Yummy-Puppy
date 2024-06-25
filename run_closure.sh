@@ -3,16 +3,13 @@
 # Define variables
 LMS_COMMAND="./bin/mains/cmd_services/new_lms"
 ADDRESS="192.168.1.51"
-# ADDRESS="localhost"
 PORT_NUMBER="5432"
-DB_NAME="django_ostaz_before_closure"
-# DB_NAME="django_ostaz_25102023"
+DB_NAME="django_closure"
 USERNAME="postgres"
 PASSWORD="postgres"
-#STEP="full_closure"
 STEP="full_closure"
-DATE="2025-07-08"
-THREADS_COUNT="16"
+DATE="2024-07-02"
+THREADS_COUNT="8"
 
 # mod 2 offset(0,1) ....
 MOD="0"
