@@ -85,7 +85,7 @@ PSQLJoinQueryIterator* CancelLoan::aggregator(string _closure_date_string, int _
 
         psqlQueryJoin->setOrderBy("loan_app_loan.id asc, ledger_amount.id asc");
         psqlQueryJoin->setAggregates ({
-            {"loan_app_loan","id"}
+            {"loan_app_loan", {"id", 1}},  
         });
 
         return psqlQueryJoin;

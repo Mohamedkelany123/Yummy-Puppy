@@ -423,7 +423,7 @@ bool PSQLJoinQueryIterator::setDistinct (vector<pair<string,string>> distinct_ma
     else return false;
 }
 
-bool PSQLJoinQueryIterator::setAggregates (map <string,string> _aggregate_map)
+bool PSQLJoinQueryIterator::setAggregates (map<string, pair<string, int>> _aggregate_map)
 {
     aggregate_map = _aggregate_map;
     int count = 0;
@@ -433,12 +433,21 @@ bool PSQLJoinQueryIterator::setAggregates (map <string,string> _aggregate_map)
     {
         if (orm_objects_map.find(agg.first+"_primitive_orm") != orm_objects_map.end())
         {
-            // cout << orm_objects_map[agg.first+"_primitive_orm"]->compose_field_and_alias(agg.second) << endl;
-            if (count == 0 )
-                aggregate = "concat(";
-            else aggregate += ",";
-            aggregate+= "lpad("+orm_objects_map[agg.first+"_primitive_orm"]->compose_field(agg.second)+"::varchar,10,'0')";
-            count ++;
+            if (agg.second.second == 1) //Integer
+            {
+                if (count == 0 )
+                    aggregate = "concat(";
+                else aggregate += ",";
+                aggregate+= "lpad("+orm_objects_map[agg.first+"_primitive_orm"]->compose_field(agg.second.first)+"::varchar,10,'0')";
+                count ++;
+            }else if (agg.second.second == 2) //Date
+            {
+                if (count == 0 )
+                    aggregate = "concat(";
+                else aggregate += ",";
+                aggregate+= "TO_CHAR("+orm_objects_map[agg.first+"_primitive_orm"]->compose_field(agg.second.first)+", 'YYYYMMDD')";
+                count ++;
+            }
         }
     }
     if (count > 0)
