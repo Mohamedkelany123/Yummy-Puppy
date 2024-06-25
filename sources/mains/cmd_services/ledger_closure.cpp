@@ -98,36 +98,32 @@ int main (int argc, char ** argv)
         
         BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(135, -1);
 
-        InitialLoanInterestAccrualStruct initialLoanInterestAccrualStruct;
-        initialLoanInterestAccrualStruct.blnkTemplateManager = blnkTemplateManager;
-        initialLoanInterestAccrualStruct.is_first_date = true;
+        InitialLoanInterestAccrualStruct initialLoanInterestFirstAccrualStruct;
+        initialLoanInterestFirstAccrualStruct.blnkTemplateManager = blnkTemplateManager;
+        initialLoanInterestFirstAccrualStruct.is_first_date = true;
 
-        loans_to_get_first_accrual_agg->process(threadsCount, InitialLoanInterestAccrualFunc,(void *)&initialLoanInterestAccrualStruct);
+        loans_to_get_first_accrual_agg->process(threadsCount, InitialLoanInterestAccrualFunc,(void *)&initialLoanInterestFirstAccrualStruct);
 
-        delete(blnkTemplateManager);
         delete(loans_to_get_first_accrual_agg);
 
         psqlController.ORMCommit(true,true,true, "main");  
-        InitialLoanInterestAccrual::update_step();
         //-----------------------------------------------------------------------------------
 
         // //SECOND ACCRUAL
-        // cout << "Second Accrual" << endl;
-        // loan_app_loan_primitive_orm_iterator*  loans_to_get_second_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 1);
+        cout << "Second Accrual" << endl;
+        loan_app_loan_primitive_orm_iterator*  loans_to_get_second_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 1);
         
-        // BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(135, -1);
+        InitialLoanInterestAccrualStruct initialLoanInterestSecondAccrualStruct;
+        initialLoanInterestSecondAccrualStruct.blnkTemplateManager = blnkTemplateManager;
+        initialLoanInterestSecondAccrualStruct.is_first_date = false;
 
-        // InitialLoanInterestAccrualStruct initialLoanInterestAccrualStruct;
-        // initialLoanInterestAccrualStruct.blnkTemplateManager = blnkTemplateManager;
-        // initialLoanInterestAccrualStruct.is_first_date = false;
+        loans_to_get_second_accrual_agg->process(threadsCount, InitialLoanInterestAccrualFunc,(void *)&initialLoanInterestSecondAccrualStruct);
 
-        // loans_to_get_second_accrual_agg->process(threadsCount, InitialLoanInterestAccrualFunc,(void *)&initialLoanInterestAccrualStruct);
+        delete(blnkTemplateManager);
+        delete(loans_to_get_second_accrual_agg);
 
-        // delete(blnkTemplateManager);
-        // delete(loans_to_get_second_accrual_agg);
-
-        // psqlController.ORMCommit(true,true,true, "main");  
-        // InitialLoanInterestAccrual::update_step();
+        psqlController.ORMCommit(true,true,true, "main");  
+        InitialLoanInterestAccrual::update_step();
     }
 
 
