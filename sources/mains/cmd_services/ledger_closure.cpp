@@ -51,7 +51,11 @@ int main (int argc, char ** argv)
     string databaseName = "c_plus_plus";
     bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
     if (connect){
+        cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
+        cout << "Threads Count->[" << threadsCount << "]" << endl;
+        cout << "Step[" << step << "]" << endl;
+        cout << "--------------------------------------------------------" << endl;
     }
     psqlController.addDefault("created_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",true,true);
