@@ -45,11 +45,11 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "disburse"; 
-    string closure_date_string = "2024-07-02"; 
+    const char * step = "ledger_accruel_initial_interest"; 
+    string closure_date_string = "2024-07-16"; 
     int threadsCount = 1;
-    string databaseName = "c_plus_plus";
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
+    string databaseName = "django_ostaz_22062024_omneya";
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
@@ -97,7 +97,7 @@ int main (int argc, char ** argv)
     if ( strcmp (step,"ledger_accruel_initial_interest") == 0 || strcmp (step,"full_closure") == 0)
     {
         cout << "First Accrual" << endl;
-        //FIRST ACCRUAL s
+        //FIRST ACCRUAL
         loan_app_loan_primitive_orm_iterator*  loans_to_get_first_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 1);
         
         BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(135, -1);
@@ -113,9 +113,9 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main");  
         //-----------------------------------------------------------------------------------
 
-        // //SECOND ACCRUAL
+        //SECOND ACCRUAL
         cout << "Second Accrual" << endl;
-        loan_app_loan_primitive_orm_iterator*  loans_to_get_second_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 1);
+        loan_app_loan_primitive_orm_iterator*  loans_to_get_second_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 2);
         
         InitialLoanInterestAccrualStruct initialLoanInterestSecondAccrualStruct;
         initialLoanInterestSecondAccrualStruct.blnkTemplateManager = blnkTemplateManager;
