@@ -45,7 +45,7 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "ledger_accruel_initial_interest"; 
+    const char * step = "disburse"; 
     string closure_date_string = "2024-07-16"; 
     int threadsCount = 1;
     string databaseName = "django_ostaz_22062024_omneya";
