@@ -10,6 +10,8 @@
 #include <UndueToDueFunc.h>
 #include <InitialLoanInterestAccrualFunc.h>
 #include <InitialLoanInterestAccrual.h>
+#include <LongToShortTerm.h>
+#include <LongToShortTermFunc.h>
 #include <PSQLUpdateQuery.h>
 
 //<BuckedId,Percentage>
@@ -45,10 +47,10 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "disburse"; 
-    string closure_date_string = "2024-07-16"; 
+    const char * step = "longToShort"; 
+    string closure_date_string = "2024-06-17"; 
     int threadsCount = 1;
-    string databaseName = "django_ostaz_22062024_omneya";
+    string databaseName = "django_ostaz_11062024_omneya";
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
@@ -220,6 +222,24 @@ int main (int argc, char ** argv)
         delete(undueToDueTemplateManager);
         psqlController.ORMCommit(true,true,true, "main");  
         UndueToDue::update_step(); 
+    }
+
+    if ( strcmp (step,"longToShort") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        //Partial accrue interest aggregator
+        PSQLJoinQueryIterator*  longToShortTermQuery = LongToShortTerm::aggregator(closure_date_string);
+
+        BlnkTemplateManager * longToShortTermTemplateManager = new BlnkTemplateManager(11, -1);
+        AccrualInterestStruct longToShortTermStruct = {
+            longToShortTermTemplateManager
+        };
+        longToShortTermQuery->process(threadsCount, LongToShortTermFunc, (void*)&longToShortTermStruct);
+        delete(longToShortTermTemplateManager);
+        delete(longToShortTermQuery);
+        psqlController.ORMCommit(true,true,true, "main"); 
+
+
+        LongToShortTerm::update_step();
     }
 
 
