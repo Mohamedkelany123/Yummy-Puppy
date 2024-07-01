@@ -74,7 +74,7 @@ int main (int argc, char ** argv)
 
     psqlQueryJoin->setOrderBy("loan_app_loan.id asc, ledger_amount.id asc");
     psqlQueryJoin->setAggregates ({
-        {"loan_app_loan","id"}
+        {"loan_app_loan",{"id", 1}}
     });
 
     CancelLoanStruct cancelLoanStruct;

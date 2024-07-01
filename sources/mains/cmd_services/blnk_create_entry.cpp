@@ -45,9 +45,9 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "disburse"; 
-    string closure_date_string = "2024-06-23"; 
-    int threadsCount = 8;
+    const char * step = "duetooverdue"; 
+    string closure_date_string = "2024-06-26"; 
+    int threadsCount = 1;
     bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;

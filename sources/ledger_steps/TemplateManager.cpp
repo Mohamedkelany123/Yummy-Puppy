@@ -92,6 +92,7 @@ void BlnkTemplateManager::loadTemplate ()
 
 bool BlnkTemplateManager::buildLegs()
 {
+    ledger_amount_orms = new map<string, pair<ledger_amount_primitive_orm*, ledger_amount_primitive_orm*>*>;
     for (auto ent : *(entry_data)) {
         
         string leg_name = ent.first;     
@@ -100,6 +101,7 @@ bool BlnkTemplateManager::buildLegs()
 
         LedgerCompositLeg * lc = new LedgerCompositLeg();
         std::pair <ledger_amount_primitive_orm*,ledger_amount_primitive_orm*>* leg_pair = lc->build(&(*template_legs)[leg_name], entry_values, entry,cache_partition_number);
+        (*ledger_amount_orms)[leg_name] = leg_pair;
         ledger_amounts[leg_name]=lc;
         if(leg_pair == NULL){
             return false;
@@ -109,7 +111,7 @@ bool BlnkTemplateManager::buildLegs()
     return true;
 
 }
-bool BlnkTemplateManager::validate ()
+bool BlnkTemplateManager::validate()
 {
     for (auto& leg : this->template_json["legs"]) {
         if (leg["required"]){
@@ -125,7 +127,10 @@ bool BlnkTemplateManager::validate ()
 }
 ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
 {
-    this->createEntry(entry_date);
+    if (!entry){
+        this->createEntry(entry_date);
+    }
+    
     bool is_built = this->buildLegs();
     bool is_valid = this->validate();
     if(!(is_valid && is_built)){
@@ -157,7 +162,12 @@ ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_am
         return entry;
     }else return nullptr;
 }
-void BlnkTemplateManager::setEntryData(map<string, LedgerAmount *> *_entry_data) {
+void BlnkTemplateManager::setEntry(ledger_entry_primitive_orm* _entry)
+{
+    entry = _entry;
+}
+void BlnkTemplateManager::setEntryData(map<string, LedgerAmount *> *_entry_data)
+{
     entry_data = _entry_data;
 }
 void BlnkTemplateManager::createEntry(BDate entry_date)
@@ -172,6 +182,11 @@ void BlnkTemplateManager::createEntry(BDate entry_date)
     entry->set_created_by(1);
 }
 
+ledger_entry_primitive_orm *BlnkTemplateManager::get_entry()
+{
+    return entry;
+}
+
 BlnkTemplateManager::~BlnkTemplateManager()
 {
     for (auto la :ledger_amounts)
@@ -184,6 +199,11 @@ BlnkTemplateManager::~BlnkTemplateManager()
 map <string,LedgerCompositLeg *> * BlnkTemplateManager::get_ledger_amounts()
 {
     return & ledger_amounts;
+}
+
+map<string, pair<ledger_amount_primitive_orm *, ledger_amount_primitive_orm *>*>* BlnkTemplateManager::get_ledger_amount_orms()
+{
+    return ledger_amount_orms;
 }
 
 ledger_amount_primitive_orm * BlnkTemplateManager::getFirstLedgerAmountORM ()
