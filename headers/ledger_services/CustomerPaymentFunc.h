@@ -6,11 +6,15 @@
 #include <TemplateManager.h>
 #include <common_orm.h>
 #include <CustomerPayment.h>
+#include <payments_loanorderheader_primitive_orm.h>
+#include <payments_loanorder_primitive_orm.h>
+
 
 typedef struct {
-    BlnkTemplateManager *blnkTemplateManager;
+    map<int, BlnkTemplateManager*>* blnkTemplateManagerMap;
+    BDate closing_date;
 } ReceiveCustomerPaymentStruct;
 
-void receiveCustomerPaymentFunc(vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras);
+void receiveCustomerPaymentFunc(map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras);
 
 #endif

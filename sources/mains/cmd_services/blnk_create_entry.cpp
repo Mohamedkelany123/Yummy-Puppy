@@ -9,6 +9,8 @@
 #include <AccrualInterestFunc.h>
 #include <UndueToDueFunc.h>
 #include <PSQLUpdateQuery.h>
+#include <CustomerPayment.h>
+#include <CustomerPaymentFunc.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -173,6 +175,25 @@ int main (int argc, char ** argv)
         delete(undueToDueTemplateManager);
         psqlController.ORMCommit(true,true,true, "main");  
         UndueToDue::update_step(); 
+    }
+
+    if (strcmp(step, "receiveCustomerPayments") == 0 || strcmp(step, "full_closure") == 0) {
+        PSQLJoinQueryIterator* psqlJoinQueryIterator = CustomerPayment::aggregator(closure_date_string);
+        map<int, BlnkTemplateManager*>* blnkTemplateManagerMap = new map<int, BlnkTemplateManager*>;
+        int template_ids[] = {18, 19, 44, 165, 53, 119, 133};
+        BlnkTemplateManager* blnkTemplateManager = nullptr;
+        for (auto template_id : template_ids) {
+            blnkTemplateManager = new BlnkTemplateManager(template_id, -1);
+            blnkTemplateManagerMap[template_id] = blnkTemplateManager;
+        }
+        ReceiveCustomerPaymentStruct receiveCustomerPaymentStruct;
+        receiveCustomerPaymentStruct.blnkTemplateManagerMap = blnkTemplateManagerMap;
+        receiveCustomerPaymentStruct.closing_date = BDate(closure_date_string);
+        psqlJoinQueryIterator->process(threadsCount, receiveCustomerPaymentFunc, (void*)&receiveCustomerPaymentStruct);
+        delete psqlJoinQueryIterator;
+        for(auto blnkTemplateManagerIt : blnkTemplateManagerMap) {
+            delete blnkTemplateManagerMap->second;
+        }
     }
 
 
