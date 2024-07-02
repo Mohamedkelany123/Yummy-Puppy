@@ -52,11 +52,11 @@ int main (int argc, char ** argv)
     const char * step = "wallet_prepaid"; 
     string database = "django_ostaz_23042024_aliaclosure";
     string closure_date_string = "2024-06-27"; 
-    int threadsCount = 6;
+    int threadsCount = 4;
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432, database,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
-        cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
+        cout << "Connected to DATABASE->[" << database << "]" << endl;
         cout << "Threads Count->[" << threadsCount << "]" << endl;
         cout << "Step[" << step << "]" << endl;
         cout << "--------------------------------------------------------" << endl;

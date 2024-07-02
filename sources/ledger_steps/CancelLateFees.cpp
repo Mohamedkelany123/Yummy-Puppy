@@ -140,7 +140,7 @@ PSQLJoinQueryIterator *CancelLateFees::aggregator(string _closure_date_string)
 
             ));
     psqlQueryJoin->setOrderBy("loan_app_loan.id asc, loan_app_installment.id asc,new_lms_installmentlatefees.cancellation_date");
-    psqlQueryJoin->setAggregates({{"loan_app_loan", "id"}, {"loan_app_installment", "id"}});
+    psqlQueryJoin->setAggregates({{"loan_app_loan", {"id",1}}, {"loan_app_installment", {"id",1}}});
 
     return psqlQueryJoin;
 }
