@@ -184,15 +184,15 @@ int main (int argc, char ** argv)
         BlnkTemplateManager* blnkTemplateManager = nullptr;
         for (auto template_id : template_ids) {
             blnkTemplateManager = new BlnkTemplateManager(template_id, -1);
-            blnkTemplateManagerMap[template_id] = blnkTemplateManager;
+            blnkTemplateManagerMap->operator[](template_id) = blnkTemplateManager;
         }
         ReceiveCustomerPaymentStruct receiveCustomerPaymentStruct;
         receiveCustomerPaymentStruct.blnkTemplateManagerMap = blnkTemplateManagerMap;
         receiveCustomerPaymentStruct.closing_date = BDate(closure_date_string);
         psqlJoinQueryIterator->process(threadsCount, receiveCustomerPaymentFunc, (void*)&receiveCustomerPaymentStruct);
         delete psqlJoinQueryIterator;
-        for(auto blnkTemplateManagerIt : blnkTemplateManagerMap) {
-            delete blnkTemplateManagerMap->second;
+        for(auto it=blnkTemplateManagerMap->begin(); it!=blnkTemplateManagerMap->end(); it++) {
+            delete it->second;
         }
     }
 
