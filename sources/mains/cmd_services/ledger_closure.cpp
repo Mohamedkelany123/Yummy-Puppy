@@ -7,6 +7,10 @@
 #include <CancelFunc.h>
 #include <AccrualInterest.h>
 #include <AccrualInterestFunc.h>
+#include <CancelLateFeesFunc.h>
+#include <CancelLateFees.h>
+#include <WalletPrepaidFunc.h>
+#include <WalletPrepaid.h>
 #include <UndueToDueFunc.h>
 #include <PSQLUpdateQuery.h>
 
@@ -43,10 +47,11 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "disburse"; 
-    string closure_date_string = "2024-06-13"; 
-    int threadsCount = 8;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
+    const char * step = "wallet_prepaid"; 
+    string database = "django_ostaz_23042024_aliaclosure";
+    string closure_date_string = "2024-06-27"; 
+    int threadsCount = 6;
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432, database,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -174,6 +179,33 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main");  
         UndueToDue::update_step(); 
     }
+
+    if ( strcmp (step,"cancel_latefees") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator*  cancel_late_fees_iterator = CancelLateFees::aggregator(closure_date_string);       
+        BlnkTemplateManager * cancelLateFeesManager = new BlnkTemplateManager(50, -1);
+        CancelLateFeesStruct cancelLateFeesStruct;
+        cancelLateFeesStruct.blnkTemplateManager = cancelLateFeesManager;
+        cancel_late_fees_iterator->process_aggregate(threadsCount, CancelLateFeesFunc, (void *)&cancelLateFeesStruct);
+        delete(cancel_late_fees_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+        CancelLateFees::update_step(); 
+    }
+
+    if ( strcmp (step,"wallet_prepaid") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        
+        new_lms_customerwallettransaction_primitive_orm_iterator*  wallet_prepaid_iterator = WalletPrepaid::aggregator(closure_date_string);       
+        BlnkTemplateManager * walletPrepaidManager = new BlnkTemplateManager(134, -1);
+        WalletPrepaidStruct walletPrepaidStruct;
+        walletPrepaidStruct.blnkTemplateManager = walletPrepaidManager;
+        wallet_prepaid_iterator->process(threadsCount, WalletPrepaidFunc, (void *)&walletPrepaidStruct);
+        delete(wallet_prepaid_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+        WalletPrepaid::update_step(); 
+    }
+
+
 
 
     return 0;

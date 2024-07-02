@@ -32,8 +32,8 @@ class LedgerClosure:
         print_colored("Test 1:: Ledger Amount ", self.color_options.YELLOW ,bold=True)
         query = f"""
                     select * from ledger_amount la 
-                    where created_at::date = '{self.current_date}'
-                    order by loan_id desc, amount desc, leg_temple_id desc, account_id desc
+                    where created_at::date >= '{self.current_date}' 
+                    order by loan_id desc, amount desc, leg_temple_id desc, account_id, cashier_id, customer_id desc
                 """
         excluded_columns = ['id', 'created_at', 'updated_at', 'entry_id']
         compare_amount_attributes = ['amount', 'amount_local']
@@ -47,7 +47,7 @@ class LedgerClosure:
         print_colored("Test 2 :: Ledger Entry ", self.color_options.YELLOW ,bold=True)
         query = f"""
                     select * from ledger_entry le 
-                    where created_at::date = '{self.current_date}'
+                    where created_at::date >= '{self.current_date}'
                     order by entry_date  desc, template_id  desc
                 """
         excluded_columns = [ 'id', 'created_at', 'updated_at', 'description']
@@ -95,6 +95,7 @@ class LedgerClosure:
                 data_c_filtered = data_c
                 data_python_filtered = data_python
 
+            print ("length of c is ", len(data_c_filtered)," \n length of django is ", len(data_python_filtered))
             if len(data_c_filtered) != len(data_python_filtered):
                 # send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
                 raise ValueError(f"Data LENGTHS ARE NOT EQUAL")

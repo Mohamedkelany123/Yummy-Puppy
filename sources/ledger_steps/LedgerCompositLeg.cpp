@@ -60,6 +60,8 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
 
         }
 
+        leg_side->set_reversal_bool(entry_data->getReveresalBool());
+
 }
 
 void LedgerCompositLeg::validateEntry(TemplateLeg * template_leg,  LedgerAmount * entry_data){
