@@ -17,6 +17,19 @@ class IScoreNidInquiry : public LedgerClosureStep
 
     public:
         map<string, funcPtr> funcMap;
+        IScoreNidInquiry(ekyc_app_nidlog_primitive_orm * _orms, float inquiry_fee);
+
+        LedgerAmount * _init_ledger_amount();
+        void stampORMs(map<string, LedgerCompositLeg *> *leg_amounts);
+        void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
+        static void update_step(); 
+
+        //static methods
+        static LedgerAmount * _calculate_inquiry_fee(LedgerClosureStep *IScoreNidInquiry);
+
+        static  ekyc_app_nidlog_primitive_orm_iterator* aggregator(string _closure_date_string);
+
+        ~IScoreNidInquiry();
 };  
 
 #endif
