@@ -10,7 +10,7 @@ IScoreNidInquiry::IScoreNidInquiry(map<string,PSQLAbstractORM *> * _orms, float 
     inquiryFee = _inquiry_fee;
 }
 
-PSQLJoinQueryIterator* IScoreNidInquiry(string _closure_date_string){
+PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(string _closure_date_string){
     PSQLJoinQueryIterator * nidLogsQuery = new PSQLJoinQueryIterator("main",
     {new ekyc_app_nidlog_primitive_orm("main"), new ekyc_app_onboardingsession_primitive_orm("main")},
     {{{"ekyc_app_nidlog","onboarding_session_id"},{"ekyc_app_onboardingsession","id"}}}
