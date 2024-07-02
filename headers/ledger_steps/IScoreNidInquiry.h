@@ -12,22 +12,26 @@ class IScoreNidInquiry : public LedgerClosureStep
 {
     private:
         ekyc_app_nidlog_primitive_orm * nid_orm;
+        ekyc_app_onboardingsession_primitive_orm * onb_orm;
 
-        float inquiry_fee;
+        int merchantID;
+        float inquiryFee;
 
     public:
         map<string, funcPtr> funcMap;
-        IScoreNidInquiry(ekyc_app_nidlog_primitive_orm * _orms, float inquiry_fee);
+        IScoreNidInquiry(map<string,PSQLAbstractORM *> * _orms, float inquiry_fee);
 
         LedgerAmount * _init_ledger_amount();
         void stampORMs(map<string, LedgerCompositLeg *> *leg_amounts);
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
-        static void update_step(); 
+
+        //Getters
+        float get_inquiry_fee();
 
         //static methods
         static LedgerAmount * _calculate_inquiry_fee(LedgerClosureStep *IScoreNidInquiry);
-
-        static  ekyc_app_nidlog_primitive_orm_iterator* aggregator(string _closure_date_string);
+        static void update_step(); 
+        static  PSQLJoinQueryIterator* aggregator(string _closure_date_string);
 
         ~IScoreNidInquiry();
 };  

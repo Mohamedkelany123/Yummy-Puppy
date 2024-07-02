@@ -1,16 +1,22 @@
 #include <IScoreNidInquiry.h>
 
 
-IScoreNidInquiry::IScoreNidInquiry(ekyc_app_nidlog_primitive_orm * _orms, float _inquiry_fee)
+IScoreNidInquiry::IScoreNidInquiry(map<string,PSQLAbstractORM *> * _orms, float _inquiry_fee)
 {
-    nid_orm = _orms;
-    inquiry_fee = _inquiry_fee;
+    nid_orm = ORM(ekyc_app_nidlog,_orms);
+    onb_orm = ORM(ekyc_app_onboardingsession,_orms);
+    PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,_orms);
+    merchantID = std::stoi(gorm->get("merchant_id"));
+    inquiryFee = _inquiry_fee;
 }
 
-ekyc_app_nidlog_primitive_orm_iterator* IScoreNidInquiry(string _closure_date_string){
-    ekyc_app_nidlog_primitive_orm_iterator * nid_logs = new ekyc_app_nidlog_primitive_orm_iterator("main");
+PSQLJoinQueryIterator* IScoreNidInquiry(string _closure_date_string){
+    PSQLJoinQueryIterator * nidLogsQuery = new PSQLJoinQueryIterator("main",
+    {new ekyc_app_nidlog_primitive_orm("main"), new ekyc_app_onboardingsession_primitive_orm("main")},
+    {{{"ekyc_app_nidlog","onboarding_session_id"},{"ekyc_app_onboardingsession","id"}}}
+    );
 
-    nid_logs->filter(
+    nidLogsQuery->filter(
         ANDOperator(
             new UnaryOperator("ekyc_app_nidlog.status",eq,1),
             new UnaryOperator("ekyc_app_nidlog.nid_expense_ledger_entry",isnull,"",true),
@@ -18,5 +24,57 @@ ekyc_app_nidlog_primitive_orm_iterator* IScoreNidInquiry(string _closure_date_st
         )
     );
 
-    return nid_logs;
+    nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at <= " + _closure_date_string +  " order by id desc limit 1)","merchant_id");
+
+    return nidLogsQuery;
 }
+
+LedgerAmount* IScoreNidInquiry::_init_ledger_amount(){
+    LedgerAmount * lg = new LedgerAmount();
+    lg->setMerchantId(merchantID);
+    lg->setCashierId(onb_orm->get_merchant_staff_id());
+
+    return lg;
+}
+
+void IScoreNidInquiry::update_step(){
+    PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+        ANDOperator(
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            //TODO: Change To update status comparing to the closure status of the step before it not gt 0
+            new UnaryOperator ("loan_app_loan.closure_status",gte,0)
+        ),
+        {{"closure_status",to_string(ledger_status::NID_ISCORE)}}
+        );
+        psqlUpdateQuery.update();  
+}
+
+void IScoreNidInquiry::setupLedgerClosureService(LedgerClosureService * ledgerClosureService)
+{
+    ledgerClosureService->addHandler("iScore NID inquiry fee expense",_calculate_inquiry_fee);
+}
+
+void IScoreNidInquiry::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts){
+    map<string,LedgerCompositLeg*>::iterator it = leg_amounts->begin();
+    ledger_amount_primitive_orm* first_leg_amount = it->second->getLedgerCompositeLeg()->first;
+    if (first_leg_amount != NULL){
+        nid_orm->setUpdateRefernce("nid_expense_ledger_entry_id",first_leg_amount);
+    }
+    else cout << "ERROR in fetching first leg of the entry " << endl;
+}
+
+float IScoreNidInquiry::get_inquiry_fee(){
+    return inquiryFee;
+}
+
+LedgerAmount * IScoreNidInquiry::_calculate_inquiry_fee(LedgerClosureStep *iScoreNidInquiry){
+    LedgerAmount * la = ((IScoreNidInquiry*)iScoreNidInquiry)->_init_ledger_amount();
+    la->setAmount(((IScoreNidInquiry*)iScoreNidInquiry)->get_inquiry_fee());
+
+    return la;
+}
+
+IScoreNidInquiry::~IScoreNidInquiry(){}
+
+
+

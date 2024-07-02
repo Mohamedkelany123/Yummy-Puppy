@@ -12,6 +12,8 @@
 #include <InitialLoanInterestAccrual.h>
 #include <LongToShortTerm.h>
 #include <LongToShortTermFunc.h>
+#include <IScoreNidInquiry.h>
+#include <IScoreNidInquiryFunc.h>
 #include <PSQLUpdateQuery.h>
 
 //<BuckedId,Percentage>
@@ -44,11 +46,26 @@ map<int,float> get_loan_status_provisions_percentage()
         return bucket_percentage;
 }
 
+float get_iscore_nid_inquiry_fee(){
+    ledger_global_primitive_orm_iterator * it = new ledger_global_primitive_orm_iterator("main");
+    it->filter(
+        ANDOperator(
+        new UnaryOperator("ledger_global.name",eq,"iscore_nid_expense_fee")
+        )
+    );
+    it->execute();
+    ledger_global_primitive_orm * global_orm = it->next(true);
+    if((global_orm->get_value())["amount"] != NULL){
+        return global_orm->get_value()["amount"];
+    }
+    else cout << "ERROR in fetching NID iScore inquiry amount" << endl;
+}
+
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "longToShort"; 
-    string closure_date_string = "2024-06-17"; 
+    const char * step = "iScoreNidInquiry"; 
+    string closure_date_string = "2024-05-10"; 
     int threadsCount = 1;
     string databaseName = "django_ostaz_11062024_omneya";
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
@@ -230,7 +247,7 @@ int main (int argc, char ** argv)
         PSQLJoinQueryIterator*  longToShortTermQuery = LongToShortTerm::aggregator(closure_date_string);
 
         BlnkTemplateManager * longToShortTermTemplateManager = new BlnkTemplateManager(11, -1);
-        AccrualInterestStruct longToShortTermStruct = {
+        LongToShortTermStruct longToShortTermStruct = {
             longToShortTermTemplateManager
         };
         longToShortTermQuery->process(threadsCount, LongToShortTermFunc, (void*)&longToShortTermStruct);
@@ -239,6 +256,22 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main"); 
 
 
+        LongToShortTerm::update_step();
+    }
+
+    if ( strcmp (step,"iScoreNidInquiry") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        //Partial accrue interest aggregator
+        PSQLJoinQueryIterator*  iScoreNidInquiryQuery = IScoreNidInquiry::aggregator(closure_date_string);
+
+        BlnkTemplateManager * iScoreNidInquiryTemplateManager = new BlnkTemplateManager(11, -1);
+        IScoreNidInquiryStruct iScoreNidInquiryStruct;
+        iScoreNidInquiryStruct.blnkTemplateManager = iScoreNidInquiryTemplateManager;
+        iScoreNidInquiryStruct.inquiryFee = get_iscore_nid_inquiry_fee();
+        iScoreNidInquiryQuery->process(threadsCount, LongToShortTermFunc, (void*)&iScoreNidInquiryStruct);
+        delete(iScoreNidInquiryTemplateManager);
+        delete(iScoreNidInquiryQuery);
+        psqlController.ORMCommit(true,true,true, "main"); 
         LongToShortTerm::update_step();
     }
 
