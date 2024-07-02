@@ -133,7 +133,7 @@ class LedgerClosure:
 
     def compare_amounts(self, data_c, data_python, columns_to_check=None):
         """
-        Compares specified columns between two datasets and removes the entry if the difference is not more than 0.1.
+        Compares specified columns between two datasets and removes the entry if the difference is not more than 0.01.
 
         :param data_c: List of dictionaries representing data fetched from C++ database.
         :param data_python: List of dictionaries representing data fetched from Python database.

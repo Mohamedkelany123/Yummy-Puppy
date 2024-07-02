@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#DATABASE_URL=postgres://development:5k6MLFM9CLN3bD1@192.168.65.216:5432/django_ostaz_22062024_omneya
+
+
 # Define variables
 LMS_COMMAND="./bin/mains/cmd_services/new_lms"
 ADDRESS="192.168.65.216"
