@@ -47,11 +47,7 @@ class BDate
         ~BDate ();
 };
 
-void string_to_lower(string& s) {
-    for(auto& c : s) {
-        c = tolower(c);
-    }
-}
+
 
 
 

@@ -8,7 +8,6 @@
 #include<ledger_amount_primitive_orm.h>
 #include<tms_app_loaninstallmentfundingrequest_primitive_orm.h>
 #include<tms_app_bond_primitive_orm.h>
-#include<ledger_entry_primitive_orm.h>
 #include <ledger_amount_primitive_orm.h>
 #include <loan_app_loan_primitive_orm.h>
 #include <loan_app_installment_primitive_orm.h>
@@ -17,6 +16,10 @@
 #include <crm_app_customer_primitive_orm.h>
 #include <crm_app_purchase_primitive_orm.h>
 #include <loan_app_loan_bl_orm.h>
+#include <payments_loanorder_primitive_orm.h>
+#include <payments_loanorderheader_primitive_orm.h>
+#include <payments_paymentmethod_primitive_orm.h>
+#include <payments_paymentprovider_primitive_orm.h>
 
 
 #endif

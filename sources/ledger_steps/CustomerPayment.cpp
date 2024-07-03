@@ -67,11 +67,10 @@ LedgerAmount *CustomerPayment::_init_ledger_amount()
     return lg;
 }
 
-void CustomerPayment::setupLedgerClosureService(LedgerClosureService *ledgerClosureService)
+void CustomerPayment::setupLedgerClosureService(LedgerClosureService * ledgerClosureService)
 {
     if (template_id == 18) {
         ledgerClosureService->addHandler("Repayment fee Income, Accept", _get_order_income);
-        
     }
     if (template_id == 19 || template_id == 119 || template_id == 133) {
         ledgerClosureService->addHandler("Repayment fee Income, Fawry", _get_order_income);
@@ -112,7 +111,7 @@ LedgerAmount *CustomerPayment::_get_order_income(LedgerClosureStep* customerPaym
     return ledgerAmount;
 }
 
-LedgerAmount *CustomerPayment::_get_order_total_amount(LedgerClosureService *customerPaymentStep)
+LedgerAmount *CustomerPayment::_get_order_total_amount(LedgerClosureStep *customerPaymentStep)
 {
     LedgerAmount* ledgerAmount = ((CustomerPayment*)customerPaymentStep)->_init_ledger_amount();
     int first_loan_order_id = ((CustomerPayment*)customerPaymentStep)->get_first_loan_order_id();
@@ -135,7 +134,7 @@ LedgerAmount *CustomerPayment::_get_order_total_amount(LedgerClosureService *cus
     return ledgerAmount;
 }
 
-LedgerAmount *CustomerPayment::_get_remaining_escrow(LedgerClosureService *customerPaymentStep)
+LedgerAmount *CustomerPayment::_get_remaining_escrow(LedgerClosureStep *customerPaymentStep)
 {
     LedgerAmount* ledgerAmount = ((CustomerPayment*)customerPaymentStep)->_init_ledger_amount();
     int first_loan_order_id = ((CustomerPayment*)customerPaymentStep)->get_first_loan_order_id();

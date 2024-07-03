@@ -1,15 +1,21 @@
 #include <CustomerPaymentFunc.h>
 
+void string_to_lower(string& s) {
+    for(auto& c : s) {
+        c = tolower(c);
+    }
+}
+
 void receiveCustomerPaymentFunc(map<string, PSQLAbstractORM*>* orms, int partition_number, mutex* shared_lock,void * extras) {
     map<int, BlnkTemplateManager*>* blnkTemplateManagerMap = ((ReceiveCustomerPaymentStruct*)extras)->blnkTemplateManagerMap;
     BDate closing_date = ((ReceiveCustomerPaymentStruct*)extras)->closing_date;
     payments_loanorder_primitive_orm * plo_orm = ORM(payments_loanorder,orms);
-    payments_loanorderheader_primitive_orm* ploh_orm = ORM(payment_loanorderheader, orms);
+    payments_loanorderheader_primitive_orm* ploh_orm = ORM(payments_loanorderheader, orms);
     loan_app_loan_primitive_orm* lal_orm = ORM(loan_app_loan, orms);
-    payments_paymentmethod_primitive_orm* ppm_orm = ORM(payments_paymentmethodm orms);
+    payments_paymentmethod_primitive_orm* ppm_orm = ORM(payments_paymentmethod, orms);
     payments_paymentprovider_primitive_orm* ppp_orm = ORM(payments_paymentprovider, orms);
     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
-    string first_loan_order_id = stoi(gorm->getExtra("first_loan_order_id"));
+    int first_loan_order_id = stoi(gorm->getExtra("first_loan_order_id"));
     string payment_provider_name = ppp_orm->get_name();
     string payment_method_name = ppm_orm->get_name();
 
