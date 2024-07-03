@@ -7,6 +7,8 @@ IScoreNidInquiry::IScoreNidInquiry(map<string,PSQLAbstractORM *> * _orms, float 
     onb_orm = ORM(ekyc_app_onboardingsession,_orms);
     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,_orms);
     std::stringstream ss(gorm->get("merchant_id"));
+    std::stringstream ss(gorm->get("customer_id"));
+    ss >> customerID;
     cout << "MERCHANT ID IS :";
     cout << gorm->get("merchant_id") << endl;
     ss >> merchantID;
@@ -30,6 +32,7 @@ PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(string _closure_date_string)
     string query_closure_date = "'" + _closure_date_string + "'"; 
 
     nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at <= " + query_closure_date + " order by id desc limit 1)","merchant_id");
+    // nidLogsQuery->addExtraFromField("(select cac.customer_id from crm_app_customer cac inner join ekyc_app_onboardingsession.phone_number on cac.phone_number = ekyc_app_onboardingsession.phone_number)","customer_id");
 
     return nidLogsQuery;
 }
@@ -38,6 +41,10 @@ LedgerAmount* IScoreNidInquiry::_init_ledger_amount(){
     LedgerAmount * lg = new LedgerAmount();
     lg->setMerchantId(merchantID);
     lg->setCashierId(onb_orm->get_merchant_staff_id());
+    if (customerID != NULL){
+        lg->setCustomerId(customerID);
+    }
+    // lg->setCustomerId(onb_orm->get_cus)
 
     return lg;
 }
