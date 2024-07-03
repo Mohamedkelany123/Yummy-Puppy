@@ -262,13 +262,15 @@ int main (int argc, char ** argv)
     if ( strcmp (step,"iScoreNidInquiry") == 0 || strcmp (step,"full_closure") == 0)
     {
         //Partial accrue interest aggregator
+        cout << "Starting IScore NID inquiry step!" << endl;
         PSQLJoinQueryIterator*  iScoreNidInquiryQuery = IScoreNidInquiry::aggregator(closure_date_string);
-
-        BlnkTemplateManager * iScoreNidInquiryTemplateManager = new BlnkTemplateManager(11, -1);
+        BlnkTemplateManager * iScoreNidInquiryTemplateManager = new BlnkTemplateManager(3, -1);
         IScoreNidInquiryStruct iScoreNidInquiryStruct;
         iScoreNidInquiryStruct.blnkTemplateManager = iScoreNidInquiryTemplateManager;
+        cout << "IScore inquiry fee :";
+        cout << get_iscore_nid_inquiry_fee() << endl;
         iScoreNidInquiryStruct.inquiryFee = get_iscore_nid_inquiry_fee();
-        iScoreNidInquiryQuery->process(threadsCount, LongToShortTermFunc, (void*)&iScoreNidInquiryStruct);
+        iScoreNidInquiryQuery->process(threadsCount, IScoreNidInquiryFunc, (void*)&iScoreNidInquiryStruct);
         delete(iScoreNidInquiryTemplateManager);
         delete(iScoreNidInquiryQuery);
         psqlController.ORMCommit(true,true,true, "main"); 

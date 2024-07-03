@@ -6,7 +6,10 @@ IScoreNidInquiry::IScoreNidInquiry(map<string,PSQLAbstractORM *> * _orms, float 
     nid_orm = ORM(ekyc_app_nidlog,_orms);
     onb_orm = ORM(ekyc_app_onboardingsession,_orms);
     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,_orms);
-    merchantID = std::stoi(gorm->get("merchant_id"));
+    std::stringstream ss(gorm->get("merchant_id"));
+    cout << "MERCHANT ID IS :";
+    cout << gorm->get("merchant_id") << endl;
+    ss >> merchantID;
     inquiryFee = _inquiry_fee;
 }
 
@@ -18,13 +21,15 @@ PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(string _closure_date_string)
 
     nidLogsQuery->filter(
         ANDOperator(
+            new UnaryOperator("ekyc_app_nidlog.id",eq,109003),
             new UnaryOperator("ekyc_app_nidlog.status",eq,1),
-            new UnaryOperator("ekyc_app_nidlog.nid_expense_ledger_entry",isnull,"",true),
+            new UnaryOperator("ekyc_app_nidlog.nid_expense_ledger_entry_id",isnull,"",true),
             new UnaryOperator("ekyc_app_nidlog.created_at",lte,_closure_date_string)
         )
     );
+    string query_closure_date = "'" + _closure_date_string + "'"; 
 
-    nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at <= " + _closure_date_string +  " order by id desc limit 1)","merchant_id");
+    nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at <= " + query_closure_date + " order by id desc limit 1)","merchant_id");
 
     return nidLogsQuery;
 }
@@ -58,6 +63,7 @@ void IScoreNidInquiry::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts){
     map<string,LedgerCompositLeg*>::iterator it = leg_amounts->begin();
     ledger_amount_primitive_orm* first_leg_amount = it->second->getLedgerCompositeLeg()->first;
     if (first_leg_amount != NULL){
+        cout << "Stampingggg-> " <<  first_leg_amount << endl;
         nid_orm->setUpdateRefernce("nid_expense_ledger_entry_id",first_leg_amount);
     }
     else cout << "ERROR in fetching first leg of the entry " << endl;
@@ -70,6 +76,7 @@ float IScoreNidInquiry::get_inquiry_fee(){
 LedgerAmount * IScoreNidInquiry::_calculate_inquiry_fee(LedgerClosureStep *iScoreNidInquiry){
     LedgerAmount * la = ((IScoreNidInquiry*)iScoreNidInquiry)->_init_ledger_amount();
     la->setAmount(((IScoreNidInquiry*)iScoreNidInquiry)->get_inquiry_fee());
+    cout << la << endl;
 
     return la;
 }
