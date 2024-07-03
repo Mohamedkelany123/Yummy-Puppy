@@ -17,10 +17,10 @@ void IScoreNidInquiryFunc(map<string,PSQLAbstractORM*>* orms,int partition_numbe
         string stamping_date = nid_orm->get_created_at();
 
         ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate(stamping_date));
-        map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
+        // map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
 
         if (entry){
-            iScoreNidInquiry.stampORMs(leg_amounts);
+            iScoreNidInquiry.stampORMs(entry);
         }
         else {
             cerr << "Can not stamp ORM objects\n";
