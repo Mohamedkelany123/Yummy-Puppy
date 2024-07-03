@@ -59,15 +59,17 @@ float get_iscore_nid_inquiry_fee(){
         return global_orm->get_value()["amount"];
     }
     else cout << "ERROR in fetching NID iScore inquiry amount" << endl;
+
+    return -1;
 }
 
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "iScoreNidInquiry"; 
-    string closure_date_string = "2024-05-10"; 
+    string closure_date_string = "2024-07-03"; 
     int threadsCount = 1;
-    string databaseName = "django_ostaz_11062024_omneya";
+    string databaseName = "django_ostaz_23042024_aliaclosure";
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;

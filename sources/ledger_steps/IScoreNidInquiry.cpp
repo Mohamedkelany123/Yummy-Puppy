@@ -21,10 +21,10 @@ PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(string _closure_date_string)
 
     nidLogsQuery->filter(
         ANDOperator(
-            new UnaryOperator("ekyc_app_nidlog.id",eq,109003),
             new UnaryOperator("ekyc_app_nidlog.status",eq,1),
             new UnaryOperator("ekyc_app_nidlog.nid_expense_ledger_entry_id",isnull,"",true),
             new UnaryOperator("ekyc_app_nidlog.created_at",lte,_closure_date_string)
+            // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::NID_ISCORE-1)
         )
     );
     string query_closure_date = "'" + _closure_date_string + "'"; 
