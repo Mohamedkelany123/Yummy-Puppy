@@ -22,7 +22,7 @@ class IScoreNidInquiry : public LedgerClosureStep
         IScoreNidInquiry(map<string,PSQLAbstractORM *> * _orms, float inquiry_fee);
 
         LedgerAmount * _init_ledger_amount();
-        void stampORMs(map<string, LedgerCompositLeg *> *leg_amounts);
+        void stampORMs(ledger_entry_primitive_orm * entry);
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
 
         //Getters

@@ -54,13 +54,13 @@ void IScoreNidInquiry::setupLedgerClosureService(LedgerClosureService * ledgerCl
     ledgerClosureService->addHandler("iScore NID inquiry fee expense",_calculate_inquiry_fee);
 }
 
-void IScoreNidInquiry::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts){
-    map<string,LedgerCompositLeg*>::iterator it = leg_amounts->begin();
-    ledger_amount_primitive_orm* first_leg_amount = it->second->getLedgerCompositeLeg()->first;
-    if (first_leg_amount != NULL){
-        nid_orm->setUpdateRefernce("nid_expense_ledger_entry_id",first_leg_amount);
-    }
-    else cout << "ERROR in fetching first leg of the entry " << endl;
+void IScoreNidInquiry::stampORMs(ledger_entry_primitive_orm * entry){
+    // map<string,LedgerCompositLeg*>::iterator it = leg_amounts->begin();
+    // ledger_amount_primitive_orm* first_leg_amount = it->second->getLedgerCompositeLeg()->first;
+    // if (first_leg_amount != NULL){
+    nid_orm->setUpdateRefernce("nid_expense_ledger_entry_id",entry);
+    // }
+    // else cout << "ERROR in fetching first leg of the entry " << endl;
 }
 
 float IScoreNidInquiry::get_inquiry_fee(){

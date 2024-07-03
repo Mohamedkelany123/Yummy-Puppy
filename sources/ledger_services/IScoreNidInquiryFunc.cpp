@@ -20,7 +20,7 @@ void IScoreNidInquiryFunc(map<string,PSQLAbstractORM*>* orms,int partition_numbe
         map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
 
         if (entry){
-            iScoreNidInquiry.stampORMs(leg_amounts);
+            iScoreNidInquiry.stampORMs(entry);
         }
         else {
             cerr << "Can not stamp ORM objects\n";
