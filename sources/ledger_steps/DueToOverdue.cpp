@@ -23,7 +23,14 @@ PSQLJoinQueryIterator* DueToOverdue::installments_becoming_overdue_agg(string _c
             new UnaryOperator("new_lms_installmentlatefees.accrual_ledger_amount_id", isnull, "", true),
             // new UnaryOperator("loan_app_loan.closure_status", eq, closure_status::DUE_TO_OVERDUE-1),
             new UnaryOperator("new_lms_installmentextension.due_to_overdue_date", lte, _closure_date_string),
-            new UnaryOperator("new_lms_installmentextension.payment_status", nin, "1, 3, 6")
+            new UnaryOperator("new_lms_installmentextension.payment_status", nin, "1, 3, 6"),
+            new OROperator (
+                new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, false),
+                new ANDOperator(
+                    new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, true),
+                    new UnaryOperator("new_lms_installmentlatefees.cancellation_date", gte, _closure_date_string)
+                )
+            )
         )
     );
 
