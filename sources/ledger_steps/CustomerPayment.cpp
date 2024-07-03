@@ -22,8 +22,9 @@ PSQLJoinQueryIterator *CustomerPayment::aggregator(string _closure_date_string)
             new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnull, "", true),
             new UnaryOperator("payments_loanorder.paid_at", lte, _closure_date_string),
             // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::REPAYMENT_BY_CUSTOMER-1)
-            new UnaryOperator("payments_loanorder.status_id", nin, "2, 3"),
-            new UnaryOperator("payments_loanorder.payment_method_id", ne, 34)
+            new UnaryOperator("payments_loanorder.status", nin, "2, 3"),
+            new UnaryOperator("payments_loanorder.payment_method_id", ne, 34),
+            new UnaryOperator("loan_app_loan.id", ne, 14312)
         )
     );
 
@@ -60,10 +61,10 @@ int CustomerPayment::get_first_loan_order_id()
 LedgerAmount *CustomerPayment::_init_ledger_amount()
 {
     LedgerAmount * lg = new LedgerAmount();
-    lg->setCashierId(lal_orm->get_cashier_id());
+    // lg->setCashierId(lal_orm->get_cashier_id());
     lg->setCustomerId(lal_orm->get_customer_id());
     lg->setLoanId(lal_orm->get_id());
-    lg->setMerchantId(lal_orm->get_merchant_id());
+    // lg->setMerchantId(lal_orm->get_merchant_id());
     return lg;
 }
 

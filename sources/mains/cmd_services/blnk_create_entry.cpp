@@ -45,10 +45,10 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "disburse"; 
-    string closure_date_string = "2024-06-13"; 
-    int threadsCount = 8;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
+    const char * step = "receiveCustomerPayments"; 
+    string closure_date_string = "2024-07-03"; 
+    int threadsCount = 1;
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30062024_abdallah","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -194,6 +194,8 @@ int main (int argc, char ** argv)
         for(auto it=blnkTemplateManagerMap->begin(); it!=blnkTemplateManagerMap->end(); it++) {
             delete it->second;
         }
+        psqlController.ORMCommit(true, true, true, "main");
+        CustomerPayment::update_step();
     }
 
 

@@ -14,8 +14,9 @@ void receiveCustomerPaymentFunc(map<string, PSQLAbstractORM*>* orms, int partiti
     loan_app_loan_primitive_orm* lal_orm = ORM(loan_app_loan, orms);
     payments_paymentmethod_primitive_orm* ppm_orm = ORM(payments_paymentmethod, orms);
     payments_paymentprovider_primitive_orm* ppp_orm = ORM(payments_paymentprovider, orms);
+    BDate order_paid_at = BDate(plo_orm->get_paid_at());
     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,orms);
-    int first_loan_order_id = stoi(gorm->getExtra("first_loan_order_id"));
+    int first_loan_order_id = gorm->toInt("first_loan_order_id");
     string payment_provider_name = ppp_orm->get_name();
     string payment_method_name = ppm_orm->get_name();
 
@@ -54,7 +55,7 @@ void receiveCustomerPaymentFunc(map<string, PSQLAbstractORM*>* orms, int partiti
 
     if (ledgerAmounts != nullptr) {
         localTemplateManager->setEntryData(ledgerAmounts);
-        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(closing_date);
+        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(order_paid_at);
         if (entry) {
             customerPayment.stampORMS(entry);
         }
