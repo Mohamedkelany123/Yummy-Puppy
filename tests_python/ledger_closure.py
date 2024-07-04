@@ -33,7 +33,7 @@ class LedgerClosure:
         query = f"""
                     select * from ledger_amount la 
                     where created_at::date = '{self.current_date}'
-                    order by loan_id desc, amount desc, leg_temple_id desc, account_id desc
+                    order by loan_id desc, amount desc, leg_temple_id desc, account_id desc, cashier_id desc, customer_id desc, reversal_bool desc
                 """
         excluded_columns = ['id', 'created_at', 'updated_at', 'entry_id']
         compare_amount_attributes = ['amount', 'amount_local']
