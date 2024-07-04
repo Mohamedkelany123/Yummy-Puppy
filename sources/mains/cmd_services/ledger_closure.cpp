@@ -135,7 +135,7 @@ int main (int argc, char ** argv)
 
 
 
-    if ( strcmp (step,"cancel") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"cancel_loan") == 0 || strcmp (step,"full_closure") == 0)
     {
         PSQLJoinQueryIterator*  psqlQueryJoin = CancelLoan::aggregator(closure_date_string);
 
@@ -196,7 +196,7 @@ int main (int argc, char ** argv)
     }
 
 
-    if ( strcmp (step,"undueToDue") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"undue_to_due") == 0 || strcmp (step,"full_closure") == 0)
     {
         PSQLJoinQueryIterator*  installments_becoming_due_iterator = UndueToDue::aggregator(closure_date_string, 1);
         BlnkTemplateManager * undueToDueTemplateManager = new BlnkTemplateManager(10, -1);
@@ -224,7 +224,7 @@ int main (int argc, char ** argv)
         UndueToDue::update_step(); 
     }
 
-    if ( strcmp (step,"longToShort") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"full_closure") == 0)
     {
         //Partial accrue interest aggregator
         PSQLJoinQueryIterator*  longToShortTermQuery = LongToShortTerm::aggregator(closure_date_string);
