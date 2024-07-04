@@ -7,9 +7,15 @@
 #include <CancelFunc.h>
 #include <AccrualInterest.h>
 #include <AccrualInterestFunc.h>
+#include <CancelLateFeesFunc.h>
+#include <CancelLateFees.h>
+#include <WalletPrepaidFunc.h>
+#include <WalletPrepaid.h>
 #include <UndueToDueFunc.h>
 #include <InitialLoanInterestAccrualFunc.h>
 #include <InitialLoanInterestAccrual.h>
+#include <LongToShortTerm.h>
+#include <LongToShortTermFunc.h>
 #include <PSQLUpdateQuery.h>
 #include <OnboardingCommission.h>
 #include <OnboardingCommissionFunc.h>
@@ -52,8 +58,6 @@ int main (int argc, char ** argv)
     int threadsCount = 1;
     string databaseName = "django_ostaz_30062024_asem";
 
-
-    
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
@@ -138,7 +142,7 @@ int main (int argc, char ** argv)
 
 
 
-    if ( strcmp (step,"cancel") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"cancel_loan") == 0 || strcmp (step,"full_closure") == 0)
     {
         PSQLJoinQueryIterator*  psqlQueryJoin = CancelLoan::aggregator(closure_date_string);
 
@@ -165,7 +169,7 @@ int main (int argc, char ** argv)
 
         BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct partialAccrualInterestStruct = {
-            partialAccrualTemplateManager
+        partialAccrualTemplateManager
         };
         partialAccrualQuery->process(threadsCount, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
         delete(partialAccrualTemplateManager);
@@ -189,7 +193,7 @@ int main (int argc, char ** argv)
         PSQLJoinQueryIterator*  settlementAccrualQuery = AccrualInterest::aggregator(closure_date_string, 3);
         BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct settlementAccrualInterestStruct = {
-            settlementAccrualTemplateManager
+        settlementAccrualTemplateManager
         };
         settlementAccrualQuery->process(threadsCount, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
         delete(settlementAccrualTemplateManager);
@@ -227,6 +231,50 @@ int main (int argc, char ** argv)
         delete(undueToDueTemplateManager);
         psqlController.ORMCommit(true,true,true, "main");  
         UndueToDue::update_step(); 
+    }
+
+    if ( strcmp (step,"cancel_latefees") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator*  cancel_late_fees_iterator = CancelLateFees::aggregator(closure_date_string);       
+        BlnkTemplateManager * cancelLateFeesManager = new BlnkTemplateManager(50, -1);
+        CancelLateFeesStruct cancelLateFeesStruct;
+        cancelLateFeesStruct.blnkTemplateManager = cancelLateFeesManager;
+        cancel_late_fees_iterator->process_aggregate(threadsCount, CancelLateFeesFunc, (void *)&cancelLateFeesStruct);
+        delete(cancel_late_fees_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+        CancelLateFees::update_step(); 
+    }
+
+    if ( strcmp (step,"wallet_prepaid") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        
+        new_lms_customerwallettransaction_primitive_orm_iterator*  wallet_prepaid_iterator = WalletPrepaid::aggregator(closure_date_string);       
+        BlnkTemplateManager * walletPrepaidManager = new BlnkTemplateManager(134, -1);
+        WalletPrepaidStruct walletPrepaidStruct;
+        walletPrepaidStruct.blnkTemplateManager = walletPrepaidManager;
+        wallet_prepaid_iterator->process(threadsCount, WalletPrepaidFunc, (void *)&walletPrepaidStruct);
+        delete(wallet_prepaid_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+        WalletPrepaid::update_step(); 
+    }
+
+
+    if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        //Partial accrue interest aggregator
+        PSQLJoinQueryIterator*  longToShortTermQuery = LongToShortTerm::aggregator(closure_date_string);
+
+        BlnkTemplateManager * longToShortTermTemplateManager = new BlnkTemplateManager(11, -1);
+        AccrualInterestStruct longToShortTermStruct = {
+            longToShortTermTemplateManager
+        };
+        longToShortTermQuery->process(threadsCount, LongToShortTermFunc, (void*)&longToShortTermStruct);
+        delete(longToShortTermTemplateManager);
+        delete(longToShortTermQuery);
+        psqlController.ORMCommit(true,true,true, "main"); 
+
+
+        LongToShortTerm::update_step();
     }
 
 

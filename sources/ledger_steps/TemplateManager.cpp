@@ -187,7 +187,7 @@ map <string,LedgerCompositLeg *> * BlnkTemplateManager::get_ledger_amounts()
 
 ledger_amount_primitive_orm * BlnkTemplateManager::getFirstLedgerAmountORM ()
 {
-    if (ledger_amounts.size() > 0)
+        if (ledger_amounts.size() > 0)
         return (ledger_amounts.begin()->second)->getLedgerCompositeLeg()->first;
     else return NULL;
 }
@@ -202,3 +202,4 @@ ledger_amount_primitive_orm * BlnkTemplateManager::getFirstLedgerAmountORM ()
 
 
 
+ 

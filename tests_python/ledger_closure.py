@@ -95,6 +95,7 @@ class LedgerClosure:
                 data_c_filtered = data_c
                 data_python_filtered = data_python
 
+            print ("length of c is ", len(data_c_filtered)," \n length of django is ", len(data_python_filtered))
             if len(data_c_filtered) != len(data_python_filtered):
                 # send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
                 raise ValueError(f"Data LENGTHS ARE NOT EQUAL")
