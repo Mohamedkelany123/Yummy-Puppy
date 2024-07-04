@@ -1,18 +1,21 @@
 #!/bin/bash
 
+#DATABASE_URL=postgres://development:5k6MLFM9CLN3bD1@192.168.65.216:5432/django_ostaz_22062024_omneya
+
+
 # Define variables
 LMS_COMMAND="./bin/mains/cmd_services/new_lms"
-ADDRESS="192.168.1.51"
+ADDRESS="192.168.65.216"
 # ADDRESS="localhost"
 PORT_NUMBER="5432"
-DB_NAME="django_ostaz_before_closure"
+DB_NAME="django_ostaz_23042024_aliaclosure"
 # DB_NAME="django_ostaz_25102023"
-USERNAME="postgres"
-PASSWORD="postgres"
+USERNAME="development"
+PASSWORD="5k6MLFM9CLN3bD1"
 #STEP="full_closure"
 STEP="full_closure"
-DATE="2025-07-08"
-THREADS_COUNT="16"
+DATE="2024-06-24"
+THREADS_COUNT="6"
 
 # mod 2 offset(0,1) ....
 MOD="0"

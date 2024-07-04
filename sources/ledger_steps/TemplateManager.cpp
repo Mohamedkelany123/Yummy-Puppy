@@ -144,11 +144,15 @@ ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_am
             {
                 ledger_amount_primitive_orm * new_ledger_amount = new ledger_amount_primitive_orm("main");
                 *new_ledger_amount = *la;
+                new_ledger_amount->set_reversal_bool(0);
                 new_ledger_amount->set_account_id( new_ledger_amount->get_account_id());
                 new_ledger_amount->set_amount(-la->get_amount());
                 new_ledger_amount->set_amount_local(-la->get_amount());
                 new_ledger_amount->setAddRefernce("entry_id", entry);
+                new_ledger_amount->set_url("",true);
+                new_ledger_amount->set_description("",true);
                 new_ledger_amount->set_leg_temple_id(0,true);
+                new_ledger_amount-> set_merchant_payment_request_id(0,true);
             }
         return entry;
     }else return nullptr;
@@ -184,7 +188,7 @@ map <string,LedgerCompositLeg *> * BlnkTemplateManager::get_ledger_amounts()
 
 ledger_amount_primitive_orm * BlnkTemplateManager::getFirstLedgerAmountORM ()
 {
-    if (ledger_amounts.size() > 0)
+        if (ledger_amounts.size() > 0)
         return (ledger_amounts.begin()->second)->getLedgerCompositeLeg()->first;
     else return NULL;
 }
@@ -199,3 +203,4 @@ ledger_amount_primitive_orm * BlnkTemplateManager::getFirstLedgerAmountORM ()
 
 
 
+ 

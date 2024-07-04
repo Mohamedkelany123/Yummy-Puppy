@@ -7,9 +7,9 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
     int counter =0;
     int return_flag = true;
 
-    // cout << "Started commit internal for " << t_index 
-    //     << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
-    //     << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
+    cout << "Started commit internal for " << t_index 
+        << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
+        << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
 
     if (me->insert_thread_cache.size() > t_index)
     {
@@ -356,7 +356,7 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
         // rollback_flag = true;
         for ( int i = 0 ; i < threads_count ; i ++)
         {
-            if ( rollback_flag )
+                        if ( rollback_flag )
                 psqlConnections[i]->rollbackTransaction();
             else
             { 

@@ -217,7 +217,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
 
     protected:
         bool aggregate_flag;
-        map <string,string> aggregate_map;
+        map<string, pair<string, int>> aggregate_map;
         string column_names = "";
         string join_string = "";
         vector <PSQLAbstractORM *> * orm_objects;
@@ -237,7 +237,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // void filter ( Expression const & e);
         // bool execute();
         bool setDistinct (vector<pair<string,string>> _distinct_map);
-        bool setAggregates (map <string,string> _aggregate_map);
+        bool setAggregates (map<string, pair<string, int>> _aggregate_map);
         ~PSQLJoinQueryIterator();
 };
 
