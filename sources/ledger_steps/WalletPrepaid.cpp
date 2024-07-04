@@ -22,31 +22,6 @@ WalletPrepaid::WalletPrepaid(new_lms_customerwallettransaction_primitive_orm * _
     template_id = 134;
 }
 
-// WalletPrepaid::WalletPrepaid(map <string,PSQLAbstractORM *> * _orm, BDate _closing_day)
-// {
-//     transaction_orm = ORM(new_lms_customerwallettransaction,_orm);
-//     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,_orm);
-
-//     customer_id =  stoi(gorm->get("customer_id"));
-//     closing_day = _closing_day;
-//     provider_name = gorm->get("payment_provider_name");
-//     for(auto& x:provider_name){ 
-        
-//           x = (char)tolower(x); 
-//     } 
-//     // cout << "provider name"<<provider_name<<endl;
-//     method_name = gorm->get("payment_method_name");
-//      for(auto& x:method_name){ 
-        
-//           x = (char)tolower(x); 
-//     } 
-//     // cout << "method name"<<method_name<<endl;
-
-//     template_id = 134;
-// }
-
-
-
 
 new_lms_customerwallettransaction_primitive_orm* WalletPrepaid::get_wallet_transaction(){return transaction_orm;}
 int  WalletPrepaid::get_customer_id(){return customer_id;}
@@ -134,31 +109,6 @@ new_lms_customerwallettransaction_primitive_orm_iterator* WalletPrepaid::aggrega
         return wallet_transactions_iterator;
 
 }   
-
-// PSQLJoinQueryIterator* WalletPrepaid::aggregator(string _closure_date_string)
-// {
-//     PSQLJoinQueryIterator * wallet_transactions_iterator = new PSQLJoinQueryIterator  ("main",{new new_lms_customerwallettransaction_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
-//         {{{{"new_lms_customerwallettransaction","id"},{"new_lms_customerwallettransaction","id"}}}});
-
-
-//         wallet_transactions_iterator->filter(
-//             ANDOperator 
-//             (
-//                 new UnaryOperator ("new_lms_customerwallettransaction.wallet_ledger_amount_id",isnull,"",true),
-//                 new UnaryOperator("new_lms_customerwallettransaction.amount", gt, 0),
-//                 new UnaryOperator("new_lms_customerwallettransaction.order_id", isnull,"",true),
-//                 new UnaryOperator("new_lms_customerwallettransaction.created_at",lte, _closure_date_string)
-              
-//             )
-//         );
-
-//         wallet_transactions_iterator->addExtraFromField("(select nlc2.customer_id  from  new_lms_customerwallet nlc2 where  new_lms_customerwallettransaction.customer_wallet_id = nlc2.id )","customer_id");
-//         wallet_transactions_iterator->addExtraFromField("(select pp2.name  from payments_paymentmethod pp inner join payments_paymentprovider pp2 on pp2.id = pp.provider_id where pp.id = new_lms_customerwallettransaction.payment_method_id)","payment_provider_name");
-//         wallet_transactions_iterator->addExtraFromField("(select pp.name  from  payments_paymentmethod pp where  pp.id = new_lms_customerwallettransaction.payment_method_id)","payment_method_name");
-
-//         return wallet_transactions_iterator;
-
-// }   
 
 
 void WalletPrepaid::update_step()
