@@ -7,6 +7,10 @@
 #include <CancelFunc.h>
 #include <AccrualInterest.h>
 #include <AccrualInterestFunc.h>
+#include <CancelLateFeesFunc.h>
+#include <CancelLateFees.h>
+#include <WalletPrepaidFunc.h>
+#include <WalletPrepaid.h>
 #include <UndueToDueFunc.h>
 #include <InitialLoanInterestAccrualFunc.h>
 #include <InitialLoanInterestAccrual.h>
@@ -47,14 +51,14 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "longToShort"; 
-    string closure_date_string = "2024-06-17"; 
+    const char * step = "wallet_prepaid"; 
+    string database = "c_plus_plus";
+    string closure_date_string = "2024-07-03"; 
     int threadsCount = 1;
-    string databaseName = "django_ostaz_11062024_omneya";
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432, database,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
-        cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
+        cout << "Connected to DATABASE->[" << database << "]" << endl;
         cout << "Threads Count->[" << threadsCount << "]" << endl;
         cout << "Step[" << step << "]" << endl;
         cout << "--------------------------------------------------------" << endl;
@@ -162,7 +166,7 @@ int main (int argc, char ** argv)
 
         BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct partialAccrualInterestStruct = {
-            partialAccrualTemplateManager
+        partialAccrualTemplateManager
         };
         partialAccrualQuery->process(threadsCount, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
         delete(partialAccrualTemplateManager);
@@ -186,7 +190,7 @@ int main (int argc, char ** argv)
         PSQLJoinQueryIterator*  settlementAccrualQuery = AccrualInterest::aggregator(closure_date_string, 3);
         BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct settlementAccrualInterestStruct = {
-            settlementAccrualTemplateManager
+        settlementAccrualTemplateManager
         };
         settlementAccrualQuery->process(threadsCount, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
         delete(settlementAccrualTemplateManager);
@@ -223,6 +227,32 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main");  
         UndueToDue::update_step(); 
     }
+
+    if ( strcmp (step,"cancel_latefees") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator*  cancel_late_fees_iterator = CancelLateFees::aggregator(closure_date_string);       
+        BlnkTemplateManager * cancelLateFeesManager = new BlnkTemplateManager(50, -1);
+        CancelLateFeesStruct cancelLateFeesStruct;
+        cancelLateFeesStruct.blnkTemplateManager = cancelLateFeesManager;
+        cancel_late_fees_iterator->process_aggregate(threadsCount, CancelLateFeesFunc, (void *)&cancelLateFeesStruct);
+        delete(cancel_late_fees_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+        CancelLateFees::update_step(); 
+    }
+
+    if ( strcmp (step,"wallet_prepaid") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        
+        new_lms_customerwallettransaction_primitive_orm_iterator*  wallet_prepaid_iterator = WalletPrepaid::aggregator(closure_date_string);       
+        BlnkTemplateManager * walletPrepaidManager = new BlnkTemplateManager(134, -1);
+        WalletPrepaidStruct walletPrepaidStruct;
+        walletPrepaidStruct.blnkTemplateManager = walletPrepaidManager;
+        wallet_prepaid_iterator->process(threadsCount, WalletPrepaidFunc, (void *)&walletPrepaidStruct);
+        delete(wallet_prepaid_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+        WalletPrepaid::update_step(); 
+    }
+
 
     if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"full_closure") == 0)
     {
