@@ -22,7 +22,6 @@ void LongToShortTermFunc(map<string,PSQLAbstractORM*>*orms, int partition_number
         }
         else {
             cerr << "Can not stamp ORM objects\n";
-            exit(1);
         }
     }
 
