@@ -5,7 +5,6 @@
 #include <lms_entrytemplate_primitive_orm.h>
 #include <tms_app_fundingfacility_primitive_orm.h>
 #include <ledger_entry_primitive_orm.h>
-#include<ledger_amount_primitive_orm.h>
 #include<tms_app_loaninstallmentfundingrequest_primitive_orm.h>
 #include<tms_app_bond_primitive_orm.h>
 #include <ledger_amount_primitive_orm.h>
