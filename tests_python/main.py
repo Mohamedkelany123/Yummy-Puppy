@@ -28,14 +28,14 @@ def main():
     
     print_colored("--------------------------------->LEDGER CLOSURE TESTS ", color_options.PURPLE, bold=True)
 
-    ledgerClosure = LedgerClosure(connection_c, connection_python)
-    ledgerClosure.test()
+    # ledgerClosure = LedgerClosure(connection_c, connection_python)
+    # ledgerClosure.test()
 
     #--------------------------------------------------Full Closure Tests------------------------------------------
     
     print_colored("--------------------------------->FULL CLOSURE TESTS ", color_options.PURPLE, bold=True)
     full_closure = FullClosure(connection_c, connection_python)
-    # full_closure.test()
+    full_closure.test()
 
 
 
