@@ -17,6 +17,8 @@
 #include <LongToShortTerm.h>
 #include <LongToShortTermFunc.h>
 #include <PSQLUpdateQuery.h>
+#include <OnboardingCommission.h>
+#include <OnboardingCommissionFunc.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -51,14 +53,15 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "wallet_prepaid"; 
-    string database = "c_plus_plus";
-    string closure_date_string = "2024-07-03"; 
+    const char * step = "undue_to_due"; 
+    string closure_date_string = "2024-07-02"; 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432, database,"postgres","postgres");
+    string databaseName = "django_ostaz_30062024_asem";
+
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
-        cout << "Connected to DATABASE->[" << database << "]" << endl;
+        cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
         cout << "Threads Count->[" << threadsCount << "]" << endl;
         cout << "Step[" << step << "]" << endl;
         cout << "--------------------------------------------------------" << endl;
@@ -202,6 +205,8 @@ int main (int argc, char ** argv)
 
     if ( strcmp (step,"undue_to_due") == 0 || strcmp (step,"full_closure") == 0)
     {
+        cout << "Undue To Due" << endl;
+        cout << "-Intallments Becoming Due" << endl;
         PSQLJoinQueryIterator*  installments_becoming_due_iterator = UndueToDue::aggregator(closure_date_string, 1);
         BlnkTemplateManager * undueToDueTemplateManager = new BlnkTemplateManager(10, -1);
         UndueToDueStruct undueToDueStruct;
@@ -214,7 +219,7 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main");  
 
         //----------------------------------------------------------------------------------------//
-
+        cout << "-Sticky Installments Becoming Due" << endl;
         PSQLJoinQueryIterator*  sticky_installments_becoming_due_iterator = UndueToDue::aggregator(closure_date_string, 2);
         UndueToDueStruct stickyUndueToDueStruct;
         stickyUndueToDueStruct.blnkTemplateManager = undueToDueTemplateManager;
@@ -272,6 +277,20 @@ int main (int argc, char ** argv)
         LongToShortTerm::update_step();
     }
 
+
+    if ( strcmp (step,"onboarding_commission") == 0 || strcmp (step,"full_closure") == 0){
+        cout << "Onboarding Commission" << endl;
+        PSQLJoinQueryIterator*  onboarding_commissions_iterator = OnboardingCommission::aggregator(closure_date_string);
+        BlnkTemplateManager * onboardingCommissionsTemplateManager = new BlnkTemplateManager(68, -1);
+
+        OnboardingCommissionStruct onboardingCommissionStruct;
+        onboardingCommissionStruct.blnkTemplateManager = onboardingCommissionsTemplateManager;
+
+        onboarding_commissions_iterator->process(threadsCount, OnboardingCommissionFunc, (void *)&onboardingCommissionStruct);
+        
+        psqlController.ORMCommit(true,true,true, "main");  
+        OnboardingCommission::update_step(); 
+    }
 
     return 0;
 }

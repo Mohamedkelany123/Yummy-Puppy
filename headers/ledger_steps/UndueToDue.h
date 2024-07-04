@@ -28,6 +28,7 @@ class UndueToDue : public LedgerClosureStep
         int settle_charge_off_status;
         int undue_to_due_amount;
         int undue_to_due_interest_amount;
+        int undue_to_due_extra_interest_amounts;
 
         //Type 1 Both, 2 Interest Only, 3 LoanPrincipal. 
         int ledger_closure_service_type;

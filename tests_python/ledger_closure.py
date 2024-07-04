@@ -32,8 +32,8 @@ class LedgerClosure:
         print_colored("Test 1:: Ledger Amount ", self.color_options.YELLOW ,bold=True)
         query = f"""
                     select * from ledger_amount la 
-                    where created_at::date = '{self.current_date}' 
-                    order by loan_id desc, amount desc, leg_temple_id desc, account_id, cashier_ipd, customer_id desc
+                    where created_at::date = '{self.current_date}'
+                    order by loan_id desc, amount desc, leg_temple_id desc, account_id desc, cashier_id desc, customer_id desc, reversal_bool desc
                 """
         excluded_columns = ['id', 'created_at', 'updated_at', 'entry_id']
         compare_amount_attributes = ['amount', 'amount_local']
