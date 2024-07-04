@@ -50,10 +50,10 @@ int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "wallet_prepaid"; 
-    string database = "django_ostaz_23042024_aliaclosure";
-    string closure_date_string = "2024-06-27"; 
-    int threadsCount = 4;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432, database,"development","5k6MLFM9CLN3bD1");
+    string database = "c_plus_plus";
+    string closure_date_string = "2024-07-03"; 
+    int threadsCount = 1;
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432, database,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << database << "]" << endl;
@@ -164,7 +164,7 @@ int main (int argc, char ** argv)
 
         BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct partialAccrualInterestStruct = {
-            partialAccrualTemplateManager
+        partialAccrualTemplateManager
         };
         partialAccrualQuery->process(threadsCount, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
         delete(partialAccrualTemplateManager);
@@ -188,7 +188,7 @@ int main (int argc, char ** argv)
         PSQLJoinQueryIterator*  settlementAccrualQuery = AccrualInterest::aggregator(closure_date_string, 3);
         BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct settlementAccrualInterestStruct = {
-            settlementAccrualTemplateManager
+        settlementAccrualTemplateManager
         };
         settlementAccrualQuery->process(threadsCount, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
         delete(settlementAccrualTemplateManager);

@@ -4,7 +4,7 @@ void WalletPrepaidFunc (new_lms_customerwallettransaction_primitive_orm*  transa
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((WalletPrepaidStruct *) extras)->blnkTemplateManager, partition_number);
     BDate closing_day = ((WalletPrepaidStruct *) extras)->closing_day;
     
-    WalletPrepaid walletPrepaid = WalletPrepaid(transaction_orm, closing_day);
+    WalletPrepaid walletPrepaid(transaction_orm, closing_day);
 
     LedgerClosureService* ledgerClosureService = new LedgerClosureService(&walletPrepaid);    
     walletPrepaid.setupLedgerClosureService(ledgerClosureService);
