@@ -8,13 +8,11 @@ void CancelLateFeesFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, 
         if (latefeesmap != nullptr){
         for (auto itr = latefeesmap->cbegin(); itr != latefeesmap->cend(); ++itr) 
         {
-            if (latefeesmap != nullptr){
+            if (latefeesmap != nullptr)
                 cout<<"the latefeesmap is not null\n"<<endl;
-            }
-            else{
+            else
                 cout<<"the latefeesmap is null\n"<<endl;
- 
-            }
+
             BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((CancelLateFeesStruct *) extras)->blnkTemplateManager,partition_number);
             cout<<"the amount is \n"<< itr->first<<endl;
             cancelLateFees.set_amount(itr->second->second);
@@ -27,9 +25,7 @@ void CancelLateFeesFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, 
   
             delete localTemplateManager;
             delete ledgerClosureService;
-
-           
         }
-        } 
+    } 
 
 };
