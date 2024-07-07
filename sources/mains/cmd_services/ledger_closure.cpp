@@ -53,7 +53,7 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "disburse"; 
+    const char * step = "undue_to_due"; 
     string closure_date_string = "2024-07-06"; 
     int threadsCount = 1;
     string databaseName = "c_plus_plus";
