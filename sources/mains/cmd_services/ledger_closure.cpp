@@ -53,12 +53,12 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "undue_to_due"; 
-    string closure_date_string = "2024-07-02"; 
+    const char * step = "onboarding_commission"; 
+    string closure_date_string = "2024-07-06"; 
     int threadsCount = 1;
-    string databaseName = "django_ostaz_30062024_asem";
+    string databaseName = "c_plus_plus_kelany";
 
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
@@ -80,10 +80,11 @@ int main (int argc, char ** argv)
         );
     psqlUpdateQuery.update();
 
-
+//accrual-undue_to_due
 
     if ( strcmp (step,"disburse") == 0 || strcmp (step,"full_closure") == 0)
     {
+        cout << "Start: Disburse" << endl;
         PSQLJoinQueryIterator*  psqlQueryJoin = DisburseLoan::aggregator(closure_date_string);
 
         BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4, -1);
@@ -100,12 +101,14 @@ int main (int argc, char ** argv)
 
         psqlController.ORMCommit(true,true,true, "main");  
         DisburseLoan::update_step();
+        cout << "End: Disburse" << endl;
+
     }
 
 
     if ( strcmp (step,"ledger_accruel_initial_interest") == 0 || strcmp (step,"full_closure") == 0)
     {
-        cout << "First Accrual" << endl;
+        cout << "Start: First Accrual" << endl;
         //FIRST ACCRUAL
         loan_app_loan_primitive_orm_iterator*  loans_to_get_first_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 1);
         
@@ -120,10 +123,12 @@ int main (int argc, char ** argv)
         delete(loans_to_get_first_accrual_agg);
 
         psqlController.ORMCommit(true,true,true, "main");  
+        cout << "End: First Accrual" << endl;
+
         //-----------------------------------------------------------------------------------
 
         //SECOND ACCRUAL
-        cout << "Second Accrual" << endl;
+        cout << "Start: Second Accrual" << endl;
         loan_app_loan_primitive_orm_iterator*  loans_to_get_second_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 2);
         
         InitialLoanInterestAccrualStruct initialLoanInterestSecondAccrualStruct;
@@ -137,13 +142,13 @@ int main (int argc, char ** argv)
 
         psqlController.ORMCommit(true,true,true, "main");  
         InitialLoanInterestAccrual::update_step();
+        cout << "End: Second Accrual" << endl;
+
     }
-
-
-
 
     if ( strcmp (step,"cancel_loan") == 0 || strcmp (step,"full_closure") == 0)
     {
+        cout << "Start: Cancel Loan" << endl;
         PSQLJoinQueryIterator*  psqlQueryJoin = CancelLoan::aggregator(closure_date_string);
 
         CancelLoanStruct cancelLoanStruct;
@@ -160,6 +165,8 @@ int main (int argc, char ** argv)
         
         psqlController.ORMCommit(true,true,true, "main"); 
         CancelLoan::update_step();
+        cout << "End: Cancel Loan" << endl;
+
     }
 
     if ( strcmp (step,"accrual") == 0 || strcmp (step,"full_closure") == 0)

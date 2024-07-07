@@ -89,7 +89,10 @@ PSQLJoinQueryIterator *OnboardingCommission::aggregator(string _closure_date_str
             new UnaryOperator("crm_app_customer.onboarding_commission", gt, "0"),
             new UnaryOperator("crm_app_customer.state", in, "3,5,7"),
             new UnaryOperator("ekyc_app_onboardingsession.onboarding_step", eq, "4"),
-            new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_stamped", eq, to_string(onboardingCommissionLedgerStamp::NOT_STAMPED)),
+            
+            // new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_stamped", eq, to_string(onboardingCommissionLedgerStamp::NOT_STAMPED)),
+            new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+
             new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_entry_date", lte, _closure_date_string),
             new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_entry_id", isnull, "", true)
         )
