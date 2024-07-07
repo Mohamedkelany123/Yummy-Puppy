@@ -302,7 +302,7 @@ int main (int argc, char ** argv)
         LongToShortTerm::update_step();
     }
 
-    if ( strcmp (step,"iScoreNidInquiry") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"i_score_nid_inquiry") == 0 || strcmp (step,"full_closure") == 0)
     {
         //Partial accrue interest aggregator
         cout << "Starting IScore NID inquiry step!" << endl;
