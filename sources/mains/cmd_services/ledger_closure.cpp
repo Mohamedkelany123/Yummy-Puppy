@@ -72,8 +72,8 @@ float get_iscore_nid_inquiry_fee(){
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "iScoreNidInquiry"; 
-    string closure_date_string = "2024-07-03"; 
+    const char * step = "undue_to_due"; 
+    string closure_date_string = "2024-07-06"; 
     int threadsCount = 1;
     string databaseName = "django_ostaz_02072024_aliaclosure";
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");

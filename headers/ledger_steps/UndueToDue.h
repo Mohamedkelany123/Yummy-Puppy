@@ -26,9 +26,15 @@ class UndueToDue : public LedgerClosureStep
         BDate lsh_settle_charge_off_day;
         int partial_settle_status;
         int settle_charge_off_status;
-        int undue_to_due_amount;
-        int undue_to_due_interest_amount;
-        int undue_to_due_extra_interest_amounts;
+
+        int undue_to_due_amount_id;
+        float undue_to_due_amount;
+        
+        int undue_to_due_interest_amount_id;
+        float undue_to_due_interest_amount;
+
+        int undue_to_due_extra_interest_amount_id;
+        float undue_to_due_extra_interest_amount;
 
         //Type 1 Both, 2 Interest Only, 3 LoanPrincipal. 
         int ledger_closure_service_type;
