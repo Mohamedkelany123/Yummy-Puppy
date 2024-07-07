@@ -128,6 +128,8 @@ ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
     this->createEntry(entry_date);
     bool is_built = this->buildLegs();
     bool is_valid = this->validate();
+    cout << "Is_Valid->" << is_valid << endl;
+    cout << "is_built->" << is_built << endl;
     if(!(is_valid && is_built)){
         return NULL;
     }

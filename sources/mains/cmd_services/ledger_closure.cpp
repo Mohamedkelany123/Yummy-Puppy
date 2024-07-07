@@ -16,6 +16,8 @@
 #include <InitialLoanInterestAccrual.h>
 #include <LongToShortTerm.h>
 #include <LongToShortTermFunc.h>
+#include <IScoreNidInquiry.h>
+#include <IScoreNidInquiryFunc.h>
 #include <PSQLUpdateQuery.h>
 #include <OnboardingCommission.h>
 #include <OnboardingCommissionFunc.h>
@@ -50,15 +52,31 @@ map<int,float> get_loan_status_provisions_percentage()
         return bucket_percentage;
 }
 
+float get_iscore_nid_inquiry_fee(){
+    ledger_global_primitive_orm_iterator * it = new ledger_global_primitive_orm_iterator("main");
+    it->filter(
+        ANDOperator(
+        new UnaryOperator("ledger_global.name",eq,"iscore_nid_expense_fee")
+        )
+    );
+    it->execute();
+    ledger_global_primitive_orm * global_orm = it->next(true);
+    if((global_orm->get_value())["amount"] != NULL){
+        return global_orm->get_value()["amount"];
+    }
+    else cout << "ERROR in fetching NID iScore inquiry amount" << endl;
+
+    return -1;
+}
+
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "undue_to_due"; 
     string closure_date_string = "2024-07-06"; 
     int threadsCount = 1;
-    string databaseName = "c_plus_plus";
-
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
+    string databaseName = "django_ostaz_02072024_aliaclosure";
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
@@ -272,7 +290,7 @@ int main (int argc, char ** argv)
         PSQLJoinQueryIterator*  longToShortTermQuery = LongToShortTerm::aggregator(closure_date_string);
 
         BlnkTemplateManager * longToShortTermTemplateManager = new BlnkTemplateManager(11, -1);
-        AccrualInterestStruct longToShortTermStruct = {
+        LongToShortTermStruct longToShortTermStruct = {
             longToShortTermTemplateManager
         };
         longToShortTermQuery->process(threadsCount, LongToShortTermFunc, (void*)&longToShortTermStruct);
@@ -281,6 +299,24 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main"); 
 
 
+        LongToShortTerm::update_step();
+    }
+
+    if ( strcmp (step,"iScoreNidInquiry") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        //Partial accrue interest aggregator
+        cout << "Starting IScore NID inquiry step!" << endl;
+        PSQLJoinQueryIterator*  iScoreNidInquiryQuery = IScoreNidInquiry::aggregator(closure_date_string);
+        BlnkTemplateManager * iScoreNidInquiryTemplateManager = new BlnkTemplateManager(3, -1);
+        IScoreNidInquiryStruct iScoreNidInquiryStruct;
+        iScoreNidInquiryStruct.blnkTemplateManager = iScoreNidInquiryTemplateManager;
+        cout << "IScore inquiry fee :";
+        cout << get_iscore_nid_inquiry_fee() << endl;
+        iScoreNidInquiryStruct.inquiryFee = get_iscore_nid_inquiry_fee();
+        iScoreNidInquiryQuery->process(threadsCount, IScoreNidInquiryFunc, (void*)&iScoreNidInquiryStruct);
+        delete(iScoreNidInquiryTemplateManager);
+        delete(iScoreNidInquiryQuery);
+        psqlController.ORMCommit(true,true,true, "main"); 
         LongToShortTerm::update_step();
     }
 

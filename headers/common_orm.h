@@ -17,6 +17,7 @@
 #include <crm_app_customer_primitive_orm.h>
 #include <crm_app_purchase_primitive_orm.h>
 #include <loan_app_loan_bl_orm.h>
+#include <ledger_global_primitive_orm.h>
 #include <crm_app_merchantstaff_primitive_orm.h>
 #include <payments_paymentprovider_primitive_orm.h>
 
