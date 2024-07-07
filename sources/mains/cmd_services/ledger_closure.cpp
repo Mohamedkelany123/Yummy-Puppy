@@ -7,6 +7,10 @@
 #include <CancelFunc.h>
 #include <AccrualInterest.h>
 #include <AccrualInterestFunc.h>
+#include <CancelLateFeesFunc.h>
+#include <CancelLateFees.h>
+#include <WalletPrepaidFunc.h>
+#include <WalletPrepaid.h>
 #include <UndueToDueFunc.h>
 #include <InitialLoanInterestAccrualFunc.h>
 #include <InitialLoanInterestAccrual.h>
@@ -15,6 +19,8 @@
 #include <IScoreNidInquiry.h>
 #include <IScoreNidInquiryFunc.h>
 #include <PSQLUpdateQuery.h>
+#include <OnboardingCommission.h>
+#include <OnboardingCommissionFunc.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -92,10 +98,11 @@ int main (int argc, char ** argv)
         );
     psqlUpdateQuery.update();
 
-
+//accrual-undue_to_due
 
     if ( strcmp (step,"disburse") == 0 || strcmp (step,"full_closure") == 0)
     {
+        cout << "Start: Disburse" << endl;
         PSQLJoinQueryIterator*  psqlQueryJoin = DisburseLoan::aggregator(closure_date_string);
 
         BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4, -1);
@@ -112,12 +119,14 @@ int main (int argc, char ** argv)
 
         psqlController.ORMCommit(true,true,true, "main");  
         DisburseLoan::update_step();
+        cout << "End: Disburse" << endl;
+
     }
 
 
     if ( strcmp (step,"ledger_accruel_initial_interest") == 0 || strcmp (step,"full_closure") == 0)
     {
-        cout << "First Accrual" << endl;
+        cout << "Start: First Accrual" << endl;
         //FIRST ACCRUAL
         loan_app_loan_primitive_orm_iterator*  loans_to_get_first_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 1);
         
@@ -132,10 +141,12 @@ int main (int argc, char ** argv)
         delete(loans_to_get_first_accrual_agg);
 
         psqlController.ORMCommit(true,true,true, "main");  
+        cout << "End: First Accrual" << endl;
+
         //-----------------------------------------------------------------------------------
 
         //SECOND ACCRUAL
-        cout << "Second Accrual" << endl;
+        cout << "Start: Second Accrual" << endl;
         loan_app_loan_primitive_orm_iterator*  loans_to_get_second_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 2);
         
         InitialLoanInterestAccrualStruct initialLoanInterestSecondAccrualStruct;
@@ -149,13 +160,13 @@ int main (int argc, char ** argv)
 
         psqlController.ORMCommit(true,true,true, "main");  
         InitialLoanInterestAccrual::update_step();
+        cout << "End: Second Accrual" << endl;
+
     }
 
-
-
-
-    if ( strcmp (step,"cancel") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"cancel_loan") == 0 || strcmp (step,"full_closure") == 0)
     {
+        cout << "Start: Cancel Loan" << endl;
         PSQLJoinQueryIterator*  psqlQueryJoin = CancelLoan::aggregator(closure_date_string);
 
         CancelLoanStruct cancelLoanStruct;
@@ -172,6 +183,8 @@ int main (int argc, char ** argv)
         
         psqlController.ORMCommit(true,true,true, "main"); 
         CancelLoan::update_step();
+        cout << "End: Cancel Loan" << endl;
+
     }
 
     if ( strcmp (step,"accrual") == 0 || strcmp (step,"full_closure") == 0)
@@ -181,7 +194,7 @@ int main (int argc, char ** argv)
 
         BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct partialAccrualInterestStruct = {
-            partialAccrualTemplateManager
+        partialAccrualTemplateManager
         };
         partialAccrualQuery->process(threadsCount, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
         delete(partialAccrualTemplateManager);
@@ -205,7 +218,7 @@ int main (int argc, char ** argv)
         PSQLJoinQueryIterator*  settlementAccrualQuery = AccrualInterest::aggregator(closure_date_string, 3);
         BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct settlementAccrualInterestStruct = {
-            settlementAccrualTemplateManager
+        settlementAccrualTemplateManager
         };
         settlementAccrualQuery->process(threadsCount, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
         delete(settlementAccrualTemplateManager);
@@ -215,8 +228,10 @@ int main (int argc, char ** argv)
     }
 
 
-    if ( strcmp (step,"undueToDue") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"undue_to_due") == 0 || strcmp (step,"full_closure") == 0)
     {
+        cout << "Undue To Due" << endl;
+        cout << "-Intallments Becoming Due" << endl;
         PSQLJoinQueryIterator*  installments_becoming_due_iterator = UndueToDue::aggregator(closure_date_string, 1);
         BlnkTemplateManager * undueToDueTemplateManager = new BlnkTemplateManager(10, -1);
         UndueToDueStruct undueToDueStruct;
@@ -229,7 +244,7 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main");  
 
         //----------------------------------------------------------------------------------------//
-
+        cout << "-Sticky Installments Becoming Due" << endl;
         PSQLJoinQueryIterator*  sticky_installments_becoming_due_iterator = UndueToDue::aggregator(closure_date_string, 2);
         UndueToDueStruct stickyUndueToDueStruct;
         stickyUndueToDueStruct.blnkTemplateManager = undueToDueTemplateManager;
@@ -243,7 +258,33 @@ int main (int argc, char ** argv)
         UndueToDue::update_step(); 
     }
 
-    if ( strcmp (step,"longToShort") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"cancel_latefees") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator*  cancel_late_fees_iterator = CancelLateFees::aggregator(closure_date_string);       
+        BlnkTemplateManager * cancelLateFeesManager = new BlnkTemplateManager(50, -1);
+        CancelLateFeesStruct cancelLateFeesStruct;
+        cancelLateFeesStruct.blnkTemplateManager = cancelLateFeesManager;
+        cancel_late_fees_iterator->process_aggregate(threadsCount, CancelLateFeesFunc, (void *)&cancelLateFeesStruct);
+        delete(cancel_late_fees_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+        CancelLateFees::update_step(); 
+    }
+
+    if ( strcmp (step,"wallet_prepaid") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        
+        new_lms_customerwallettransaction_primitive_orm_iterator*  wallet_prepaid_iterator = WalletPrepaid::aggregator(closure_date_string);       
+        BlnkTemplateManager * walletPrepaidManager = new BlnkTemplateManager(134, -1);
+        WalletPrepaidStruct walletPrepaidStruct;
+        walletPrepaidStruct.blnkTemplateManager = walletPrepaidManager;
+        wallet_prepaid_iterator->process(threadsCount, WalletPrepaidFunc, (void *)&walletPrepaidStruct);
+        delete(wallet_prepaid_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+        WalletPrepaid::update_step(); 
+    }
+
+
+    if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"full_closure") == 0)
     {
         //Partial accrue interest aggregator
         PSQLJoinQueryIterator*  longToShortTermQuery = LongToShortTerm::aggregator(closure_date_string);
@@ -279,6 +320,20 @@ int main (int argc, char ** argv)
         LongToShortTerm::update_step();
     }
 
+
+    if ( strcmp (step,"onboarding_commission") == 0 || strcmp (step,"full_closure") == 0){
+        cout << "Onboarding Commission" << endl;
+        PSQLJoinQueryIterator*  onboarding_commissions_iterator = OnboardingCommission::aggregator(closure_date_string);
+        BlnkTemplateManager * onboardingCommissionsTemplateManager = new BlnkTemplateManager(68, -1);
+
+        OnboardingCommissionStruct onboardingCommissionStruct;
+        onboardingCommissionStruct.blnkTemplateManager = onboardingCommissionsTemplateManager;
+
+        onboarding_commissions_iterator->process(threadsCount, OnboardingCommissionFunc, (void *)&onboardingCommissionStruct);
+        
+        psqlController.ORMCommit(true,true,true, "main");  
+        OnboardingCommission::update_step(); 
+    }
 
     return 0;
 }

@@ -1,7 +1,7 @@
 #include <LedgerAmount.h>
 
 
-LedgerAmount::LedgerAmount(int _id,  int _debit_account_id, int _cashier_id, int _credit_account_id, int _customer_id, int _loan_id, int _installment_id, int _merchant_id, int _bond_id, int _latefee_id, int _leg_id, int _entry_id, float _amount, int _account_id, bool _is_credit) {
+LedgerAmount::LedgerAmount(int _id,  int _debit_account_id, int _cashier_id, int _credit_account_id, int _customer_id, int _loan_id, int _installment_id, int _merchant_id, int _bond_id, int _latefee_id, int _leg_id, int _entry_id, float _amount, int _account_id, bool _is_credit, bool _is_reversed) {
     id = _id;
     debit_account_id = _debit_account_id;
     cashier_id = _cashier_id;
@@ -17,6 +17,7 @@ LedgerAmount::LedgerAmount(int _id,  int _debit_account_id, int _cashier_id, int
     amount = _amount;
     account_id = _account_id;
     is_credit = _is_credit;
+    reversal_bool= _is_reversed;
 }
 LedgerAmount::LedgerAmount(){
     id = 0;
@@ -34,6 +35,7 @@ LedgerAmount::LedgerAmount(){
     amount = 0;
     account_id = 0;
     is_credit = 0;
+    reversal_bool=0;
 }
 LedgerAmount::~LedgerAmount(){}
 
@@ -52,6 +54,7 @@ void LedgerAmount::setEntryId(int _entry_id) { entry_id = _entry_id; }
 void LedgerAmount::setAmount(float _amount) { amount = _amount; }
 void LedgerAmount::setAccountId(float _account_id) { account_id = _account_id; }
 void LedgerAmount::setIsCredit(bool _is_credit) {is_credit = _is_credit; }
+void LedgerAmount::setReversalBool(bool _is_reversed) {reversal_bool = _is_reversed; }
 
 int LedgerAmount::getId() { return id; }
 int LedgerAmount::getDebitAccountId() { return debit_account_id; }
@@ -68,3 +71,5 @@ int LedgerAmount::getEntryId() { return entry_id; }
 float LedgerAmount::getAmount() { return amount; }
 int LedgerAmount::getAccountId() { return account_id; }
 bool LedgerAmount::getIsCredit() { return is_credit; }
+bool LedgerAmount::getReveresalBool() { return reversal_bool; }
+

@@ -1,7 +1,6 @@
     #ifndef LONGTOSHORTTERMFUNC_H
     #define LONGTOSHORTTERMFUNC_H
 
-    #include <functional>
     #include <common.h>
     #include <TemplateManager.h>
     #include <LongToShortTerm.h>

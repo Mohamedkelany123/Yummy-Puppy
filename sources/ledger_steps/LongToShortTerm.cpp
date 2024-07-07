@@ -1,6 +1,6 @@
 #include <LongToShortTerm.h>
 
-LongToShortTerm::LongToShortTerm(map <string,PSQLAbstractORM * > * _orms_list, float _percentage):LedgerClosureStep ()
+LongToShortTerm::LongToShortTerm(map <string,PSQLAbstractORM * > * _orms_list):LedgerClosureStep ()
 {
     lal_orm = ORM(loan_app_loan,_orms_list);
     lai_orm = ORM(loan_app_installment, _orms_list);
@@ -17,8 +17,13 @@ PSQLJoinQueryIterator* LongToShortTerm::aggregator(string _closure_date_string){
         (
             new UnaryOperator("new_lms_installmentextension.long_to_short_term_date",lte,_closure_date_string),
             new UnaryOperator("new_lms_installmentextension.short_term_ledger_amount_id",isnull, "", true),
-            new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::RECLASSIFY_LONG_TERM-1),
+            // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::RECLASSIFY_LONG_TERM-1),
+            new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+
+
             new UnaryOperator("new_lms_installmentextension.is_long_term",eq, false),
+
+            
             new OROperator(
                 new ANDOperator(
                     new UnaryOperator("new_lms_installmentextension.long_to_short_term_date",lte,"new_lms_installmentextension.principal_paid_at", true),
@@ -76,6 +81,14 @@ void LongToShortTerm::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts){
     }
     else cout << "ERROR in fetching first leg of the entry " << endl;
 }
+//Getters
+loan_app_loan_primitive_orm *LongToShortTerm::get_loan_app_loan(){return lal_orm;}
+loan_app_installment_primitive_orm *LongToShortTerm::get_loan_app_installment(){return lai_orm;}
+//Setters
+void LongToShortTerm::set_loan_app_loan(loan_app_loan_primitive_orm* _lal_orm){lal_orm = _lal_orm;}
+void LongToShortTerm::set_loan_app_installment(loan_app_installment_primitive_orm* _lai_orm){lai_orm = _lai_orm;}
+void LongToShortTerm::set_new_lms_installmentextension(new_lms_installmentextension_primitive_orm* _nli_orm){nli_orm = _nli_orm;}
+
 
 LedgerAmount * LongToShortTerm::_reclassify_inst_balance(LedgerClosureStep *longToShortTerm){
     LedgerAmount * la = ((LongToShortTerm*)longToShortTerm)->_init_ledger_amount();
@@ -86,17 +99,6 @@ LedgerAmount * LongToShortTerm::_reclassify_inst_balance(LedgerClosureStep *long
     return la;
 }
 
-loan_app_loan_primitive_orm *LongToShortTerm::get_loan_app_loan()
-{
-    return lal_orm;
-}
-
-loan_app_installment_primitive_orm *LongToShortTerm::get_loan_app_installment()
-{
-    return lai_orm;
-}
-
-
 LedgerAmount * LongToShortTerm::_reclassify_merchant_balance(LedgerClosureStep *longToShortTerm){
     LedgerAmount * la = ((LongToShortTerm*)longToShortTerm)->_init_ledger_amount();
     la->setAmount(0.0);
@@ -104,15 +106,6 @@ LedgerAmount * LongToShortTerm::_reclassify_merchant_balance(LedgerClosureStep *
     return la;
 }
 
-void LongToShortTerm::set_loan_app_loan(loan_app_loan_primitive_orm* _lal_orm){
-    lal_orm = _lal_orm;
-}
-void LongToShortTerm::set_loan_app_installment(loan_app_installment_primitive_orm* _lai_orm){
-    lai_orm = _lai_orm;
-}
-void LongToShortTerm::set_new_lms_installmentextension(new_lms_installmentextension_primitive_orm* _nli_orm){
-    nli_orm = _nli_orm;
-}
 
 
 LongToShortTerm::~LongToShortTerm(){}
