@@ -51,10 +51,10 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "wallet_prepaid"; 
-    string database = "c_plus_plus";
-    string closure_date_string = "2024-07-03"; 
-    int threadsCount = 1;
+    const char * step = "cancel_loan"; 
+    string database = "cpp_alia";
+    string closure_date_string = "2024-07-7"; 
+    int threadsCount = 6;
     bool connect = psqlController.addDataSource("main","192.168.1.51",5432, database,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
@@ -162,28 +162,28 @@ int main (int argc, char ** argv)
     if ( strcmp (step,"accrual") == 0 || strcmp (step,"full_closure") == 0)
     {
         //Partial accrue interest aggregator
-        PSQLJoinQueryIterator*  partialAccrualQuery = AccrualInterest::aggregator(closure_date_string, 1);
+        // PSQLJoinQueryIterator*  partialAccrualQuery = AccrualInterest::aggregator(closure_date_string, 1);
 
-        BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
-        AccrualInterestStruct partialAccrualInterestStruct = {
-        partialAccrualTemplateManager
-        };
-        partialAccrualQuery->process(threadsCount, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
-        delete(partialAccrualTemplateManager);
-        delete(partialAccrualQuery);
-        psqlController.ORMCommit(true,true,true, "main"); 
+        // BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
+        // AccrualInterestStruct partialAccrualInterestStruct = {
+        // partialAccrualTemplateManager
+        // };
+        // partialAccrualQuery->process(threadsCount, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
+        // delete(partialAccrualTemplateManager);
+        // delete(partialAccrualQuery);
+        // psqlController.ORMCommit(true,true,true, "main"); 
 
         //-------------------------------------------------------------------------------------------------------------------------------------------
         // Accrue interest aggregator
-        PSQLJoinQueryIterator*  accrualQuery = AccrualInterest::aggregator(closure_date_string, 2);
-        BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8, -1);
-        AccrualInterestStruct accrualInterestStruct = {
-            accrualTemplateManager
-        };
-        accrualQuery->process(threadsCount, AccrualInterestFunc, (void*)&accrualInterestStruct);
-        delete(accrualTemplateManager);
-        delete(accrualQuery);
-        psqlController.ORMCommit(true,true,true, "main");  
+        // PSQLJoinQueryIterator*  accrualQuery = AccrualInterest::aggregator(closure_date_string, 2);
+        // BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8, -1);
+        // AccrualInterestStruct accrualInterestStruct = {
+        //     accrualTemplateManager
+        // };
+        // accrualQuery->process(threadsCount, AccrualInterestFunc, (void*)&accrualInterestStruct);
+        // delete(accrualTemplateManager);
+        // delete(accrualQuery);
+        // psqlController.ORMCommit(true,true,true, "main");  
 
         //-------------------------------------------------------------------------------------------------------------------------------------------
         // Settlement accrue interest aggregator
@@ -196,7 +196,7 @@ int main (int argc, char ** argv)
         delete(settlementAccrualTemplateManager);
         delete(settlementAccrualQuery);
         psqlController.ORMCommit(true,true,true, "main");  
-        AccrualInterest::update_step();
+        // AccrualInterest::update_step();
     }
 
 
