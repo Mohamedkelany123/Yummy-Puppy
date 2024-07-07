@@ -24,6 +24,7 @@ void PSQLAbstractORM::operator = (const PSQLAbstractORM & _psqlAbstractORM)
         update_references = _psqlAbstractORM.update_references;
         inserted = false;
         enforced_partition_number=_psqlAbstractORM.enforced_partition_number;
+        field_clear_mask = _psqlAbstractORM.field_clear_mask;
 }
 void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
 {
@@ -42,10 +43,11 @@ void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
         update_references = _psqlAbstractORM->update_references;
         inserted = false;
         enforced_partition_number=_psqlAbstractORM->enforced_partition_number;
+        field_clear_mask = _psqlAbstractORM->field_clear_mask;
 }
 
 
-PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional,int _enforced_partition_number)
+PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional,int _enforced_partition_number, vector<string> _field_clear_mask)
 {   
     orm_transactional = _orm_transactional;
     table_name = _table_name;
@@ -67,6 +69,7 @@ PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,s
     update_default_values = psqlController.getUpdateDefaultValues();
     data_source_name = _data_source_name;
     enforced_partition_number=_enforced_partition_number;
+    field_clear_mask= _field_clear_mask;
 }
 
 bool PSQLAbstractORM::isOrmTransactional(){
