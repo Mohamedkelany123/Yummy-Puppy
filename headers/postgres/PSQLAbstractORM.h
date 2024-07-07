@@ -12,6 +12,7 @@ class PSQLAbstractORM
         // PSQLConnection * psqlConnection;
         // AbstractDBQuery * psqlQuery;
         map <string,map<string, string>> relatives_def;
+        vector <string> field_clear_mask;
         string identifier_name;
         bool loaded ;
         mutex lock;
@@ -45,7 +46,7 @@ class PSQLAbstractORM
         virtual bool isLoaded();
         string get_data_source_name ();
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
-        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional,int _enforced_partition_number=-1);
+        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional,int _enforced_partition_number=-1, vector<string> _field_clear_mask={});
         PSQLAbstractORM (const PSQLAbstractORM & _psqlAbstractORM);
         virtual PSQLAbstractORM * clone ()=0;
 		virtual string serialize (PSQLConnection * _psqlConnection=NULL)=0;
@@ -78,7 +79,7 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
     public:
         void static_lock(bool skip_owner = false) {}; 
 		void static_unlock(bool restrict_to_owner = false){}; 
-        PSQLGeneric_primitive_orm (string _data_source_name):PSQLAbstractORM (_data_source_name, "","", false){}
+        PSQLGeneric_primitive_orm (string _data_source_name):PSQLAbstractORM (_data_source_name,"","", false,{}){}
         void add (string name, string value){
             values[name] = value;
         }
