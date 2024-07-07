@@ -15,6 +15,7 @@ class IScoreNidInquiry : public LedgerClosureStep
         ekyc_app_onboardingsession_primitive_orm * onb_orm;
 
         int merchantID;
+        int customerID;
         float inquiryFee;
 
     public:

@@ -6,10 +6,29 @@ IScoreNidInquiry::IScoreNidInquiry(map<string,PSQLAbstractORM *> * _orms, float 
     nid_orm = ORM(ekyc_app_nidlog,_orms);
     onb_orm = ORM(ekyc_app_onboardingsession,_orms);
     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,_orms);
-    std::stringstream ss(gorm->get("merchant_id"));
-    cout << "MERCHANT ID IS :";
-    cout << gorm->get("merchant_id") << endl;
-    ss >> merchantID;
+    if(gorm->get("merchant_id") == ""){
+        std::stringstream ss(gorm->get("merchant_id2"));
+        cout << "MERCHANT ID IS :";
+        cout << gorm->get("merchant_id2") << endl;
+        ss >> merchantID;
+    }
+    else{
+        std::stringstream ss(gorm->get("merchant_id"));
+        cout << "MERCHANT ID IS :";
+        cout << gorm->get("merchant_id") << endl;
+        ss >> merchantID;
+    }
+    
+    std::stringstream ss2(gorm->get("customer_id"));
+    cout << "CUSTOMER ID IS :";
+    cout << gorm->get("customer_id") << endl;
+    if (gorm->get("customer_id") == ""){
+        customerID = NULL;
+    }
+    ss2 >> customerID;
+    cout << "Stored customer id is";
+    cout << customerID;
+
     inquiryFee = _inquiry_fee;
 }
 
@@ -30,7 +49,8 @@ PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(string _closure_date_string)
     string query_closure_date = "'" + _closure_date_string + "'"; 
 
     nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at <= " + query_closure_date + " order by id desc limit 1)","merchant_id");
-
+    nidLogsQuery->addExtraFromField("(select id from crm_app_customer cac where cac.phone_number = ekyc_app_onboardingsession.phone_number limit 1)","customer_id");
+    nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaff cam inner join ekyc_app_onboardingsession on ekyc_app_onboardingsession.merchant_staff_id = cam.user_ptr_id limit 1)","merchant_id2");
     return nidLogsQuery;
 }
 
@@ -38,6 +58,9 @@ LedgerAmount* IScoreNidInquiry::_init_ledger_amount(){
     LedgerAmount * lg = new LedgerAmount();
     lg->setMerchantId(merchantID);
     lg->setCashierId(onb_orm->get_merchant_staff_id());
+    if(customerID != NULL){
+        lg->setCustomerId(customerID);
+    }
 
     return lg;
 }
