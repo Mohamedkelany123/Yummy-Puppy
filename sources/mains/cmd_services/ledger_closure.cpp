@@ -16,9 +16,13 @@
 #include <InitialLoanInterestAccrual.h>
 #include <LongToShortTerm.h>
 #include <LongToShortTermFunc.h>
+#include <IScoreNidInquiry.h>
+#include <IScoreNidInquiryFunc.h>
 #include <PSQLUpdateQuery.h>
 #include <CustomerPayment.h>
 #include <CustomerPaymentFunc.h>
+#include <OnboardingCommission.h>
+#include <OnboardingCommissionFunc.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -50,17 +54,34 @@ map<int,float> get_loan_status_provisions_percentage()
         return bucket_percentage;
 }
 
+float get_iscore_nid_inquiry_fee(){
+    ledger_global_primitive_orm_iterator * it = new ledger_global_primitive_orm_iterator("main");
+    it->filter(
+        ANDOperator(
+        new UnaryOperator("ledger_global.name",eq,"iscore_nid_expense_fee")
+        )
+    );
+    it->execute();
+    ledger_global_primitive_orm * global_orm = it->next(true);
+    if((global_orm->get_value())["amount"] != NULL){
+        return global_orm->get_value()["amount"];
+    }
+    else cout << "ERROR in fetching NID iScore inquiry amount" << endl;
+
+    return -1;
+}
+
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "wallet_prepaid"; 
-    string database = "c_plus_plus";
-    string closure_date_string = "2024-07-03"; 
+    const char * step = "undue_to_due"; 
+    string closure_date_string = "2024-07-06"; 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432, database,"postgres","postgres");
+    string databaseName = "django_ostaz_02072024_aliaclosure";
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
-        cout << "Connected to DATABASE->[" << database << "]" << endl;
+        cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
         cout << "Threads Count->[" << threadsCount << "]" << endl;
         cout << "Step[" << step << "]" << endl;
         cout << "--------------------------------------------------------" << endl;
@@ -79,10 +100,11 @@ int main (int argc, char ** argv)
         );
     psqlUpdateQuery.update();
 
-
+//accrual-undue_to_due
 
     if ( strcmp (step,"disburse") == 0 || strcmp (step,"full_closure") == 0)
     {
+        cout << "Start: Disburse" << endl;
         PSQLJoinQueryIterator*  psqlQueryJoin = DisburseLoan::aggregator(closure_date_string);
 
         BlnkTemplateManager * blnkTemplateManager = new BlnkTemplateManager(4, -1);
@@ -99,12 +121,14 @@ int main (int argc, char ** argv)
 
         psqlController.ORMCommit(true,true,true, "main");  
         DisburseLoan::update_step();
+        cout << "End: Disburse" << endl;
+
     }
 
 
     if ( strcmp (step,"ledger_accruel_initial_interest") == 0 || strcmp (step,"full_closure") == 0)
     {
-        cout << "First Accrual" << endl;
+        cout << "Start: First Accrual" << endl;
         //FIRST ACCRUAL
         loan_app_loan_primitive_orm_iterator*  loans_to_get_first_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 1);
         
@@ -119,10 +143,12 @@ int main (int argc, char ** argv)
         delete(loans_to_get_first_accrual_agg);
 
         psqlController.ORMCommit(true,true,true, "main");  
+        cout << "End: First Accrual" << endl;
+
         //-----------------------------------------------------------------------------------
 
         //SECOND ACCRUAL
-        cout << "Second Accrual" << endl;
+        cout << "Start: Second Accrual" << endl;
         loan_app_loan_primitive_orm_iterator*  loans_to_get_second_accrual_agg = InitialLoanInterestAccrual::aggregator(closure_date_string, 2);
         
         InitialLoanInterestAccrualStruct initialLoanInterestSecondAccrualStruct;
@@ -136,13 +162,13 @@ int main (int argc, char ** argv)
 
         psqlController.ORMCommit(true,true,true, "main");  
         InitialLoanInterestAccrual::update_step();
+        cout << "End: Second Accrual" << endl;
+
     }
-
-
-
 
     if ( strcmp (step,"cancel_loan") == 0 || strcmp (step,"full_closure") == 0)
     {
+        cout << "Start: Cancel Loan" << endl;
         PSQLJoinQueryIterator*  psqlQueryJoin = CancelLoan::aggregator(closure_date_string);
 
         CancelLoanStruct cancelLoanStruct;
@@ -159,6 +185,8 @@ int main (int argc, char ** argv)
         
         psqlController.ORMCommit(true,true,true, "main"); 
         CancelLoan::update_step();
+        cout << "End: Cancel Loan" << endl;
+
     }
 
     if ( strcmp (step,"accrual") == 0 || strcmp (step,"full_closure") == 0)
@@ -204,6 +232,8 @@ int main (int argc, char ** argv)
 
     if ( strcmp (step,"undue_to_due") == 0 || strcmp (step,"full_closure") == 0)
     {
+        cout << "Undue To Due" << endl;
+        cout << "-Intallments Becoming Due" << endl;
         PSQLJoinQueryIterator*  installments_becoming_due_iterator = UndueToDue::aggregator(closure_date_string, 1);
         BlnkTemplateManager * undueToDueTemplateManager = new BlnkTemplateManager(10, -1);
         UndueToDueStruct undueToDueStruct;
@@ -216,7 +246,7 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main");  
 
         //----------------------------------------------------------------------------------------//
-
+        cout << "-Sticky Installments Becoming Due" << endl;
         PSQLJoinQueryIterator*  sticky_installments_becoming_due_iterator = UndueToDue::aggregator(closure_date_string, 2);
         UndueToDueStruct stickyUndueToDueStruct;
         stickyUndueToDueStruct.blnkTemplateManager = undueToDueTemplateManager;
@@ -262,7 +292,7 @@ int main (int argc, char ** argv)
         PSQLJoinQueryIterator*  longToShortTermQuery = LongToShortTerm::aggregator(closure_date_string);
 
         BlnkTemplateManager * longToShortTermTemplateManager = new BlnkTemplateManager(11, -1);
-        AccrualInterestStruct longToShortTermStruct = {
+        LongToShortTermStruct longToShortTermStruct = {
             longToShortTermTemplateManager
         };
         longToShortTermQuery->process(threadsCount, LongToShortTermFunc, (void*)&longToShortTermStruct);
@@ -274,6 +304,38 @@ int main (int argc, char ** argv)
         LongToShortTerm::update_step();
     }
 
+    if ( strcmp (step,"i_score_nid_inquiry") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        //Partial accrue interest aggregator
+        cout << "Starting IScore NID inquiry step!" << endl;
+        PSQLJoinQueryIterator*  iScoreNidInquiryQuery = IScoreNidInquiry::aggregator(closure_date_string);
+        BlnkTemplateManager * iScoreNidInquiryTemplateManager = new BlnkTemplateManager(3, -1);
+        IScoreNidInquiryStruct iScoreNidInquiryStruct;
+        iScoreNidInquiryStruct.blnkTemplateManager = iScoreNidInquiryTemplateManager;
+        cout << "IScore inquiry fee :";
+        cout << get_iscore_nid_inquiry_fee() << endl;
+        iScoreNidInquiryStruct.inquiryFee = get_iscore_nid_inquiry_fee();
+        iScoreNidInquiryQuery->process(threadsCount, IScoreNidInquiryFunc, (void*)&iScoreNidInquiryStruct);
+        delete(iScoreNidInquiryTemplateManager);
+        delete(iScoreNidInquiryQuery);
+        psqlController.ORMCommit(true,true,true, "main"); 
+        LongToShortTerm::update_step();
+    }
+
+
+    if ( strcmp (step,"onboarding_commission") == 0 || strcmp (step,"full_closure") == 0){
+        cout << "Onboarding Commission" << endl;
+        PSQLJoinQueryIterator*  onboarding_commissions_iterator = OnboardingCommission::aggregator(closure_date_string);
+        BlnkTemplateManager * onboardingCommissionsTemplateManager = new BlnkTemplateManager(68, -1);
+
+        OnboardingCommissionStruct onboardingCommissionStruct;
+        onboardingCommissionStruct.blnkTemplateManager = onboardingCommissionsTemplateManager;
+
+        onboarding_commissions_iterator->process(threadsCount, OnboardingCommissionFunc, (void *)&onboardingCommissionStruct);
+        
+        psqlController.ORMCommit(true,true,true, "main");  
+        OnboardingCommission::update_step(); 
+    }
 
     if (strcmp(step, "receiveCustomerPayments") == 0 || strcmp(step, "full_closure") == 0) {
         PSQLJoinQueryIterator* psqlJoinQueryIterator = CustomerPayment::aggregator(closure_date_string);

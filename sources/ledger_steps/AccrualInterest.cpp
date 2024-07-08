@@ -248,7 +248,12 @@ PSQLJoinQueryIterator* AccrualInterest::partial_accrual_agg(string _closure_date
     partialAccrualQuery->filter(
         ANDOperator (
             new UnaryOperator("new_lms_installmentextension.partial_accrual_date", lte, _closure_date_string),
+    
             // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::PARTIAL_INTEREST_ACCRUAL-1),
+            new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+
+          
+          
             new UnaryOperator("new_lms_installmentextension.partial_accrual_ledger_amount_id", isnull, "", true),
             new UnaryOperator("new_lms_installmentextension.expected_partial_accrual_amount", ne, 0),
             new OROperator(
@@ -299,7 +304,9 @@ PSQLJoinQueryIterator* AccrualInterest::accrual_agg(string _closure_date_string)
     accrualQuery->filter(
         ANDOperator (
             // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
-            new OROperator (
+            new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+
+           new OROperator (
                 new UnaryOperator("new_lms_installmentextension.accrual_date", lte, _closure_date_string),
                 new ANDOperator(
                     new UnaryOperator("new_lms_installmentextension.payment_status", eq, 1),
@@ -328,7 +335,12 @@ PSQLJoinQueryIterator* AccrualInterest::settlement_accrual_agg(string _closure_d
         settlementAccrualQuery->filter(
             ANDOperator (
                 new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", lte, _closure_date_string),
+    
                 // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_INTEREST_ACCRUAL-1),
+                new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+
+
+
                 new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_ledger_amount_id", isnull, "", true),
                 new UnaryOperator("new_lms_installmentextension.status_id", nin, "12, 13"),
                 new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_amount", ne, 0),

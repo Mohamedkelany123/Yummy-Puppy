@@ -18,6 +18,8 @@
 #include <payments_loanorder_primitive_orm.h>
 #include <payments_loanorderheader_primitive_orm.h>
 #include <payments_paymentmethod_primitive_orm.h>
+#include <ledger_global_primitive_orm.h>
+#include <crm_app_merchantstaff_primitive_orm.h>
 #include <payments_paymentprovider_primitive_orm.h>
 
 

@@ -18,7 +18,12 @@ PSQLJoinQueryIterator* LongToShortTerm::aggregator(string _closure_date_string){
             new UnaryOperator("new_lms_installmentextension.long_to_short_term_date",lte,_closure_date_string),
             new UnaryOperator("new_lms_installmentextension.short_term_ledger_amount_id",isnull, "", true),
             // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::RECLASSIFY_LONG_TERM-1),
+            new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+
+
             new UnaryOperator("new_lms_installmentextension.is_long_term",eq, false),
+
+            
             new OROperator(
                 new ANDOperator(
                     new UnaryOperator("new_lms_installmentextension.long_to_short_term_date",lte,"new_lms_installmentextension.principal_paid_at", true),

@@ -132,11 +132,13 @@ PSQLJoinQueryIterator *CancelLateFees::aggregator(string _closure_date_string)
     psqlQueryJoin->filter(
         ANDOperator(
             // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::CANCEL_LATE_FEES-1)),
+            new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+
             new UnaryOperator("new_lms_installmentlatefees.reversed_accrual_ledger_amount_id", isnull, "", true),
             new UnaryOperator("new_lms_installmentlatefees.cancellation_date", lte, _closure_date_string),
             new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, true),
-            new UnaryOperator("new_lms_installmentlatefees.accrual_ledger_amount_id", isnotnull, "",true),
-            new UnaryOperator("loan_app_loan.id", in, "140204,137852,137189,137171,136900,136741,136664,135831,135829,135661,135614,135493,135310,135292,135241,135141,134918,134804,134763,134698,134538,134408,134241,134193,134172,134167,133970,133956,133853,133787,133774,133572,133469,133356,133343,133329,133135,133092,133089,133087,133080,133053,132950,132828,132803,132794,132780,132719,132714,132602,132377,132354,132352,132349,132303,132302,132249,132182,132144,132028")
+            new UnaryOperator("new_lms_installmentlatefees.accrual_ledger_amount_id", isnotnull, "",true)
+            // new UnaryOperator("loan_app_loan.id", in, "140204,137852,137189,137171,136900,136741,136664,135831,135829,135661,135614,135493,135310,135292,135241,135141,134918,134804,134763,134698,134538,134408,134241,134193,134172,134167,133970,133956,133853,133787,133774,133572,133469,133356,133343,133329,133135,133092,133089,133087,133080,133053,132950,132828,132803,132794,132780,132719,132714,132602,132377,132354,132352,132349,132303,132302,132249,132182,132144,132028")
 
             ));
     psqlQueryJoin->setOrderBy("loan_app_loan.id asc, loan_app_installment.id asc,new_lms_installmentlatefees.cancellation_date");

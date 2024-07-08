@@ -15,8 +15,8 @@ int main (int argc, char ** argv)
 
     int threadsCount = 10 ;
     // bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","development","5k6MLFM9CLN3bD1");
-//    bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_25102023","postgres","postgres");
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
+   bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_25102023","postgres","postgres");
+    // bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -32,9 +32,9 @@ int main (int argc, char ** argv)
 
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {   
-            new loan_app_loan_primitive_orm("main"),
-            new loan_app_installment_primitive_orm("main"), 
-            new crm_app_customer_primitive_orm("main")
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id","num_periods"}),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id"}), 
+            new crm_app_customer_primitive_orm("main",false,true,-1,{"id"})
         },
         {
             {{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, 
@@ -50,7 +50,7 @@ int main (int argc, char ** argv)
     psqlQueryJoin->filter(
         ANDOperator 
         (
-            new UnaryOperator ("crm_app_customer.id",lte,10000)
+            new UnaryOperator ("crm_app_customer.id",lte,300000)
         )
     );
 

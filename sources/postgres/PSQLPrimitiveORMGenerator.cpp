@@ -218,6 +218,10 @@ void PSQLPrimitiveORMGenerator::generateDecl_Setters_Getters (string class_name,
     declaration +=std::to_string(col_count);
     declaration += "> null_flag;\n";
 
+    declaration += "\t\tbitset<";
+    declaration +=std::to_string(col_count);
+    declaration += "> field_clear_mask_flag;\n";
+
     //Static lock and unlock for all orm objects
     setters_def += "\t\tvoid static_lock(bool skip_owner = false); \n";
     setters_def += "\t\tvoid static_unlock(bool restrict_to_owner = false); \n";
@@ -264,13 +268,27 @@ void PSQLPrimitiveORMGenerator::generateDecl_Setters_Getters (string class_name,
 void PSQLPrimitiveORMGenerator::generateFromString (string class_name,string table_name,string table_index,map<string, vector<string>> columns_definition)
 {
     extra_methods_def += "\t\tstring getFromString ();\n";
-    extra_methods += "\t\tstring "+class_name+"::getFromString (){\n\t\t\treturn \"";
+    extra_methods += "\t\tstring "+class_name+"::getFromString (){\n";
+    extra_methods += "\t\t\tif (!field_clear_mask_flag.any() ) return \"";
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         if ( i > 0 )  extra_methods  += ",";
         extra_methods += "\\\""+table_name+"\\\".\\\""+columns_definition["column_name"][i]+"\\\" as \\\""+table_index+"_"+columns_definition["column_name"][i]+"\\\"";
     }
-    extra_methods += "\";\n\t\t}\n";
+    extra_methods += "\";\n";
+    extra_methods += "\t\t\telse {\n";
+    extra_methods += "\t\t\t\tstring f_str=\"\";\n";
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        extra_methods  += "\t\t\t\tif (field_clear_mask_flag.test("+to_string(i)+")) {\n";
+        extra_methods  += "\t\t\t\tif (f_str != \"\" ) f_str +=\",\";\n ";
+        extra_methods += "\t\t\t\tf_str +=\"\\\""+table_name+"\\\".\\\""+columns_definition["column_name"][i]+"\\\" as \\\""+table_index+"_"+columns_definition["column_name"][i]+"\\\"\";\n";
+        extra_methods += "\t\t\t\t}\n";
+    }
+
+    extra_methods += "\t\t\t\treturn f_str;\n";    
+    extra_methods += "\t\t\t}\n";    
+    extra_methods += "\n\t\t}\n";
 }
 
 void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string table_name,map<string, vector<string>> columns_definition)
@@ -351,6 +369,8 @@ void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,st
     }
     extra_methods += "\t\t\tloaded=orm.loaded;\n";
     extra_methods += "\t\t\tupdate_flag=orm.update_flag;\n";
+    extra_methods += "\t\t\tnull_flag=orm.null_flag;\n";
+    extra_methods += "\t\t\tfield_clear_mask_flag=orm.field_clear_mask_flag;\n";
     extra_methods += "\t\t\tfor (int i = 0 ; i< update_flag.size() ; i ++) update_flag.set(i) ;\n";
     extra_methods += "\t\t\tnull_flag=orm.null_flag;\n";
     extra_methods += "\t\t\tsetIdentifier(-1);\n";
@@ -374,6 +394,7 @@ void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,st
     }
     extra_methods += "\t\t\tloaded=orm->loaded;\n";
     extra_methods += "\t\t\tupdate_flag=orm->update_flag;\n";
+    extra_methods += "\t\t\tfield_clear_mask_flag=orm->field_clear_mask_flag;\n";
     extra_methods += "\t\t\tnull_flag=orm->null_flag;\n";
     extra_methods += "\t\t}\n";
 
@@ -417,11 +438,18 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
 {
     includes = "#include <PSQLController.h>\n";
     includes += "#include <PSQLBool.h>\n";
-    constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name, bool add_to_cache, bool orm_transactional,int _enforced_partition_number):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\", orm_transactional,_enforced_partition_number){\n";
+    constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name,bool add_to_cache, bool orm_transactional,int _enforced_partition_number, vector <string> _field_clear_mask):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\", orm_transactional,_enforced_partition_number,_field_clear_mask){\n";
     constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
     constructor_destructor += "\t\t\ttable_index="+table_index+";\n";
     constructor_destructor += "\t\t\tcached=add_to_cache;\n";
     constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
+
+    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    {
+        constructor_destructor  += "\t\t\tif (std::find(field_clear_mask.begin(), field_clear_mask.end(), \""+columns_definition["column_name"][i]+"\") != field_clear_mask.end()) field_clear_mask_flag.set("+to_string(i)+");\n";
+    }
+
+
     // constructor_destructor +="\t\t\tpsqlQuery = psqlConnection->executeQuery(\"select \"+this->getFromString()+\" from "+table_name+"\");\n";
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery(R""""(select * from ( 
     SELECT replace(conrelid::regclass::text,'"','') AS "fk_table"
@@ -469,7 +497,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
         getters += "\t\tif ("+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column") +"== NULL) {\n";
         getters += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only = _read_only;\n";
         getters += "\t\t\t"+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+" = new vector <"+psqlQuery->getValue("fk_table")+"_primitive_orm *> ();\n";
-        getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm_iterator * i = new "+psqlQuery->getValue("fk_table")+"_primitive_orm_iterator(\"main\");\n";
+        getters += "\t\t\t"+psqlQuery->getValue("fk_table")+"_primitive_orm_iterator * i = new "+psqlQuery->getValue("fk_table")+"_primitive_orm_iterator(data_source_name);\n";
 
         getters += "\t\t\ti->filter (ANDOperator(new UnaryOperator(\""+psqlQuery->getValue("fk_column")+"\",eq,get_"+primary_key+"())));\n";
         getters += "\t\t\ti->execute();\n";
@@ -541,7 +569,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor += "\t\t "+class_name+"::~"+class_name+"(){\n";
     constructor_destructor += temp+"}\n";
 
-    constructor_destructor_def = "\t\t"+class_name+"(string data_source_name, bool add_to_cache=false, bool orm_transactional=true,int _enforced_partition_number=-1);\n";
+    constructor_destructor_def = "\t\t"+class_name+"(string data_source_name,bool add_to_cache=false, bool orm_transactional=true,int _enforced_partition_number=-1, vector <string> _field_clear_mask = {});\n";
     constructor_destructor_def += "\t\t"+class_name+"(const "+class_name+" & _"+class_name+");\n";
     // constructor_destructor_def += "\t\tvirtual void operator =(const "+class_name+" & _"+class_name+");\n";
     // constructor_destructor_def += "\t\tvirtual void operator =(const "+class_name+" * _"+class_name+");\n";
@@ -620,7 +648,7 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
 
         if ( db_field_name != primary_key)
         {
-            extra_methods += "\t\t\tif (update_flag.test("+std::to_string(i)+")) {\n";
+            extra_methods += "\t\t\tif (update_flag.test("+std::to_string(i)+") && (!field_clear_mask_flag.any() || field_clear_mask_flag.test("+std::to_string(i)+"))) {\n";
             extra_methods += "\t\t\t\tif (update_string != \"\")  update_string += \",\";\n";
             if (string_flag )
                 extra_methods += "\t\t\t\t\tupdate_string += \""+db_field_name+"='\"+"+orm_field_name+"+\"'\";\n";
@@ -646,11 +674,11 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
     extra_methods += "\t\t\t\tupdate_string = \"update "+table_name+" set \"+update_string+\" where "+primary_key+"= '\"+std::to_string(orm_"+primary_key+")+\"'\";\n";
     extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = _psqlConnection;\n";
     extra_methods += "\t\t\t\tif (_psqlConnection == NULL )\n";
-    extra_methods += "\t\t\t\t\tpsqlConnection = psqlController.getPSQLConnection(\"main\");\n";
+    extra_methods += "\t\t\t\t\tpsqlConnection = psqlController.getPSQLConnection(data_source_name);\n";
     extra_methods += "\t\t\t\treturn_flag=psqlConnection->executeUpdateQuery(update_string);\n";
     extra_methods += "\t\t\t\tupdate_flag.reset();\n";
     extra_methods += "\t\t\t\tif (_psqlConnection == NULL )\n";
-    extra_methods += "\t\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
+    extra_methods += "\t\t\t\t\tpsqlController.releaseConnection(data_source_name,psqlConnection);\n";
     extra_methods += "\t\t\t}\n";
     extra_methods += "\t\t\telse return return_flag;\n";
 
@@ -670,7 +698,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
 
     extra_methods += "\t\t\tcommitAddReferences(_psqlConnection);\n";
     extra_methods += "\t\t\tresolveReferences();\n";
-    extra_methods += "\t\t\tstring insert_string = \"\";\n";
+    // extra_methods += "\t\t\tstring insert_string = \"\";\n";
     string columns_string = "";
     string values_string = "";
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
@@ -722,14 +750,15 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
 
     if ( columns_string !="")
     {
-        extra_methods += "\t\t\t\tinsert_string = \"insert into "+table_name+" ("+columns_string+") values (\"+"+values_string+"+\") returning id\";\n";
-        extra_methods += "\t\t\t\tPSQLConnection * psqlConnection = _psqlConnection;\n";
-        extra_methods += "\t\t\t\tif (psqlConnection == NULL )\n";
-        extra_methods += "\t\t\t\t\tpsqlConnection = psqlController.getPSQLConnection(\"main\");\n";
-        extra_methods += "\t\t\t\torm_"+primary_key+"=psqlConnection->executeInsertQuery(insert_string);\n";
-        extra_methods += "\t\t\t\tif (_psqlConnection == NULL )\n";
-        extra_methods += "\t\t\t\t\tpsqlController.releaseConnection(\"main\",psqlConnection);\n";
-        extra_methods += "\t\t\t\tupdate_flag.reset();\n";
+        extra_methods += "\t\t\tif (field_clear_mask_flag.any()) {inserted = false;return -1;}\n";
+        extra_methods += "\t\t\tstring insert_string = \"insert into "+table_name+" ("+columns_string+") values (\"+"+values_string+"+\") returning id\";\n";
+        extra_methods += "\t\t\tPSQLConnection * psqlConnection = _psqlConnection;\n";
+        extra_methods += "\t\t\tif (psqlConnection == NULL )\n";
+        extra_methods += "\t\t\t\tpsqlConnection = psqlController.getPSQLConnection(data_source_name);\n";
+        extra_methods += "\t\t\torm_"+primary_key+"=psqlConnection->executeInsertQuery(insert_string);\n";
+        extra_methods += "\t\t\tif (_psqlConnection == NULL )\n";
+        extra_methods += "\t\t\t\tpsqlController.releaseConnection(data_source_name,psqlConnection);\n";
+        extra_methods += "\t\t\tupdate_flag.reset();\n";
     } 
     extra_methods += "\t\t\tinserted = true;\n ";
     extra_methods += "\t\t\treturn orm_"+primary_key+";\n";

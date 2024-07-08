@@ -36,7 +36,7 @@ vector <ledger_amount_primitive_orm *> * loan_app_loan_bl_orm::get_ledger_amount
 }
 
 
-loan_app_loan_bl_orm::loan_app_loan_bl_orm(string _data_source_name, bool add_to_cache, bool orm_transactional,int _enforced_partition_number): loan_app_loan_primitive_orm(_data_source_name,  add_to_cache,  orm_transactional,_enforced_partition_number) {
+loan_app_loan_bl_orm::loan_app_loan_bl_orm(string _data_source_name, bool add_to_cache, bool orm_transactional,int _enforced_partition_number,vector <string> _field_clear_mask): loan_app_loan_primitive_orm(_data_source_name,add_to_cache,  orm_transactional,_enforced_partition_number,_field_clear_mask) {
 	new_lms_installmentextension_loan_id_read_only = false;
 	new_lms_installmentextension_loan_id=NULL;
 	ledger_amount_loan_id=NULL;
@@ -71,6 +71,7 @@ loan_app_loan_bl_orm_iterator::loan_app_loan_bl_orm_iterator(string _data_source
     loan_app_loan_bl_orm * orm = new loan_app_loan_bl_orm(_data_source_name);
     from_string =orm->getFromString();
     orderby_string = orm->getIdentifierName() + " asc";
+	delete (orm); // This was originally missing and need to be tested
 }
 loan_app_loan_bl_orm * loan_app_loan_bl_orm_iterator::operator [] (long index)
 {

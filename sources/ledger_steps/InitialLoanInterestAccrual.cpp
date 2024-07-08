@@ -67,7 +67,9 @@ loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::loans_to_get_f
         ANDOperator 
         (
             new UnaryOperator ("loan_app_loan.first_accrual_adjustment_date",lte,_closure_date_string),
+            
             // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::FIRST_INCOME_ACCRUAL-1)),
+            new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
             
             new UnaryOperator ("loan_app_loan.first_accrual_adjustment_ledger_entry_id",isnull,"", true),
             new UnaryOperator ("loan_app_loan.yearly_interest",ne,"0"),
@@ -85,9 +87,11 @@ loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::loans_to_get_s
     loans_to_get_first_accrual_iterator->filter(
         ANDOperator 
         (
-            new UnaryOperator ("loan_app_loan.first_accrual_adjustment_date",lte,_closure_date_string),
-            new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::FIRST_INCOME_ACCRUAL-1)),
+            new UnaryOperator ("loan_app_loan.second_accrual_adjustment_date",lte,_closure_date_string),
             
+            // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::FIRST_INCOME_ACCRUAL-1)),
+            new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+
             new UnaryOperator ("loan_app_loan.second_accrual_adjustment_ledger_entry_id",isnull,"", true),
             new UnaryOperator ("loan_app_loan.yearly_interest",ne,"0"),
             new UnaryOperator ("loan_app_loan.status_id",nin,"7,12,13")
