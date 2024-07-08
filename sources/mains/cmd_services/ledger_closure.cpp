@@ -19,6 +19,8 @@
 #include <IScoreNidInquiry.h>
 #include <IScoreNidInquiryFunc.h>
 #include <PSQLUpdateQuery.h>
+#include <CustomerPayment.h>
+#include <CustomerPaymentFunc.h>
 #include <OnboardingCommission.h>
 #include <OnboardingCommissionFunc.h>
 
@@ -334,6 +336,29 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main");  
         OnboardingCommission::update_step(); 
     }
+
+    if (strcmp(step, "receiveCustomerPayments") == 0 || strcmp(step, "full_closure") == 0) {
+        PSQLJoinQueryIterator* psqlJoinQueryIterator = CustomerPayment::aggregator(closure_date_string);
+        map<int, BlnkTemplateManager*>* blnkTemplateManagerMap = new map<int, BlnkTemplateManager*>;
+        int template_ids[] = {18, 19, 44, 165, 53, 119, 133};
+        BlnkTemplateManager* blnkTemplateManager = nullptr;
+        for (auto template_id : template_ids) {
+            blnkTemplateManager = new BlnkTemplateManager(template_id, -1);
+            blnkTemplateManagerMap->operator[](template_id) = blnkTemplateManager;
+        }
+        ReceiveCustomerPaymentStruct receiveCustomerPaymentStruct;
+        receiveCustomerPaymentStruct.blnkTemplateManagerMap = blnkTemplateManagerMap;
+        receiveCustomerPaymentStruct.closing_date = BDate(closure_date_string);
+        psqlJoinQueryIterator->process(threadsCount, receiveCustomerPaymentFunc, (void*)&receiveCustomerPaymentStruct);
+        delete psqlJoinQueryIterator;
+        for(auto it=blnkTemplateManagerMap->begin(); it!=blnkTemplateManagerMap->end(); it++) {
+            delete it->second;
+        }
+        psqlController.ORMCommit(true, true, true, "main");
+        CustomerPayment::update_step();
+    }
+    
+
 
     return 0;
 }
