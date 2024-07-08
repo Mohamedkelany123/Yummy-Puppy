@@ -10,6 +10,8 @@
 #include <UndueToDueFunc.h>
 #include <InitialLoanInterestAccrualFunc.h>
 #include <InitialLoanInterestAccrual.h>
+#include <CreditIScore.h>
+#include <CreditIScoreFunc.h>
 #include <PSQLUpdateQuery.h>
 
 //<BuckedId,Percentage>
@@ -40,6 +42,23 @@ map<int,float> get_loan_status_provisions_percentage()
         
 
         return bucket_percentage;
+}
+
+float get_iscore_credit_expense_fee(){
+    ledger_global_primitive_orm_iterator * it = new ledger_global_primitive_orm_iterator("main");
+    it->filter(
+        ANDOperator(
+        new UnaryOperator("ledger_global.name",eq,"iscore_credit_expense_fee")
+        )
+    );
+    it->execute();
+    ledger_global_primitive_orm * global_orm = it->next(true);
+    if((global_orm->get_value())["amount"] != NULL){
+        return global_orm->get_value()["amount"];
+    }
+    else cout << "ERROR in fetching iScore Credit expense amount" << endl;
+
+    return -1;
 }
 
 int main (int argc, char ** argv)
@@ -222,6 +241,20 @@ int main (int argc, char ** argv)
         UndueToDue::update_step(); 
     }
 
+    if ( strcmp (step,"creditIScore") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator*  psqlQueryJoin = CreditIScore::aggregator(closure_date_string);
+
+        CreditIScoreStruct creditIScoreStruct;
+        BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(1, -1);
+        creditIScoreStruct.blnkTemplateManager = blnkTemplateManager;
+        creditIScoreStruct.expense_fee = get_iscore_credit_expense_fee();
+        psqlQueryJoin->process(threadsCount, CreditIScoreFunc,(void *)&creditIScoreStruct);
+        
+        delete(blnkTemplateManager);
+        delete(psqlQueryJoin);
+        psqlController.ORMCommit(true,true,true, "main"); 
+    }
 
     return 0;
 }
