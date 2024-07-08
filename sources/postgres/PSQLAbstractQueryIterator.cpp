@@ -361,6 +361,7 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
     cout << "Executing PSQL Query on the remote server" << endl;
     if (this->execute() && this->psqlQuery->getRowCount() > 0)
     {
+        cout << "Row Count-> " << this->psqlQuery->getRowCount() << endl;
         time_t time_snapshot1 = time (NULL);
 
         cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
@@ -401,8 +402,11 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
                 delete((*p)[i]);
         }
         time_t time_snapshot2 = time (NULL);
+
         cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
     }
+    cout << "Row Count-> " << this->psqlQuery->getRowCount() << endl;
+    
 }
 bool PSQLJoinQueryIterator::setDistinct (vector<pair<string,string>> distinct_map)
 {

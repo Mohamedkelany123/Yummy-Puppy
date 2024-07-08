@@ -1,7 +1,6 @@
 #ifndef CANCELFUNC_H
 #define CANCELFUNC_H
 
-#include <functional>
 #include <common.h>
 #include <TemplateManager.h>
 #include <CancelLoans.h>

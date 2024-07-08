@@ -7,9 +7,9 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
     int counter =0;
     int return_flag = true;
 
-    // cout << "Started commit internal for " << t_index 
-    //     << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
-    //     << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
+    cout << "Started commit internal for " << t_index 
+        << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
+        << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
 
     if (me->insert_thread_cache.size() > t_index)
     {
@@ -63,6 +63,7 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
         }
     }
     (*threads_results)[t_index] = return_flag;
+    cout << "RETURN FLAGGGG ->" << return_flag << endl;
     // cout << "Finished process internal" <<endl;
     return return_flag;
 }
@@ -346,20 +347,25 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
     if (transaction && orm_transaction)
     {
         bool rollback_flag = false;
-        for ( int i  = 0 ; i < threads_count ; i ++)
+        for ( int i  = 0 ; i < threads_count ; i ++){
+            cout << "Thread " << i << "result ->" << endl;
             if (thread_results[i] == false)
             {
                 rollback_flag=true;
                 cout << "Rolling Back for thread #" << i <<  endl;
                 break;
             }
+        }
         // rollback_flag = true;
         for ( int i = 0 ; i < threads_count ; i ++)
         {
-            if ( rollback_flag )
+            cout << "22222222222 flag->" << rollback_flag << endl;
+            if ( rollback_flag ){
+                cout << "ROLLINGG BACKKKKK" << endl;
                 psqlConnections[i]->rollbackTransaction();
-            else
+            }else
             { 
+                cout <<  "INSIDEEE COMMMMMMMMMMMITTTTTTTTTTTTTTTTTTTT" << endl;
                 // psqlConnections[i]->rollbackTransaction();
                 psqlConnections[i]->commitTransaction();
             }

@@ -128,6 +128,8 @@ ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
     this->createEntry(entry_date);
     bool is_built = this->buildLegs();
     bool is_valid = this->validate();
+    cout << "Is_Valid->" << is_valid << endl;
+    cout << "is_built->" << is_built << endl;
     if(!(is_valid && is_built)){
         return NULL;
     }
@@ -162,7 +164,6 @@ void BlnkTemplateManager::setEntryData(map<string, LedgerAmount *> *_entry_data)
 }
 void BlnkTemplateManager::createEntry(BDate entry_date)
 {
-    // cout << "createEntry :: cache_partition_number "<< cache_partition_number << endl;
     entry  = new ledger_entry_primitive_orm("main", true,true,cache_partition_number);
     entry->set_entry_date(entry_date.getDateString());
     entry->set_template_id(template_id);
@@ -188,7 +189,7 @@ map <string,LedgerCompositLeg *> * BlnkTemplateManager::get_ledger_amounts()
 
 ledger_amount_primitive_orm * BlnkTemplateManager::getFirstLedgerAmountORM ()
 {
-    if (ledger_amounts.size() > 0)
+        if (ledger_amounts.size() > 0)
         return (ledger_amounts.begin()->second)->getLedgerCompositeLeg()->first;
     else return NULL;
 }
@@ -203,3 +204,4 @@ ledger_amount_primitive_orm * BlnkTemplateManager::getFirstLedgerAmountORM ()
 
 
 
+ 

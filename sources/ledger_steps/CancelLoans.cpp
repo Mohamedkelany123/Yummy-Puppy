@@ -76,6 +76,8 @@ PSQLJoinQueryIterator* CancelLoan::aggregator(string _closure_date_string, int _
             ANDOperator 
             (
                 // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::CANCEL_LOAN-1)),
+                new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+
                 new UnaryOperator ("loan_app_loan.cancel_ledger_entry_id",isnull,"",true),
                 new UnaryOperator ("loan_app_loan.loan_booking_day",lte,_closure_date_string),
                 new UnaryOperator ("loan_app_loan.status_id",in,"12,13")
