@@ -24,13 +24,14 @@ PSQLJoinQueryIterator* DueToOverdue::installments_becoming_overdue_agg(string _c
             // new UnaryOperator("loan_app_loan.closure_status", eq, closure_status::DUE_TO_OVERDUE-1),
             new UnaryOperator("new_lms_installmentextension.due_to_overdue_date", lte, _closure_date_string),
             new UnaryOperator("new_lms_installmentextension.payment_status", nin, "1, 3, 6"),
-            new OROperator (
-                new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, false),
-                new ANDOperator(
-                    new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, true),
-                    new UnaryOperator("new_lms_installmentlatefees.cancellation_date", gte, _closure_date_string)
-                )
-            )
+            new UnaryOperator("loan_app_loan.id", ne, 14312)
+            // new OROperator (
+            //     new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, false),
+            //     new ANDOperator(
+            //         new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, true),
+            //         new UnaryOperator("new_lms_installmentlatefees.cancellation_date", gte, _closure_date_string)
+            //     )
+            // )
         )
     );
 
@@ -204,10 +205,13 @@ LedgerAmount *DueToOverdue::_get_installment_insterest(LedgerClosureStep *dueToO
     loan_app_installment_primitive_orm* lai_orm = ((DueToOverdue*) dueToOverdue)->get_loan_app_installment();
     new_lms_installmentextension_primitive_orm* nlie_orm = ((DueToOverdue*) dueToOverdue)->get_new_lms_installment_extention();
     BDate installment_due_to_overdue_date(nlie_orm->get_due_to_overdue_date());
-    if (installment_due_to_overdue_date() >= due_to_overdue_date()) {
+    BDate due_to_overdue_date = ((DueToOverdue*) dueToOverdue)->get_due_to_overdue_day();
+    
+    if (installment_due_to_overdue_date() == due_to_overdue_date()) {
         double interest_expected = lai_orm->get_interest_expected();
         double first_installment_interest_adjustment = nlie_orm->get_first_installment_interest_adjustment();
-        ledgerAmount->setAmount(ROUND(interest_expected+first_installment_interest_adjustment));
+        double total_interest_expected = interest_expected + first_installment_interest_adjustment;
+        ledgerAmount->setAmount(ROUND(total_interest_expected));
     }
     return ledgerAmount;
 }
@@ -217,8 +221,11 @@ LedgerAmount *DueToOverdue::_get_installment_principal(LedgerClosureStep *dueToO
     LedgerAmount* ledgerAmount = ((DueToOverdue*) dueToOverdue)->_init_ledger_amount();
     loan_app_installment_primitive_orm* lai_orm = ((DueToOverdue*) dueToOverdue)->get_loan_app_installment();
     new_lms_installmentextension_primitive_orm* nlie_orm = ((DueToOverdue*) dueToOverdue)->get_new_lms_installment_extention();
+    BDate due_to_overdue_date = ((DueToOverdue*) dueToOverdue)->get_due_to_overdue_day();
     BDate installment_due_to_overdue_date(nlie_orm->get_due_to_overdue_date());
-    if (installment_due_to_overdue_date() >= due_to_overdue_date()) {
+    cout << "installment_due_to_overdue_date: " << installment_due_to_overdue_date.getDateString() << endl;
+    cout << "due_to_overdue_date: " << due_to_overdue_date.getDateString() << endl;
+    if (installment_due_to_overdue_date() == due_to_overdue_date()) {
         bool is_principal_paid = nlie_orm->get_is_principal_paid();
         if (is_principal_paid) {
             string principal_payment_date_string = nlie_orm->get_principal_paid_at();
@@ -231,7 +238,7 @@ LedgerAmount *DueToOverdue::_get_installment_principal(LedgerClosureStep *dueToO
             }
         }
         double principal_expected = lai_orm->get_principal_expected();
-        ledgerAmount->setAmount(principal_expected);
+        ledgerAmount->setAmount(ROUND(principal_expected));
     }
     return ledgerAmount;
 }
@@ -240,7 +247,7 @@ LedgerAmount * DueToOverdue::_calc_installment_late_fees(LedgerClosureStep* dueT
     LedgerAmount* ledgerAmount = ((DueToOverdue*) dueToOverdue)->_init_ledger_amount();
     new_lms_installmentextension_primitive_orm* nlie_orm = ((DueToOverdue*) dueToOverdue)->get_new_lms_installment_extention();
     double late_fee = nlie_orm->get_late_fees_amount();
-    ledgerAmount->setAmount(late_fee);
+    ledgerAmount->setAmount(ROUND(late_fee));
     return ledgerAmount;
 }
 

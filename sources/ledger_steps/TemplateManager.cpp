@@ -127,7 +127,7 @@ bool BlnkTemplateManager::validate()
 }
 ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
 {
-    if (!entry){
+    if (entry == nullptr){
         this->createEntry(entry_date);
     }
     

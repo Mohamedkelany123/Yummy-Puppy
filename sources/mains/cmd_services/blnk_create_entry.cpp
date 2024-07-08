@@ -46,9 +46,9 @@ int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "duetooverdue"; 
-    string closure_date_string = "2024-06-26"; 
+    string closure_date_string = "2024-07-22"; 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_02072024_abdallah2","development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -186,7 +186,7 @@ int main (int argc, char ** argv)
         installmentsBecomingOverdueIterator->process_aggregate(threadsCount, InstallmentBecomingOverdueFunc, (void *)&dueToOverdueStruct);
 
         delete(installmentsBecomingOverdueIterator);
-        psqlController.ORMCommit(true, true, true, "main");
+        psqlController.ORMCommit(true, false, true, "main");
         delete(dueToOverdueTemplateManager);
         DueToOverdue::update_step();
     }
@@ -194,3 +194,4 @@ int main (int argc, char ** argv)
 
     return 0;
 }
+

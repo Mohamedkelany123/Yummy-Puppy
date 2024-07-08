@@ -11,25 +11,26 @@ void InstallmentBecomingOverdueFunc (vector<map <string,PSQLAbstractORM *> * > *
     new_lms_installmentextension_primitive_orm* nlie_orm = ORML(new_lms_installmentextension, orms_list, 0);
     new_lms_installmentlatefees_primitive_orm* nlilf_orm;
 
-    BDate due_to_overdue_date(nlie_orm->get_due_to_overdue_date());
+    
     map<string, LedgerAmount*>* ledgerAmounts;
 
-    localTemplateManager->createEntry(due_to_overdue_date);
-    ledger_entry_primitive_orm* entry = localTemplateManager->get_entry();
+    ledger_entry_primitive_orm* entry = nullptr;
     BlnkTemplateManager* loopTemplateManager;
 
-    if (!entry) {
-        cerr << "can not create entry\n";
-        exit(1);
-    }
     
     for (int i=0; i<ORML_SIZE(orms_list); i++) {
         loopTemplateManager = new BlnkTemplateManager(localTemplateManager, partition_number);
-        loopTemplateManager->setEntry(entry);
         lai_orm = ORML(loan_app_installment, orms_list, i);
         nlie_orm = ORML(new_lms_installmentextension, orms_list, i);
         nlilf_orm = ORML(new_lms_installmentlatefees, orms_list, i);
 
+        if (nlilf_orm == nullptr) {
+            cout << "nlilf_orm is nullptr at iteration ";
+            continue; 
+            cout << "after continue " ;
+
+        }
+        BDate due_to_overdue_date(nlilf_orm->get_day());
         int payment_status = nlie_orm->get_payment_status();
         BDate principal_paid_at(nlie_orm->get_principal_paid_at());
         BDate late_fee_paid_at(nlilf_orm->get_paid_at());
@@ -39,9 +40,15 @@ void InstallmentBecomingOverdueFunc (vector<map <string,PSQLAbstractORM *> * > *
         BDate installment_due_to_overdue_date(nlie_orm->get_due_to_overdue_date());
         if (
             (payment_status == 2 && principal_paid_at() >= due_to_overdue_date())
+            || (payment_status != 2)
             || (late_fee_is_paid && late_fee_paid_at() >= due_to_overdue_date())
             || (late_fee_is_cancelled && late_fee_cancellation_date() >= due_to_overdue_date())
         ) {
+            if (entry == nullptr) {
+                localTemplateManager->createEntry(due_to_overdue_date);
+                entry = localTemplateManager->get_entry();
+            }
+            loopTemplateManager->setEntry(entry);
             DueToOverdue dueToOverdue(lal_orm, lai_orm, nlie_orm, nlilf_orm, due_to_overdue_date);
             LedgerClosureService* ledgerClosureService = new LedgerClosureService(&dueToOverdue);
             dueToOverdue.setupLedgerClosureService(ledgerClosureService);
