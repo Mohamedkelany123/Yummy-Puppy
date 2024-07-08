@@ -7,14 +7,10 @@ CreditIScore::CreditIScore(map<string,PSQLAbstractORM *> * _orms, float _expense
     template_id = 1;
     expense_fee = _expense_fee;
     PSQLGeneric_primitive_orm * gorm = ORM(PSQLGeneric,_orms);
-    if(gorm->get("merchant_id") == ""){
-        std::stringstream ss(gorm->get("merchant_id2"));
-        ss >> merchant_id;
-    }
-    else{
-        std::stringstream ss(gorm->get("merchant_id"));
-        ss >> merchant_id;
-    }
+    if(gorm->get("merchant_id") == "")
+        merchant_id = gorm->toInt("merchant_id2");
+    else
+        merchant_id = gorm->toInt("merchant_id");
 }
 
 void CreditIScore::setupLedgerClosureService (LedgerClosureService * ledgerClosureService)
