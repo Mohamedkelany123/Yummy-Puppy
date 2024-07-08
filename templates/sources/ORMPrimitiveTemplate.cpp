@@ -7,6 +7,7 @@
     %s * orm = new %s(_data_source_name);
     from_string =orm->getFromString();
     orderby_string = orm->getIdentifierName() + " asc";
+    delete (orm); // This is add and need to be tested 
 }
 %s * %s::operator [] (long index)
 {
@@ -63,8 +64,15 @@ void  %s::process_internal(%s * psqlAbstractQueryIterator,string data_source_nam
 
 void %s::process(int partitions_count,std::function<void(%s * orm,int partition_number,mutex * shared_lock,void * extras)> f, void * extra_params)
 {
+    time_t start = time (NULL);
+    cout << "Executing PSQL Query on the remote server" << endl;
     if (this->execute() && ((PSQLQuery *)this->psqlQuery)->getRowCount() > 0)
     {
+        time_t time_snapshot1 = time (NULL);
+
+        cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
+        cout << "Starting multi-threading execution" << endl;
+
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
         vector <thread *> threads;
         mutex shared_lock;
@@ -79,6 +87,11 @@ void %s::process(int partitions_count,std::function<void(%s * orm,int partition_
                 t->join();
                 delete (t);
         }
+
+        time_t time_snapshot2 = time (NULL);
+        cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
+        cout << "cache counter: " << psqlController.getCacheCounter() << endl;
+
     }
 }
 

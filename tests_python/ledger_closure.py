@@ -33,9 +33,9 @@ class LedgerClosure:
         query = f"""
                     select * from ledger_amount la 
                     where created_at::date = '{self.current_date}'
-                    order by loan_id desc, amount desc, leg_temple_id desc, account_id desc
+                    order by leg_temple_id desc, loan_id desc, amount desc,  account_id desc, cashier_id desc, customer_id desc, reversal_bool desc, merchant_id desc
                 """
-        excluded_columns = ['id', 'created_at', 'updated_at', 'entry_id']
+        excluded_columns = ['id', 'created_at', 'updated_at', 'entry_id', 'bond_id']
         compare_amount_attributes = ['amount', 'amount_local']
         temp = self.exec(query, excluded_columns, "Ledger Amount", compare_amount_attributes)
         # if temp:
@@ -95,6 +95,7 @@ class LedgerClosure:
                 data_c_filtered = data_c
                 data_python_filtered = data_python
 
+            print ("length of c is ", len(data_c_filtered)," \n length of django is ", len(data_python_filtered))
             if len(data_c_filtered) != len(data_python_filtered):
                 # send_slack_message(self.webhook_url, f"FAILED -> {tableName} ", "#FF0000")
                 raise ValueError(f"Data LENGTHS ARE NOT EQUAL")

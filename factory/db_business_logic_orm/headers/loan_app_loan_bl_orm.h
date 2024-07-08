@@ -19,7 +19,7 @@ class loan_app_loan_bl_orm : public loan_app_loan_primitive_orm
 		vector <new_lms_installmentextension_primitive_orm *> * get_new_lms_installmentextension_loan_id(bool _read_only=false);
 		vector <ledger_amount_primitive_orm *> * get_ledger_amount_loan_id(bool _read_only=false);
 
-		loan_app_loan_bl_orm(string data_source_name, bool add_to_cache=false, bool orm_transactional=true,int _enforced_partition_number=-1);
+		loan_app_loan_bl_orm(string data_source_name, bool add_to_cache=false, bool orm_transactional=true,int _enforced_partition_number=-1,vector <string > _field_clear_mask={});
 		PSQLAbstractORM * clone ();
 
 		 virtual ~loan_app_loan_bl_orm();
