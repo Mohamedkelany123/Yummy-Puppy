@@ -27,6 +27,8 @@
 #include <OnboardingCommissionFunc.h>
 #include <DueToOverdueFunc.h>
 #include <DueToOverdue.h>
+#include <DueForSettlementWithMerchant.h>
+#include <DueForSettlementWithMerchantFunc.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -406,5 +408,11 @@ int main (int argc, char ** argv)
     }
 
 
+    if ( strcmp (step,"due_for_settlement_with_merchant") == 0 || strcmp (step,"full_closure") == 0)
+    {   
+        PSQLJoinQueryIterator*  psqlQueryJoin = DueForSettlement::aggregator(closure_date_string);
+
+
+    }
     return 0;
 }
