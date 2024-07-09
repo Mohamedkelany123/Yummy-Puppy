@@ -75,6 +75,8 @@ int main (int argc, char ** argv)
             cout << "P#[" << partition_number << "]\t"<< lal_orm->get_num_periods() << "\t" <<cac_orm->get_id() << "\t" << lal_orm->get_id() <<"\t"<< ORML_SIZE(orms_list) << "\t";
             for ( int i = 0 ;i < ORML_SIZE(orms_list) ; i ++)
             {
+                // loan_app_loan_bl_orm * abc  = ORML(za3bola,orms_list,i);
+                // printf ("abs: %p \n",abc);
                 loan_app_installment_primitive_orm * lai_orm  = ORML(loan_app_installment,orms_list,i);
                 // PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms_list,i);
                     // if (gorm != NULL)
