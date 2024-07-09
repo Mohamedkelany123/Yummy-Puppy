@@ -6,7 +6,8 @@ SANDBOX_PATH=$(find ~ -type d -name "GO-sandbox" -print -quit)
 if [ -n "$SANDBOX_PATH" ]; then
     echo "GO Sandbox folder found at: $SANDBOX_PATH"
     cd $SANDBOX_PATH
-    # git pull origin prod
+    git checkout prod
+    git pull origin prod
     make build_closure
     cd -
 
