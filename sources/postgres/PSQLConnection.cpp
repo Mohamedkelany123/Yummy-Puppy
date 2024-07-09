@@ -89,7 +89,9 @@ AbstractDBQuery *PSQLConnection::executeQuery(string psql_query)
 
 bool PSQLConnection::executeUpdateQuery(string psql_query)
 {
+    // cout << "________________________" << psql_query << endl;
     PGresult * pgresult = PQexec(this->getPGConnection(), psql_query.c_str());
+    // cout << "pgresults status: "<< PQresultStatus(pgresult) << endl;
     if (PQresultStatus(pgresult) == 7 || PQresultStatus(pgresult) == 6)
     {
 
@@ -103,6 +105,7 @@ bool PSQLConnection::executeUpdateQuery(string psql_query)
 
 long PSQLConnection::executeInsertQuery(string psql_query)
 {
+    // cout << "________________________" << psql_query << endl;
     PGresult * pgresult = PQexec(this->getPGConnection(), psql_query.c_str());
     if (PQresultStatus(pgresult) == 7 || PQresultStatus(pgresult) == 6)
     {

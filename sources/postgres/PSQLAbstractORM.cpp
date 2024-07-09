@@ -25,6 +25,7 @@ void PSQLAbstractORM::operator = (const PSQLAbstractORM & _psqlAbstractORM)
         inserted = false;
         enforced_partition_number=_psqlAbstractORM.enforced_partition_number;
         field_clear_mask = _psqlAbstractORM.field_clear_mask;
+        is_add_referenced = _psqlAbstractORM.is_add_referenced;
 }
 void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
 {
@@ -44,6 +45,7 @@ void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
         inserted = false;
         enforced_partition_number=_psqlAbstractORM->enforced_partition_number;
         field_clear_mask = _psqlAbstractORM->field_clear_mask;
+        is_add_referenced = _psqlAbstractORM->is_add_referenced;
 }
 
 
@@ -149,10 +151,13 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
 void PSQLAbstractORM::setAddRefernce (string field_name,PSQLAbstractORM * reference)
 {
     add_references[field_name] = reference;
+    reference->is_add_referenced= true;
 }
 void PSQLAbstractORM::setUpdateRefernce (string field_name,PSQLAbstractORM * reference)
 {
     update_references[field_name] = reference;
+    reference->is_add_referenced= true;
+
 }
 
 
@@ -224,6 +229,15 @@ string PSQLAbstractORM::getExtra (string fname)
     if (extras.find(fname) != extras.end())
         return  extras [fname];
     else return "";
+}
+void PSQLAbstractORM::set_is_add_referenced (bool _is_referenced)
+{
+     is_add_referenced =_is_referenced;
+
+}
+bool PSQLAbstractORM::get_is_add_referenced ()
+{
+   return is_add_referenced;
 }
 
 int PSQLAbstractORM::get_enforced_partition_number()
