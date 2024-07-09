@@ -496,7 +496,7 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryPartitionIterator::next ()
         map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
         for (auto orm_object: *orm_objects) 
         {
-            if (psqlQuery->getColumnIndex (orm_object->compose_field_with_index->getIdentifierName() >= 0)
+            if ( psqlQuery->getColumnIndex(orm_object->compose_field_with_index(orm_object->getIdentifierName())) >= 0)
             {
                 PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
                 (*results)[orm->getTableName()] = orm;
