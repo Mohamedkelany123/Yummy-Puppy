@@ -25,6 +25,8 @@
 #include <CustomerPaymentFunc.h>
 #include <OnboardingCommission.h>
 #include <OnboardingCommissionFunc.h>
+#include <DueToOverdueFunc.h>
+#include <DueToOverdue.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -273,6 +275,21 @@ int main (int argc, char ** argv)
         delete(undueToDueTemplateManager);
         psqlController.ORMCommit(true,true,true, "main");  
         UndueToDue::update_step(); 
+    }
+
+
+    if (strcmp(step, "duetooverdue")==0 || strcmp(step, "full_closure")==0) {
+        PSQLJoinQueryIterator*  installmentsBecomingOverdueIterator = DueToOverdue::aggregator(closure_date_string);
+        BlnkTemplateManager* dueToOverdueTemplateManager = new BlnkTemplateManager(12, -1);
+        DueToOverdueStruct dueToOverdueStruct;
+        dueToOverdueStruct.blnkTemplateManager = dueToOverdueTemplateManager;
+        dueToOverdueStruct.closing_day = BDate(closure_date_string);
+        installmentsBecomingOverdueIterator->process_aggregate(threadsCount, InstallmentBecomingOverdueFunc, (void *)&dueToOverdueStruct);
+
+        delete(installmentsBecomingOverdueIterator);
+        psqlController.ORMCommit(true, false, true, "main");
+        delete(dueToOverdueTemplateManager);
+        DueToOverdue::update_step();
     }
 
     if ( strcmp (step,"cancel_latefees") == 0 || strcmp (step,"full_closure") == 0)
