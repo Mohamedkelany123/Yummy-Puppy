@@ -213,36 +213,32 @@ int main (int argc, char ** argv)
         //Partial accrue interest aggregator
         PSQLJoinQueryIterator*  partialAccrualQuery = AccrualInterest::aggregator(closure_date_string, 1);
 
-        BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
+        BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct partialAccrualInterestStruct = {
-        partialAccrualTemplateManager
+        accrualTemplateManager
         };
         partialAccrualQuery->process(threadsCount, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
-        delete(partialAccrualTemplateManager);
         delete(partialAccrualQuery);
         psqlController.ORMCommit(true,true,true, "main"); 
 
         //-------------------------------------------------------------------------------------------------------------------------------------------
         // Accrue interest aggregator
         PSQLJoinQueryIterator*  accrualQuery = AccrualInterest::aggregator(closure_date_string, 2);
-        BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct accrualInterestStruct = {
             accrualTemplateManager
         };
         accrualQuery->process(threadsCount, AccrualInterestFunc, (void*)&accrualInterestStruct);
-        delete(accrualTemplateManager);
         delete(accrualQuery);
         psqlController.ORMCommit(true,true,true, "main");  
 
         //-------------------------------------------------------------------------------------------------------------------------------------------
         // Settlement accrue interest aggregator
         PSQLJoinQueryIterator*  settlementAccrualQuery = AccrualInterest::aggregator(closure_date_string, 3);
-        BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct settlementAccrualInterestStruct = {
-        settlementAccrualTemplateManager
+        accrualTemplateManager
         };
         settlementAccrualQuery->process(threadsCount, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
-        delete(settlementAccrualTemplateManager);
+        delete(accrualTemplateManager);
         delete(settlementAccrualQuery);
         psqlController.ORMCommit(true,true,true, "main");  
         AccrualInterest::update_step();
