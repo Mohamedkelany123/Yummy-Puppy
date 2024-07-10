@@ -1149,8 +1149,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         cout << "THREADTIME --> Wallet" << endl;
 
 
-        // TODO:     change to new implementation when implemented
-        // psqlQueryJoin->setDistinctString("distinct phone_number as \"162_phone_number\", \"crm_app_customer\".\"id\" as \"162_id\"");
+
         vector<pair<string, string>> distinct_map = {
         {"crm_app_customer", "id"},
         {"crm_app_customer", "phone_number"}
@@ -1160,15 +1159,15 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         auto beforeProcess = std::chrono::high_resolution_clock::now();
                 
         string failed_customers_ids = "";
-        // psqlQueryJoin->process (threadsCount,[&failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
-        //     crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
-        //     cout << partition_number << ": " << cac_orm->get_phone_number() << endl; 
-        //     bool success = closure_go(cac_orm->get_phone_number());
-        //     if (!success){
-        //         cout << cac_orm->get_phone_number() << ": failed" << endl; 
-        //         failed_customers_ids += (to_string(cac_orm->get_id()) + ",");
-        //     }
-        // });
+        psqlQueryJoin->process (threadsCount,[&failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
+            crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
+            cout << partition_number << ": " << cac_orm->get_phone_number() << endl; 
+            bool success = closure_go(cac_orm->get_phone_number());
+            if (!success){
+                cout << cac_orm->get_phone_number() << ": failed" << endl; 
+                failed_customers_ids += (to_string(cac_orm->get_id()) + ",");
+            }
+        });
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);

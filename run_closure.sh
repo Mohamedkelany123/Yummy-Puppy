@@ -5,14 +5,14 @@
 
 # Define variables
 LMS_COMMAND="./bin/mains/cmd_services/new_lms"
-ADDRESS="192.168.65.216"
+ADDRESS="192.168.1.51"
 PORT_NUMBER="5432"
-DB_NAME="django_ostaz_11062024_omneya2"
-USERNAME="development"
-PASSWORD="5k6MLFM9CLN3bD1"
-STEP="full_closure"
-DATE="2024-06-17"
-THREADS_COUNT="8"
+DB_NAME="wallet_problem"
+USERNAME="postgres"
+PASSWORD="postgres"
+STEP="customer_wallet"
+DATE="2024-07-09"
+THREADS_COUNT="1"
 
 # mod 2 offset(0,1) ....
 MOD="0"

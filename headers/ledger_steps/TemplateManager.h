@@ -17,6 +17,7 @@ class BlnkTemplateManager {
         map <string,LedgerCompositLeg *> ledger_amounts;
         map <string,LedgerAmount*> * entry_data;
         ledger_entry_primitive_orm * entry;
+        map<string, pair<ledger_amount_primitive_orm*, ledger_amount_primitive_orm*>*>* ledger_amount_orms;
         int cache_partition_number;
         void constructTemplateLegs(); 
         void loadTemplate ();
@@ -30,10 +31,14 @@ class BlnkTemplateManager {
         ledger_entry_primitive_orm* buildEntry (BDate _entry_date);
         ledger_entry_primitive_orm* reverseEntry (vector <ledger_amount_primitive_orm*> * _ledger_amounts, BDate _entry_date);
 
+        void setEntry(ledger_entry_primitive_orm* entry);
+
         void setEntryData(map <string,LedgerAmount*> * _entry_data);
         void createEntry(BDate _entry_date);
+        ledger_entry_primitive_orm* get_entry();
 
         map <string,LedgerCompositLeg*> * get_ledger_amounts();
+        map<string, pair<ledger_amount_primitive_orm*, ledger_amount_primitive_orm*>*>* get_ledger_amount_orms();
         ledger_amount_primitive_orm * getFirstLedgerAmountORM ();
         ~BlnkTemplateManager();
 

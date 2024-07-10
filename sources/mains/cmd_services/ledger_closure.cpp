@@ -14,6 +14,8 @@
 #include <UndueToDueFunc.h>
 #include <InitialLoanInterestAccrualFunc.h>
 #include <InitialLoanInterestAccrual.h>
+#include <CreditIScore.h>
+#include <CreditIScoreFunc.h>
 #include <LongToShortTerm.h>
 #include <LongToShortTermFunc.h>
 #include <IScoreNidInquiry.h>
@@ -25,6 +27,8 @@
 #include <OnboardingCommissionFunc.h>
 #include <UpdatingProvisions.h>
 #include <UpdatingProvisionsFunc.h>
+#include <DueToOverdueFunc.h>
+#include <DueToOverdue.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -69,6 +73,23 @@ float get_iscore_nid_inquiry_fee(){
         return global_orm->get_value()["amount"];
     }
     else cout << "ERROR in fetching NID iScore inquiry amount" << endl;
+
+    return -1;
+}
+
+float get_iscore_credit_expense_fee(){
+    ledger_global_primitive_orm_iterator * it = new ledger_global_primitive_orm_iterator("main");
+    it->filter(
+        ANDOperator(
+        new UnaryOperator("ledger_global.name",eq,"iscore_credit_expense_fee")
+        )
+    );
+    it->execute();
+    ledger_global_primitive_orm * global_orm = it->next(true);
+    if((global_orm->get_value())["amount"] != NULL){
+        return global_orm->get_value()["amount"];
+    }
+    else cout << "ERROR in fetching iScore Credit expense amount" << endl;
 
     return -1;
 }
@@ -196,36 +217,32 @@ int main (int argc, char ** argv)
         //Partial accrue interest aggregator
         PSQLJoinQueryIterator*  partialAccrualQuery = AccrualInterest::aggregator(closure_date_string, 1);
 
-        BlnkTemplateManager * partialAccrualTemplateManager = new BlnkTemplateManager(8, -1);
+        BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct partialAccrualInterestStruct = {
-        partialAccrualTemplateManager
+        accrualTemplateManager
         };
         partialAccrualQuery->process(threadsCount, PartialAccrualInterestFunc, (void*)&partialAccrualInterestStruct);
-        delete(partialAccrualTemplateManager);
         delete(partialAccrualQuery);
         psqlController.ORMCommit(true,true,true, "main"); 
 
         //-------------------------------------------------------------------------------------------------------------------------------------------
         // Accrue interest aggregator
         PSQLJoinQueryIterator*  accrualQuery = AccrualInterest::aggregator(closure_date_string, 2);
-        BlnkTemplateManager * accrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct accrualInterestStruct = {
             accrualTemplateManager
         };
         accrualQuery->process(threadsCount, AccrualInterestFunc, (void*)&accrualInterestStruct);
-        delete(accrualTemplateManager);
         delete(accrualQuery);
         psqlController.ORMCommit(true,true,true, "main");  
 
         //-------------------------------------------------------------------------------------------------------------------------------------------
         // Settlement accrue interest aggregator
         PSQLJoinQueryIterator*  settlementAccrualQuery = AccrualInterest::aggregator(closure_date_string, 3);
-        BlnkTemplateManager * settlementAccrualTemplateManager = new BlnkTemplateManager(8, -1);
         AccrualInterestStruct settlementAccrualInterestStruct = {
-        settlementAccrualTemplateManager
+        accrualTemplateManager
         };
         settlementAccrualQuery->process(threadsCount, SettlementAccrualInterestFunc, (void*)&settlementAccrualInterestStruct);
-        delete(settlementAccrualTemplateManager);
+        delete(accrualTemplateManager);
         delete(settlementAccrualQuery);
         psqlController.ORMCommit(true,true,true, "main");  
         AccrualInterest::update_step();
@@ -260,6 +277,21 @@ int main (int argc, char ** argv)
         delete(undueToDueTemplateManager);
         psqlController.ORMCommit(true,true,true, "main");  
         UndueToDue::update_step(); 
+    }
+
+
+    if (strcmp(step, "duetooverdue")==0 || strcmp(step, "full_closure")==0) {
+        PSQLJoinQueryIterator*  installmentsBecomingOverdueIterator = DueToOverdue::aggregator(closure_date_string);
+        BlnkTemplateManager* dueToOverdueTemplateManager = new BlnkTemplateManager(12, -1);
+        DueToOverdueStruct dueToOverdueStruct;
+        dueToOverdueStruct.blnkTemplateManager = dueToOverdueTemplateManager;
+        dueToOverdueStruct.closing_day = BDate(closure_date_string);
+        installmentsBecomingOverdueIterator->process_aggregate(threadsCount, InstallmentBecomingOverdueFunc, (void *)&dueToOverdueStruct);
+
+        delete(installmentsBecomingOverdueIterator);
+        psqlController.ORMCommit(true, false, true, "main");
+        delete(dueToOverdueTemplateManager);
+        DueToOverdue::update_step();
     }
 
     if ( strcmp (step,"cancel_latefees") == 0 || strcmp (step,"full_closure") == 0)
@@ -374,6 +406,20 @@ int main (int argc, char ** argv)
         OnboardingCommission::update_step(); 
     }
     
+    if ( strcmp (step,"creditIScore") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator*  psqlQueryJoin = CreditIScore::aggregator(closure_date_string);
+
+        CreditIScoreStruct creditIScoreStruct;
+        BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(1, -1);
+        creditIScoreStruct.blnkTemplateManager = blnkTemplateManager;
+        creditIScoreStruct.expense_fee = get_iscore_credit_expense_fee();
+        psqlQueryJoin->process(threadsCount, CreditIScoreFunc,(void *)&creditIScoreStruct);
+        
+        delete(blnkTemplateManager);
+        delete(psqlQueryJoin);
+        psqlController.ORMCommit(true,true,true, "main"); 
+    }
 
 
     return 0;

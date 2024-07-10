@@ -15,6 +15,7 @@ class PSQLAbstractORM
         vector <string> field_clear_mask;
         string identifier_name;
         bool loaded ;
+
         mutex lock;
         string locking_thread;
         map <string,pair<string,bool>> insert_default_values;
@@ -22,6 +23,7 @@ class PSQLAbstractORM
         string data_source_name;
         bool orm_transactional;
         map <string, PSQLAbstractORM *> add_references;
+        bool is_add_referenced;
         map <string, PSQLAbstractORM *> update_references;
         map <string, int > reference_values;
         bool inserted;
@@ -64,6 +66,8 @@ class PSQLAbstractORM
         string compose_field_with_index (string field_name);
         void setExtra (string fname, string fvalue);
         string getExtra (string fname);
+        void set_is_add_referenced(bool referenced);
+        bool  get_is_add_referenced();
         virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
         virtual void operator = (const PSQLAbstractORM * _psqlAbstractORM);
         int get_enforced_partition_number();

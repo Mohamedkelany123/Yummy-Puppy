@@ -442,6 +442,8 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
     constructor_destructor += "\t\t\ttable_index="+table_index+";\n";
     constructor_destructor += "\t\t\tcached=add_to_cache;\n";
+    constructor_destructor += "\t\t\tenforced_partition_number=_enforced_partition_number;\n";
+
     constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
 
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
