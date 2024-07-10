@@ -94,10 +94,32 @@ float get_iscore_credit_expense_fee(){
     return -1;
 }
 
+std::vector<std::string> get_start_and_end_fiscal_year(){
+    ledger_global_primitive_orm_iterator * it = new ledger_global_primitive_orm_iterator("main");
+    it->filter(
+        OROperator(
+        new UnaryOperator("ledger_global.name",eq,"start_fiscal_year"),
+        new UnaryOperator("ledger_global.name",eq,"end_fiscal_year")
+        )
+    );
+    it->execute();
+    std::vector<std::string> vector(2);
+    for(int i=0; i< 2;i++){
+        ledger_global_primitive_orm * global_orm = it->next(true);
+        if(global_orm->get_name()== "start_fiscal_year"){
+            vector[0] = global_orm->get_value()["date"];
+        }
+        else{
+            vector[1] = global_orm->get_value()["date"];
+        }
+    }
+    return vector;
+}
+
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "undue_to_due"; 
+    const char * step = "updating_provisions"; 
     string closure_date_string = "2024-07-06"; 
     int threadsCount = 1;
     string databaseName = "django_ostaz_02072024_aliaclosure";
@@ -394,13 +416,17 @@ int main (int argc, char ** argv)
 
     if ( strcmp (step,"updating_provisions") == 0 || strcmp (step,"full_closure") == 0){
         cout << "Updating Provisions" << endl;
-        // PSQLJoinQueryIterator*  updating_provisions_iterator = UpdatingProvisions::aggregator(closure_date_string,);
+        std::vector<std::string> dates = get_start_and_end_fiscal_year();
+        PSQLJoinQueryIterator*  updating_provisions_iterator = UpdatingProvisions::aggregator(closure_date_string,dates[0],dates[1],closure_date_string);
         BlnkTemplateManager * updatingProvisionsTemplateManager = new BlnkTemplateManager(22, -1);
 
         UpdatingProvisionsStruct updatingProvisionsStruct;
         updatingProvisionsStruct.blnkTemplateManager = updatingProvisionsTemplateManager;
+        updatingProvisionsStruct.closingDate = closure_date_string;
+        updatingProvisionsStruct.startDate = dates[0];
+        updatingProvisionsStruct.endDate = dates[1];
 
-        // onboarding_commissions_iterator->process(threadsCount, OnboardingCommissionFunc, (void *)&onboardingCommissionStruct);
+        updating_provisions_iterator->process(threadsCount, OnboardingCommissionFunc, (void *)&updatingProvisionsStruct);
         
         psqlController.ORMCommit(true,true,true, "main");  
         OnboardingCommission::update_step(); 

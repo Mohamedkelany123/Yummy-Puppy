@@ -112,6 +112,9 @@ LedgerAmount* UpdatingProvisions::_init_ledger_amount(){
     lg->setCustomerId(lal_orm->get_customer_id());
     lg->setLoanId(lal_orm->get_id());
     lg->setMerchantId(lal_orm->get_merchant_id());
+    if(tal_orm->get_onbalance() == true){
+        lg->setBondId(tal_orm->get_funding_facility_id());
+    }
 }
 
 void UpdatingProvisions::update_step(){
