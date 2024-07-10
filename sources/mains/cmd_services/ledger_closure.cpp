@@ -23,6 +23,8 @@
 #include <CustomerPaymentFunc.h>
 #include <OnboardingCommission.h>
 #include <OnboardingCommissionFunc.h>
+#include <UpdatingProvisions.h>
+#include <UpdatingProvisionsFunc.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -356,6 +358,20 @@ int main (int argc, char ** argv)
         }
         psqlController.ORMCommit(true, true, true, "main");
         CustomerPayment::update_step();
+    }
+
+    if ( strcmp (step,"updating_provisions") == 0 || strcmp (step,"full_closure") == 0){
+        cout << "Updating Provisions" << endl;
+        // PSQLJoinQueryIterator*  updating_provisions_iterator = UpdatingProvisions::aggregator(closure_date_string,);
+        BlnkTemplateManager * updatingProvisionsTemplateManager = new BlnkTemplateManager(22, -1);
+
+        UpdatingProvisionsStruct updatingProvisionsStruct;
+        updatingProvisionsStruct.blnkTemplateManager = updatingProvisionsTemplateManager;
+
+        // onboarding_commissions_iterator->process(threadsCount, OnboardingCommissionFunc, (void *)&onboardingCommissionStruct);
+        
+        psqlController.ORMCommit(true,true,true, "main");  
+        OnboardingCommission::update_step(); 
     }
     
 
