@@ -20,8 +20,8 @@ string PSQLBool::genDeclaration ()
 }
 string PSQLBool::genSetter (string class_name,int col_index)
 {
-    return  "\t\tvoid "+class_name+"::set_"+column_name+"( bool _value, bool set_null) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value; if(set_null) null_flag.set("+std::to_string(col_index)+"); } \n"+
-            "\t\tvoid "+class_name+"::set_"+column_name+"( string _value, bool set_null) { update_flag.set("+std::to_string(col_index)+"); if (_value == \"f\") "+field_name+"=true; else if (_value == \"t\") "+field_name+"= false; if(set_null) null_flag.set("+std::to_string(col_index)+"); } \n";
+    return  "\t\tvoid "+class_name+"::set_"+column_name+"( bool _value, bool set_null) { if (seeder_readonly) return; update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value; if(set_null) null_flag.set("+std::to_string(col_index)+"); } \n"+
+            "\t\tvoid "+class_name+"::set_"+column_name+"( string _value, bool set_null) { if (seeder_readonly) return; update_flag.set("+std::to_string(col_index)+"); if (_value == \"f\") "+field_name+"=true; else if (_value == \"t\") "+field_name+"= false; if(set_null) null_flag.set("+std::to_string(col_index)+"); } \n";
 }
 string PSQLBool::genGetter (string class_name)
 {

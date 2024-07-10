@@ -17,13 +17,16 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
         {
 //            cout << transactional << "& (" << orm_transaction << "==" << orm_cache_item.second->isOrmTransactional() << ") || " << !transactional << ")" << endl;
             if((transactional && (orm_transaction == orm_cache_item.second->isOrmTransactional())) || !transactional){
-                orm_cache_item.second->lock_me();
-                if (orm_cache_item.second->insert(_psqlConnection) == -1)
+                if (!orm_cache_item->isSeederReadonly()) 
                 {
-                    cout << "Insert problem " << endl;
-                    return_flag = false;
+                    orm_cache_item.second->lock_me();
+                    if (orm_cache_item.second->insert(_psqlConnection) == -1)
+                    {
+                        cout << "Insert problem " << endl;
+                        return_flag = false;
+                    }
+                    orm_cache_item.second->unlock_me();
                 }
-                orm_cache_item.second->unlock_me();
                 counter ++;
                 if (counter % 1000 == 0 )
                 {
@@ -44,7 +47,7 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
         {
             if((transactional && (orm_transaction == orm_cache_item.second->isOrmTransactional())) || !transactional){
 
-                if (orm_cache_item.second->isUpdated())
+                if (orm_cache_item.second->isUpdated() && !orm_cache_item->isSeederReadonly())
                 {
                     orm_cache_item.second->lock_me();
                     if (!orm_cache_item.second->update(_psqlConnection)) return_flag = false;
@@ -165,7 +168,7 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
     }
     orm = seeder->clone();
     update_cache[name][identifier] = orm;
-    orm->lock_me(true);
+    if (!seeder->isSeederReadonly()) orm->lock_me(true);
     seeder->static_unlock();
     orm->set_enforced_partition_number(partition_number);
     orm->assignResults(psqlQuery, true);
@@ -442,9 +445,12 @@ void PSQLORMCache::commit_sequential (string data_source_name, bool transaction,
     {
         for (auto orm_cache_item:orm_cache.second) 
         {
-                orm_cache_item->lock_me();
-                orm_cache_item->insert(psqlConnection);
-                orm_cache_item->unlock_me();
+                if (!orm_cache_item->isSeederReadonly()) 
+                {
+                    orm_cache_item->lock_me();
+                    orm_cache_item->insert(psqlConnection);
+                    orm_cache_item->unlock_me();
+                }
                 delete (orm_cache_item);
                 counter ++;
                 if (counter % 1000 == 0 )
@@ -461,9 +467,13 @@ void PSQLORMCache::commit_sequential (string data_source_name, bool transaction,
         for (auto orm_cache_item:orm_cache.second) 
             if (orm_cache_item.second->isUpdated())
             {
-                orm_cache_item.second->lock_me();
-                orm_cache_item.second->update(psqlConnection);
-                orm_cache_item.second->unlock_me();
+                if (!orm_cache_item->isSeederReadonly()) 
+                {
+                    orm_cache_item.second->lock_me();
+                    orm_cache_item.second->update(psqlConnection);
+                    orm_cache_item.second->unlock_me();
+                }
+
                 if (clean_updates) delete (orm_cache_item.second);
                 counter ++;
                 if (counter % 1000 == 0 )
