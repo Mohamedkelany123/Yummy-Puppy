@@ -17,7 +17,7 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
         {
 //            cout << transactional << "& (" << orm_transaction << "==" << orm_cache_item.second->isOrmTransactional() << ") || " << !transactional << ")" << endl;
             if((transactional && (orm_transaction == orm_cache_item.second->isOrmTransactional())) || !transactional){
-                if (!orm_cache_item->isSeederReadonly()) 
+                if (!orm_cache_item.second->isSeederReadonly()) 
                 {
                     orm_cache_item.second->lock_me();
                     if (orm_cache_item.second->insert(_psqlConnection) == -1)
@@ -47,7 +47,7 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
         {
             if((transactional && (orm_transaction == orm_cache_item.second->isOrmTransactional())) || !transactional){
 
-                if (orm_cache_item.second->isUpdated() && !orm_cache_item->isSeederReadonly())
+                if (orm_cache_item.second->isUpdated() && !orm_cache_item.second->isSeederReadonly())
                 {
                     orm_cache_item.second->lock_me();
                     if (!orm_cache_item.second->update(_psqlConnection)) return_flag = false;
@@ -163,7 +163,7 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
     if (orm != NULL) 
     {
         seeder->static_unlock();
-        orm->lock_me(true);
+        if (!seeder->isSeederReadonly()) orm->lock_me(true);
         return orm;
     }
     orm = seeder->clone();
@@ -467,7 +467,7 @@ void PSQLORMCache::commit_sequential (string data_source_name, bool transaction,
         for (auto orm_cache_item:orm_cache.second) 
             if (orm_cache_item.second->isUpdated())
             {
-                if (!orm_cache_item->isSeederReadonly()) 
+                if (!orm_cache_item.second->isSeederReadonly()) 
                 {
                     orm_cache_item.second->lock_me();
                     orm_cache_item.second->update(psqlConnection);
