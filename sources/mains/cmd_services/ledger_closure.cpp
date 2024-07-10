@@ -426,7 +426,7 @@ int main (int argc, char ** argv)
         updatingProvisionsStruct.startDate = dates[0];
         updatingProvisionsStruct.endDate = dates[1];
 
-        updating_provisions_iterator->process(threadsCount, OnboardingCommissionFunc, (void *)&updatingProvisionsStruct);
+        updating_provisions_iterator->process(threadsCount, UpdatingProvisionsFunc, (void *)&updatingProvisionsStruct);
         
         psqlController.ORMCommit(true,true,true, "main");  
         OnboardingCommission::update_step(); 
