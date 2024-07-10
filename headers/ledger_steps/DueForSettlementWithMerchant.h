@@ -44,7 +44,7 @@ class DueForSettlement : public LedgerClosureStep
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
 
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string, int _agg_number=0);
+        static loan_app_loan_primitive_orm_iterator* aggregator(string _closure_date_string,  string _start_fiscal_year);
         static void update_step(); 
 
 
