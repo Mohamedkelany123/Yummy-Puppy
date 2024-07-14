@@ -66,7 +66,6 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
         }
     }
     (*threads_results)[t_index] = return_flag;
-    cout << "RETURN FLAGGGG ->" << return_flag << endl;
     // cout << "Finished process internal" <<endl;
     return return_flag;
 }
@@ -351,7 +350,6 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
     {
         bool rollback_flag = false;
         for ( int i  = 0 ; i < threads_count ; i ++){
-            cout << "Thread " << i << "result ->" << endl;
             if (thread_results[i] == false)
             {
                 rollback_flag=true;
@@ -362,13 +360,10 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
         // rollback_flag = true;
         for ( int i = 0 ; i < threads_count ; i ++)
         {
-            cout << "22222222222 flag->" << rollback_flag << endl;
             if ( rollback_flag ){
-                cout << "ROLLINGG BACKKKKK" << endl;
                 psqlConnections[i]->rollbackTransaction();
             }else
             { 
-                cout <<  "INSIDEEE COMMMMMMMMMMMITTTTTTTTTTTTTTTTTTTT" << endl;
                 // psqlConnections[i]->rollbackTransaction();
                 psqlConnections[i]->commitTransaction();
             }

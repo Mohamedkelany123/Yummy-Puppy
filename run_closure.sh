@@ -7,11 +7,11 @@
 LMS_COMMAND="./bin/mains/cmd_services/new_lms"
 ADDRESS="192.168.1.51"
 PORT_NUMBER="5432"
-DB_NAME="wallet_problem"
+DB_NAME="django_ostaz_before_closure"
 USERNAME="postgres"
 PASSWORD="postgres"
-STEP="customer_wallet"
-DATE="2024-07-09"
+STEP="full_closure"
+DATE="2024-07-23"
 THREADS_COUNT="1"
 
 # mod 2 offset(0,1) ....
