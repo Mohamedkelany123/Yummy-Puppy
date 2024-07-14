@@ -98,26 +98,26 @@ loan_app_loan_primitive_orm_iterator *DueForSettlement::aggregator(string _closu
         )
     );
 
-    dueForSettlementIterator->addExtraFromField("WITH parent_account AS (\
-        SELECT id \
-        FROM ledger_account \
-        WHERE name = 'Impairment provisions, On-balance sheet'\
-    ),\
-    child_accounts AS (\
-        SELECT id \
-        FROM ledger_account \ 
-        WHERE parent_id = (SELECT id FROM parent_account) \
-    )\
-    SELECT SUM(amount) \
-    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
-    WHERE account_id IN ( \
-        SELECT id \
-        FROM child_accounts \
-        UNION ALL \
-        SELECT id \
-        FROM parent_account \
-    ) \
-    AND loan_id = loan_app_loan.id and la.bond_id = tms_app_loaninstallmentfundingrequest.funding_facility_id and le.entry_date between " + _start_fiscal_year['0'] + " and " + _closure_date_string,"impairment_provisions_balance");
+    // dueForSettlementIterator->addExtraFromField("WITH parent_account AS (\
+    //     SELECT id \
+    //     FROM ledger_account \
+    //     WHERE name = 'Impairment provisions, On-balance sheet'\
+    // ),\
+    // child_accounts AS (\
+    //     SELECT id \
+    //     FROM ledger_account \ 
+    //     WHERE parent_id = (SELECT id FROM parent_account) \
+    // )\
+    // SELECT SUM(amount) \
+    // FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    // WHERE account_id IN ( \
+    //     SELECT id \
+    //     FROM child_accounts \
+    //     UNION ALL \
+    //     SELECT id \
+    //     FROM parent_account \
+    // ) \
+    // AND loan_id = loan_app_loan.id and la.bond_id = tms_app_loaninstallmentfundingrequest.funding_facility_id and le.entry_date between " + _start_fiscal_year[0] + " and " + _closure_date_string,"impairment_provisions_balance");
         
     return dueForSettlementIterator;
 
