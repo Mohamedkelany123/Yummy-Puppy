@@ -149,7 +149,8 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     bool isMultiMachine = mod_value > 0; 
 
     psqlController.addDataSource("main",address,port,database_name,username,password);
-    cout << "Connected to " << database_name << endl;
+    cout << "Database: " << database_name << endl;
+    cout << "Closing Day: " << closure_date_string << endl;
     
     psqlController.addDefault("created_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",true,true);
