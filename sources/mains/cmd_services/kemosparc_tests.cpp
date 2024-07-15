@@ -13,10 +13,10 @@
 int main (int argc, char ** argv)
 {
 
-    int threadsCount = 10 ;
+    int threadsCount = 1 ;
     // bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","development","5k6MLFM9CLN3bD1");
-   bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_25102023","postgres","postgres");
-    // bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"django_ostaz_before_closure","postgres","postgres");
+//    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus_kelany","postgres","postgres");
+    bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_08072024","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -30,15 +30,17 @@ int main (int argc, char ** argv)
     // {{{"loan_app_loanproduct","id"},{"loan_app_loan","loan_product_id"}}, {{"loan_app_loan", "id"}, {"crm_app_purchase", "loan_id"}}, {{"loan_app_loan", "customer_id"}, {"crm_app_customer", "id"}}});
 
 
-    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+/*    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {   
-            new loan_app_loan_primitive_orm("main",false,true,-1,{"id","num_periods"}),
-            new loan_app_installment_primitive_orm("main",false,true,-1,{"id"}), 
-            new crm_app_customer_primitive_orm("main",false,true,-1,{"id"})
+            new loan_app_loan_primitive_orm("main" ,false , true, -1, {}),
+            new loan_app_installment_primitive_orm("main"),
+            new new_lms_installmentextension_primitive_orm("main"),
+            new loan_app_loanstatus_primitive_orm("main"), 
         },
         {
-            {{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, 
-            {{"loan_app_loan","customer_id"}, {"crm_app_customer", "id"}}
+            {{"loan_app_loan","status_id"},{"loan_app_loanstatus","id"}},
+            {{"new_lms_installmentextension","installment_ptr_id"},{"loan_app_installment","id"}},
+            {{"loan_app_loan","id"},{"loan_app_installment","loan_id"}},
         });
 
     // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
@@ -50,7 +52,7 @@ int main (int argc, char ** argv)
     psqlQueryJoin->filter(
         ANDOperator 
         (
-            new UnaryOperator ("crm_app_customer.id",lte,300000)
+            new UnaryOperator ("loan_app_loan.id",lte,30000)
         )
     );
 
@@ -59,33 +61,62 @@ int main (int argc, char ** argv)
     //         {"loan_app_loan","id"}
     // });
 
-    psqlQueryJoin->setAggregates ({
-            {"crm_app_customer", {"id", 1}}  
-            // ,{"loan_app_loan","id"}
-    });
-    psqlQueryJoin->setOrderBy(" crm_app_customer.id asc , loan_app_loan.id asc, loan_app_installment.id asc ");
+    // psqlQueryJoin->setAggregates ({
+    //         {"crm_app_customer", {"id", 1}}  
+    //         // ,{"loan_app_loan","id"}
+    // });
+    psqlQueryJoin->setOrderBy("loan_app_installment.day");
+*/
 
+
+    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+        {   
+            new loan_app_loan_primitive_orm("main"),
+            new tms_app_loaninstallmentfundingrequest_primitive_orm("main"),
+            new loan_app_installment_primitive_orm("main"),
+            new new_lms_installmentextension_primitive_orm("main")
+        },
+        {
+            {{{"loan_app_loan","id"},{"tms_app_loaninstallmentfundingrequest","loan_id"}},JOIN_TYPE::left},
+            {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}},JOIN_TYPE::right},
+            {{{"loan_app_installment","id"},{"tms_app_loaninstallmentfundingrequest","installment_id"}},JOIN_TYPE::aux},
+            {{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},JOIN_TYPE::inner},
+        });
+
+    psqlQueryJoin->filter(
+        ANDOperator 
+        (
+            new UnaryOperator ("loan_app_installment.loan_id",lte,100)
+        )
+    );
     
+    psqlQueryJoin->setOrderBy("loan_app_installment.id asc");
+    psqlQueryJoin->process(threadsCount, [](map <string,PSQLAbstractORM*> * orms,int partition_number,mutex * shared_lock,void * extras) {
 
-    psqlQueryJoin->process_aggregate(threadsCount, [](vector<map <string,PSQLAbstractORM *> * > * orms_list,int partition_number,mutex * shared_lock,void * extras) {
+            loan_app_loan_primitive_orm * lal = ORM(loan_app_loan, orms);
+            loan_app_installment_primitive_orm * lai = ORM(loan_app_installment, orms);
+            tms_app_loaninstallmentfundingrequest_primitive_orm * tlai = ORM(tms_app_loaninstallmentfundingrequest, orms);
 
-            crm_app_customer_primitive_orm * cac_orm  = ORML(crm_app_customer,orms_list,0);
-            loan_app_loan_primitive_orm * lal_orm  = ORML(loan_app_loan,orms_list,0);
-            shared_lock->lock();
-            cout << "P#[" << partition_number << "]\t"<< lal_orm->get_num_periods() << "\t" <<cac_orm->get_id() << "\t" << lal_orm->get_id() <<"\t"<< ORML_SIZE(orms_list) << "\t";
-            for ( int i = 0 ;i < ORML_SIZE(orms_list) ; i ++)
-            {
-                // loan_app_loan_bl_orm * abc  = ORML(za3bola,orms_list,i);
-                // printf ("abs: %p \n",abc);
-                loan_app_installment_primitive_orm * lai_orm  = ORML(loan_app_installment,orms_list,i);
-                // PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms_list,i);
-                    // if (gorm != NULL)
-                    //     cout << gorm->get("aggregate") << "\t";
-                    if ( i > 0 ) cout <<", " ;
-                    cout << lai_orm->get_id();
-            }
-            cout << endl;
-            shared_lock->unlock();
+            cout << "BOND ID->" <<  tlai->get_funding_facility_id() << " LOAN ID->" <<  lai->get_loan_id() << " Installment ID->" <<  lai->get_id() << endl;
+            // cout << "Installment: " << lai->get_fra_cycles() << endl; 
+            // lai->set_ndays(1011);
+            // cout << "Installment: " << lai->get_fra_cycles() << endl; 
+
+            // shared_lock->lock();
+            // cout << "P#[" << partition_number << "]\t"<< lal_orm->get_num_periods() << "\t" <<cac_orm->get_id() << "\t" << lal_orm->get_id() <<"\t"<< ORML_SIZE(orms_list) << "\t";
+            // for ( int i = 0 ;i < ORML_SIZE(orms_list) ; i ++)
+            // {
+            //     // loan_app_loan_bl_orm * abc  = ORML(za3bola,orms_list,i);
+            //     // printf ("abs: %p \n",abc);
+            //     loan_app_installment_primitive_orm * lai_orm  = ORML(loan_app_installment,orms_list,i);
+            //     // PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms_list,i);
+            //         // if (gorm != NULL)
+            //         //     cout << gorm->get("aggregate") << "\t";
+            //         if ( i > 0 ) cout <<", " ;
+            //         cout << lai_orm->get_id();
+            // }
+            // cout << endl;
+            // shared_lock->unlock();
         });
 
 
