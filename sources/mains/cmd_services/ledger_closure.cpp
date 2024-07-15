@@ -27,6 +27,9 @@
 #include <OnboardingCommissionFunc.h>
 #include <DueToOverdueFunc.h>
 #include <DueToOverdue.h>
+#include <SettlementByCustomer.h>
+#include <SettlementByCustomerFunc.h>
+
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -403,6 +406,38 @@ int main (int argc, char ** argv)
         delete(blnkTemplateManager);
         delete(psqlQueryJoin);
         psqlController.ORMCommit(true,true,true, "main"); 
+    }
+
+    if ( strcmp (step,"settlement_by_customer") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        cout << "Settlement By Customer" << endl;
+        cout << "-Principal Orders" << endl;
+        string* processed_order_ids;
+
+        PSQLJoinQueryIterator*  principal_orders_iterator = SettlementByCustomer::aggregator(closure_date_string);
+        BlnkTemplateManager * settlementByCustomerTemplateManager = new BlnkTemplateManager(10, -1);
+        SettlementByCustomerStruct settlementByCustomerStruct;
+        settlementByCustomerStruct.blnkTemplateManager = settlementByCustomerTemplateManager;
+        settlementByCustomerStruct.closing_day = BDate(closure_date_string);
+        
+        principal_orders_iterator->process_aggregate(threadsCount, settlementByCustomerFunc, (void *)&settlementByCustomerStruct);
+        
+        delete(principal_orders_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+
+        // //----------------------------------------------------------------------------------------//
+        // cout << "-Sticky Installments Becoming Due" << endl;
+        // PSQLJoinQueryIterator*  sticky_installments_becoming_due_iterator = UndueToDue::aggregator(closure_date_string, 2);
+        // UndueToDueStruct stickyUndueToDueStruct;
+        // stickyUndueToDueStruct.blnkTemplateManager = settlementByCustomerTemplateManager;
+        // stickyUndueToDueStruct.closing_day = BDate(closure_date_string);
+        
+        // sticky_installments_becoming_due_iterator->process_aggregate(threadsCount, StickyInstallmentBecomingDueFunc, (void *)&stickyUndueToDueStruct);
+        
+        // delete(sticky_installments_becoming_due_iterator);
+        // delete(undueToDueTemplateManager);
+        // psqlController.ORMCommit(true,true,true, "main");  
+        // UndueToDue::update_step(); 
     }
 
 
