@@ -102,8 +102,8 @@ void MarginalizeIncomeFunc(vector<map<string, PSQLAbstractORM *> *> *orms_list, 
     for (auto latefeesPerDate : lateFeeMap) {
         time_t t = latefeesPerDate.first;
         entryDate = BDate(t);
-        entry = loopTemplateManager->get_entry();
         loopTemplateManager = templateManagerMap[entryDate()];
+        entry = loopTemplateManager->get_entry();
         for (auto latefeesPerInstallment : *latefeesPerDate.second) {
             lai_orm = latefeesPerInstallment.first;
             nlie_orm = installmentToExtension[lai_orm];
