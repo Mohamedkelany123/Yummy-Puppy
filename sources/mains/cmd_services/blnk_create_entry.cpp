@@ -10,6 +10,8 @@
 #include <UndueToDueFunc.h>
 #include <DueToOverdueFunc.h>
 #include <DueToOverdue.h>
+#include <MarginalizeIncome.h>
+#include <MarginalizeIncomeFunc.h>
 #include <PSQLUpdateQuery.h>
 
 //<BuckedId,Percentage>
@@ -45,7 +47,7 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "duetooverdue"; 
+    const char * step = "marginalizeIncome"; 
     string closure_date_string = "2024-07-22"; 
     int threadsCount = 1;
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_02072024_abdallah2","development","5k6MLFM9CLN3bD1");
@@ -108,7 +110,7 @@ int main (int argc, char ** argv)
         CancelLoan::update_step();
     }
 
-    if ( strcmp (step,"accrual") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"accrual") == 0 || strcmp (step,"full_closure") == 0 || 1)
     {
         //Partial accrue interest aggregator
         PSQLJoinQueryIterator*  partialAccrualQuery = AccrualInterest::aggregator(closure_date_string, 1);
@@ -189,6 +191,20 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true, false, true, "main");
         delete(dueToOverdueTemplateManager);
         DueToOverdue::update_step();
+    }
+
+     if (strcmp(step, "marginalizeIncome")==0 || strcmp(step, "full_closure")==0 || 1) {
+        PSQLJoinQueryIterator*  marginalizeIncomeIterator = MarginalizeIncome::aggregator(closure_date_string);
+        BlnkTemplateManager* marginalizeIncomeTemplateManager = new BlnkTemplateManager(34, -1);
+        MarginalizeIncomeStruct marginalizeIncomeStruct;
+        marginalizeIncomeStruct.blnkTemplateManager = marginalizeIncomeTemplateManager;
+        marginalizeIncomeStruct.marginalization_day = BDate(closure_date_string);
+        marginalizeIncomeIterator->process_aggregate(threadsCount, MarginalizeIncomeFunc, (void *)&marginalizeIncomeStruct);
+
+        delete(marginalizeIncomeIterator);
+        psqlController.ORMCommit(true, false, true, "main");
+        delete(marginalizeIncomeTemplateManager);
+        MarginalizeIncome::update_step();
     }
 
 
