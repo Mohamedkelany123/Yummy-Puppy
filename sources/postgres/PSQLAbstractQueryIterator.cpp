@@ -9,6 +9,7 @@ PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,st
     // sql = "select * from "+_table_name;
     from_string = " * ";
     conditions = "";
+    pre_conditions = "";
     orderby_string = "";
     sql = "";
     psqlQuery= NULL;
@@ -27,8 +28,8 @@ void PSQLAbstractQueryIterator::filter (const Expression & e,bool print_sql)
     if ( print_sql)
     {
         if (orderby_string == "")
-            sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
-        else sql = "select "+ distinct +" "+from_string+" from "+ table_name + conditions +" order by "+orderby_string;
+            sql = "select "+ distinct +" "+from_string+" from "+ table_name + pre_conditions +conditions ;//+" order by loan_app_loan.id";
+        else sql = "select "+ distinct +" "+from_string+" from "+ table_name + pre_conditions + conditions +" order by "+orderby_string;
         cout << sql << endl;
     }
 }
@@ -48,11 +49,11 @@ bool PSQLAbstractQueryIterator::execute()
     }
 
     if (orderby_string == "")
-        sql = "select "+ select_stmt+" from "+ table_name + conditions ;//+" order by loan_app_loan.id";
-    else sql = "select "+ select_stmt+" from "+ table_name + conditions +" order by "+orderby_string;
+        sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions ;//+" order by loan_app_loan.id";
+    else sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions +" order by "+orderby_string;
     
     // cout << sql << endl;
-    
+    // exit(1);    
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;
@@ -90,6 +91,8 @@ PSQLJoinQueryIterator::PSQLJoinQueryIterator(string _data_source_name,vector <PS
 PSQLAbstractQueryIterator(_data_source_name,"")
 {
     aggregate_flag = false;
+    conditions= "";
+    pre_conditions = "";
     orm_objects = new vector <PSQLAbstractORM *> ();
     for ( int i =0 ; i  < tables.size() ; i ++)
     {
@@ -116,6 +119,120 @@ PSQLAbstractQueryIterator(_data_source_name,"")
     from_string = column_names;
     conditions = " where "+join_string;
 }
+
+JOIN_TYPE get_join_type (string table_name, vector <pair<pair<pair<string,string>,pair<string,string>>,JOIN_TYPE>> const & join_fields)
+{
+
+    for ( int  i = 0 ; i < join_fields.size() ; i++ )
+    {
+        if (join_fields[i].first.second.first == table_name) return join_fields[i].second;
+
+    }
+    return none;
+
+}
+
+string get_aux_condition (string table_name, vector <pair<pair<pair<string,string>,pair<string,string>>,JOIN_TYPE>> const & join_fields)
+{
+    string join_condition = "";
+    for ( int  i = 0 ; i < join_fields.size() ; i++ )
+    {
+        if (join_fields[i].first.first.first == table_name && join_fields[i].second == JOIN_TYPE::aux) 
+        {
+            join_condition += " and ";
+            join_condition += "\""+join_fields[i].first.first.first+"\"."+
+            "\""+join_fields[i].first.first.second+"\" = "+
+            "\""+join_fields[i].first.second.first+"\"."+
+            "\""+join_fields[i].first.second.second+"\"";
+        }
+    }
+    return join_condition;
+}
+/*
+
+
+select  tms_app_loaninstallmentfundingrequest.funding_facility_id as bond_id ,d.id as ins_id, d.loan_id
+from loan_app_loan lal 
+left join tms_app_loaninstallmentfundingrequest on tms_app_loaninstallmentfundingrequest.loan_id =lal.id 
+
+right join 
+(select lai.loan_id, lai.id from 
+loan_app_installment lai 
+inner join new_lms_installmentextension nli on nli.installment_ptr_id =lai.id ) as d on d.loan_id=lal.id and tms_app_loaninstallmentfundingrequest.installment_id=d.id order by d.id
+
+select  tms_app_loaninstallmentfundingrequest.funding_facility_id as bond_id ,loan_app_installment.id as ins_id, loan_app_installment.loan_id
+from loan_app_loan lal 
+left join tms_app_loaninstallmentfundingrequest on tms_app_loaninstallmentfundingrequest.loan_id =lal.id 
+right join loan_app_installment on loan_app_installment.loan_id = lal.id and tms_app_loaninstallmentfundingrequest.installment_id=loan_app_installment.id
+inner join new_lms_installmentextension on new_lms_installmentextension.installment_ptr_id=loan_app_installment.id
+where  (loan_app_installment.loan_id <= '100')
+order by loan_app_installment.id asc
+
+
+select  tms_app_loaninstallmentfundingrequest.funding_facility_id as bond_id ,loan_app_installment.id as ins_id, loan_app_installment.loan_id
+from loan_app_loan lal 
+left join tms_app_loaninstallmentfundingrequest on tms_app_loaninstallmentfundingrequest.loan_id =lal.id 
+right join loan_app_installment on loan_app_installment.loan_id = lal.id 
+inner join new_lms_installmentextension on new_lms_installmentextension.installment_ptr_id=loan_app_installment.id
+where  tms_app_loaninstallmentfundingrequest.installment_id = loan_app_installment.id
+order by loan_app_installment.id asc
+
+
+*/
+PSQLJoinQueryIterator::PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<pair<string,string>,pair<string,string>>,JOIN_TYPE>> const & join_fields) :
+PSQLAbstractQueryIterator(_data_source_name,"")
+{
+    aggregate_flag = false;
+    string other_join_string="";
+    join_string = "";
+    conditions= "";
+    pre_conditions = "";
+    orm_objects = new vector <PSQLAbstractORM *> ();
+    for ( int i =0 ; i  < tables.size() ; i ++)
+    {
+        if ( column_names != "") column_names += ",";
+        column_names += tables[i]->getFromString();
+        if (get_join_type(tables[i]->getTableName(),join_fields) == none)
+        {
+            if ( table_name != "") table_name += ",";
+            table_name += tables[i]->getTableName();
+        }
+        orm_objects->push_back(tables[i]);
+        orm_objects_map[tables[i]->getORMName()]=tables[i];
+    }
+    for ( int i = 0 ; i < join_fields.size() ; i ++)
+    {
+        if ( join_fields[i].second == JOIN_TYPE::full)
+        {
+            if ( join_string != "") join_string += " and ";
+            join_string += "\""+join_fields[i].first.first.first+"\"."+
+            "\""+join_fields[i].first.first.second+"\" = "+
+            "\""+join_fields[i].first.second.first+"\"."+
+            "\""+join_fields[i].first.second.second+"\"";
+        }
+        else  if ( join_fields[i].second == JOIN_TYPE::left || join_fields[i].second == JOIN_TYPE::right || join_fields[i].second == JOIN_TYPE::inner)
+        {
+            if ( join_fields[i].second == JOIN_TYPE::left) other_join_string += "left join ";
+            else if ( join_fields[i].second == JOIN_TYPE::right) other_join_string += "right join ";
+            else if ( join_fields[i].second == JOIN_TYPE::inner) other_join_string += "inner join ";
+            other_join_string += "\""+join_fields[i].first.second.first+"\" on " +
+            "\""+join_fields[i].first.second.first+"\"."+
+            "\""+join_fields[i].first.second.second+"\" = " +
+            "\""+join_fields[i].first.first.first+"\"."+
+            "\""+join_fields[i].first.first.second+"\""+
+            get_aux_condition(join_fields[i].first.second.first,join_fields);
+
+            other_join_string += "\n";
+        }
+    }
+
+    from_string = column_names;
+    if (other_join_string != "" ) pre_conditions += "\n" + other_join_string;
+    if (join_string != "") conditions += " where "+join_string;
+
+}
+
+
 map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next (bool read_only)
 {
     if (psqlQuery->fetchNextRow())
@@ -496,9 +613,11 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryPartitionIterator::next ()
         map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
         for (auto orm_object: *orm_objects) 
         {
-            PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
-            (*results)[orm->getTableName()] = orm;
-
+            if ( psqlQuery->getColumnIndex(orm_object->compose_field_with_index(orm_object->getIdentifierName())) >= 0)
+            {
+                PSQLAbstractORM * orm= psqlController.addToORMCache(orm_object,psqlQuery,partition_number,orm_object->get_data_source_name());
+                (*results)[orm->getTableName()] = orm;
+            }
             // PSQLAbstractORM * orm = orm_object->clone();
             // orm->set_enforced_partition_number(partition_number);
             // orm->assignResults(psqlQuery);

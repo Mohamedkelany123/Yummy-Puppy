@@ -149,7 +149,8 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     bool isMultiMachine = mod_value > 0; 
 
     psqlController.addDataSource("main",address,port,database_name,username,password);
-    cout << "Connected to " << database_name << endl;
+    cout << "Database: " << database_name << endl;
+    cout << "Closing Day: " << closure_date_string << endl;
     
     psqlController.addDefault("created_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",true,true);
@@ -173,7 +174,11 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         auto begin = std::chrono::high_resolution_clock::now();
 
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
+        {
+            new new_lms_installmentextension_primitive_orm("main",false,true,-1,{"installment_ptr_id", "payment_status"}),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id", "day"}),
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id", "lms_closure_status"})
+        },
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
 
 
@@ -250,9 +255,11 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         auto begin = std::chrono::high_resolution_clock::now();
 
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),
-        new loan_app_installment_primitive_orm("main"),
-        new loan_app_loan_primitive_orm("main")},
+        {
+            new new_lms_installmentextension_primitive_orm("main",false,true,-1,{"installment_ptr_id", "payment_status", "is_principal_paid", "due_to_overdue_date", "late_fees_amount"}),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id","day"}),
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id", "status_id", "lms_closure_status"})
+        },
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
         {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
 
@@ -303,7 +310,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
                         overdue_date.inc_day();
                         new_lms_installmentpaymentstatushistory_primitive_orm * psh_orm = new new_lms_installmentpaymentstatushistory_primitive_orm("main",true);
                         psh_orm->set_day(overdue_date.getDateString());
-                        psh_orm->set_installment_extension_id(ORM(new_lms_installmentextension,orms)->get_installment_ptr_id());
+                        psh_orm->set_installment_extension_id(ieorm->get_installment_ptr_id());
                         psh_orm->set_status(0); // 0
                     }
                     ieorm->set_payment_status(0); //0
@@ -400,7 +407,11 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         BDate closure_yesterday = closure_date;
         closure_yesterday.dec_day();
         PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
+        {
+            new new_lms_installmentextension_primitive_orm("main",false,true,-1,{"installment_ptr_id", "payment_status", "status_id", "fra_status_id", "principal_order_id", "is_principal_paid"}),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id", "day"}),
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id", "status_id","fra_status_id" , "lms_closure_status"})
+        },
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
         
 
@@ -560,7 +571,12 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         auto begin = std::chrono::high_resolution_clock::now();
 
         PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
+        {
+            new new_lms_installmentextension_primitive_orm("main",false,true,-1,{"installment_ptr_id"}),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id"}),
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id"}),
+            new new_lms_installmentlatefees_primitive_orm("main",false,true,-1,{"id", "day", "is_marginalized", "marginalization_date"})
+        },
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
             {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
             {{"new_lms_installmentextension","installment_ptr_id"},{"new_lms_installmentlatefees","installment_extension_id"}}
@@ -593,10 +609,10 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         cout << "THREADTIME --> marginalization step 1" << endl;
 
         psqlQueryJoin->process (threadsCount,[closure_date_string](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) { 
-                new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
+                // new_lms_installmentextension_primitive_orm * ie_orm  = ORM(new_lms_installmentextension,orms);
                 new_lms_installmentlatefees_primitive_orm * lf_orm = ORM(new_lms_installmentlatefees,orms);
-                loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
-                loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
+                // loan_app_loan_primitive_orm * lal_orm  = ORM(loan_app_loan,orms);
+                // loan_app_installment_primitive_orm * lai_orm  = ORM(loan_app_installment,orms);
 
                     BDate marg_date; 
                     marg_date.set_date(lf_orm->get_day());
@@ -637,7 +653,12 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
 
         psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main"),new crm_app_customer_primitive_orm("main")},
+        {
+            new new_lms_installmentextension_primitive_orm("main",false,true,-1,{"installment_ptr_id", "partial_accrual_date", "accrual_date", "marginalization_date", "is_partially_marginalized", "partial_marginalization_date"}),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id", "period", "day"}),
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id","status_id","marginalization_bucket_id"}),
+            new crm_app_customer_primitive_orm("main",false,true,-1,{"id"})
+        },
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
         {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
         {{"crm_app_customer","id"},{"loan_app_loan","customer_id"}}
@@ -707,7 +728,11 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
 
         psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
+        {
+            new new_lms_installmentextension_primitive_orm("main",false,true,-1,{"installment_ptr_id", "partial_accrual_date", "accrual_date", "marginalization_date", "is_partially_marginalized","partial_marginalization_date" }),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id", "period", "day"}),
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id","status_id","marginalization_bucket_id"}),
+        },
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
 
         psqlQueryJoin->filter(
@@ -771,7 +796,12 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
 
         psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
+        {
+            new new_lms_installmentextension_primitive_orm("main",false,true,-1,{"installment_ptr_id","marginalization_date"}),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id", "interest_expected", "period"}),
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id", "marginalization_bucket_id", "status_id", "lms_closure_status"}),
+            new new_lms_installmentlatefees_primitive_orm("main",false,true,-1,{"id", "sequence", "day", "is_marginalized", "marginalization_date"})
+        },
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
             {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
             {{"new_lms_installmentextension","installment_ptr_id"},{"new_lms_installmentlatefees","installment_extension_id"}}
@@ -940,7 +970,11 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
 
         PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
+        {
+            new new_lms_installmentextension_primitive_orm("main",false,true,-1,{"installment_ptr_id", "is_long_term"}),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id"}),
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id", "lms_closure_status"})
+        },
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
         {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}
         });
@@ -1019,7 +1053,11 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
 
         PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new loan_app_loan_primitive_orm("main")},
+        {
+            new new_lms_installmentextension_primitive_orm("main",false,true,-1,{"installment_ptr_id", "accrual_date", "partial_accrual_date"}),
+            new loan_app_installment_primitive_orm("main",false,true,-1,{"id"}),
+            new loan_app_loan_primitive_orm("main",false,true,-1,{"id", "last_accrued_interest_day", "first_accrual_adjustment_date", "loan_booking_day", "lms_closure_status"})
+        },
         {{{"loan_app_installment","loan_id"},{"loan_app_loan","id"}},
         {{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},
         });
@@ -1122,8 +1160,12 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
 
         PSQLJoinQueryIterator *  psqlQueryJoin = new PSQLJoinQueryIterator ("main",
             {
-                new crm_app_customer_primitive_orm("main"), new new_lms_customerwallet_primitive_orm("main"),
-                new loan_app_loan_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),},
+                new crm_app_customer_primitive_orm("main"), 
+                new new_lms_customerwallet_primitive_orm("main"),
+                new loan_app_loan_primitive_orm("main"), 
+                new new_lms_installmentextension_primitive_orm("main"),
+                new loan_app_installment_primitive_orm("main"),
+            },
             {   
                 {{"crm_app_customer","id"},{"loan_app_loan","customer_id"}},
                 {{"crm_app_customer","id"},{"new_lms_customerwallet","customer_id"}},
@@ -1149,8 +1191,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         cout << "THREADTIME --> Wallet" << endl;
 
 
-        // TODO:     change to new implementation when implemented
-        // psqlQueryJoin->setDistinctString("distinct phone_number as \"162_phone_number\", \"crm_app_customer\".\"id\" as \"162_id\"");
+
         vector<pair<string, string>> distinct_map = {
         {"crm_app_customer", "id"},
         {"crm_app_customer", "phone_number"}
@@ -1160,15 +1201,15 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         auto beforeProcess = std::chrono::high_resolution_clock::now();
                 
         string failed_customers_ids = "";
-        // psqlQueryJoin->process (threadsCount,[&failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
-        //     crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
-        //     cout << partition_number << ": " << cac_orm->get_phone_number() << endl; 
-        //     bool success = closure_go(cac_orm->get_phone_number());
-        //     if (!success){
-        //         cout << cac_orm->get_phone_number() << ": failed" << endl; 
-        //         failed_customers_ids += (to_string(cac_orm->get_id()) + ",");
-        //     }
-        // });
+        psqlQueryJoin->process (threadsCount,[&failed_customers_ids](map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras) {
+            crm_app_customer_primitive_orm * cac_orm  = ORM(crm_app_customer,orms);
+            cout << partition_number << ": " << cac_orm->get_phone_number() << endl; 
+            bool success = closure_go(cac_orm->get_phone_number());
+            if (!success){
+                cout << cac_orm->get_phone_number() << ": failed" << endl; 
+                failed_customers_ids += (to_string(cac_orm->get_id()) + ",");
+            }
+        });
 
         auto afterProcess = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(afterProcess - beforeProcess);

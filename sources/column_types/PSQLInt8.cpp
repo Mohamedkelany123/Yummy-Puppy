@@ -20,7 +20,7 @@ string PSQLInt8::genDeclaration ()
 }
 string PSQLInt8::genSetter (string class_name,int col_index)
 {
-    return "\t\tvoid "+class_name+"::set_"+column_name+"( long _value, bool set_null) { update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value; if(set_null) null_flag.set("+std::to_string(col_index)+"); } \n";
+    return "\t\tvoid "+class_name+"::set_"+column_name+"( long _value, bool set_null) { if (seeder_readonly) return; update_flag.set("+std::to_string(col_index)+"); "+field_name+"=_value; if(set_null) null_flag.set("+std::to_string(col_index)+"); } \n";
 }
 string PSQLInt8::genGetter (string class_name)
 {

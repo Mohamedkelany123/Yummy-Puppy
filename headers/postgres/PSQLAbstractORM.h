@@ -15,6 +15,7 @@ class PSQLAbstractORM
         vector <string> field_clear_mask;
         string identifier_name;
         bool loaded ;
+
         mutex lock;
         string locking_thread;
         map <string,pair<string,bool>> insert_default_values;
@@ -22,12 +23,14 @@ class PSQLAbstractORM
         string data_source_name;
         bool orm_transactional;
         map <string, PSQLAbstractORM *> add_references;
+        bool is_add_referenced;
         map <string, PSQLAbstractORM *> update_references;
         map <string, int > reference_values;
         bool inserted;
         map <string,string> extras;
         bool cached;
         int enforced_partition_number;
+        bool seeder_readonly;
 
     public:
         virtual void static_lock(bool skip_owner = false) = 0; 
@@ -46,7 +49,7 @@ class PSQLAbstractORM
         virtual bool isLoaded();
         string get_data_source_name ();
         virtual void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
-        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional,int _enforced_partition_number=-1, vector<string> _field_clear_mask={});
+        PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier, bool orm_transactional,int _enforced_partition_number=-1, vector<string> _field_clear_mask={},bool _seeder_readonly=false);
         PSQLAbstractORM (const PSQLAbstractORM & _psqlAbstractORM);
         virtual PSQLAbstractORM * clone ()=0;
 		virtual string serialize (PSQLConnection * _psqlConnection=NULL)=0;
@@ -55,6 +58,7 @@ class PSQLAbstractORM
         virtual void lock_me(bool skip_owner = false);
         virtual void unlock_me(bool restrict_to_owner = false);        
         bool isOrmTransactional();
+        bool isSeederReadonly();
         void setAddRefernce (string field_name,PSQLAbstractORM * reference);
         void setUpdateRefernce (string field_name,PSQLAbstractORM * reference);
         void commitAddReferences (PSQLConnection * _psqlConnection=NULL);
@@ -64,6 +68,9 @@ class PSQLAbstractORM
         string compose_field_with_index (string field_name);
         void setExtra (string fname, string fvalue);
         string getExtra (string fname);
+        int getExtraToInt(string fname);
+        void set_is_add_referenced(bool referenced);
+        bool  get_is_add_referenced();
         virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
         virtual void operator = (const PSQLAbstractORM * _psqlAbstractORM);
         int get_enforced_partition_number();

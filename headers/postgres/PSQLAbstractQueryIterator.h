@@ -7,6 +7,8 @@
 enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin,isnull,isnotnull };
 enum math_operator { mod, plus };
 
+enum JOIN_TYPE { none, aux,full,inner,left, right };
+
 class Expression{
 
     private:
@@ -194,6 +196,7 @@ class PSQLAbstractQueryIterator {
         string data_source_name;
         string table_name;
         string conditions;
+        string pre_conditions;
         string sql;
         string from_string;
         string orderby_string;
@@ -228,6 +231,8 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         static void process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f);
     public:
         PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields);
+        PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<pair<string,string>,pair<string,string>>,JOIN_TYPE>> const & join_fields);
+
         map <string,PSQLAbstractORM *> * next (bool read_only=false);
         void process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL);
         void process_sequential(std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL);

@@ -25,6 +25,8 @@ void PSQLAbstractORM::operator = (const PSQLAbstractORM & _psqlAbstractORM)
         inserted = false;
         enforced_partition_number=_psqlAbstractORM.enforced_partition_number;
         field_clear_mask = _psqlAbstractORM.field_clear_mask;
+        is_add_referenced = _psqlAbstractORM.is_add_referenced;
+        seeder_readonly = _psqlAbstractORM.seeder_readonly;
 }
 void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
 {
@@ -44,10 +46,12 @@ void PSQLAbstractORM::operator = (const PSQLAbstractORM * _psqlAbstractORM)
         inserted = false;
         enforced_partition_number=_psqlAbstractORM->enforced_partition_number;
         field_clear_mask = _psqlAbstractORM->field_clear_mask;
+        is_add_referenced = _psqlAbstractORM->is_add_referenced;
+        seeder_readonly = _psqlAbstractORM->seeder_readonly;
 }
 
 
-PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional,int _enforced_partition_number, vector<string> _field_clear_mask)
+PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,string _identifier_name, bool _orm_transactional,int _enforced_partition_number, vector<string> _field_clear_mask,bool _seeder_readonly)
 {   
     orm_transactional = _orm_transactional;
     table_name = _table_name;
@@ -56,6 +60,7 @@ PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,s
     loaded = false;
     locking_thread = "";
     inserted = false; 
+    seeder_readonly=_seeder_readonly;
     // psqlConnection = new PSQLConnection ("localhost",5432,"django_ostaz_15082023_old","postgres","postgres");
     // psqlQuery = NULL;
     // map<string, vector<string>> results  = psqlQuery->getResultAsString();
@@ -75,6 +80,10 @@ PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,s
 bool PSQLAbstractORM::isOrmTransactional(){
     return orm_transactional;
 }
+bool PSQLAbstractORM::isSeederReadonly()
+{
+    return seeder_readonly;
+}
 
 string PSQLAbstractORM::getIdentifierName ()
 {
@@ -83,7 +92,9 @@ string PSQLAbstractORM::getIdentifierName ()
 
 long PSQLAbstractORM::getIdentifier (AbstractDBQuery * _psqlQuery)
 {
-    return stoi(_psqlQuery->getValue(compose_field_with_index ( identifier_name)));
+    string s = _psqlQuery->getValue(compose_field_with_index ( identifier_name));
+    if ( s == "") return -100000;
+    return stoi(s);
 }
 
 string PSQLAbstractORM::getTableName()
@@ -149,10 +160,13 @@ void PSQLAbstractORM::unlock_me(bool restrict_to_owner)
 void PSQLAbstractORM::setAddRefernce (string field_name,PSQLAbstractORM * reference)
 {
     add_references[field_name] = reference;
+    reference->is_add_referenced= true;
 }
 void PSQLAbstractORM::setUpdateRefernce (string field_name,PSQLAbstractORM * reference)
 {
     update_references[field_name] = reference;
+    reference->is_add_referenced= true;
+
 }
 
 
@@ -224,6 +238,21 @@ string PSQLAbstractORM::getExtra (string fname)
     if (extras.find(fname) != extras.end())
         return  extras [fname];
     else return "";
+}
+
+int PSQLAbstractORM::getExtraToInt(string fname){
+    string value = getExtra(fname);
+    return value.empty() ? 0 : stoi(value);
+}
+
+void PSQLAbstractORM::set_is_add_referenced (bool _is_referenced)
+{
+     is_add_referenced =_is_referenced;
+
+}
+bool PSQLAbstractORM::get_is_add_referenced ()
+{
+   return is_add_referenced;
 }
 
 int PSQLAbstractORM::get_enforced_partition_number()

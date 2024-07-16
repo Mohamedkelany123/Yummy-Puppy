@@ -44,7 +44,7 @@
 
 void  %s::process_internal(%s * psqlAbstractQueryIterator,string data_source_name, PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extra_params,std::function<void(%s * orm,int partition_number,mutex * shared_lock,void * extra_params)> f)
 {
-        PSQLQueryPartitionIterator <%s> psqlQueryPartitionIterator (psqlQueryPartition, data_source_name, extra_params);
+        PSQLQueryPartitionIterator <%s> psqlQueryPartitionIterator (psqlQueryPartition, data_source_name, extra_params, partition_number);
         %s * orm = NULL;
         do {
             orm =psqlQueryPartitionIterator.next();

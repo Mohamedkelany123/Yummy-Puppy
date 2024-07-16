@@ -1,7 +1,7 @@
 #include <CancelLateFeesFunc.h>
 
 void CancelLateFeesFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras) {
-        CancelLateFees cancelLateFees = CancelLateFees(orms_list);
+        CancelLateFees cancelLateFees(orms_list);
         LedgerClosureService* ledgerClosureService = new LedgerClosureService(&cancelLateFees);
         cancelLateFees.setupLedgerClosureService(ledgerClosureService);
         map <string,pair< vector<new_lms_installmentlatefees_primitive_orm *> *, double> *> * latefeesmap = cancelLateFees.get_latefees_partition();
