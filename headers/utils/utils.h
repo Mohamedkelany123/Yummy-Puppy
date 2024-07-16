@@ -33,6 +33,7 @@ class BDate
         void set_date (string date_string="");
         BDate(string date_string="");
         BDate (struct tm & _tm);
+        BDate(time_t t);
         time_t operator () ();
         void inc_month ();
         void dec_month ();
