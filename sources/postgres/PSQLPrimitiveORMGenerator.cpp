@@ -418,8 +418,9 @@ void PSQLPrimitiveORMGenerator::generateCloner(string class_name)
 {
     extra_methods_def += "\t\tPSQLAbstractORM * clone ();\n";
     extra_methods += "\t\tPSQLAbstractORM * "+class_name+"::clone (){\n";
-    extra_methods += "\t\t\treturn new "+class_name+"(data_source_name);\n";
+    extra_methods += "\t\t\treturn new "+class_name+"(data_source_name,false,true,-1, {},seeder_readonly);\n";
     extra_methods += "\t\t}\n";
+
 
 }
 
@@ -438,10 +439,12 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
 {
     includes = "#include <PSQLController.h>\n";
     includes += "#include <PSQLBool.h>\n";
-    constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name,bool add_to_cache, bool orm_transactional,int _enforced_partition_number, vector <string> _field_clear_mask):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\", orm_transactional,_enforced_partition_number,_field_clear_mask){\n";
+    constructor_destructor = "\t\t"+class_name+"::"+class_name+"(string _data_source_name,bool add_to_cache, bool orm_transactional,int _enforced_partition_number, vector <string> _field_clear_mask,bool _seeder_readonly):PSQLAbstractORM(_data_source_name,\""+table_name+"\",\""+primary_key+"\", orm_transactional,_enforced_partition_number,_field_clear_mask,_seeder_readonly){\n";
     constructor_destructor += "\t\t\torm_"+primary_key+"=-1;\n";
     constructor_destructor += "\t\t\ttable_index="+table_index+";\n";
     constructor_destructor += "\t\t\tcached=add_to_cache;\n";
+    constructor_destructor += "\t\t\tenforced_partition_number=_enforced_partition_number;\n";
+
     constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
 
     for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
@@ -569,7 +572,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     constructor_destructor += "\t\t "+class_name+"::~"+class_name+"(){\n";
     constructor_destructor += temp+"}\n";
 
-    constructor_destructor_def = "\t\t"+class_name+"(string data_source_name,bool add_to_cache=false, bool orm_transactional=true,int _enforced_partition_number=-1, vector <string> _field_clear_mask = {});\n";
+    constructor_destructor_def = "\t\t"+class_name+"(string data_source_name,bool add_to_cache=false, bool orm_transactional=true,int _enforced_partition_number=-1, vector <string> _field_clear_mask = {},bool _seeder_readonly=false);\n";
     constructor_destructor_def += "\t\t"+class_name+"(const "+class_name+" & _"+class_name+");\n";
     // constructor_destructor_def += "\t\tvirtual void operator =(const "+class_name+" & _"+class_name+");\n";
     // constructor_destructor_def += "\t\tvirtual void operator =(const "+class_name+" * _"+class_name+");\n";
