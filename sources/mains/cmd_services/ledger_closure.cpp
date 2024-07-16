@@ -123,7 +123,7 @@ int main (int argc, char ** argv)
     const char * step = "due_for_settlement_with_merchant"; 
     string closure_date_string = "2024-07-15"; 
     int threadsCount = 1;
-    string databaseName = "c_plus_plus";
+    string databaseName = "sherif_go";
     bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
@@ -444,6 +444,11 @@ int main (int argc, char ** argv)
         dueForSettlementIterator->process(threadsCount, dueForSettlementWithMerchantFunc,(void *)&dueForSettlementStruct);
 
 
+        delete(blnkTemplateManager);
+        delete(dueForSettlementIterator);
+        psqlController.ORMCommit(true,true,true, "main"); 
+    
+        DueForSettlement::update_step();
 
     }
     return 0;
