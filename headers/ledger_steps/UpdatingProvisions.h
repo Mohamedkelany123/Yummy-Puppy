@@ -19,14 +19,18 @@ class UpdatingProvisions : public LedgerClosureStep {
         int history_provision_percentage;
         int loan_provision_percentage;
         float missing_provisions;
+        bool on_balance;
+        int funding_facility_id;
 
     public:
     map<string, funcPtr> funcMap;
     UpdatingProvisions(map<string,PSQLAbstractORM*>* _orms,string start_date, string end_date);
+    UpdatingProvisions(loan_app_loan_primitive_orm * lal_orm,string start_date, string end_date);
     void setMissingProvisions();
     void setupLedgerClosureService(LedgerClosureService * ledgerClosureService);
     LedgerAmount * _init_ledger_amount();
     static PSQLJoinQueryIterator* aggregator(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date);
+    static loan_app_loan_primitive_orm_iterator* aggregator2(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date);
     static void update_step(); 
 
     //Getters

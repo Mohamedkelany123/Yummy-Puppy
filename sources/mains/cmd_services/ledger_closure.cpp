@@ -159,6 +159,7 @@ int main (int argc, char ** argv)
         disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
         disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
 
+
         psqlQueryJoin->process_aggregate(threadsCount, DisburseLoanFunc,(void *)&disburseLoanStruct);
 
         delete(blnkTemplateManager);
@@ -418,6 +419,7 @@ int main (int argc, char ** argv)
         cout << "Updating Provisions" << endl;
         std::vector<std::string> dates = get_start_and_end_fiscal_year();
         PSQLJoinQueryIterator*  updating_provisions_iterator = UpdatingProvisions::aggregator(closure_date_string,dates[0],dates[1],closure_date_string);
+        // loan_app_loan_primitive_orm_iterator* updating_provisions_all_loans_iterator = UpdatingProvisions::aggregator2(closure_date_string,dates[0],dates[1],closure_date_string);
         BlnkTemplateManager * updatingProvisionsTemplateManager = new BlnkTemplateManager(22, -1);
 
         UpdatingProvisionsStruct updatingProvisionsStruct;
@@ -426,7 +428,8 @@ int main (int argc, char ** argv)
         updatingProvisionsStruct.startDate = dates[0];
         updatingProvisionsStruct.endDate = dates[1];
 
-        updating_provisions_iterator->process(threadsCount, UpdatingProvisionsFunc, (void *)&updatingProvisionsStruct);
+        // updating_provisions_all_loans_iterator->process(threadsCount, UpdatingProvisionsFunc2, (void *)&updatingProvisionsStruct);
+        updating_provisions_iterator->process_aggregate(threadsCount, UpdatingProvisionsFunc, (void *)&updatingProvisionsStruct);
         
         psqlController.ORMCommit(true,true,true, "main");  
         OnboardingCommission::update_step(); 

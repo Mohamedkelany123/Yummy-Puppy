@@ -39,7 +39,11 @@ bool PSQLAbstractQueryIterator::execute()
 
     // cout << "EXTRAS SIZEEE ---->>>" <<  extras.size() << endl;
     for (auto e : extras)
+    {     
         from_string += "," +e.second+" \""+e.first+"\"";
+        // distinct += "," +e.second+" \""+e.first+"\"";
+    }
+    cout << "From string ::::::::::::: " << from_string;
 
     string select_stmt = "";
     if (distinct != "") {
@@ -52,8 +56,8 @@ bool PSQLAbstractQueryIterator::execute()
         sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions +" order by "+orderby_string;
     
-    // cout << sql << endl;
-    // exit(1);    
+    cout << "--------------SQL QUERY----------------" << sql << endl;
+    
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;

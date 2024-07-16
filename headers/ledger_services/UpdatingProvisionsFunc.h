@@ -15,6 +15,8 @@ typedef struct {
 } UpdatingProvisionsStruct;
 
 
-void UpdatingProvisionsFunc(map<string,PSQLAbstractORM*>*orms,int partition_number, mutex *shared_lock, void * extras);
+void UpdatingProvisionsFunc(vector<map<string,PSQLAbstractORM*>*>*orms,int partition_number, mutex *shared_lock, void * extras);
+void UpdatingProvisionsFunc2(loan_app_loan_primitive_orm * loan,int partition_number, mutex *shared_lock, void * extras);
+
 
 #endif
