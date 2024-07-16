@@ -23,7 +23,7 @@ IScoreNidInquiry::IScoreNidInquiry(map<string,PSQLAbstractORM *> * _orms, float 
     cout << "CUSTOMER ID IS :";
     cout << gorm->get("customer_id") << endl;
     if (gorm->get("customer_id") == ""){
-        customerID = NULL;
+        customerID = -1;
     }
     ss2 >> customerID;
     cout << "Stored customer id is";
@@ -58,7 +58,7 @@ LedgerAmount* IScoreNidInquiry::_init_ledger_amount(){
     LedgerAmount * lg = new LedgerAmount();
     lg->setMerchantId(merchantID);
     lg->setCashierId(onb_orm->get_merchant_staff_id());
-    if(customerID != NULL){
+    if(customerID != -1){
         lg->setCustomerId(customerID);
     }
 

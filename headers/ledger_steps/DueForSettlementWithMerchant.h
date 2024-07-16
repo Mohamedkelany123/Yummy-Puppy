@@ -13,10 +13,22 @@ class DueForSettlement : public LedgerClosureStep
 {
     private:
         loan_app_loan_primitive_orm * lal_orm;
-        
+
+        int merchant_commission_expense;
+        int merchant_merchandise_value;
+        int cashier_commission_expense;
+        int merchant_deferred_commission_expense;
+        int merchant_repayment_fee_expense;
+        int merchant_notes_payable;
+        int collection_of_cash_in_transit;
+        int collection_of_commission_income;
+        int collection_of_upfront_fees;
+        int collection_of_transaction_investigation_fee;
+
     public:
         map<string, funcPtr> funcMap;
-        DueForSettlement(map<string, PSQLAbstractORM*>* _orms);
+        DueForSettlement(loan_app_loan_primitive_orm *_lal_orm);
+        ~DueForSettlement();
         
         //Setters
         void set_loan_app_loan(loan_app_loan_primitive_orm* _lal_orm);
@@ -25,7 +37,16 @@ class DueForSettlement : public LedgerClosureStep
 
         //Getters
         loan_app_loan_primitive_orm* get_loan_app_loan();
-
+        int getMerchantCommissionExpense();
+        int getMerchantMerchandiseValue();
+        int getCashierCommissionExpense();
+        int getMerchantDeferredCommissionExpense();
+        int getMerchantRepaymentFeeExpense();
+        int getMerchantNotesPayable();
+        int getCollectionOfCashInTransit();
+        int getCollectionOfCommissionIncome();
+        int getCollectionOfUpfrontFees();
+        int getCollectionOfTransactionInvestigationFee();
 
         LedgerAmount * _init_ledger_amount();
 
@@ -48,7 +69,6 @@ class DueForSettlement : public LedgerClosureStep
         static void update_step(); 
 
 
-    ~DueForSettlement();
 };
 
 #endif

@@ -8,7 +8,6 @@
 #include <DueForSettlementWithMerchant.h>
 
 
-
 typedef struct {
     BlnkTemplateManager*  blnkTemplateManager;
 } DueForSettlementStruct;

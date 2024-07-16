@@ -121,15 +121,16 @@ int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "due_for_settlement_with_merchant"; 
-    string closure_date_string = "2024-07-10"; 
+    string closure_date_string = "2024-07-15"; 
     int threadsCount = 1;
-    string databaseName = "django_ostaz_02072024_aliaclosure";
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
+    string databaseName = "c_plus_plus";
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
         cout << "Threads Count->[" << threadsCount << "]" << endl;
         cout << "Step[" << step << "]" << endl;
+        cout << "Closing Day[" << closure_date_string << "]" << endl;
         cout << "--------------------------------------------------------" << endl;
     }
     psqlController.addDefault("created_at","now()",true,true);
@@ -434,13 +435,10 @@ int main (int argc, char ** argv)
     if ( strcmp (step,"due_for_settlement_with_merchant") == 0 || strcmp (step,"full_closure") == 0)
     {   
         vector<string> fascal_year_vars = get_start_and_end_fiscal_year();
-        first
+        loan_app_loan_primitive_orm_iterator*  dueForSettlementIterator = DueForSettlement::aggregator(closure_date_string, fascal_year_vars[0]);
 
-        loan_app_loan_primitive_orm_iterator*  dueForSettlementIterator = DueForSettlement::aggregator(closure_date_string, );
-
-
+        BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(27, -1);
         DueForSettlementStruct dueForSettlementStruct;
-        BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(1, -1);
         dueForSettlementStruct.blnkTemplateManager = blnkTemplateManager;
 
         dueForSettlementIterator->process(threadsCount, dueForSettlementWithMerchantFunc,(void *)&dueForSettlementStruct);

@@ -1,79 +1,205 @@
 #include "DueForSettlementWithMerchant.h"
 
-DueForSettlement::DueForSettlement(map<string, PSQLAbstractORM *> *_orms)
+
+
+DueForSettlement::DueForSettlement(loan_app_loan_primitive_orm *_lal_orm)
 {
+    lal_orm = _lal_orm;
+
+    merchant_commission_expense = _lal_orm->getExtraToInt("merchant_commission_expense");
+    merchant_merchandise_value = _lal_orm->getExtraToInt("merchant_merchandise_value");
+    cashier_commission_expense = _lal_orm->getExtraToInt("cashier_commission_expense");
+    merchant_deferred_commission_expense = _lal_orm->getExtraToInt("merchant_deferred_commission_expense");
+    merchant_repayment_fee_expense = _lal_orm->getExtraToInt("merchant_repayment_fee_expense");
+    merchant_notes_payable = _lal_orm->getExtraToInt("merchant_notes_payable");
+    collection_of_cash_in_transit = _lal_orm->getExtraToInt("collection_of_cash_in_transit");
+    collection_of_commission_income = _lal_orm->getExtraToInt("collection_of_commission_income");
+    collection_of_upfront_fees = _lal_orm->getExtraToInt("collection_of_upfront_fees");
+    collection_of_transaction_investigation_fee = _lal_orm->getExtraToInt("collection_of_transaction_investigation_fee");
+
+    cout << "--------------------------------------------------" << endl;
+    cout << "1-" << merchant_commission_expense << endl;
+    cout << "2-" << merchant_merchandise_value << endl;
+    cout << "3-" << cashier_commission_expense << endl;
+    cout << "4-" << merchant_deferred_commission_expense << endl;
+    cout << "5-" << merchant_repayment_fee_expense << endl;
+    cout << "6-" << merchant_notes_payable << endl;
+    cout << "7-" << collection_of_cash_in_transit << endl;
+    cout << "8-" << collection_of_commission_income << endl;
+    cout << "9-" << collection_of_upfront_fees << endl;
+    cout << "10-" << collection_of_transaction_investigation_fee << endl;
+    cout << "------------------------------------------------" << endl;
+
 
 }
 
 DueForSettlement::~DueForSettlement(){}
 
 
+
+
 void DueForSettlement::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
 {
+    lal_orm = _lal_orm;
 }
 
 loan_app_loan_primitive_orm *DueForSettlement::get_loan_app_loan()
-{
-    return nullptr;
+{   
+    return lal_orm;
 }
 
 LedgerAmount *DueForSettlement::_init_ledger_amount()
 {
-    return nullptr;
+    LedgerAmount * lg = new LedgerAmount();
+    lg->setCustomerId(lal_orm->get_customer_id());
+    lg->setMerchantId(lal_orm->get_merchant_id());
+    return lg;
 }
 
 LedgerAmount *DueForSettlement::_get_merchant_commission_expense(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int merchant_commission_expense = ((DueForSettlement*)dueForSettlement)->getMerchantCommissionExpense();
+    ledgerAmount->setAmount(merchant_commission_expense);
+    return ledgerAmount;
 }
 
 LedgerAmount *DueForSettlement::_get_merchant_merchandise_value(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int merchant_merchandise_value = ((DueForSettlement*)dueForSettlement)->getMerchantMerchandiseValue();
+    ledgerAmount->setAmount(merchant_merchandise_value);
+    return ledgerAmount;
 }
 
 LedgerAmount *DueForSettlement::_get_cashier_commission_expense(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int cashier_commission_expense = ((DueForSettlement*)dueForSettlement)->getCashierCommissionExpense();
+    ledgerAmount->setAmount(cashier_commission_expense);
+    return ledgerAmount;
 }
 
 LedgerAmount *DueForSettlement::_get_merchant_deferred_commission_expense(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int merchant_deferred_commission_expense = ((DueForSettlement*)dueForSettlement)->getMerchantDeferredCommissionExpense();
+    ledgerAmount->setAmount(merchant_deferred_commission_expense);
+    return ledgerAmount;
 }
 
 LedgerAmount *DueForSettlement::_get_merchant_repayment_fee_expense(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int merchant_repayment_fee_expense = ((DueForSettlement*)dueForSettlement)->getMerchantRepaymentFeeExpense();
+    ledgerAmount->setAmount(merchant_repayment_fee_expense);
+    return ledgerAmount;
 }
 
 LedgerAmount *DueForSettlement::_get_merchant_notes_payable(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int merchant_notes_payable = ((DueForSettlement*)dueForSettlement)->getMerchantNotesPayable();
+    ledgerAmount->setAmount(merchant_notes_payable);
+    return ledgerAmount;
 }
 
 LedgerAmount *DueForSettlement::_get_collection_of_cash_in_transit(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int collection_of_cash_in_transit = ((DueForSettlement*)dueForSettlement)->getCollectionOfCashInTransit();
+    ledgerAmount->setAmount(collection_of_cash_in_transit);
+    return ledgerAmount;
 }
 
 LedgerAmount *DueForSettlement::_get_collection_of_commission_income(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int collection_of_commission_income = ((DueForSettlement*)dueForSettlement)->getCollectionOfCommissionIncome();
+    ledgerAmount->setAmount(collection_of_commission_income);
+    return ledgerAmount;
 }
 
 LedgerAmount *DueForSettlement::_get_collection_of_upfront_fees(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int collection_of_upfront_fees = ((DueForSettlement*)dueForSettlement)->getCollectionOfUpfrontFees();
+    ledgerAmount->setAmount(collection_of_upfront_fees);
+    return ledgerAmount;
 }
 
 LedgerAmount *DueForSettlement::_get_collection_of_transaction_investigation_fee(LedgerClosureStep *dueForSettlement)
 {
-    return nullptr;
+    LedgerAmount* ledgerAmount = ((DueForSettlement*)dueForSettlement)->_init_ledger_amount();
+    int collection_of_transaction_investigation_fee = ((DueForSettlement*)dueForSettlement)->getCollectionOfTransactionInvestigationFee();
+    ledgerAmount->setAmount(collection_of_transaction_investigation_fee);
+    return ledgerAmount;
 }
 
 void DueForSettlement::setupLedgerClosureService(LedgerClosureService *ledgerClosureService)
 {
+    ledgerClosureService->addHandler("Payment of merchant commission expense", _get_merchant_commission_expense);
+    ledgerClosureService->addHandler("Payment of merchant merchandise value", _get_merchant_merchandise_value);
+    ledgerClosureService->addHandler("Payment of cashier commission expense", _get_cashier_commission_expense);
+    ledgerClosureService->addHandler("Payment of merchant deferred commissions expense", _get_merchant_deferred_commission_expense);
+    ledgerClosureService->addHandler("Payment of merchant repayment fee expense", _get_merchant_repayment_fee_expense);
+    ledgerClosureService->addHandler("Payment of merchant notes payable (short term)", _get_merchant_notes_payable);
+    ledgerClosureService->addHandler("Collection of cash in transit from repayments at merchant", _get_collection_of_cash_in_transit);
+    ledgerClosureService->addHandler("Collection of commission income", _get_collection_of_commission_income);
+    ledgerClosureService->addHandler("Collection of upfront fees", _get_collection_of_upfront_fees);
+    ledgerClosureService->addHandler("Collection of transaction investigation fee", _get_collection_of_transaction_investigation_fee);
+
+
+}
+
+
+void DueForSettlement::update_step()
+{
+    PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
+    ANDOperator(
+        new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+        new UnaryOperator ("loan_app_loan.closure_status",gte,0)
+    ),
+    {{"closure_status",to_string(ledger_status::SETTLEMENT_WITH_MERCHANT)}}
+
+    );
+    psqlUpdateQuery.update(); 
+}
+
+int DueForSettlement::getMerchantCommissionExpense()  {return merchant_commission_expense;}
+int DueForSettlement::getMerchantMerchandiseValue()  {return merchant_merchandise_value;}
+int DueForSettlement::getCashierCommissionExpense()  {return cashier_commission_expense;}
+int DueForSettlement::getMerchantDeferredCommissionExpense()  {return merchant_deferred_commission_expense;}
+int DueForSettlement::getMerchantRepaymentFeeExpense()  {return merchant_repayment_fee_expense;}
+int DueForSettlement::getMerchantNotesPayable()  {return merchant_notes_payable;}
+int DueForSettlement::getCollectionOfCashInTransit()  {return collection_of_cash_in_transit;}
+int DueForSettlement::getCollectionOfCommissionIncome()  {return collection_of_commission_income;}
+int DueForSettlement::getCollectionOfUpfrontFees()  {return collection_of_upfront_fees;}
+int DueForSettlement::getCollectionOfTransactionInvestigationFee()  {return collection_of_transaction_investigation_fee;}
+
+
+string generateExtraField(string _account_name, string _start_fiscal_year,string _closing_day)
+{
+    return "(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = '"+ _account_name + "'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closing_day + "')","merchant_commission_expense";
 }
 
 loan_app_loan_primitive_orm_iterator *DueForSettlement::aggregator(string _closure_date_string, string _start_fiscal_year)
@@ -98,35 +224,230 @@ loan_app_loan_primitive_orm_iterator *DueForSettlement::aggregator(string _closu
         )
     );
 
-    // dueForSettlementIterator->addExtraFromField("WITH parent_account AS (\
-    //     SELECT id \
-    //     FROM ledger_account \
-    //     WHERE name = 'Impairment provisions, On-balance sheet'\
-    // ),\
-    // child_accounts AS (\
-    //     SELECT id \
-    //     FROM ledger_account \ 
-    //     WHERE parent_id = (SELECT id FROM parent_account) \
-    // )\
-    // SELECT SUM(amount) \
-    // FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
-    // WHERE account_id IN ( \
-    //     SELECT id \
-    //     FROM child_accounts \
-    //     UNION ALL \
-    //     SELECT id \
-    //     FROM parent_account \
-    // ) \
-    // AND loan_id = loan_app_loan.id and la.bond_id = tms_app_loaninstallmentfundingrequest.funding_facility_id and le.entry_date between " + _start_fiscal_year[0] + " and " + _closure_date_string,"impairment_provisions_balance");
+    //1- "Accrued expenses, merchants, commissions"
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Accrued expenses, merchants, commissions", _start_fiscal_year, _closure_date_string),"merchant_commission_expense");
+    
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Accrued expenses, merchants, commissions'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","merchant_commission_expense");
         
+
+    //2- "Accounts payable, merchandise, merchants"
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Accounts payable, merchandise, merchants'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","merchant_merchandise_value");
+
+    //3- "Accrued expenses, merchants, cashiers commissions"
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Accrued expenses, merchants, cashiers commissions'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","cashier_commission_expense");
+
+    //4- "Accrued expenses, merchants, deferred commissions, Due"
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Accrued expenses, merchants, deferred commissions, Due'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","merchant_deferred_commission_expense");
+
+    //5- "Accrued expenses, merchants, repayment fees"
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Accrued expenses, merchants, repayment fees'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","merchant_repayment_fee_expense");
+
+
+    //6- "Due current notes payable, merchants"
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Due current notes payable, merchants'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","merchant_notes_payable");
+
+    //7- "Cash in transit, merchants"
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Cash in transit, merchants'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","collection_of_cash_in_transit");
+
+
+    //8- "Accounts receivable, merchants, commission income"
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Accounts receivable, merchants, commission income'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","collection_of_commission_income");
+    
+    //9- "Accounts receivable, merchant, transaction upfront fee"
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Accounts receivable, merchant, transaction upfront fee'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","collection_of_upfront_fees");
+
+    //10- "Accounts receivable, merchant, transaction investigation fee"
+    dueForSettlementIterator->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Accounts receivable, merchant, transaction investigation fee'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(amount) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closure_date_string + "')","collection_of_transaction_investigation_fee");
+
     return dueForSettlementIterator;
-
-
-
-    return nullptr;
 }
-
-void DueForSettlement::update_step()
-{
-}
-
