@@ -223,22 +223,16 @@ void Unmarginalize::stampORMs(ledger_entry_primitive_orm *entry, ledger_amount_p
 //     return ledgerAmount;
 // }
 
-insts_to_be_unmarginalized = InstallmentExtension.objects.filter(loan__closure_status=ClosureStatus.REVERSE_MARGINALIZATION-1)\
-        .filter(Q(Q(is_interest_paid=True,unmarginalization_ledger_amount=None, interest_paid_at__date__lte=closing_day) & Q(~Q(marginalization_ledger_amount=None) | ~Q(partial_marginalization_ledger_amount=None))))\
-        .values_list('loan_id',flat=True)
-        # | Q(Q(is_interest_paid=False) & Q(~Q(marginalization_ledger_amount=None) | ~Q(partial_marginalization_ledger_amount=None)) & Q(loan__status_id__lt=F('loan__marginalization_bucket_id'))))\
-
-// latefees_to_be_unmarginalized = InstallmentLateFees.objects.filter(installment_extension__loan__closure_status=ClosureStatus.REVERSE_MARGINALIZATION-1)\
-//         .filter(Q(is_paid=True, paid_at__date__lte=closing_day) | Q(is_cancelled=True, cancellation_date__lte=closing_day))\
-//         .filter(unmarginalization_ledger_amount=None)\
-//         .exclude(marginalization_ledger_amount=None).values_list('installment_extension__loan_id',flat=True).distinct()
 
 
-PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string, int _agg_number){
+
+
+
+PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
 
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-        {new loan_app_loan_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
-        { {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
+        {new loan_app_loan_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
+        { {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}, {{"new_lms_installmentlatefees", "installment_extension_id"}, {"loan_app_installment", "id"}}});
 
         // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
         // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
@@ -246,31 +240,43 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string, in
         // psqlQueryJoin->addExtraFromField("(select transaction_upfront_income_banked from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_banked");
         // psqlQueryJoin->addExtraFromField("(select  transaction_upfront_income_unbanked  from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_unbanked");
 
+
         psqlQueryJoin->filter(
-            ANDOperator 
-            (
+            OROperator(
+            new ANDOperator(
+                // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
+                new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+                new UnaryOperator ("new_lms_installmentlatefees.unmarginalization_ledger_amount_id" , isnull, "",true),
+                new UnaryOperator ("new_lms_installmentlatefees.marginalization_ledger_amount_id" , isnotnull, "",true),
+
+
+                new OROperator(
+                    new ANDOperator(
+                        new UnaryOperator ("new_lms_installmentlatefees.is_paid" , eq, true),
+                        new UnaryOperator ("new_lms_installmentlatefees.paid_at" ,lte,_closure_date_string)
+                    ),
+                    new ANDOperator(
+                        new UnaryOperator ("new_lms_installmentlatefees.is_cancelled" , eq, true),
+                        new UnaryOperator ("new_lms_installmentlatefees.cancellation_date" ,lte,_closure_date_string)
+                    ) ) ),
+            new ANDOperator (
                 // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
                 new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
                 new UnaryOperator ("new_lms_installmentextension.interest_paid_at",lte,_closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.unmarginalization_ledger_amount_id",isnull,"",true),
-                OROperator(                
+                new OROperator(                
                     new UnaryOperator ("new_lms_installmentextension.marginalization_ledger_amount_id",isnotnull,"",true),
                     new UnaryOperator ("new_lms_installmentextension.partial_marginalization_ledger_amount_id",isnotnull,"",true)
                 )
-
-                // new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
-                // new UnaryOperator ("loan_app_loan.loan_booking_day",lte,_closure_date_string)
+            )
             )
         );
 
         psqlQueryJoin->setAggregates({
-            {"crm_app_customer", {"id", 1}},  
-            {"loan_app_loan", {"id", 1}},  
-            {"crm_app_purchase", {"id", 1}}
-        });
+            {"loan_app_loan", {"id", 1}}});
 
-        psqlQueryJoin->setOrderBy("crm_app_customer.id asc ,loan_app_loan.id asc,  crm_app_purchase.id asc");
+        psqlQueryJoin->setOrderBy("loan_app_loan.id asc,  new_lms_installmentextension.id asc, new_lms_installmentlatefees.id asc");
 
         return psqlQueryJoin;
 }
@@ -287,4 +293,78 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string, in
         {{"closure_status",to_string(ledger_status::REVERSE_MARGINALIZATION)}}
         );
         psqlUpdateQuery.update();   
+}
+
+
+map <string,map<int,pair<new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> *> * get_date_map(vector<map <string,PSQLAbstractORM *> * > * orms){
+    map <string,map<int,pair<new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> *> * date_map = new map <string,map<int,pair< new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> *> ();
+    new_lms_installmentextension_primitive_orm * ext = ORML(new_lms_installmentextension,orms,0);
+    new_lms_installmentlatefees_primitive_orm * lf = ORML(new_lms_installmentlatefees,orms,0);
+
+    int first_id = 0;
+    int last_id = 0;
+        for ( int i = 0 ;i < ORML_SIZE(orms) ; i ++)
+        {   
+            ext = ORML(new_lms_installmentextension,orms,i);
+            string curr_date = ext->get_unmarginalization_date();
+            int curr_id = ext->get_installment_ptr_id();
+            lf = ORML(new_lms_installmentlatefees,orms,i);
+            int curr_lf_inst_id = lf->get_installment_extension_id();
+            string  curr_lf_date=lf->get_unmarginalization_date();
+            if (curr_date!=""){
+                auto iter = date_map->find(curr_date);
+               
+                if (iter!= date_map->end()){ 
+                    auto iter_nest =  iter->second->find(curr_id);
+                    if(iter_nest== iter->second->end()){
+                      pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>* partition = new pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> ;
+                      partition->first=ext ;
+                      partition->second= new vector<vector<new_lms_installmentlatefees_primitive_orm*> *>();
+                      date_map->operator[](curr_date)->operator[](curr_id)= partition;
+
+                    }
+                }
+                else{
+                    map<int, pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>*>* new_map = new map<int,pair< new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *>();
+                    pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>* partition = new pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>() ;
+                    partition->first=ext ;
+                    partition->second= new vector<vector<new_lms_installmentlatefees_primitive_orm*> *>();
+                    new_map->operator[](curr_id)=partition;
+                    date_map->operator[](curr_date)=new_map;
+                }
+
+            }
+            if (curr_lf_date!="" ){
+                auto iter = date_map->find(curr_date);
+                if (iter!= date_map->end()){
+
+
+                    auto iter_nest =  iter->second->find(curr_lf_inst_id);
+                    if(iter_nest== iter->second->end()){
+                        pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>* partition = new pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> ;
+                        partition->first=nullptr ;
+                        partition->second= new vector<vector<new_lms_installmentlatefees_primitive_orm*> *>();
+                        partition->second->push_back(new vector<new_lms_installmentlatefees_primitive_orm*>);
+                        partition->second->back()->push_back(lf);
+                        date_map->operator[](curr_date)->operator[](curr_lf_inst_id)= partition;
+
+                    }
+                    else{
+                        date_map->operator[](curr_date)->operator[](curr_lf_inst_id)->second->back()->push_back(lf);
+                    }
+                }
+                else{
+                    map<int, pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>*>* new_map = new map<int,pair< new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *>();
+                    pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>* partition = new pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>() ;
+                    partition->first=nullptr ;
+                    partition->second= new vector<vector<new_lms_installmentlatefees_primitive_orm*> *>();
+                    partition->second->push_back(new vector<new_lms_installmentlatefees_primitive_orm*>);
+                    partition->second->back()->push_back(lf);
+                    new_map->operator[](curr_lf_inst_id)=partition;
+                    date_map->operator[](curr_date)=new_map;
+                }
+
+             }
+    }
+    return date_map;
 }

@@ -19,6 +19,8 @@
 #include <PSQLUpdateQuery.h>
 #include <OnboardingCommission.h>
 #include <OnboardingCommissionFunc.h>
+#include <Unmarginalize.h>
+#include <UnmarginalizeFunc.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -53,7 +55,7 @@ map<int,float> get_loan_status_provisions_percentage()
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "cancel_loan"; 
+    const char * step = "unmarginalize_income"; 
     string database = "cpp_alia";
     string closure_date_string = "2024-07-7"; 
     int threadsCount = 6;
@@ -296,6 +298,20 @@ int main (int argc, char ** argv)
         
         psqlController.ORMCommit(true,true,true, "main");  
         OnboardingCommission::update_step(); 
+    }
+
+    if ( strcmp (step,"unmarginalize_income") == 0 || strcmp (step,"full_closure") == 0){
+        cout << "Unmarginalize Income" << endl;
+        PSQLJoinQueryIterator*  UnmarginalizeQuery = Unmarginalize::aggregator(closure_date_string);
+        BlnkTemplateManager * UnmarginalizeIncomeTemplateManager = new BlnkTemplateManager(33, -1);
+
+        UnmarginalizeStruct unmarginalizeIncomeStruct;
+        unmarginalizeIncomeStruct.blnkTemplateManager = UnmarginalizeIncomeTemplateManager;
+
+        UnmarginalizeQuery->process_aggregate(threadsCount, UnmarginalizeFunc, (void*)&unmarginalizeIncomeStruct);
+        
+        // psqlController.ORMCommit(true,true,true, "main");  
+        // OnboardingCommission::update_step(); 
     }
 
     return 0;
