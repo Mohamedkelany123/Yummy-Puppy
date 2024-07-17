@@ -56,7 +56,7 @@ bool PSQLAbstractQueryIterator::execute()
         sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions +" order by "+orderby_string;
     
-    cout << "--------------SQL QUERY----------------" << sql << endl;
+    // cout << "--------------SQL QUERY----------------" << sql << endl;
     
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
