@@ -244,6 +244,10 @@ float PSQLAbstractORM::getExtraToFloat(string fname){
     string value = getExtra(fname);
     return value.empty() ? 0.0 : stof(value);
 }
+int PSQLAbstractORM::getExtraToInt(string fname){
+    string value = getExtra(fname);
+    return value.empty() ? 0 : stoi(value);
+}
 
 void PSQLAbstractORM::set_is_add_referenced (bool _is_referenced)
 {
