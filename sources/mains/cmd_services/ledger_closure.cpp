@@ -120,7 +120,7 @@ vector<string> get_start_and_end_fiscal_year(){
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "due_for_settlement_with_merchant"; 
+    const char * step = "undue_to_due"; 
     string closure_date_string = "2024-07-15"; 
     int threadsCount = 1;
     string databaseName = "c_plus_plus";
@@ -147,7 +147,6 @@ int main (int argc, char ** argv)
         );
     psqlUpdateQuery.update();
 
-//accrual-undue_to_due
 
     if ( strcmp (step,"disburse") == 0 || strcmp (step,"full_closure") == 0)
     {
@@ -283,10 +282,10 @@ int main (int argc, char ** argv)
         undueToDueStruct.blnkTemplateManager = undueToDueTemplateManager;
         undueToDueStruct.closing_day = BDate(closure_date_string);
         
-        installments_becoming_due_iterator->process(threadsCount, InstallmentBecomingDueFunc, (void *)&undueToDueStruct);
+        // installments_becoming_due_iterator->process(threadsCount, InstallmentBecomingDueFunc, (void *)&undueToDueStruct);
         
         delete(installments_becoming_due_iterator);
-        psqlController.ORMCommit(true,true,true, "main");  
+        // psqlController.ORMCommit(true,true,true, "main");  
 
         //----------------------------------------------------------------------------------------//
         cout << "-Sticky Installments Becoming Due" << endl;
@@ -442,9 +441,6 @@ int main (int argc, char ** argv)
         dueForSettlementStruct.blnkTemplateManager = blnkTemplateManager;
 
         dueForSettlementIterator->process(threadsCount, dueForSettlementWithMerchantFunc,(void *)&dueForSettlementStruct);
-
-
-
     }
     return 0;
 }

@@ -1,0 +1,203 @@
+PSQL Controller Initialized
+--------------------------------------------------------
+Connected to DATABASE->[c_plus_plus]
+Threads Count->[1]
+Step[undue_to_due]
+Closing Day[2024-07-15]
+--------------------------------------------------------
+Undue To Due
+-Intallments Becoming Due
+select "lms_entrytemplate"."id" as "164_id","lms_entrytemplate"."template" as "164_template","lms_entrytemplate"."created_at" as "164_created_at","lms_entrytemplate"."updated_at" as "164_updated_at","lms_entrytemplate"."is_manual" as "164_is_manual","lms_entrytemplate"."inference_python_class" as "164_inference_python_class" from lms_entrytemplate where lms_entrytemplate.id = '10' order by id asc
+10
+-Sticky Installments Becoming Due
+Executing PSQL Query on the remote server
+select "loan_app_loan"."id" as "60_id","loan_app_loan"."created_at" as "60_created_at","loan_app_loan"."updated_at" as "60_updated_at","loan_app_loan"."principle" as "60_principle","loan_app_loan"."yearly_interest" as "60_yearly_interest","loan_app_loan"."num_months" as "60_num_months","loan_app_loan"."num_periods" as "60_num_periods","loan_app_loan"."num_days_in_year" as "60_num_days_in_year","loan_app_loan"."num_payment_cycles_in_month" as "60_num_payment_cycles_in_month","loan_app_loan"."num_periods_per_year" as "60_num_periods_per_year","loan_app_loan"."late_repayment_grace_days" as "60_late_repayment_grace_days","loan_app_loan"."loan_booking_day" as "60_loan_booking_day","loan_app_loan"."last_closing_day" as "60_last_closing_day","loan_app_loan"."period_interest_rate" as "60_period_interest_rate","loan_app_loan"."daily_interest_rate" as "60_daily_interest_rate","loan_app_loan"."early_repayment_fee_rate" as "60_early_repayment_fee_rate","loan_app_loan"."late_repayment_fee_rate" as "60_late_repayment_fee_rate","loan_app_loan"."late_repayment_grace_amount" as "60_late_repayment_grace_amount","loan_app_loan"."period_installment" as "60_period_installment","loan_app_loan"."cashier_id" as "60_cashier_id","loan_app_loan"."customer_id" as "60_customer_id","loan_app_loan"."merchant_id" as "60_merchant_id","loan_app_loan"."status_id" as "60_status_id","loan_app_loan"."activation_id" as "60_activation_id","loan_app_loan"."bl_t_mer_fee" as "60_bl_t_mer_fee","loan_app_loan"."cashier_fee" as "60_cashier_fee","loan_app_loan"."fra_status_id" as "60_fra_status_id","loan_app_loan"."loan_product_id" as "60_loan_product_id","loan_app_loan"."mer_t_bl_fee" as "60_mer_t_bl_fee","loan_app_loan"."funded_by" as "60_funded_by","loan_app_loan"."merchant_daily_interest_rate" as "60_merchant_daily_interest_rate","loan_app_loan"."merchant_period_installment" as "60_merchant_period_installment","loan_app_loan"."merchant_period_interest_rate" as "60_merchant_period_interest_rate","loan_app_loan"."merchant_yearly_interest" as "60_merchant_yearly_interest","loan_app_loan"."last_accrued_interest_day" as "60_last_accrued_interest_day","loan_app_loan"."cancelled_loan_id" as "60_cancelled_loan_id","loan_app_loan"."partial_refund_loan" as "60_partial_refund_loan","loan_app_loan"."num_cancel_days" as "60_num_cancel_days","loan_app_loan"."original_loan_booking_day" as "60_original_loan_booking_day","loan_app_loan"."refund_upfront_fee_bool" as "60_refund_upfront_fee_bool","loan_app_loan"."loan_upfront_fee" as "60_loan_upfront_fee","loan_app_loan"."disable_early_repayment_fees" as "60_disable_early_repayment_fees","loan_app_loan"."settled_cancel_id" as "60_settled_cancel_id","loan_app_loan"."settled_pay_id" as "60_settled_pay_id","loan_app_loan"."num_days_in_leap_year" as "60_num_days_in_leap_year","loan_app_loan"."cancel_ledger_entry_id" as "60_cancel_ledger_entry_id","loan_app_loan"."closure_status" as "60_closure_status","loan_app_loan"."first_accrual_adjustment_amount" as "60_first_accrual_adjustment_amount","loan_app_loan"."first_accrual_adjustment_date" as "60_first_accrual_adjustment_date","loan_app_loan"."first_accrual_adjustment_ledger_entry_id" as "60_first_accrual_adjustment_ledger_entry_id","loan_app_loan"."fra_sticky_bucket_id" as "60_fra_sticky_bucket_id","loan_app_loan"."is_extra_accrual_adjustment_marginalized" as "60_is_extra_accrual_adjustment_marginalized","loan_app_loan"."last_lms_closing_day" as "60_last_lms_closing_day","loan_app_loan"."lms_closure_status" as "60_lms_closure_status","loan_app_loan"."loan_creation_ledger_entry_id" as "60_loan_creation_ledger_entry_id","loan_app_loan"."marginalization_bucket_id" as "60_marginalization_bucket_id","loan_app_loan"."provisions_snapshot" as "60_provisions_snapshot","loan_app_loan"."second_accrual_adjustment_amount" as "60_second_accrual_adjustment_amount","loan_app_loan"."second_accrual_adjustment_date" as "60_second_accrual_adjustment_date","loan_app_loan"."second_accrual_adjustment_ledger_entry_id" as "60_second_accrual_adjustment_ledger_entry_id","loan_app_loan"."settlement_to_merchant_date" as "60_settlement_to_merchant_date","loan_app_loan"."settlement_to_merchant_ledger_entry_id" as "60_settlement_to_merchant_ledger_entry_id","loan_app_loan"."sticky_bucket_id" as "60_sticky_bucket_id","loan_app_loan"."can_reschedule" as "60_can_reschedule","loan_app_installment"."id" as "1_id","loan_app_installment"."created_at" as "1_created_at","loan_app_installment"."updated_at" as "1_updated_at","loan_app_installment"."day" as "1_day","loan_app_installment"."period" as "1_period","loan_app_installment"."ndays" as "1_ndays","loan_app_installment"."installment_expected" as "1_installment_expected","loan_app_installment"."interest_expected" as "1_interest_expected","loan_app_installment"."principal_expected" as "1_principal_expected","loan_app_installment"."remaining_principal_expected" as "1_remaining_principal_expected","loan_app_installment"."loan_id" as "1_loan_id","loan_app_installment"."transaction_history" as "1_transaction_history","loan_app_installment"."funding_transaction_id" as "1_funding_transaction_id","new_lms_installmentextension"."installment_ptr_id" as "2_installment_ptr_id","new_lms_installmentextension"."is_principal_paid" as "2_is_principal_paid","new_lms_installmentextension"."is_interest_paid" as "2_is_interest_paid","new_lms_installmentextension"."grace_date" as "2_grace_date","new_lms_installmentextension"."undue_to_due_date" as "2_undue_to_due_date","new_lms_installmentextension"."due_to_overdue_date" as "2_due_to_overdue_date","new_lms_installmentextension"."payment_status" as "2_payment_status","new_lms_installmentextension"."partial_accrual_date" as "2_partial_accrual_date","new_lms_installmentextension"."accrual_date" as "2_accrual_date","new_lms_installmentextension"."first_installment_interest_adjustment" as "2_first_installment_interest_adjustment","new_lms_installmentextension"."is_marginalized" as "2_is_marginalized","new_lms_installmentextension"."is_long_term" as "2_is_long_term","new_lms_installmentextension"."ext_created_at" as "2_ext_created_at","new_lms_installmentextension"."ext_updated_at" as "2_ext_updated_at","new_lms_installmentextension"."is_incorrectly_collected" as "2_is_incorrectly_collected","new_lms_installmentextension"."accrual_ledger_amount_id" as "2_accrual_ledger_amount_id","new_lms_installmentextension"."due_to_overdue_ledger_amount_id" as "2_due_to_overdue_ledger_amount_id","new_lms_installmentextension"."fra_status_id" as "2_fra_status_id","new_lms_installmentextension"."interest_order_id" as "2_interest_order_id","new_lms_installmentextension"."marginalization_ledger_amount_id" as "2_marginalization_ledger_amount_id","new_lms_installmentextension"."partial_accrual_ledger_amount_id" as "2_partial_accrual_ledger_amount_id","new_lms_installmentextension"."principal_order_id" as "2_principal_order_id","new_lms_installmentextension"."status_id" as "2_status_id","new_lms_installmentextension"."undue_to_due_ledger_amount_id" as "2_undue_to_due_ledger_amount_id","new_lms_installmentextension"."unmarginalization_ledger_amount_id" as "2_unmarginalization_ledger_amount_id","new_lms_installmentextension"."early_fee_amount" as "2_early_fee_amount","new_lms_installmentextension"."is_early_paid" as "2_is_early_paid","new_lms_installmentextension"."short_term_ledger_amount_id" as "2_short_term_ledger_amount_id","new_lms_installmentextension"."partial_marginalization_ledger_amount_id" as "2_partial_marginalization_ledger_amount_id","new_lms_installmentextension"."early_order_id" as "2_early_order_id","new_lms_installmentextension"."partial_accrual_amount" as "2_partial_accrual_amount","new_lms_installmentextension"."early_fee_payment_ledger_amount_id" as "2_early_fee_payment_ledger_amount_id","new_lms_installmentextension"."interest_payment_ledger_amount_id" as "2_interest_payment_ledger_amount_id","new_lms_installmentextension"."principal_payment_ledger_amount_id" as "2_principal_payment_ledger_amount_id","new_lms_installmentextension"."is_partially_marginalized" as "2_is_partially_marginalized","new_lms_installmentextension"."early_paid_at" as "2_early_paid_at","new_lms_installmentextension"."interest_paid_at" as "2_interest_paid_at","new_lms_installmentextension"."principal_paid_at" as "2_principal_paid_at","new_lms_installmentextension"."marginalization_date" as "2_marginalization_date","new_lms_installmentextension"."partial_marginalization_date" as "2_partial_marginalization_date","new_lms_installmentextension"."extra_interest_ledger_amount_id" as "2_extra_interest_ledger_amount_id","new_lms_installmentextension"."extra_interest_order_id" as "2_extra_interest_order_id","new_lms_installmentextension"."extra_interest_paid_at" as "2_extra_interest_paid_at","new_lms_installmentextension"."is_extra_interest_paid" as "2_is_extra_interest_paid","new_lms_installmentextension"."extra_interest_payment_ledger_amount_id" as "2_extra_interest_payment_ledger_amount_id","new_lms_installmentextension"."is_processed" as "2_is_processed","new_lms_installmentextension"."late_fees_amount" as "2_late_fees_amount","new_lms_installmentextension"."settlement_accrual_interest_amount" as "2_settlement_accrual_interest_amount","new_lms_installmentextension"."settlement_accrual_interest_ledger_amount_id" as "2_settlement_accrual_interest_ledger_amount_id","new_lms_installmentextension"."actual_interest_paid" as "2_actual_interest_paid","new_lms_installmentextension"."actual_principal_paid" as "2_actual_principal_paid","new_lms_installmentextension"."actual_accrued_amount" as "2_actual_accrued_amount","new_lms_installmentextension"."settlement_accrual_interest_date" as "2_settlement_accrual_interest_date","new_lms_installmentextension"."daily_interest" as "2_daily_interest","new_lms_installmentextension"."pending_for_review" as "2_pending_for_review","new_lms_installmentextension"."reversal_early_fee_payment_ledger_amount_id" as "2_reversal_early_fee_payment_ledger_amount_id","new_lms_installmentextension"."reversal_extra_interest_payment_ledger_amount_id" as "2_reversal_extra_interest_payment_ledger_amount_id","new_lms_installmentextension"."reversal_interest_payment_ledger_amount_id" as "2_reversal_interest_payment_ledger_amount_id","new_lms_installmentextension"."reversal_principal_payment_ledger_amount_id" as "2_reversal_principal_payment_ledger_amount_id","new_lms_installmentextension"."undue_to_due_interest_ledger_amount_id" as "2_undue_to_due_interest_ledger_amount_id","new_lms_installmentextension"."expected_accrual_amount" as "2_expected_accrual_amount","new_lms_installmentextension"."expected_partial_accrual_amount" as "2_expected_partial_accrual_amount","new_lms_installmentextension"."faulty_accrued_amount" as "2_faulty_accrued_amount","new_lms_installmentextension"."long_to_short_term_date" as "2_long_to_short_term_date","new_lms_installmentextension"."unmarginalization_date" as "2_unmarginalization_date","new_lms_installmentextension"."marginalization_history" as "2_marginalization_history","new_lms_installmentextension"."unmarginalization_history" as "2_unmarginalization_history","new_lms_installmentextension"."undue_to_due_extra_interest_ledger_amount_id" as "2_undue_to_due_extra_interest_ledger_amount_id",(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=15 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id asc limit 1) "settled_charge_off_day_status",(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=8 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id asc limit 1) "settled_paid_off_day",(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id asc limit 1) "undue_to_due_amount",(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id asc limit 1) "undue_to_due_amount_id",(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null and amount = new_lms_installmentextension.first_installment_interest_adjustment order by la.id asc limit 1) "undue_to_due_extra_interest_amount",(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null and amount = new_lms_installmentextension.first_installment_interest_adjustment order by la.id asc limit 1) "undue_to_due_extra_interest_amount_id",(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id asc limit 1) "undue_to_due_interest_amount",(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id asc limit 1) "undue_to_due_interest_amount_id" from loan_app_loan,loan_app_installment,new_lms_installmentextension where "loan_app_loan"."id" = "loan_app_installment"."loan_id" and "loan_app_installment"."id" = "new_lms_installmentextension"."installment_ptr_id" and ((new_lms_installmentextension.undue_to_due_date > '2024-07-15' OR (new_lms_installmentextension.is_interest_paid = '1' AND new_lms_installmentextension.undue_to_due_date > interest_paid_at) OR (new_lms_installmentextension.is_extra_interest_paid = '1' AND new_lms_installmentextension.undue_to_due_date > extra_interest_paid_at)) AND new_lms_installmentextension.payment_status in (2,4) AND new_lms_installmentextension.is_principal_paid = '1' AND new_lms_installmentextension.principal_paid_at::Date <= '2024-07-15' AND (new_lms_installmentextension.undue_to_due_ledger_amount_id is null OR (new_lms_installmentextension.settlement_accrual_interest_amount > '0' AND new_lms_installmentextension.undue_to_due_interest_ledger_amount_id is null) OR (new_lms_installmentextension.first_installment_interest_adjustment > '0' AND new_lms_installmentextension.undue_to_due_extra_interest_ledger_amount_id is null AND new_lms_installmentextension.is_extra_interest_paid = '1')) AND loan_app_loan.status_id not in (12,13) AND (new_lms_installmentextension.status_id not in (8,12,13) OR (new_lms_installmentextension.status_id <> '16' AND new_lms_installmentextension.payment_status <> '3')) AND new_lms_installmentextension.installment_ptr_id in (1474595, 172822,1498105, 992082, 109646,1075301 ,  495675) AND loan_app_loan.id <> '14312')
+Query results 7 in 0 seconds ..
+Starting multi-threading execution
+start: 0	 result_index: -1	 result_count:7	 end_index: 6
+-----------------------------
+LoanAppLoan: 4950
+Installment: 109646
+undue_to_due_amount_id: 65658343
+undue_to_due_amount: 428.95
+undue_to_due_interest_amount_id: 65658315
+undue_to_due_interest_amount: -206.46
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Interest income becoming due
+LOLOLOLOLLOLOLOLOLOLOLOLOLO
+Interest : Nothing Created For Sticky Undue To Due For InsId:109646
+FINISHEDDD THE CODEEE
+undue_to_due_amount_id: 65658343
+undue_to_due_amount: 428.95
+undue_to_due_interest_amount_id: 65658315
+undue_to_due_interest_amount: -206.46
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Loan principal becoming due
+LOLOLOLOLLOLOLOLOLOLOLOLOLO
+Principal : Nothing Created For Sticky Undue To Due For InsID:109646
+-----------------------------
+-----------------------------
+LoanAppLoan: 8019
+Installment: 172822
+undue_to_due_amount_id: 58670355
+undue_to_due_amount: 341.1
+undue_to_due_interest_amount_id: 76367374
+undue_to_due_interest_amount: -123.6
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Interest income becoming due
+------------------------------------------
+Status_id =15
+77777777777777
+MMM1111111111111111111111
+Is_Valid->1
+is_built->1
+STAMPPPP 11
+FINISHEDDD THE CODEEE
+undue_to_due_amount_id: 58670355
+undue_to_due_amount: 341.1
+undue_to_due_interest_amount_id: 76367374
+undue_to_due_interest_amount: -123.6
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Loan principal becoming due
+Loan status history day: 
+P1111111111111111
+Principal : Nothing Created For Sticky Undue To Due For InsID:172822
+-----------------------------
+-----------------------------
+LoanAppLoan: 26401
+Installment: 495675
+undue_to_due_amount_id: 58670457
+undue_to_due_amount: 373.09
+undue_to_due_interest_amount_id: 58670454
+undue_to_due_interest_amount: -57.04
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Interest income becoming due
+LOLOLOLOLLOLOLOLOLOLOLOLOLO
+Interest : Nothing Created For Sticky Undue To Due For InsId:495675
+FINISHEDDD THE CODEEE
+undue_to_due_amount_id: 58670457
+undue_to_due_amount: 373.09
+undue_to_due_interest_amount_id: 58670454
+undue_to_due_interest_amount: -57.04
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Loan principal becoming due
+LOLOLOLOLLOLOLOLOLOLOLOLOLO
+Principal : Nothing Created For Sticky Undue To Due For InsID:495675
+-----------------------------
+-----------------------------
+LoanAppLoan: 52433
+Installment: 992082
+undue_to_due_amount_id: 56416261
+undue_to_due_amount: 138.28
+undue_to_due_interest_amount_id: 56416258
+undue_to_due_interest_amount: -5.4
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Interest income becoming due
+LOLOLOLOLLOLOLOLOLOLOLOLOLO
+Interest : Nothing Created For Sticky Undue To Due For InsId:992082
+FINISHEDDD THE CODEEE
+undue_to_due_amount_id: 56416261
+undue_to_due_amount: 138.28
+undue_to_due_interest_amount_id: 56416258
+undue_to_due_interest_amount: -5.4
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Loan principal becoming due
+LOLOLOLOLLOLOLOLOLOLOLOLOLO
+Principal : Nothing Created For Sticky Undue To Due For InsID:992082
+-----------------------------
+-----------------------------
+LoanAppLoan: 56101
+Installment: 1075301
+undue_to_due_amount_id: 56396979
+undue_to_due_amount: 217.48
+undue_to_due_interest_amount_id: 56396976
+undue_to_due_interest_amount: -16.8
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Interest income becoming due
+------------------------------------------
+Status_id =15
+77777777777777
+MMM1111111111111111111111
+Is_Valid->1
+is_built->1
+STAMPPPP 11
+FINISHEDDD THE CODEEE
+undue_to_due_amount_id: 56396979
+undue_to_due_amount: 217.48
+undue_to_due_interest_amount_id: 56396976
+undue_to_due_interest_amount: -16.8
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Loan principal becoming due
+Loan status history day: 
+P1111111111111111
+Principal : Nothing Created For Sticky Undue To Due For InsID:1075301
+-----------------------------
+-----------------------------
+LoanAppLoan: 73877
+Installment: 1474595
+undue_to_due_amount_id: 56660353
+undue_to_due_amount: 113.12
+undue_to_due_interest_amount_id: 63912285
+undue_to_due_interest_amount: -175.46
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Interest income becoming due
+LOLOLOLOLLOLOLOLOLOLOLOLOLO
+Interest : Nothing Created For Sticky Undue To Due For InsId:1474595
+FINISHEDDD THE CODEEE
+undue_to_due_amount_id: 56660353
+undue_to_due_amount: 113.12
+undue_to_due_interest_amount_id: 63912285
+undue_to_due_interest_amount: -175.46
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Loan principal becoming due
+LOLOLOLOLLOLOLOLOLOLOLOLOLO
+Principal : Nothing Created For Sticky Undue To Due For InsID:1474595
+-----------------------------
+-----------------------------
+LoanAppLoan: 74866
+Installment: 1498105
+undue_to_due_amount_id: 45578120
+undue_to_due_amount: 44.8
+undue_to_due_interest_amount_id: 76438389
+undue_to_due_interest_amount: -54.6
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Interest income becoming due
+------------------------------------------
+Status_id =15
+77777777777777
+MMM1111111111111111111111
+Is_Valid->1
+is_built->1
+STAMPPPP 11
+FINISHEDDD THE CODEEE
+undue_to_due_amount_id: 45578120
+undue_to_due_amount: 44.8
+undue_to_due_interest_amount_id: 76438389
+undue_to_due_interest_amount: -54.6
+undue_to_due_extra_interest_amount_id: 0
+undue_to_due_extra_interest_amount: 0
+FUNCMAP NAME:Loan principal becoming due
+Loan status history day: 
+P1111111111111111
+Principal : Nothing Created For Sticky Undue To Due For InsID:1498105
+-----------------------------
+THREADTIME  Step-> 0.008 seconds.
+Finished multi-threading execution in 0 seconds ..
+cache counter: 9
+Staring to commit 
+Started commit internal for 0 || inserts = 9 || updates = 22
+Started commit internal for 0 || inserts = 9 || updates = 22
+Exiting commit

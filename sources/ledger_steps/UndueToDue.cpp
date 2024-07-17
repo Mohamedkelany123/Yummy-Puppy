@@ -42,6 +42,17 @@ UndueToDue::UndueToDue(map <string,PSQLAbstractORM *> * _orm, BDate _closing_day
     undue_to_due_extra_interest_amount_id = gorm->toInt("undue_to_due_extra_interest_amount_id");
     undue_to_due_extra_interest_amount = gorm->toFloat("undue_to_due_extra_interest_amount");
 
+
+
+    cout << "undue_to_due_amount_id: " << undue_to_due_amount_id << endl;
+    cout << "undue_to_due_amount: " << undue_to_due_amount << endl;
+
+    cout << "undue_to_due_interest_amount_id: " << undue_to_due_interest_amount_id << endl;
+    cout << "undue_to_due_interest_amount: " << undue_to_due_interest_amount << endl;
+
+    cout << "undue_to_due_extra_interest_amount_id: " << undue_to_due_extra_interest_amount_id << endl;
+    cout << "undue_to_due_extra_interest_amount: " << undue_to_due_extra_interest_amount << endl;
+
     closing_day = _closing_day;
     template_id = 10;
     partial_settle_status = 14;
@@ -89,7 +100,6 @@ void UndueToDue::setupLedgerClosureService (LedgerClosureService * ledgerClosure
 
 LedgerAmount * UndueToDue::_get_installment_insterest(LedgerClosureStep *undueToDue)
 {  
-    
     LedgerAmount * la = ((UndueToDue*)undueToDue)->_init_ledger_amount();
     loan_app_installment_primitive_orm* lai_orm = ((UndueToDue*)undueToDue)->get_loan_app_installment();
     new_lms_installmentextension_primitive_orm* nli_orm = ((UndueToDue*)undueToDue)->get_new_lms_installment_extention();
@@ -100,20 +110,18 @@ LedgerAmount * UndueToDue::_get_installment_insterest(LedgerClosureStep *undueTo
     BDate closing_day = ((UndueToDue*)undueToDue)->get_closing_day(); 
 
     BDate lai_undue_to_due_date(BDate(nli_orm->get_undue_to_due_date()));
-    
     bool checkAmounts = ((UndueToDue*)undueToDue)->checkAmounts();
     if(checkAmounts)
     {
-        // cout << "LOLOLOLOLLOLOLOLOLOLOLOLOLO" << endl;
+        cout << "LOLOLOLOLLOLOLOLOLOLOLOLOLO" << endl;
         la->setAmount(0);
         return la;
     }        
 
 
-
     if (nli_orm->get_undue_to_due_interest_ledger_amount_id() == 0)
     {
-        // cout << "------------------------------------------\nStatus_id =" << lal_orm->get_status_id() << "\n";
+        cout << "------------------------------------------\nStatus_id =" << lal_orm->get_status_id() << "\n";
         // cout << "InsId= " << lai_orm->get_id() << endl;
         if((lal_orm->get_status_id()) == (((UndueToDue*)undueToDue)->get_settle_charge_off_status() || ((UndueToDue*)undueToDue)->get_partial_settle_status()))
         {
@@ -123,11 +131,11 @@ LedgerAmount * UndueToDue::_get_installment_insterest(LedgerClosureStep *undueTo
                 {
                     if(nli_orm->get_is_extra_interest_paid() == true)
                     {
-                        // cout << "22222222222222222222222" << endl;
+                        cout << "22222222222222222222222" << endl;
                         la->setAmount(ROUND(nli_orm->get_first_installment_interest_adjustment()));
                         return la;
                     }else{
-                        // cout << "33333333333333333333" << endl;
+                        cout << "33333333333333333333" << endl;
                         la->setAmount(0);
                         return la;
                     }
@@ -135,11 +143,11 @@ LedgerAmount * UndueToDue::_get_installment_insterest(LedgerClosureStep *undueTo
                 {
                     if(nli_orm->get_is_extra_interest_paid() == true)
                     {
-                        // cout << "4444444444444444444444" << endl;
+                        cout << "4444444444444444444444" << endl;
                         la->setAmount(ROUND((nli_orm->get_first_installment_interest_adjustment() + lai_orm->get_interest_expected())));
                         return la;
                     }
-                    // cout << "555555555555555555" << endl;
+                    cout << "555555555555555555" << endl;
                     la->setAmount(lai_orm->get_interest_expected());
                     return la;
                 }
@@ -150,20 +158,23 @@ LedgerAmount * UndueToDue::_get_installment_insterest(LedgerClosureStep *undueTo
     if(lsh_settle_paid_off_day.getDateString() != "")
     {
         if((nli_orm->get_payment_status() == 1) && (lsh_settle_paid_off_day() <= closing_day()) && (lsh_settle_paid_off_day() < lai_undue_to_due_date())){
-            // cout << "666666666666666" << endl;
+            cout << "666666666666666" << endl;
             la->setAmount(0);
             return la;
         }
     }
     
+
     if(lai_undue_to_due_date() <= closing_day()){
-        // cout << "77777777777777" << endl;
+        cout << "77777777777777" << endl;
 
         // cout << "INTEREST + ADJ =" << lai_orm->get_interest_expected() << "-" << nli_orm->get_first_installment_interest_adjustment() << endl;
         la->setAmount(ROUND((lai_orm->get_interest_expected() + nli_orm->get_first_installment_interest_adjustment())));
         return la;
     }
-    // cout << "In lastttt set amountttt" << endl;
+
+    
+    cout << "In lastttt set amountttt" << endl;
     la->setAmount(0);
     return la;
 
@@ -184,21 +195,21 @@ LedgerAmount * UndueToDue::_get_installment_principal(LedgerClosureStep *undueTo
     bool checkAmounts = ((UndueToDue*)undueToDue)->checkAmounts();
     if(checkAmounts)
     {
-        // cout << "LOLOLOLOLLOLOLOLOLOLOLOLOLO" << endl;
+        cout << "LOLOLOLOLLOLOLOLOLOLOLOLOLO" << endl;
         la->setAmount(0);
         return la;
     }        
 
-    // cout <<"Loan status history day: " << lsh_settle_paid_off_day.getDateString() << endl;
+    cout <<"Loan status history day: " << lsh_settle_paid_off_day.getDateString() << endl;
     if ((nli_orm->get_undue_to_due_ledger_amount_id() != 0) || ( (lsh_settle_paid_off_day.getDateString() != "")  &&  (nli_orm->get_payment_status() == 1) && (lsh_settle_paid_off_day() <= closing_day()) && (lsh_settle_paid_off_day() < lai_undue_to_due_date())))
     {
         // cout << "InsId= " << lai_orm->get_id() << endl;
-        // cout << "P1111111111111111" <<endl;
+        cout << "P1111111111111111" <<endl;
         la->setAmount(0);
         return la;
     }else{
         // cout << "InsId= " << lai_orm->get_id() << endl;
-        // cout << "P222222222222222" <<endl;
+        cout << "P222222222222222" <<endl;
         la->setAmount(ROUND(lai_orm->get_principal_expected()));
         return la;
     }
@@ -211,48 +222,51 @@ bool UndueToDue::checkAmounts(){
     {
         nli_orm->set_undue_to_due_ledger_amount_id(undue_to_due_amount_id);
         
-        if (fabs(undue_to_due_amount) >= lai_orm->get_interest_expected())
+        if (fabs(undue_to_due_interest_amount) >= lai_orm->get_interest_expected())
             nli_orm->set_undue_to_due_interest_ledger_amount_id(undue_to_due_interest_amount_id); 
 
         if (fabs(undue_to_due_interest_amount) > lai_orm->get_interest_expected())
             nli_orm->set_undue_to_due_extra_interest_ledger_amount_id(undue_to_due_interest_amount_id);
+        
         else if (undue_to_due_extra_interest_amount_id != 0)
             nli_orm->set_undue_to_due_extra_interest_ledger_amount_id(undue_to_due_extra_interest_amount_id);
         
+
         if ( (nli_orm->get_undue_to_due_extra_interest_ledger_amount_id() ||  nli_orm->get_first_installment_interest_adjustment() == 0) && (nli_orm->get_undue_to_due_interest_ledger_amount_id() != 0) && ((nli_orm->get_undue_to_due_interest_ledger_amount_id() != 0) || (lai_orm->get_interest_expected() == 0)) )
             return true;
 
-
-        if (undue_to_due_extra_interest_amount_id != 0)
+        if(undue_to_due_extra_interest_amount_id != 0)
             nli_orm->set_undue_to_due_extra_interest_ledger_amount_id(undue_to_due_extra_interest_amount_id);
         if (undue_to_due_amount_id != 0 )
             nli_orm->set_undue_to_due_ledger_amount_id(undue_to_due_amount_id);
-        if(undue_to_due_extra_interest_amount_id != 0){
-            nli_orm->set_undue_to_due_extra_interest_ledger_amount_id(undue_to_due_extra_interest_amount_id);
+        if((undue_to_due_interest_amount_id != 0)  && (fabs(undue_to_due_interest_amount) >= lai_orm->get_interest_expected())){
+            nli_orm->set_undue_to_due_interest_ledger_amount_id(undue_to_due_interest_amount_id);
             if (fabs(undue_to_due_interest_amount) > lai_orm->get_interest_expected())
                 nli_orm->set_undue_to_due_extra_interest_ledger_amount_id(undue_to_due_interest_amount_id);
         }
     }
-
+    return false;
 }
 
 void UndueToDue::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts){
-    // cout << "UndueToDue InstallmentID: " << lai_orm->get_id() << endl;
     lal_orm->set_lms_closure_status(ledger_status::LEDGER_UNDUE_TO_DUE);
 
     if ((*leg_amounts).find("Interest income becoming due") != (*leg_amounts).end())
     {
+        cout << "STAMPPPP 11" << endl;
         LedgerCompositLeg * leg_interest = (*leg_amounts)["Interest income becoming due"];
         nli_orm->setUpdateRefernce("undue_to_due_interest_ledger_amount_id",leg_interest->getLedgerCompositeLeg()->first);
     } 
 
     if ((*leg_amounts).find("Loan principal becoming due") != (*leg_amounts).end())
     {
+        cout << "STAMPPPP 22" << endl;
         LedgerCompositLeg * leg_principal = (*leg_amounts)["Loan principal becoming due"];
         nli_orm->setUpdateRefernce("undue_to_due_ledger_amount_id",leg_principal->getLedgerCompositeLeg()->first);
     }
-
 }
+
+
 PSQLJoinQueryIterator* UndueToDue::installments_becoming_due_agg(string _closure_date_string)
 {
      PSQLJoinQueryIterator * installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
@@ -273,21 +287,26 @@ PSQLJoinQueryIterator* UndueToDue::installments_becoming_due_agg(string _closure
                     )
                 ),
                 new UnaryOperator ("loan_app_loan.status_id",nin,"12,13"),
-                new UnaryOperator ("new_lms_installmentextension.status_id",nin,"8,15,16,12,13")
+                new UnaryOperator ("new_lms_installmentextension.status_id",nin,"8,15,16,12,13"),
+
+                new UnaryOperator ("loan_app_loan.id",ne,"14312") 
+
+
+     
             )
         );
         
-        installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=8 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_paid_off_day");
-        installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=15 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_charge_off_day_status");
+        installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=8 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id asc limit 1)","settled_paid_off_day");
+        installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=15 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id asc limit 1)","settled_charge_off_day_status");
         
-        installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_amount_id");
-        installments_becoming_due_iterator->addExtraFromField("(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_amount");
+        installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id asc limit 1)","undue_to_due_amount_id");
+        installments_becoming_due_iterator->addExtraFromField("(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id asc limit 1)","undue_to_due_amount");
         
-        installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_interest_amount_id");
-        installments_becoming_due_iterator->addExtraFromField("(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_interest_amount");
+        installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id asc limit 1)","undue_to_due_interest_amount_id");
+        installments_becoming_due_iterator->addExtraFromField("(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id asc limit 1)","undue_to_due_interest_amount");
         
-        installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null and amount = new_lms_installmentextension.first_installment_interest_adjustment order by la.id desc limit 1)","undue_to_due_extra_interest_amount_id");
-        installments_becoming_due_iterator->addExtraFromField("(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null and amount = new_lms_installmentextension.first_installment_interest_adjustment order by la.id desc limit 1)","undue_to_due_extra_interest_amount");
+        installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null and amount = new_lms_installmentextension.first_installment_interest_adjustment order by la.id asc limit 1)","undue_to_due_extra_interest_amount_id");
+        installments_becoming_due_iterator->addExtraFromField("(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null and amount = new_lms_installmentextension.first_installment_interest_adjustment order by la.id asc limit 1)","undue_to_due_extra_interest_amount");
         
         
         return installments_becoming_due_iterator;
@@ -308,12 +327,17 @@ PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(string _c
                     new ANDOperator(
                         new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
                         new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,"interest_paid_at", true)
+                    ),
+                    new ANDOperator(
+                        new UnaryOperator ("new_lms_installmentextension.is_extra_interest_paid",eq,true),
+                        new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,"extra_interest_paid_at", true)
                     )
                 ),
 
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"2,4"),
                 new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,true),
-                new UnaryOperator ("new_lms_installmentextension.principal_paid_at",lte,_closure_date_string),
+                new UnaryOperator ("new_lms_installmentextension.principal_paid_at::Date",lte,_closure_date_string),
+
 
                 new OROperator(
                     new UnaryOperator ("new_lms_installmentextension.undue_to_due_ledger_amount_id",isnull,"", true),
@@ -321,6 +345,11 @@ PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(string _c
                     new ANDOperator(
                         new UnaryOperator ("new_lms_installmentextension.settlement_accrual_interest_amount",gt,"0"),
                         new UnaryOperator ("new_lms_installmentextension.undue_to_due_interest_ledger_amount_id",isnull,"",true)
+                    ),
+                    new ANDOperator(
+                        new UnaryOperator ("new_lms_installmentextension.first_installment_interest_adjustment",gt,"0"),
+                        new UnaryOperator ("new_lms_installmentextension.undue_to_due_extra_interest_ledger_amount_id",isnull,"",true),
+                        new UnaryOperator ("new_lms_installmentextension.is_extra_interest_paid",eq,true)
                     )
                 ),
 
@@ -334,15 +363,29 @@ PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(string _c
                         new UnaryOperator ("new_lms_installmentextension.status_id",ne,"16"),
                         new UnaryOperator ("new_lms_installmentextension.payment_status",ne,"3")
                     )                
-                )
+                ),
+
+
+                new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",in,"1474595, 172822,1498105, 992082, 109646,1075301 ,  495675") ,
+                new UnaryOperator ("loan_app_loan.id",ne,"14312") 
+
+
+
             )
         );
 
-        sticky_installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=8 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_paid_off_day");
-        sticky_installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=15 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id desc limit 1)","settled_charge_off_day_status");
-        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 27 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_amount");
-        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id desc limit 1)","undue_to_due_interest_amount");
-
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=8 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id asc limit 1)","settled_paid_off_day");
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select lal.day from loan_app_loanstatushistroy lal where lal.status_id=15 and lal.reversal_order_id is null and lal.status_type = 0 and lal.loan_id = loan_app_loan.id order by id asc limit 1)","settled_charge_off_day_status");
+        
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id asc limit 1)","undue_to_due_amount_id");
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 26 and le.reverse_entry_id is null order by la.id asc limit 1)","undue_to_due_amount");
+        
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id asc limit 1)","undue_to_due_interest_amount_id");
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null order by la.id asc limit 1)","undue_to_due_interest_amount");
+        
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.id from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null and amount = new_lms_installmentextension.first_installment_interest_adjustment order by la.id asc limit 1)","undue_to_due_extra_interest_amount_id");
+        sticky_installments_becoming_due_iterator->addExtraFromField("(select la.amount from ledger_amount la inner join ledger_entry le on le.id  = la.entry_id where la.installment_id = loan_app_installment.id and le.template_id = 10 and reversal_bool = false and account_id = 32 and le.reverse_entry_id is null and amount = new_lms_installmentextension.first_installment_interest_adjustment order by la.id asc limit 1)","undue_to_due_extra_interest_amount");
+        
         return sticky_installments_becoming_due_iterator;
 }
 PSQLJoinQueryIterator* UndueToDue::aggregator(string _closure_date_string, int _agg_number)
