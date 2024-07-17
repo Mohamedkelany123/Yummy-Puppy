@@ -55,6 +55,7 @@ void StickyInstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int 
     undueToDueInterest.setupLedgerClosureService(interest_service);
     map<string, LedgerAmount*>* ledgerInterestAmounts = interest_service->inference();
     if (ledgerInterestAmounts != nullptr)
+
     {    
         if (lsh_settle_charge_off_day.getDateString() != ""){
             if ((*ledgerInterestAmounts).find("Interest income becoming due") != (*ledgerInterestAmounts).end())
@@ -66,7 +67,7 @@ void StickyInstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int 
                     localTemplateManager1->setEntryData(ledgerInterestAmounts);
                     ledger_entry_primitive_orm* entry = localTemplateManager1->buildEntry(lsh_settle_charge_off_day);
                     map <string,LedgerCompositLeg*> *leg_amounts = localTemplateManager1->get_ledger_amounts();
-                    // undueToDueInterest.stampORMs(leg_amounts);
+                    undueToDueInterest.stampORMs(leg_amounts);
                     
                 
                 }else if(nli_orm->get_is_extra_interest_paid() == true && nli_orm->get_undue_to_due_extra_interest_ledger_amount_id() != 0 && (BDate(nli_orm->get_extra_interest_paid_at()))() < (BDate(lai_orm->get_day()))()){
@@ -75,7 +76,7 @@ void StickyInstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int 
                     localTemplateManager2->setEntryData(ledgerInterestAmounts);
                     ledger_entry_primitive_orm* entry = localTemplateManager2->buildEntry(nli_orm->get_extra_interest_paid_at());
                     map <string,LedgerCompositLeg*> *leg_amounts = localTemplateManager2->get_ledger_amounts();
-                    // undueToDueInterest.stampORMs(leg_amounts);                
+                    undueToDueInterest.stampORMs(leg_amounts);                
                 }
             }
         }
@@ -98,7 +99,7 @@ void StickyInstallmentBecomingDueFunc (map<string, PSQLAbstractORM*>* orms, int 
         BDate principal_entry_date(nli_orm->get_principal_paid_at());
         ledger_entry_primitive_orm* entry = localTemplateManager3->buildEntry(principal_entry_date);
         map <string,LedgerCompositLeg*> *leg_amounts = localTemplateManager3->get_ledger_amounts();
-        // undueToDueInterest.stampORMs(leg_amounts);     
+        undueToDueInterest.stampORMs(leg_amounts);     
         }else{
         cout << "Principal : Nothing Created For Sticky Undue To Due For InsID:" << lai_orm->get_id() << endl;
     }

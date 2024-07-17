@@ -93,7 +93,6 @@ void UndueToDue::setupLedgerClosureService (LedgerClosureService * ledgerClosure
 
 LedgerAmount * UndueToDue::_get_installment_insterest(LedgerClosureStep *undueToDue)
 {  
-    
     LedgerAmount * la = ((UndueToDue*)undueToDue)->_init_ledger_amount();
     loan_app_installment_primitive_orm* lai_orm = ((UndueToDue*)undueToDue)->get_loan_app_installment();
     new_lms_installmentextension_primitive_orm* nli_orm = ((UndueToDue*)undueToDue)->get_new_lms_installment_extention();
@@ -113,8 +112,6 @@ LedgerAmount * UndueToDue::_get_installment_insterest(LedgerClosureStep *undueTo
         la->setAmount(0);
         return la;
     }        
-
-
 
     if (nli_orm->get_undue_to_due_interest_ledger_amount_id() == 0)
     {
@@ -178,17 +175,16 @@ LedgerAmount * UndueToDue::_get_installment_insterest(LedgerClosureStep *undueTo
         {
             la->setAmount(ROUND(nli_orm->get_first_installment_interest_adjustment()));
             return la;
-        }else{
-            la->setAmount(0);
-            return la;
-        }    
+        }
     }
+
+    la->setAmount(0);
+    return la;
 }
 
 
 LedgerAmount * UndueToDue::_get_installment_principal(LedgerClosureStep *undueToDue)
 {  
-
     new_lms_installmentextension_primitive_orm* nli_orm = ((UndueToDue*)undueToDue)->get_new_lms_installment_extention();
     loan_app_installment_primitive_orm* lai_orm = ((UndueToDue*)undueToDue)->get_loan_app_installment();
     LedgerAmount * la = ((UndueToDue*)undueToDue)->_init_ledger_amount();
@@ -199,7 +195,7 @@ LedgerAmount * UndueToDue::_get_installment_principal(LedgerClosureStep *undueTo
     bool checkAmounts = ((UndueToDue*)undueToDue)->checkAmounts();
     if(checkAmounts)
     {
-        // cout << "LOLOLOLOLLOLOLOLOLOLOLOLOLO" << endl;
+        cout << "LOLOLOLOLLOLOLOLOLOLOLOLOLO" << endl;
         la->setAmount(0);
         return la;
     }        
@@ -223,11 +219,10 @@ bool UndueToDue::checkAmounts(){
     if ((undue_to_due_amount_id != 0) && (undue_to_due_interest_amount_id != 0))
     {
         nli_orm->set_undue_to_due_ledger_amount_id(undue_to_due_amount_id);
-        
-        if (fabs(undue_to_due_interest_amount) >= lai_orm->get_interest_expected())
+        if (abs(undue_to_due_interest_amount) >= float(lai_orm->get_interest_expected())){
             nli_orm->set_undue_to_due_interest_ledger_amount_id(undue_to_due_interest_amount_id); 
-
-        if (fabs(undue_to_due_interest_amount) > lai_orm->get_interest_expected())
+        }
+        if (abs(undue_to_due_interest_amount) > float(lai_orm->get_interest_expected()))
             nli_orm->set_undue_to_due_extra_interest_ledger_amount_id(undue_to_due_interest_amount_id);
         
         else if (undue_to_due_extra_interest_amount_id != 0)
@@ -241,9 +236,9 @@ bool UndueToDue::checkAmounts(){
             nli_orm->set_undue_to_due_extra_interest_ledger_amount_id(undue_to_due_extra_interest_amount_id);
         if (undue_to_due_amount_id != 0 )
             nli_orm->set_undue_to_due_ledger_amount_id(undue_to_due_amount_id);
-        if((undue_to_due_interest_amount_id != 0)  && (fabs(undue_to_due_interest_amount) >= lai_orm->get_interest_expected())){
+        if((undue_to_due_interest_amount_id != 0)  && (abs(undue_to_due_interest_amount) >= float(lai_orm->get_interest_expected()))){
             nli_orm->set_undue_to_due_interest_ledger_amount_id(undue_to_due_interest_amount_id);
-            if (fabs(undue_to_due_interest_amount) > lai_orm->get_interest_expected())
+            if (abs(undue_to_due_interest_amount) > float(lai_orm->get_interest_expected()))
                 nli_orm->set_undue_to_due_extra_interest_ledger_amount_id(undue_to_due_interest_amount_id);
         }
     }
@@ -425,8 +420,6 @@ loan_app_loan_bl_orm* UndueToDue::get_loan_app_loan(){return lal_orm;}
 loan_app_installment_primitive_orm* UndueToDue::get_loan_app_installment(){return lai_orm;}
 new_lms_installmentextension_primitive_orm *UndueToDue::get_new_lms_installment_extention(){return nli_orm;}
 BDate UndueToDue::get_closing_day(){return closing_day;}
-int UndueToDue::get_partial_settle_status(){return partial_settle_status;}
-int UndueToDue::get_settle_charge_off_status(){return settle_charge_off_status;}
 int UndueToDue::get_partial_settle_status(){return partial_settle_status;}
 int UndueToDue::get_settle_charge_off_status(){return settle_charge_off_status;}
 int UndueToDue::get_undue_to_due_amount_id(){return undue_to_due_amount_id;}
