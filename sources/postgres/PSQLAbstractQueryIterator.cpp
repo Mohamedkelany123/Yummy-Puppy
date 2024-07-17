@@ -43,7 +43,7 @@ bool PSQLAbstractQueryIterator::execute()
         from_string += "," +e.second+" \""+e.first+"\"";
         // distinct += "," +e.second+" \""+e.first+"\"";
     }
-    cout << "From string ::::::::::::: " << from_string;
+    // cout << "From string ::::::::::::: " << from_string;
 
     string select_stmt = "";
     if (distinct != "") {

@@ -171,7 +171,7 @@ PSQLJoinQueryIterator* UpdatingProvisions::aggregator(string _closure_date_strin
     la.bond_id = tms_app_loaninstallmentfundingrequest.funding_facility_id \ 
     and le.entry_date between " + start_date_string + " and " + end_date_string + ")","impairment_provisions_balance_off");
 
-    psqlQueryJoin->addExtraFromField("(select percentage from loan_app_provision lap where status_id = (select status_id from loan_app_loanstatushistroy lal where loan_id= loan_app_loan.id and day <= " + end_date_string + " and status_type = 1 order by id limit 1))","history_provision_percentage");
+    psqlQueryJoin->addExtraFromField("(select percentage from loan_app_provision lap where status_id = (select status_id from loan_app_loanstatushistroy lal where loan_id= loan_app_loan.id and day <= " + end_date_string + " and status_type = 1 order by id desc limit 1))","history_provision_percentage");
     psqlQueryJoin->addExtraFromField("(select percentage from loan_app_provision where status_id = loan_app_loan.fra_status_id)","loan_provision_percentage");
     // psqlJoinQuery->addExtraFromField("(select onbalance from tms_app_loaninstallmentfundingrequest tal where tal.id = tms_app_loaninstallmentfundingrequest.id)","on_balance");
     // psqlJoinQuery->addExtraFromField("(select funding_facility_id from tms_app_loaninstallmentfundingrequest tal2 where tal2.funding_facility_id=tms_app_loaninstallmentfundingrequest.funding_facility_id and tal2.loan_id = loan_app_loan.id limit 1)","funding_facility_id");
@@ -188,7 +188,7 @@ PSQLJoinQueryIterator* UpdatingProvisions::aggregator(string _closure_date_strin
     return psqlQueryJoin;
 }
 
-loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator2(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date){
+loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator_onbalance(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date){
     string query_end_date = end_fiscal_year; 
     if (end_date != ""){
         query_end_date = end_date;
@@ -199,26 +199,26 @@ loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator2(string _cl
 
     psqlJoinQuery->filter(
         ANDOperator(
-            new UnaryOperator("loan_app_loan.id",eq,30),
-            new UnaryOperator("loan_app_loan.last_closing_day",lte,_closure_date_string),
+            new UnaryOperator("loan_app_loan.id",in,"10000,10001,10002,10003,10005,10006,10007,10008,10009,10010,10011,10012,10013,10014,10015,10016,10017,10018,10019,10020,10021,10022,10023,10024,10025,10026,10027,10028,10029,10030"),
+            new UnaryOperator("loan_app_loan.last_closing_day",lt,_closure_date_string),
             new UnaryOperator("loan_app_loan.loan_booking_day",lte,_closure_date_string),
             new UnaryOperator("loan_app_loan.status_id",nin,"12,13")
             // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::UPDATE_PROVISION-1)
         )
     );
 
-    psqlJoinQuery->addExtraFromField("WITH parent_account AS (\
+    psqlJoinQuery->addExtraFromField("(WITH parent_account AS (\
         SELECT id \
         FROM ledger_account \
         WHERE name = 'Loans receivable (gross)'\
     ),\
     child_accounts AS (\
         SELECT id \
-        FROM ledger_account \
+        FROM ledger_account \ 
         WHERE parent_id = (SELECT id FROM parent_account) \
     )\
-    SELECT SUM(amount) \
-    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    SELECT SUM(CASE WHEN lac.type='AS' OR lac.type='EX' THEN -1*amount_local ELSE amount_local END) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id inner join ledger_account lac on la.account_id =  lac.id  \
     WHERE account_id IN ( \
         SELECT id \
         FROM child_accounts \
@@ -226,20 +226,22 @@ loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator2(string _cl
         SELECT id \
         FROM parent_account \
     ) \
-    AND loan_id = loan_app_loan.id and la.bond_id is null and le.entry_date between " + start_date_string + " and " + end_date_string + ")","loans_rec_balance");
+    AND loan_id = loan_app_loan.id and \
+    la.bond_id is null \
+    and le.entry_date between " + start_date_string + " and " + end_date_string + ")","loans_rec_balance");
 
-    psqlJoinQuery->addExtraFromField("WITH parent_account AS (\
+    psqlJoinQuery->addExtraFromField("(WITH parent_account AS (\
         SELECT id \
         FROM ledger_account \
         WHERE name = 'Long-term loans receivable (net)'\
     ),\
     child_accounts AS (\
         SELECT id \
-        FROM ledger_account \
+        FROM ledger_account \ 
         WHERE parent_id = (SELECT id FROM parent_account) \
     )\
-    SELECT SUM(amount) \
-    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    SELECT SUM(CASE WHEN lac.type='AS' OR lac.type='EX' THEN -1*amount_local ELSE amount_local END) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id inner join ledger_account lac on la.account_id =  lac.id  \
     WHERE account_id IN ( \
         SELECT id \
         FROM child_accounts \
@@ -247,20 +249,22 @@ loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator2(string _cl
         SELECT id \
         FROM parent_account \
     ) \
-    AND loan_id = loan_app_loan.id and la.bond_id is null and le.entry_date between " + start_date_string + " and " + end_date_string + ")","long_term_balance");
+    AND loan_id = loan_app_loan.id and \
+    la.bond_id is null \
+    and le.entry_date between " + start_date_string + " and " + end_date_string + ")","long_term_balance");
 
-    psqlJoinQuery->addExtraFromField("WITH parent_account AS (\
+    psqlJoinQuery->addExtraFromField("(WITH parent_account AS (\
         SELECT id \
         FROM ledger_account \
         WHERE name = 'Impairment provisions, On-balance sheet'\
     ),\
     child_accounts AS (\
         SELECT id \
-        FROM ledger_account \
+        FROM ledger_account \ 
         WHERE parent_id = (SELECT id FROM parent_account) \
     )\
-    SELECT SUM(amount) \
-    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id   \
+    SELECT SUM(CASE WHEN lac.type='AS' OR lac.type='EX' THEN -1*amount_local ELSE amount_local END) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id inner join ledger_account lac on la.account_id =  lac.id  \
     WHERE account_id IN ( \
         SELECT id \
         FROM child_accounts \
@@ -268,9 +272,117 @@ loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator2(string _cl
         SELECT id \
         FROM parent_account \
     ) \
-    AND loan_id = loan_app_loan.id and la.bond_id is null and le.entry_date between " + start_date_string + " and " + end_date_string + ")","impairment_provisions_balance");
+    AND loan_id = loan_app_loan.id and \
+    la.bond_id is null \
+    and le.entry_date between " + start_date_string + " and " + end_date_string + ")","impairment_provisions_balance");
 
-    psqlJoinQuery->addExtraFromField("(select percentage from loan_app_provision lap where status_id = (select status_id from loan_app_loanstatushistroy lal where loan_id= loan_app_loan.id and day <= " + end_date_string + " and status_type = 1 order by id limit 1))","history_provision_percentage");
+    psqlJoinQuery->addExtraFromField("(select percentage from loan_app_provision lap where status_id = (select status_id from loan_app_loanstatushistroy lal where loan_id= loan_app_loan.id and day <= " + end_date_string + " and status_type = 1 order by id desc limit 1))","history_provision_percentage");
+    psqlJoinQuery->addExtraFromField("(select percentage from loan_app_provision where status_id = loan_app_loan.fra_status_id)","loan_provision_percentage");
+
+    cout << psqlJoinQuery;
+
+    return psqlJoinQuery;
+}
+
+PSQLJoinQueryIterator* UpdatingProvisions::aggregator_offbalance(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date){
+    string query_end_date = end_fiscal_year; 
+    if (end_date != ""){
+        query_end_date = end_date;
+    }
+    string start_date_string = "'" + start_fiscal_year + "'";
+    string end_date_string = "'" + end_date + "'";
+    PSQLJoinQueryIterator * psqlJoinQuery = new PSQLJoinQueryIterator("main",
+    {
+        new tms_app_bond_primitive_orm("main"),
+        new tms_app_loanfundingrequest_primitive_orm("main"),
+        new loan_app_loan_primitive_orm("main")
+        },
+    {
+        {{"tms_app_bond","fundingfacility_ptr_id"},{"tms_app_loanfundingrequest","funding_facility_id"}},
+        {{"tms_app_loanfundingrequest","loan_id"},{"loan_app_loan","id"}}
+    }
+    );
+
+    psqlJoinQuery->filter(
+        ANDOperator(
+            new UnaryOperator("loan_app_loan.id",in,"10000,10001,10002,10003,10005,10006,10007,10008,10009,10010,10011,10012,10013,10014,10015,10016,10017,10018,10019,10020,10021,10022,10023,10024,10025,10026,10027,10028,10029,10030"),
+            new UnaryOperator("loan_app_loan.last_closing_day",lt,_closure_date_string),
+            new UnaryOperator("loan_app_loan.loan_booking_day",lte,_closure_date_string),
+            new UnaryOperator("loan_app_loan.status_id",nin,"12,13")
+            // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::UPDATE_PROVISION-1)
+        )
+    );
+
+    psqlJoinQuery->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Loans receivable (gross)'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(CASE WHEN lac.type='AS' OR lac.type='EX' THEN -1*amount_local ELSE amount_local END) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id inner join ledger_account lac on la.account_id =  lac.id  \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and \
+    la.bond_id = tms_app_loanfundingrequest.funding_facility_id \
+    and le.entry_date between " + start_date_string + " and " + end_date_string + ")","loans_rec_balance");
+
+    psqlJoinQuery->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Long-term loans receivable (net)'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(CASE WHEN lac.type='AS' OR lac.type='EX' THEN -1*amount_local ELSE amount_local END) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id inner join ledger_account lac on la.account_id =  lac.id  \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and \
+    la.bond_id = tms_app_loanfundingrequest.funding_facility_id \
+    and le.entry_date between " + start_date_string + " and " + end_date_string + ")","long_term_balance");
+
+    psqlJoinQuery->addExtraFromField("(WITH parent_account AS (\
+        SELECT id \
+        FROM ledger_account \
+        WHERE name = 'Impairment provisions, On-balance sheet'\
+    ),\
+    child_accounts AS (\
+        SELECT id \
+        FROM ledger_account \ 
+        WHERE parent_id = (SELECT id FROM parent_account) \
+    )\
+    SELECT SUM(CASE WHEN lac.type='AS' OR lac.type='EX' THEN -1*amount_local ELSE amount_local END) \
+    FROM ledger_amount la inner join ledger_entry le on la.entry_id = le.id inner join ledger_account lac on la.account_id =  lac.id  \
+    WHERE account_id IN ( \
+        SELECT id \
+        FROM child_accounts \
+        UNION ALL \
+        SELECT id \
+        FROM parent_account \
+    ) \
+    AND loan_id = loan_app_loan.id and \
+    la.bond_id = tms_app_loanfundingrequest.funding_facility_id \
+    and le.entry_date between " + start_date_string + " and " + end_date_string + ")","impairment_provisions_balance");
+
+    psqlJoinQuery->addExtraFromField("(select percentage from loan_app_provision lap where status_id = (select status_id from loan_app_loanstatushistroy lal where loan_id= loan_app_loan.id and day <= " + end_date_string + " and status_type = 1 order by id desc limit 1))","history_provision_percentage");
     psqlJoinQuery->addExtraFromField("(select percentage from loan_app_provision where status_id = loan_app_loan.fra_status_id)","loan_provision_percentage");
 
     cout << psqlJoinQuery;
@@ -280,7 +392,7 @@ loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator2(string _cl
 
 UpdatingProvisions::UpdatingProvisions(map<string,PSQLAbstractORM*>*_orms,string start_date_input, string end_date_input){
     lal_orm = ORM(loan_app_loan,_orms);
-    tal_orm = ORM(tms_app_loaninstallmentfundingrequest, _orms);
+    tal_orm = ORM(tms_app_loanfundingrequest, _orms);
 
     cout << "LOAN ID : " << lal_orm->get_id() << endl;
     cout << "MERCHANT ID: " << lal_orm->get_merchant_id() << endl;
@@ -299,33 +411,36 @@ UpdatingProvisions::UpdatingProvisions(map<string,PSQLAbstractORM*>*_orms,string
     loan_provision_percentage = gorm->toInt("loan_provision_percentage");
     cout << "LOAN PERCENTAGE " << gorm->get("loan_provision_percentage");
     on_balance = gorm->toBool("on_balance");
-    funding_facility_id = gorm->toInt("funding_facility_id");
-    cout << "BOND ID : " << gorm->get("funding_facility_id") << endl;
+    cout << "BOND ID : " << tal_orm->get_funding_facility_id() << endl;
+    on_balance = false;
     start_date = start_date_input;
     end_date = end_date_input;
     missing_provisions = 0;
+    this->calculateMissingProvisions();
 }
 
 UpdatingProvisions::UpdatingProvisions(loan_app_loan_primitive_orm * loan,string start_date_input,string end_date_input){
     lal_orm = loan;
     cout << "LOAN ID : " << lal_orm->get_id() << endl;
     cout << "MERCHANT ID: " << lal_orm->get_merchant_id() << endl;
-    long_term_balance = std::stof(lal_orm->getExtra("long_term_balance"));
+    long_term_balance = lal_orm->getExtraToFloat("long_term_balance");
     cout << "LONG TERM BALANCE : ";
     cout << long_term_balance << endl;
-    loans_rec_balance = std::stof(lal_orm->getExtra("loans_rec_balance"));
+    loans_rec_balance = lal_orm->getExtraToFloat("loans_rec_balance");
     cout << "Loans receivable BALANCE : ";
     cout << loans_rec_balance << endl;
-    impairment_provisions_balance = std::stof(lal_orm->getExtra("impairment_provisions_balance"));
+    impairment_provisions_balance = lal_orm->getExtraToFloat("impairment_provisions_balance");
     cout << "IMP prov BALANCE : ";
     cout << impairment_provisions_balance << endl;
-    history_provision_percentage = std::stoi(lal_orm->getExtra("history_provision_percentage"));
-    cout << "HISTORY PERCENTAGE " << lal_orm->getExtra("history_provision_percentage");
-    loan_provision_percentage = std::stoi(lal_orm->getExtra("loan_provision_percentage"));
-    cout << "LOAN PERCENTAGE " << lal_orm->getExtra("loan_provision_percentage");
+    history_provision_percentage = lal_orm->getExtraToFloat("history_provision_percentage");
+    cout << "HISTORY PERCENTAGE " << history_provision_percentage << endl;;
+    loan_provision_percentage = lal_orm->getExtraToFloat("loan_provision_percentage");
+    cout << "LOAN PERCENTAGE " << loan_provision_percentage << endl;;
     start_date = start_date_input;
     end_date = end_date_input;
     missing_provisions = 0;
+    on_balance = true;
+    this->calculateMissingProvisions();
 }
 
 LedgerAmount* UpdatingProvisions::_init_ledger_amount(){
@@ -333,9 +448,9 @@ LedgerAmount* UpdatingProvisions::_init_ledger_amount(){
     lg->setCustomerId(lal_orm->get_customer_id());
     lg->setLoanId(lal_orm->get_id());
     lg->setMerchantId(lal_orm->get_merchant_id());
-    // if(!on_balance){
-    //     lg->setBondId(funding_facility_id);
-    // }
+    if(!on_balance){
+        lg->setBondId(funding_facility_id);
+    }
     return lg;
 }
 
@@ -365,26 +480,36 @@ void UpdatingProvisions::set_missing_provisions(float x){
     missing_provisions = x;
 }
 
-void UpdatingProvisions::setMissingProvisions(){
+void UpdatingProvisions::calculateMissingProvisions(){
     float expected_provisions = 0;
     float loan_marginalized_balance = loans_rec_balance + long_term_balance;
+    cout << "LOAN MARG BALANCE = " << loan_marginalized_balance << endl;
     if(end_date != ""){
+        cout << "MATH : " << (1/100) * 7384.13 << endl;
         expected_provisions = (history_provision_percentage / 100) * loan_marginalized_balance;
+        cout << "CALCULATING EXPECTED PROVISIONS HISTORY : (" << history_provision_percentage << "/ 100) * " << loan_marginalized_balance << endl;
+        cout << "HISTORY EXPECTED PROVISIONS = " << expected_provisions << endl;
     }
     else{
         expected_provisions = (loan_provision_percentage / 100) * loan_marginalized_balance;
     }
     // cout << "EXPECTED PROVISIONS : " << expected_provisions << endl;
     missing_provisions =  std::round((expected_provisions - std::abs(impairment_provisions_balance)) * 100.0) / 100.0;
+    cout << "MISSING PROVISIONS = " << missing_provisions << endl;
 }
 
 LedgerAmount * UpdatingProvisions::_increasing_provisions(LedgerClosureStep * updatingProvisionsStep){
     float missing_provisions = ((UpdatingProvisions*)updatingProvisionsStep)->get_missing_provisions();
-    // cout << "MISSING PROVISIONS : " << missing_provisions << endl;
-    if(missing_provisions > 0){
-        // cout << "-----------INCREASING PROVISIONS WITH " << missing_provisions << endl;
+    cout << "MISSING PROVISIONS : " << missing_provisions << endl;
+    if(missing_provisions > 0.0){
+        cout << "-----------INCREASING PROVISIONS WITH " << missing_provisions << endl;
         LedgerAmount * la = ((UpdatingProvisions*)updatingProvisionsStep)->_init_ledger_amount();
         la->setAmount(missing_provisions);
+        return la;
+    }
+    else{
+        LedgerAmount * la = ((UpdatingProvisions*)updatingProvisionsStep)->_init_ledger_amount();
+        la->setAmount(0.0);
         return la;
     }
 }
@@ -392,10 +517,15 @@ LedgerAmount * UpdatingProvisions::_increasing_provisions(LedgerClosureStep * up
 LedgerAmount * UpdatingProvisions::_decreasing_provisions(LedgerClosureStep * updatingProvisionsStep){
     float missing_provisions = ((UpdatingProvisions*)updatingProvisionsStep)->get_missing_provisions();
     cout << "GOT MISSING PROVISIONS WITH : " << missing_provisions << endl;
-    if(missing_provisions < 0){
+    if(missing_provisions < 0.0){
         cout << "-----------DECREASING PROVISIONS WITH " << missing_provisions << endl;
         LedgerAmount * la = ((UpdatingProvisions*)updatingProvisionsStep)->_init_ledger_amount();
         la->setAmount(missing_provisions);
+        return la;
+    }
+    else{
+        LedgerAmount * la = ((UpdatingProvisions*)updatingProvisionsStep)->_init_ledger_amount();
+        la->setAmount(0.0);
         return la;
     }
 }

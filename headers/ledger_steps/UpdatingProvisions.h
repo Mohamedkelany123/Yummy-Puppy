@@ -10,14 +10,14 @@
 class UpdatingProvisions : public LedgerClosureStep {
     private:
         loan_app_loan_primitive_orm * lal_orm;
-        tms_app_loaninstallmentfundingrequest_primitive_orm * tal_orm;
+        tms_app_loanfundingrequest_primitive_orm * tal_orm;
         float loans_rec_balance;
         float long_term_balance;
         float impairment_provisions_balance;
         string start_date;
         string end_date;
-        int history_provision_percentage;
-        int loan_provision_percentage;
+        float history_provision_percentage;
+        float loan_provision_percentage;
         float missing_provisions;
         bool on_balance;
         int funding_facility_id;
@@ -26,11 +26,12 @@ class UpdatingProvisions : public LedgerClosureStep {
     map<string, funcPtr> funcMap;
     UpdatingProvisions(map<string,PSQLAbstractORM*>* _orms,string start_date, string end_date);
     UpdatingProvisions(loan_app_loan_primitive_orm * lal_orm,string start_date, string end_date);
-    void setMissingProvisions();
+    void calculateMissingProvisions();
     void setupLedgerClosureService(LedgerClosureService * ledgerClosureService);
     LedgerAmount * _init_ledger_amount();
     static PSQLJoinQueryIterator* aggregator(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date);
-    static loan_app_loan_primitive_orm_iterator* aggregator2(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date);
+    static loan_app_loan_primitive_orm_iterator* aggregator_onbalance(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date);
+    static PSQLJoinQueryIterator* aggregator_offbalance(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date);
     static void update_step(); 
 
     //Getters

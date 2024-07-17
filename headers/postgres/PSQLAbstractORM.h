@@ -68,6 +68,7 @@ class PSQLAbstractORM
         string compose_field_with_index (string field_name);
         void setExtra (string fname, string fvalue);
         string getExtra (string fname);
+        float getExtraToFloat(string fname);
         void set_is_add_referenced(bool referenced);
         bool  get_is_add_referenced();
         virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);

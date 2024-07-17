@@ -120,7 +120,7 @@ int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "updating_provisions"; 
-    string closure_date_string = "2024-07-06"; 
+    string closure_date_string = "2024-07-02"; 
     int threadsCount = 1;
     string databaseName = "django_ostaz_02072024_aliaclosure";
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
@@ -418,21 +418,27 @@ int main (int argc, char ** argv)
     if ( strcmp (step,"updating_provisions") == 0 || strcmp (step,"full_closure") == 0){
         cout << "Updating Provisions" << endl;
         std::vector<std::string> dates = get_start_and_end_fiscal_year();
-        PSQLJoinQueryIterator*  updating_provisions_iterator = UpdatingProvisions::aggregator(closure_date_string,dates[0],dates[1],closure_date_string);
-        // loan_app_loan_primitive_orm_iterator* updating_provisions_all_loans_iterator = UpdatingProvisions::aggregator2(closure_date_string,dates[0],dates[1],closure_date_string);
         BlnkTemplateManager * updatingProvisionsTemplateManager = new BlnkTemplateManager(22, -1);
-
         UpdatingProvisionsStruct updatingProvisionsStruct;
         updatingProvisionsStruct.blnkTemplateManager = updatingProvisionsTemplateManager;
         updatingProvisionsStruct.closingDate = closure_date_string;
         updatingProvisionsStruct.startDate = dates[0];
         updatingProvisionsStruct.endDate = dates[1];
-
-        // updating_provisions_all_loans_iterator->process(threadsCount, UpdatingProvisionsFunc2, (void *)&updatingProvisionsStruct);
-        updating_provisions_iterator->process_aggregate(threadsCount, UpdatingProvisionsFunc, (void *)&updatingProvisionsStruct);
-        
+        // PSQLJoinQueryIterator*  updating_provisions_iterator = UpdatingProvisions::aggregator(closure_date_string,dates[0],dates[1],closure_date_string);
+        // loan_app_loan_primitive_orm_iterator*  updating_provisions_iterator = UpdatingProvisions::aggregator(closure_date_string,dates[0],dates[1],closure_date_string);
+        //ON Balance
+        loan_app_loan_primitive_orm_iterator* updating_provisions_onbalance_iterator = UpdatingProvisions::aggregator_onbalance(closure_date_string,dates[0],dates[1],closure_date_string);
+        updating_provisions_onbalance_iterator->process(threadsCount, UpdatingProvisionsFuncOn, (void *)&updatingProvisionsStruct);
+        delete updating_provisions_onbalance_iterator;
+        psqlController.ORMCommit(true,true,true, "main");  
+        //OFF Balance
+        PSQLJoinQueryIterator* updating_provisions_offbalance_iterator = UpdatingProvisions::aggregator_offbalance(closure_date_string,dates[0],dates[1],closure_date_string);
+        updating_provisions_offbalance_iterator->process(threadsCount, UpdatingProvisionsFuncOff, (void *)&updatingProvisionsStruct);
+        // updating_provisions_iterator->process_aggregate(threadsCount, UpdatingProvisionsFunc, (void *)&updatingProvisionsStruct);
+        delete updating_provisions_offbalance_iterator;
         psqlController.ORMCommit(true,true,true, "main");  
         OnboardingCommission::update_step(); 
+        delete updatingProvisionsTemplateManager;
     }
     
     if ( strcmp (step,"creditIScore") == 0 || strcmp (step,"full_closure") == 0)
