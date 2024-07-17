@@ -3,6 +3,8 @@
 
 #include <PSQLConnection.h>
 
+
+
 class PSQLAbstractORM 
 {
     protected:
@@ -125,5 +127,24 @@ class PSQLQueryJoin : public PSQLQuery
         ~PSQLQueryJoin ();
 
 };
+
+
+
+template <class T>
+class ORMVector : public vector<T *>
+{
+        private:
+        public:
+            ORMVector(){}
+            void operator += (T * orm) {
+                    this->push_back (orm);
+            }
+            ~ORMVector(){
+                    for ( int i = 0 ;i < this->size() ; i++ )
+                            delete ((*this)[i]);
+            }
+
+};
+
 
 #endif

@@ -2,6 +2,8 @@
 #include <ThorSerialize/SerUtil.h>
 #include <ThorSerialize/JsonThor.h>
 #include <EndpointService.h>
+#include <loan_app_loan_primitive_orm.h>
+
 class AbstractSerializer
 {
     private:
@@ -186,39 +188,13 @@ extern "C" HTTPService *create_object() // extern "c" not garbling function name
             [] (string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer) {
 
 
-        int threadsCount = 1;
-        PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
-            {   
-                new loan_app_loan_primitive_orm("main"),
-                new tms_app_loaninstallmentfundingrequest_primitive_orm("main"),
-                new loan_app_installment_primitive_orm("main"),
-                new new_lms_installmentextension_primitive_orm("main")
-            },
+            ORMVector <loan_app_loan_primitive_orm> ormVector = loan_app_loan_primitive_orm::fetch("main",UnaryOperator ("id",lte,100));
+            for ( int i  = 0;  i < ormVector.size() ; i ++)
             {
-                {{{"loan_app_loan","id"},{"tms_app_loaninstallmentfundingrequest","loan_id"}},JOIN_TYPE::left},
-                {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}},JOIN_TYPE::right},
-                {{{"loan_app_installment","id"},{"tms_app_loaninstallmentfundingrequest","installment_id"}},JOIN_TYPE::aux},
-                {{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},JOIN_TYPE::inner},
-            });
+                cout << ormVector[i]->get_id() << " " << ormVector[i]->get_principle() << endl;
 
-        psqlQueryJoin->filter(
-            ANDOperator 
-            (
-                new UnaryOperator ("loan_app_installment.loan_id",lte,100)
-            )
-        );
-        
-        psqlQueryJoin->setOrderBy("loan_app_installment.id asc");
-        psqlQueryJoin->process(threadsCount, [](map <string,PSQLAbstractORM*> * orms,int partition_number,mutex * shared_lock,void * extras) {
+            }
 
-                loan_app_loan_primitive_orm * lal = ORM(loan_app_loan, orms);
-                loan_app_installment_primitive_orm * lai = ORM(loan_app_installment, orms);
-                tms_app_loaninstallmentfundingrequest_primitive_orm * tlai = ORM(tms_app_loaninstallmentfundingrequest, orms);
-
-                cout << "BOND ID->" <<  tlai->get_funding_facility_id() << " LOAN ID->" <<  lai->get_loan_id() << " Installment ID->" <<  lai->get_id() << endl;
-            });
-
-            delete (psqlQueryJoin);
             cout << inputSerializer->getPOSTFawryInquiryInput().getMSGCode() << "\n";
             cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getKey() << "\n";
             cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getValue() << "\n";
