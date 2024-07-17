@@ -1,15 +1,7 @@
-#include <PSQLController.h>
-#include <TemplateManager.h>
-#include <DisburseLoans.h>
-#include <common_orm.h>
-#include <common.h>
-#include <PSQLAbstractQueryIterator.h>
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 #include <ThorSerialize/JsonThor.h>
-#include <HTTPService.h>
-#include <HTTPResponseHeader.h>
-
+#include <EndpointService.h>
 class AbstractSerializer
 {
     private:
@@ -139,88 +131,99 @@ class FawryInquiryResponse: public AbstractSerializer
 
 ThorsAnvil_MakeTrait(FawryInquiryResponse,postFawryInquiryOutput);
 
-template <class I,class O>
-string endpoint_entry(string http_body,std::function<void(string http_body,I * inputSerializer,O * outputSerializer)> f) {
+// template <class I,class O>
+// string endpoint_entry(string http_body,std::function<void(string http_body,I * inputSerializer,O * outputSerializer)> f) {
 
-        I * inputSerializer  = new I(); 
-        O * outputSerializer  = new O(); 
+//         I * inputSerializer  = new I(); 
+//         O * outputSerializer  = new O(); 
 
-        inputSerializer->serialize(http_body);
-        f (http_body,inputSerializer,outputSerializer);
-        string str_return = outputSerializer->deserialize();
-        delete (inputSerializer);
-        delete (outputSerializer);
-        return str_return;
-}
-
-
-void serve_endpoint (char * http_request,char * http_reply)
-{
-    string str = endpoint_entry <FawryInquiry,FawryInquiryResponse> (http_request,[] (string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer) {
-
-        cout << inputSerializer->getPOSTFawryInquiryInput().getMSGCode() << "\n";
-        cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getKey() << "\n";
-        cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getValue() << "\n";
-        ((FawryInquiry *)inputSerializer)->getPOSTFawryInquiryInput().getCustomProperties()[0].setValue("01001091779");
-        // jsonData.transactions.transaction[1].payment_id = 100;
-        outputSerializer->getPOSTFawryInquiryOutput().setMSGCode("Hello all");
-    });
-    strcpy (http_reply,str.c_str());
-}
-
-template <class I,class O>
-class EndpointService : public HTTPService {
-
-    private:
-        std::function<void(string http_body,I * inputSerializer,O * outputSerializer)> lambda;
-    public:
-
-        EndpointService(std::function<void(string http_body,I * inputSerializer,O * outputSerializer)> _lambda):HTTPService() 
-        {
-            lambda= _lambda;
-        }
-        bool execute(HTTPRequest * p_httpRequest,TCPSocket * p_tcpSocket)
-        {
-            string data = p_httpRequest->getBody(); // get the HTTPRequest body data
+//         inputSerializer->serialize(http_body);
+//         f (http_body,inputSerializer,outputSerializer);
+//         string str_return = outputSerializer->deserialize();
+//         delete (inputSerializer);
+//         delete (outputSerializer);
+//         return str_return;
+// }
 
 
-            string reply = endpoint_entry(data,lambda);
+// void serve_endpoint (char * http_request,char * http_reply)
+// {
+//     string str = endpoint_entry <FawryInquiry,FawryInquiryResponse> (http_request,[] (string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer) {
 
-            // string reply = "{\"msg\":\"Hello all\"}";
-            HTTPResponseHeader * httpResponseHeader = new HTTPResponseHeader(p_tcpSocket,"OK",200,"HTTP/1.1");
-            httpResponseHeader->setHeader("Content-Type","application/json");//application/json is important to have here to be able to send arabic numerals/characters
-            httpResponseHeader->setHeader("Connection","close"); 
-            httpResponseHeader->setHeader("charset","utf-8");
-            httpResponseHeader->setHeader("Content-Length",to_string(reply.length()));
-            httpResponseHeader->respond(); // Write back the response to the client through the TCPSocket
-            
-            // Write back the file to the client through the TCPSocket
-            p_tcpSocket->writeToSocket(reply.c_str(),reply.length());
-            delete (httpResponseHeader); // Delete the HTTP Response
-            return true; // return true
-        }
-        // A pure virtual method that should be implemented by all descendants to clone and create new object        
-        HTTPService * clone ()
-        {
-                return new EndpointService<I,O>(lambda);
-        }
-         ~EndpointService()
-        {
+//         cout << inputSerializer->getPOSTFawryInquiryInput().getMSGCode() << "\n";
+//         cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getKey() << "\n";
+//         cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getValue() << "\n";
+//         ((FawryInquiry *)inputSerializer)->getPOSTFawryInquiryInput().getCustomProperties()[0].setValue("01001091779");
+//         // jsonData.transactions.transaction[1].payment_id = 100;
+//         outputSerializer->getPOSTFawryInquiryOutput().setMSGCode("Hello all");
+//     });
+//     strcpy (http_reply,str.c_str());
+// }
 
-        }
-};
 
-std::function<void(string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer)> l = [] (string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer) {
-
-                cout << inputSerializer->getPOSTFawryInquiryInput().getMSGCode() << "\n";
-                cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getKey() << "\n";
-                cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getValue() << "\n";
-                inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].setValue("01001091779");
-                // jsonData.transactions.transaction[1].payment_id = 100;
-                outputSerializer->getPOSTFawryInquiryOutput().setMSGCode("Hello all from serializer"+inputSerializer->getPOSTFawryInquiryInput().getMSGCode());
-            };
+// std::function<void(string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer)> l = [] (string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer) {
+//     cout << inputSerializer->getPOSTFawryInquiryInput().getMSGCode() << "\n";
+//     cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getKey() << "\n";
+//     cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getValue() << "\n";
+//     inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].setValue("01001091779");
+//     // jsonData.transactions.transaction[1].payment_id = 100;
+//     outputSerializer->getPOSTFawryInquiryOutput().setMSGCode("Hello all from serializer"+inputSerializer->getPOSTFawryInquiryInput().getMSGCode());
+// };
 
 extern "C" HTTPService *create_object() // extern "c" not garbling function names
 {       
-    return new EndpointService <FawryInquiry,FawryInquiryResponse>(l);
+    bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_08072024","postgres","postgres");
+    if (connect){
+        cout << "Connected to DATABASE"  << endl;
+    }
+    int threadsCount = 1;
+    psqlController.addDefault("created_at","now()",true,true);
+    psqlController.addDefault("updated_at","now()",true,true);
+    psqlController.addDefault("updated_at","now()",false,true);
+    psqlController.setORMCacheThreads(threadsCount);
+
+    return new EndpointService <FawryInquiry,FawryInquiryResponse>(
+            [] (string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer) {
+
+
+        int threadsCount = 1;
+        PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
+            {   
+                new loan_app_loan_primitive_orm("main"),
+                new tms_app_loaninstallmentfundingrequest_primitive_orm("main"),
+                new loan_app_installment_primitive_orm("main"),
+                new new_lms_installmentextension_primitive_orm("main")
+            },
+            {
+                {{{"loan_app_loan","id"},{"tms_app_loaninstallmentfundingrequest","loan_id"}},JOIN_TYPE::left},
+                {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}},JOIN_TYPE::right},
+                {{{"loan_app_installment","id"},{"tms_app_loaninstallmentfundingrequest","installment_id"}},JOIN_TYPE::aux},
+                {{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}},JOIN_TYPE::inner},
+            });
+
+        psqlQueryJoin->filter(
+            ANDOperator 
+            (
+                new UnaryOperator ("loan_app_installment.loan_id",lte,100)
+            )
+        );
+        
+        psqlQueryJoin->setOrderBy("loan_app_installment.id asc");
+        psqlQueryJoin->process(threadsCount, [](map <string,PSQLAbstractORM*> * orms,int partition_number,mutex * shared_lock,void * extras) {
+
+                loan_app_loan_primitive_orm * lal = ORM(loan_app_loan, orms);
+                loan_app_installment_primitive_orm * lai = ORM(loan_app_installment, orms);
+                tms_app_loaninstallmentfundingrequest_primitive_orm * tlai = ORM(tms_app_loaninstallmentfundingrequest, orms);
+
+                cout << "BOND ID->" <<  tlai->get_funding_facility_id() << " LOAN ID->" <<  lai->get_loan_id() << " Installment ID->" <<  lai->get_id() << endl;
+            });
+
+            delete (psqlQueryJoin);
+            cout << inputSerializer->getPOSTFawryInquiryInput().getMSGCode() << "\n";
+            cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getKey() << "\n";
+            cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getValue() << "\n";
+            inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].setValue("01001091779");
+            // jsonData.transactions.transaction[1].payment_id = 100;
+            outputSerializer->getPOSTFawryInquiryOutput().setMSGCode("Hello all from serializer"+inputSerializer->getPOSTFawryInquiryInput().getMSGCode());                
+    });
 }   
