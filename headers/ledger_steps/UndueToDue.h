@@ -60,6 +60,13 @@ class UndueToDue : public LedgerClosureStep
         new_lms_installmentextension_primitive_orm *get_new_lms_installment_extention();
         int get_template_id();
         float get_provision_percentage();
+        int get_undue_to_due_amount_id();
+        float get_undue_to_due_amount();
+        int get_undue_to_due_interest_amount_id();
+        float get_undue_to_due_interest_amount();
+        int get_undue_to_due_extra_interest_amount_id();
+        float get_undue_to_due_extra_interest_amount();
+
 
         BDate get_closing_day();
         BDate get_lsh_settle_paid_off_day();
