@@ -25,10 +25,14 @@
 #include <CustomerPaymentFunc.h>
 #include <OnboardingCommission.h>
 #include <OnboardingCommissionFunc.h>
+#include <UpdatingProvisions.h>
+#include <UpdatingProvisionsFunc.h>
 #include <DueToOverdueFunc.h>
 #include <DueToOverdue.h>
 #include <DueForSettlementWithMerchant.h>
 #include <DueForSettlementWithMerchantFunc.h>
+#include <MarginalizeIncome.h>
+#include <MarginalizeIncomeFunc.h>
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -120,10 +124,10 @@ vector<string> get_start_and_end_fiscal_year(){
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "undue_to_due"; 
-    string closure_date_string = "2024-02-16"; 
+    const char * step = "updating_provisions"; 
+    string closure_date_string = "2024-07-02"; 
     int threadsCount = 1;
-    string databaseName = "c_plus_plus_07";
+    string databaseName = "sherif_go";
     bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
@@ -159,6 +163,7 @@ int main (int argc, char ** argv)
         DisburseLoanStruct disburseLoanStruct;
         disburseLoanStruct.blnkTemplateManager = blnkTemplateManager;
         disburseLoanStruct.current_provision_percentage = status_provision_percentage[1];
+
 
         psqlQueryJoin->process_aggregate(threadsCount, DisburseLoanFunc,(void *)&disburseLoanStruct);
 
@@ -303,7 +308,7 @@ int main (int argc, char ** argv)
     }
 
 
-    if (strcmp(step, "duetooverdue")==0 || strcmp(step, "full_closure")==0) {
+    if (strcmp(step, "due_to_overdue")==0 || strcmp(step, "full_closure")==0) {
         PSQLJoinQueryIterator*  installmentsBecomingOverdueIterator = DueToOverdue::aggregator(closure_date_string);
         BlnkTemplateManager* dueToOverdueTemplateManager = new BlnkTemplateManager(12, -1);
         DueToOverdueStruct dueToOverdueStruct;
@@ -361,7 +366,7 @@ int main (int argc, char ** argv)
         LongToShortTerm::update_step();
     }
 
-    if ( strcmp (step,"i_score_nid_inquiry") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"iscore_nid_inquiry") == 0 || strcmp (step,"full_closure") == 0)
     {
         //Partial accrue interest aggregator
         cout << "Starting IScore NID inquiry step!" << endl;
@@ -394,7 +399,7 @@ int main (int argc, char ** argv)
         OnboardingCommission::update_step(); 
     }
 
-    if (strcmp(step, "receiveCustomerPayments") == 0 || strcmp(step, "full_closure") == 0) {
+    if (strcmp(step, "receive_customer_payments") == 0 || strcmp(step, "full_closure") == 0) {
         PSQLJoinQueryIterator* psqlJoinQueryIterator = CustomerPayment::aggregator(closure_date_string);
         map<int, BlnkTemplateManager*>* blnkTemplateManagerMap = new map<int, BlnkTemplateManager*>;
         int template_ids[] = {18, 19, 44, 165, 53, 119, 133};
@@ -414,8 +419,34 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true, true, true, "main");
         CustomerPayment::update_step();
     }
+
+    if ( strcmp (step,"updating_provisions") == 0 || strcmp (step,"full_closure") == 0){
+        cout << "Updating Provisions" << endl;
+        std::vector<std::string> dates = get_start_and_end_fiscal_year();
+        BlnkTemplateManager * updatingProvisionsTemplateManager = new BlnkTemplateManager(22, -1);
+        UpdatingProvisionsStruct updatingProvisionsStruct;
+        updatingProvisionsStruct.blnkTemplateManager = updatingProvisionsTemplateManager;
+        updatingProvisionsStruct.closingDate = closure_date_string;
+        updatingProvisionsStruct.startDate = dates[0];
+        updatingProvisionsStruct.endDate = dates[1];
+        // PSQLJoinQueryIterator*  updating_provisions_iterator = UpdatingProvisions::aggregator(closure_date_string,dates[0],dates[1],closure_date_string);
+        // loan_app_loan_primitive_orm_iterator*  updating_provisions_iterator = UpdatingProvisions::aggregator(closure_date_string,dates[0],dates[1],closure_date_string);
+        //ON Balance
+        loan_app_loan_primitive_orm_iterator* updating_provisions_onbalance_iterator = UpdatingProvisions::aggregator_onbalance(closure_date_string,dates[0],dates[1],closure_date_string);
+        updating_provisions_onbalance_iterator->process(threadsCount, UpdatingProvisionsFuncOn, (void *)&updatingProvisionsStruct);
+        delete updating_provisions_onbalance_iterator;
+        psqlController.ORMCommit(true,true,true, "main");  
+        //OFF Balance
+        PSQLJoinQueryIterator* updating_provisions_offbalance_iterator = UpdatingProvisions::aggregator_offbalance(closure_date_string,dates[0],dates[1],closure_date_string);
+        updating_provisions_offbalance_iterator->process(threadsCount, UpdatingProvisionsFuncOff, (void *)&updatingProvisionsStruct);
+        // updating_provisions_iterator->process_aggregate(threadsCount, UpdatingProvisionsFunc, (void *)&updatingProvisionsStruct);
+        delete updating_provisions_offbalance_iterator;
+        psqlController.ORMCommit(true,true,true, "main");  
+        OnboardingCommission::update_step(); 
+        delete updatingProvisionsTemplateManager;
+    }
     
-    if ( strcmp (step,"creditIScore") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"credit_iscore") == 0 || strcmp (step,"full_closure") == 0)
     {
         PSQLJoinQueryIterator*  psqlQueryJoin = CreditIScore::aggregator(closure_date_string);
 
@@ -430,6 +461,20 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main"); 
     }
 
+    if (strcmp(step, "marginalize_income")==0 || strcmp(step, "full_closure")==0 || 1) {
+        PSQLJoinQueryIterator*  marginalizeIncomeIterator = MarginalizeIncome::aggregator(closure_date_string);
+        BlnkTemplateManager* marginalizeIncomeTemplateManager = new BlnkTemplateManager(34, -1);
+        MarginalizeIncomeStruct marginalizeIncomeStruct;
+        marginalizeIncomeStruct.blnkTemplateManager = marginalizeIncomeTemplateManager;
+        marginalizeIncomeStruct.marginalization_day = BDate(closure_date_string);
+        marginalizeIncomeIterator->process_aggregate(threadsCount, MarginalizeIncomeFunc, (void *)&marginalizeIncomeStruct);
+
+        delete(marginalizeIncomeIterator);
+        psqlController.ORMCommit(true, false, true, "main");
+        delete(marginalizeIncomeTemplateManager);
+        MarginalizeIncome::update_step();
+    }
+
 
     if ( strcmp (step,"due_for_settlement_with_merchant") == 0 || strcmp (step,"full_closure") == 0)
     {   
@@ -441,6 +486,14 @@ int main (int argc, char ** argv)
         dueForSettlementStruct.blnkTemplateManager = blnkTemplateManager;
 
         dueForSettlementIterator->process(threadsCount, dueForSettlementWithMerchantFunc,(void *)&dueForSettlementStruct);
+
+
+        delete(blnkTemplateManager);
+        delete(dueForSettlementIterator);
+        psqlController.ORMCommit(true,true,true, "main"); 
+    
+        DueForSettlement::update_step();
+
     }
     return 0;
 }
