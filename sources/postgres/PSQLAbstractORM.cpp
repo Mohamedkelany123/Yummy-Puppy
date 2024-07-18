@@ -92,7 +92,9 @@ string PSQLAbstractORM::getIdentifierName ()
 
 long PSQLAbstractORM::getIdentifier (AbstractDBQuery * _psqlQuery)
 {
-    return stoi(_psqlQuery->getValue(compose_field_with_index ( identifier_name)));
+    string s = _psqlQuery->getValue(compose_field_with_index ( identifier_name));
+    if ( s == "") return -100000;
+    return stoi(s);
 }
 
 string PSQLAbstractORM::getTableName()
@@ -237,6 +239,12 @@ string PSQLAbstractORM::getExtra (string fname)
         return  extras [fname];
     else return "";
 }
+
+int PSQLAbstractORM::getExtraToInt(string fname){
+    string value = getExtra(fname);
+    return value.empty() ? 0 : stoi(value);
+}
+
 void PSQLAbstractORM::set_is_add_referenced (bool _is_referenced)
 {
      is_add_referenced =_is_referenced;

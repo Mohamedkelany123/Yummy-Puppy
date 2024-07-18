@@ -180,6 +180,7 @@ string PSQLQuery::getResultField(int index)
 }
 string PSQLQuery::getValue(string column_name)
 {
+    // printf ("%s: %s\n",column_name.c_str(), getResultField (getColumnIndex(column_name)).c_str());
     return getResultField (getColumnIndex(column_name));
 }
 
