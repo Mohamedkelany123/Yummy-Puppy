@@ -1,9 +1,8 @@
+#include <EndpointClient.h>
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 #include <ThorSerialize/JsonThor.h>
 #include <EndpointService.h>
-#include <loan_app_loan_primitive_orm.h>
-
 class AbstractSerializer
 {
     private:
@@ -133,73 +132,58 @@ class FawryInquiryResponse: public AbstractSerializer
 
 ThorsAnvil_MakeTrait(FawryInquiryResponse,postFawryInquiryOutput);
 
-// template <class I,class O>
-// string endpoint_entry(string http_body,std::function<void(string http_body,I * inputSerializer,O * outputSerializer)> f) {
 
-//         I * inputSerializer  = new I(); 
-//         O * outputSerializer  = new O(); 
+int main (int argc,char ** argv)
+{
 
-//         inputSerializer->serialize(http_body);
-//         f (http_body,inputSerializer,outputSerializer);
-//         string str_return = outputSerializer->deserialize();
-//         delete (inputSerializer);
-//         delete (outputSerializer);
-//         return str_return;
-// }
-
-
-// void serve_endpoint (char * http_request,char * http_reply)
-// {
-//     string str = endpoint_entry <FawryInquiry,FawryInquiryResponse> (http_request,[] (string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer) {
-
-//         cout << inputSerializer->getPOSTFawryInquiryInput().getMSGCode() << "\n";
-//         cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getKey() << "\n";
-//         cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getValue() << "\n";
-//         ((FawryInquiry *)inputSerializer)->getPOSTFawryInquiryInput().getCustomProperties()[0].setValue("01001091779");
-//         // jsonData.transactions.transaction[1].payment_id = 100;
-//         outputSerializer->getPOSTFawryInquiryOutput().setMSGCode("Hello all");
-//     });
-//     strcpy (http_reply,str.c_str());
-// }
-
-
-// std::function<void(string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer)> l = [] (string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer) {
-//     cout << inputSerializer->getPOSTFawryInquiryInput().getMSGCode() << "\n";
-//     cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getKey() << "\n";
-//     cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getValue() << "\n";
-//     inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].setValue("01001091779");
-//     // jsonData.transactions.transaction[1].payment_id = 100;
-//     outputSerializer->getPOSTFawryInquiryOutput().setMSGCode("Hello all from serializer"+inputSerializer->getPOSTFawryInquiryInput().getMSGCode());
-// };
-
-extern "C" HTTPService *create_object() // extern "c" not garbling function names
-{       
-    bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_08072024","postgres","postgres");
-    if (connect){
-        cout << "Connected to DATABASE"  << endl;
-    }
-    int threadsCount = 1;
-    psqlController.addDefault("created_at","now()",true,true);
-    psqlController.addDefault("updated_at","now()",true,true);
-    psqlController.addDefault("updated_at","now()",false,true);
-    psqlController.setORMCacheThreads(threadsCount);
-
-    return new EndpointService <FawryInquiry,FawryInquiryResponse>(
-            [] (string http_body,FawryInquiry * inputSerializer,FawryInquiryResponse * outputSerializer) {
-
-
-            ORMVector <loan_app_loan_primitive_orm> ormVector = loan_app_loan_primitive_orm::fetch("main",UnaryOperator ("id",lte,100));
-            for ( int i  = 0;  i < ormVector.size() ; i ++)
+    string http_body = R""""(
+{
+    "postFawryInquiryInput":{
+        "msgCode":"AHMED",
+        "sender":"AHMED",
+        "receiver":"AHMED",
+        "custLang":"AHMED",
+        "clientDt":"2022-01-15T13:24:11.329471",
+        "rqUID":"AHMED",
+        "asyncRqUID":"AHMED",
+        "terminalId":"AHMED",
+        "billingAcct":"01155689007",
+        "bankId":"AHMED",
+        "billTypeCode":"76586",
+        "deliveryMethod":"AHMED",
+        "signature":"JTYDWQR0mPY9c6FwOq7/Kh1WPbOdpxQlALw5fPzl8Mk=",
+        "extraBillingAccts":[],
+        "customProperties":[
             {
-                cout << ormVector[i]->get_id() << " " << ormVector[i]->get_principle() << endl;
-
+                "key": "PosSerialNumber",
+                "value": "1170648539"
+            },
+            {
+                "key": "BCR_VERSION",
+                "value": "1.7.119.146"
+            },
+            {
+                "key": "KeyToken",
+                "value": "fdb3bf60c8ce4c4a"
+            },
+            {
+                "key": "GWTK",
+                "value": "ocY5ucFwh5qSXUA32xWlYBxCM6bGmKPybNMqU39nbFGV4JMFxiMYyr5kTDeZNyiZ"
             }
+        ]
+    }
+}
+    )"""";
 
-            cout << inputSerializer->getPOSTFawryInquiryInput().getMSGCode() << "\n";
-            cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getKey() << "\n";
-            cout << inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].getValue() << "\n";
-            inputSerializer->getPOSTFawryInquiryInput().getCustomProperties()[0].setValue("01001091779");
-            // jsonData.transactions.transaction[1].payment_id = 100;
-            outputSerializer->getPOSTFawryInquiryOutput().setMSGCode("Hello all from serializer"+inputSerializer->getPOSTFawryInquiryInput().getMSGCode());                
-    });
-}   
+    // FawryInquiry * fawryInquiry  = new FawryInquiry();
+    // fawryInquiry->serialize(http_body);
+    EndpointClient <FawryInquiry,FawryInquiryResponse> * endpointClient =new EndpointClient <FawryInquiry,FawryInquiryResponse> ();
+    endpointClient->setInputSerializer(http_body);
+    FawryInquiryResponse * fawryInquiryResponse = endpointClient->fetch("http://localhost:8080/testing");
+    cout << fawryInquiryResponse->deserialize()<< endl;
+    delete (endpointClient);
+    // delete (fawryInquiry);
+
+
+    return 0;
+}
