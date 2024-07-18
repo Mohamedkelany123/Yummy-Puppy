@@ -240,6 +240,10 @@ string PSQLAbstractORM::getExtra (string fname)
     else return "";
 }
 
+float PSQLAbstractORM::getExtraToFloat(string fname){
+    string value = getExtra(fname);
+    return value.empty() ? 0.0 : stof(value);
+}
 int PSQLAbstractORM::getExtraToInt(string fname){
     string value = getExtra(fname);
     return value.empty() ? 0 : stoi(value);
