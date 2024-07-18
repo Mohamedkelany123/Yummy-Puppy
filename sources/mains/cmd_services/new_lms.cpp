@@ -188,6 +188,7 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
                 strcpy(loan_ids ,loans_to_close.c_str());
             }else{
                 cout << "All loans are up to date!" << endl;
+                psqlController.clear(); 
                 return 0;
             }
         }
@@ -1312,7 +1313,8 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         );
         lastUpdateQuery.update();
     }
-   
+    
+    psqlController.clear(); 
     return 0;
 }
 
