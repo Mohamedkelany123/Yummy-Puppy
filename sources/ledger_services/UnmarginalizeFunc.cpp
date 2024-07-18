@@ -6,18 +6,23 @@ void UnmarginalizeFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, i
     // string last_entry_date_string = gorm->get("last_entry_date");
 
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((UnmarginalizeStruct *) extras)->blnkTemplateManager,partition_number);
-    map <string,map<int,pair<new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> *> * date_map = Unmarginalize::get_date_map(orms_list);
-
+    map <string,map<int,pair<pair<new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> * date_map = Unmarginalize::get_date_map(orms_list);
+    //map <date,map<inst_id, pair<inst_extension (optional), vector<latefees>>>
     //write nested for loop on map for each run the inference
     for (auto itr = date_map->cbegin(); itr != date_map->cend(); ++itr) 
     {
+        //PER DATE LOOP (ENTRY)
+        map<string,LedgerAmount*>* entryLedgerAmounts = new map<string,LedgerAmount*>();
+        BlnkTemplateManager* loopTemplateManager = new BlnkTemplateManager(localTemplateManager, partition_number);
         for (auto itr1 = itr->second->cbegin(); itr1 != itr->second->cend(); ++itr1) 
         {
-            Unmarginalize unmarginalize = Unmarginalize(itr1->second->first, itr1->second->second);
+            Unmarginalize unmarginalize = Unmarginalize(lal_orm,itr1->first,itr1->second->first->first,itr1->second->first->second,itr1->second->second);
             LedgerClosureService* ledgerClosureService = new LedgerClosureService(&unmarginalize);
             unmarginalize.setupLedgerClosureService(ledgerClosureService);
             map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
-
+            // if(ledgerAmounts != nullptr){
+            //     //Push current iteration's amounts into entry ledger amounts map
+            // }
         }
         //create entry after finishing the inside loop
 

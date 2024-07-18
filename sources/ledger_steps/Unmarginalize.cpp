@@ -1,232 +1,72 @@
 #include <Unmarginalize.h>
 
 
-Unmarginalize::Unmarginalize(vector<map <string,PSQLAbstractORM *> * > * _orms_list, float _percentage):LedgerClosureStep ()
+Unmarginalize::Unmarginalize(loan_app_loan_primitive_orm * loan,int ins_id,new_lms_installmentextension_primitive_orm * installment_ext, float unmarginalized_inst_amount ,vector<new_lms_installmentlatefees_primitive_orm *>* lf_list)
 {
-    // lal_orm = ORML(loan_app_loan,_orms_list,0);
-    // cac_orm = ORML(crm_app_customer,_orms_list,0);
-
-    // PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,_orms_list,0);
-    // short_term_principal = gorm->toFloat("short_term_principal");
-    // long_term_principal = gorm->toFloat("long_term_principal");
-    // is_rescheduled = gorm->toBool("is_rescheduled");  
-    // transaction_upfront_income_banked = gorm->toJson("transaction_upfront_income_banked");  
-    // transaction_upfront_income_unbanked = gorm->toJson("transaction_upfront_income_unbanked");  
-
-    // prov_percentage = _percentage;
-    
-    // vector <new_lms_installmentextension_primitive_orm*>* nli_orms = new vector<new_lms_installmentextension_primitive_orm*>;
-    // for ( int i = 0 ;i < ORML_SIZE(_orms_list) ; i ++)
-    // {
-    //     nli_orms->push_back(ORML(new_lms_installmentextension,_orms_list,i));
-    // }
-    // ie_list = nli_orms;
-
+    lal_orm = loan;
+    installment_id = ins_id;
+    installment_extension = installment_ext;
+    late_fees = lf_list;
 }
 
 
 void Unmarginalize::setupLedgerClosureService (LedgerClosureService * ledgerClosureService)
 {
-    // if(is_rescheduled){
-    //     ledgerClosureService->addHandler("Booking rescheduled loan - long term, if applicable", DisburseLoan::_calc_long_term_receivable_balance);
-    //     ledgerClosureService->addHandler("Booking rescheduled loan - short term; and", DisburseLoan::_calc_short_term_receivable_balance);
-    // }
- 
-    // ledgerClosureService->addHandler("Booking new loan - long term, if applicable", DisburseLoan::_calc_long_term_receivable_balance);
-    // ledgerClosureService->addHandler("Booking new loan - short term; and", DisburseLoan::_calc_short_term_receivable_balance);
-    // ledgerClosureService->addHandler("Booking the merchant’s commission income", DisburseLoan::_calc_mer_t_bl_fee);
-    // ledgerClosureService->addHandler("Booking an impairment provision", DisburseLoan::_calc_provision_percentage);
-    // ledgerClosureService->addHandler("Booking the cashier's commission expense", DisburseLoan::_calc_cashier_fee);
-    // ledgerClosureService->addHandler("Booking the merchant's commission expense", DisburseLoan::_calc_bl_t_mer_fee);
-    // ledgerClosureService->addHandler("Booking the transaction upfront fee", DisburseLoan::_calc_loan_upfront_fee);
+    ledgerClosureService->addHandler("Reversing marginalized late repayment fee income, if applicable",_unmarginalize_late_fee);
+    ledgerClosureService->addHandler("Reversing marginalized interest income, if applicable",_unmarginalize_interest);
 }
-
-Unmarginalize::~Unmarginalize(){}
-
 
 LedgerAmount*  Unmarginalize::_init_ledger_amount(){
     LedgerAmount * lg = new LedgerAmount();
-    lg->setCashierId(lal_orm->get_cashier_id());
     lg->setCustomerId(lal_orm->get_customer_id());
     lg->setLoanId(lal_orm->get_id());
+    lg->setInstallmentId(installment_id);
     lg->setMerchantId(lal_orm->get_merchant_id());
 
     return lg;
 }
 
-void Unmarginalize::stampORMs(ledger_entry_primitive_orm *entry, ledger_amount_primitive_orm *la_orm){
-    // lal_orm->setUpdateRefernce("loan_creation_ledger_entry_id", entry);
-    // lal_orm->set_lms_closure_status(ledger_status::DISBURSE_LOAN);
-    // if (la_orm != NULL)
-    // {
-    //     for ( auto i : *ie_list)
-    //     {
-    //         if(!i->get_is_long_term()){
-    //             i->setUpdateRefernce("short_term_ledger_amount_id", la_orm);
-    //         }
-    //     }
-    // }
-    // else cout << "ERROR in fetching first leg of the entry " << endl;
+LedgerAmount * Unmarginalize::_unmarginalize_late_fee(LedgerClosureStep *unmarginalize){
+    vector<new_lms_installmentlatefees_primitive_orm*>* late_fees = ((Unmarginalize*)unmarginalize)->get_late_fees();
+    LedgerAmount * la = ((Unmarginalize*)unmarginalize)->_init_ledger_amount();
+    double amount = 0.0;
+    if(late_fees->size() > 0){
+        for(const auto& element : *late_fees){
+            amount += element->get_amount();
+        }
+    }
+    la->setAmount(amount);
+    return la;
 }
 
-// float Unmarginalize::_calculate_loan_upfront_fee(){
-    // loan_app_loan_primitive_orm* lal_orm = get_loan_app_loan();
-    // crm_app_customer_primitive_orm* cac_orm = get_crm_app_customer();
-    // json upfront_fee;  
-    // float fee = 0.0;
+LedgerAmount * Unmarginalize::_unmarginalize_interest(LedgerClosureStep *unmarginalize){
+    new_lms_installmentextension_primitive_orm * installment_extension =  ((Unmarginalize*)unmarginalize)->get_installment_extension();
+    LedgerAmount * la = ((Unmarginalize*)unmarginalize)->_init_ledger_amount();
+    double amount = 0.0;
+    la->setAmount(((Unmarginalize*)unmarginalize)->get_unmarginalized_amount());
 
-    // if (cac_orm->get_limit_source() == 1) {
-    //     upfront_fee = get_transaction_upfront_income_banked();
-    // }
-    // else {
-    //     upfront_fee = get_transaction_upfront_income_unbanked();
-    // }
-    // if (upfront_fee["type"] == "Paid in Cash") {
-    //     if (upfront_fee["data"]["option"] == "flat_fee"){
-    //         fee = float(upfront_fee["data"]["flat_fee"]);
-    //     }
-    //     else if (upfront_fee["data"]["option"] == "percentage"){
-    //         fee = ROUND((float(upfront_fee["data"]["percentage"])) / 100 * (lal_orm->get_principle()));
-    //         if (upfront_fee["data"].contains("floor") && fee < float(upfront_fee["data"]["floor"]))
-    //             fee = float(upfront_fee["data"]["floor"]);
-    //         if (upfront_fee["data"].contains("cap") && fee > float(upfront_fee["data"]["cap"]))
-    //             fee = float(upfront_fee["data"]["cap"]);
-    //         else if (upfront_fee["data"]["option"] == "both"){
-    //             fee = float(upfront_fee["data"]["flat_fee_bo"]) + ROUND(float(upfront_fee["data"]["percentage_bo"])) / 100 * (lal_orm->get_principle());
-    //             if (upfront_fee["data"].contains("floor_bo") && fee < float(upfront_fee["data"]["floor_bo"]))
-    //                 fee = float(upfront_fee["data"]["floor_bo"]);
-    //             if (upfront_fee["data"].contains("cap_bo") && fee > float(upfront_fee["data"]["cap_bo"]))
-    //                 fee = float(upfront_fee["data"]["cap_bo"]);
-    //         }
-    //     }
-    // }
-    // return fee;
+    return la;
+}
+
+new_lms_installmentextension_primitive_orm * Unmarginalize::get_installment_extension(){
+    return installment_extension;
+}
+
+vector<new_lms_installmentlatefees_primitive_orm*> * Unmarginalize::get_late_fees(){
+    return late_fees;
+}
+
+int Unmarginalize::get_installment_id(){
+    return installment_id;
+}
+
+float Unmarginalize::get_unmarginalized_amount(){
+    return unmarginalized_amount;
+}
+
+void Unmarginalize::stampORMs(ledger_entry_primitive_orm *entry, ledger_amount_primitive_orm *la_orm){
     
-// }
-
-// json DisburseLoan::get_transaction_upfront_income_banked(){return transaction_upfront_income_banked;}
-// json DisburseLoan::get_transaction_upfront_income_unbanked(){return transaction_upfront_income_unbanked;}
-
-// loan_app_loan_primitive_orm* DisburseLoan::get_loan_app_loan()  {
-//     return lal_orm;
-// }
-// crm_app_customer_primitive_orm *DisburseLoan::get_crm_app_customer()
-// {
-//     return cac_orm;
-// }
-// float DisburseLoan::get_provision_percentage()
-// {
-//     return prov_percentage;
-// }
-// void DisburseLoan::set_provision_percentage(float _provision_percentage){
-//     prov_percentage = _provision_percentage;
-// }
-// float DisburseLoan::get_short_term_principal()
-// {
-//     return short_term_principal;
-// }
-// void DisburseLoan::set_short_term_principal(float _short_term_principal){
-//     short_term_principal = _short_term_principal;
-// }
-
-// void DisburseLoan::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
-// {
-//     lal_orm = _lal_orm;
-// }
-// void DisburseLoan::set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm)
-// {
-//     cac_orm = _cac_orm;
-// }
-
-
-// float DisburseLoan::get_long_term_principal()
-// {
-//     return long_term_principal;
-// }
-
-
-// void DisburseLoan::set_long_term_principal(float _long_term_principal)
-// {
-//     long_term_principal = _long_term_principal;
-// }
-
-// bool DisburseLoan::get_is_rescheduled()  {
-//     return is_rescheduled;
-// }
-// void DisburseLoan::set_is_rescheduled(bool _is_rescheduled)
-// {
-//     is_rescheduled =  _is_rescheduled;
-// }
-
-
-// LedgerAmount * DisburseLoan::_calc_short_term_receivable_balance(LedgerClosureStep *disburseLoan)
-//  {  
-//     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-//     la->setAmount(ROUND(((DisburseLoan*)disburseLoan)->get_short_term_principal()));
-//     return la;
-
-// }
-
-
-// LedgerAmount * DisburseLoan::_calc_mer_t_bl_fee(LedgerClosureStep *disburseLoan)
-// {
-//     loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
-//     double principal = loan_orm->get_principle();
-//     double merchant_to_blnk_fee = loan_orm->get_mer_t_bl_fee();
-//     double amount = ROUND((principal * (merchant_to_blnk_fee / 100)));
-//     LedgerAmount * ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-//     ledgerAmount->setAmount(amount);
-//     return ledgerAmount;
-// }
-// LedgerAmount * DisburseLoan::_calc_provision_percentage(LedgerClosureStep *disburseLoan)
-// {
-//     loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
-//     double perc = ((DisburseLoan*)disburseLoan)->get_provision_percentage()/100;
-//     double amount = ROUND((loan_orm->get_principle()*perc));
-
-//     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-//     la->setAmount(amount);
-    
-
-//     return la;
-// }
-// LedgerAmount * DisburseLoan::_calc_cashier_fee(LedgerClosureStep *disburseLoan)
-// {
-//     loan_app_loan_primitive_orm* lal_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
-//     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-    
-//     float cashier_fee = (lal_orm->get_principle() * (lal_orm->get_cashier_fee()/ 100));
-//     la->setAmount(ROUND(cashier_fee));
- 
-//     return la;
-// }
-// LedgerAmount * DisburseLoan::_calc_bl_t_mer_fee(LedgerClosureStep *disburseLoan)
-// {
-//     loan_app_loan_primitive_orm* loan_orm = ((DisburseLoan*)disburseLoan)->get_loan_app_loan();
-//     double perc = loan_orm->get_bl_t_mer_fee()/100;
-//     double amount = ROUND((loan_orm->get_principle()*perc));
-//     LedgerAmount * la = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-//     la->setAmount(amount);
-//     return la;
-// }
-// LedgerAmount * DisburseLoan::_calc_loan_upfront_fee(LedgerClosureStep *disburseLoan)
-// {
-//     LedgerAmount  * ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-//     ledgerAmount->setAmount(((DisburseLoan*)disburseLoan)->_calculate_loan_upfront_fee());
-//     return ledgerAmount;
-// }
-// LedgerAmount * DisburseLoan::_calc_long_term_receivable_balance(LedgerClosureStep *disburseLoan)
-// {
-//     LedgerAmount * ledgerAmount = ((DisburseLoan*)disburseLoan)->_init_ledger_amount();
-//     float long_term_principal = ROUND(((DisburseLoan*)disburseLoan)->get_long_term_principal());
-//     ledgerAmount->setAmount(long_term_principal);
-//     return ledgerAmount;
-// }
-
-
-
-
-
+}
 
 PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
 
@@ -261,7 +101,8 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
                     ) ) ),
             new ANDOperator (
                 // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
-                new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+                // new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+                new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",eq,2716934),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
                 new UnaryOperator ("new_lms_installmentextension.interest_paid_at",lte,_closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.unmarginalization_ledger_amount_id",isnull,"",true),
@@ -272,6 +113,9 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
             )
             )
         );
+
+        psqlQueryJoin->addExtraFromField("select amount from ledger_amount la where la.id = new_lms_installmentextension.partial_marginalization_ledger_amount_id limit 1","partial_marginalization_amount");
+        psqlQueryJoin->addExtraFromField("select amount from ledger_amount la where la.id = new_lms_installmentextension.marginalization_ledger_amount_id limit 1","marginalization_amount");
 
         psqlQueryJoin->setAggregates({
             {"loan_app_loan", {"id", 1}}});
@@ -296,8 +140,8 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
 }
 
 
-map <string,map<int,pair<new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> *> * get_date_map(vector<map <string,PSQLAbstractORM *> * > * orms){
-    map <string,map<int,pair<new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> *> * date_map = new map <string,map<int,pair< new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> *> ();
+map <string,map<int,pair<pair<new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> * Unmarginalize::get_date_map(vector<map <string,PSQLAbstractORM *> * > * orms){
+    map <string,map<int,pair<pair<new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> * date_map = new map <string,map<int,pair<pair< new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *> *>  ();
     new_lms_installmentextension_primitive_orm * ext = ORML(new_lms_installmentextension,orms,0);
     new_lms_installmentlatefees_primitive_orm * lf = ORML(new_lms_installmentlatefees,orms,0);
 
@@ -306,6 +150,20 @@ map <string,map<int,pair<new_lms_installmentextension_primitive_orm*,vector<vect
         for ( int i = 0 ;i < ORML_SIZE(orms) ; i ++)
         {   
             ext = ORML(new_lms_installmentextension,orms,i);
+            cout << "INSTALLMENT ID: " << ext->get_installment_ptr_id() << endl;
+            PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms,i);
+            float partial_marginalization_amount = gorm->toFloat("partial_marginalization_amount");
+            cout << "PARTIAL MARGINALIZATION AMOUNT : " << partial_marginalization_amount << endl;
+            float marginalization_amount = gorm->toFloat("marginalization_amount");
+            cout << "MARGINALIZATION AMOUNT : " << marginalization_amount << endl;
+            float unmarginalized_amount = 0.0;
+            if(ext->get_partial_marginalization_ledger_amount_id() == ext->get_marginalization_ledger_amount_id()){
+                unmarginalized_amount = partial_marginalization_amount;
+            }
+            else{
+                unmarginalized_amount = partial_marginalization_amount + marginalization_amount;
+            }
+            cout << "AMOUNT TO BE UNMARGINALIZED : " << unmarginalized_amount << endl;
             string curr_date = ext->get_unmarginalization_date();
             int curr_id = ext->get_installment_ptr_id();
             lf = ORML(new_lms_installmentlatefees,orms,i);
@@ -317,18 +175,22 @@ map <string,map<int,pair<new_lms_installmentextension_primitive_orm*,vector<vect
                 if (iter!= date_map->end()){ 
                     auto iter_nest =  iter->second->find(curr_id);
                     if(iter_nest== iter->second->end()){
-                      pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>* partition = new pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> ;
-                      partition->first=ext ;
-                      partition->second= new vector<vector<new_lms_installmentlatefees_primitive_orm*> *>();
+                      pair< pair< new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> * partition = new pair<pair<new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> ;
+                      partition->first = new pair<new_lms_installmentextension_primitive_orm*,float>();
+                      partition->first->first = ext;
+                      partition->first->second = unmarginalized_amount;
+                      partition->second= new vector<new_lms_installmentlatefees_primitive_orm*> ();
                       date_map->operator[](curr_date)->operator[](curr_id)= partition;
 
                     }
                 }
                 else{
-                    map<int, pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>*>* new_map = new map<int,pair< new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *>();
-                    pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>* partition = new pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>() ;
-                    partition->first=ext ;
-                    partition->second= new vector<vector<new_lms_installmentlatefees_primitive_orm*> *>();
+                    map<int, pair< pair<new_lms_installmentextension_primitive_orm *,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *>* new_map = new map<int,pair<pair< new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *>();
+                    pair<pair< new_lms_installmentextension_primitive_orm *,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> * partition = new pair<pair< new_lms_installmentextension_primitive_orm *,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *>() ;
+                    partition->first = new pair<new_lms_installmentextension_primitive_orm*,float>();
+                    partition->first->first=ext;
+                    partition->first->second = unmarginalized_amount;
+                    partition->second= new vector<new_lms_installmentlatefees_primitive_orm*>();
                     new_map->operator[](curr_id)=partition;
                     date_map->operator[](curr_date)=new_map;
                 }
@@ -341,25 +203,27 @@ map <string,map<int,pair<new_lms_installmentextension_primitive_orm*,vector<vect
 
                     auto iter_nest =  iter->second->find(curr_lf_inst_id);
                     if(iter_nest== iter->second->end()){
-                        pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>* partition = new pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> ;
-                        partition->first=nullptr ;
-                        partition->second= new vector<vector<new_lms_installmentlatefees_primitive_orm*> *>();
-                        partition->second->push_back(new vector<new_lms_installmentlatefees_primitive_orm*>);
-                        partition->second->back()->push_back(lf);
+                        pair<pair< new_lms_installmentextension_primitive_orm *,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> * partition = new pair< pair<new_lms_installmentextension_primitive_orm *,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> ;
+                        partition->first =  new pair<new_lms_installmentextension_primitive_orm*,float>();
+                        partition->first->first=nullptr ;
+                        partition->first->second = 0.0;
+                        partition->second= new vector<new_lms_installmentlatefees_primitive_orm*> ();
+                        partition->second->push_back(lf);
                         date_map->operator[](curr_date)->operator[](curr_lf_inst_id)= partition;
 
                     }
                     else{
-                        date_map->operator[](curr_date)->operator[](curr_lf_inst_id)->second->back()->push_back(lf);
+                        date_map->operator[](curr_date)->operator[](curr_lf_inst_id)->second->push_back(lf);
                     }
                 }
                 else{
-                    map<int, pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>*>* new_map = new map<int,pair< new_lms_installmentextension_primitive_orm*,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *> *>();
-                    pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>* partition = new pair< new_lms_installmentextension_primitive_orm *,vector<vector<new_lms_installmentlatefees_primitive_orm*> *> *>() ;
-                    partition->first=nullptr ;
-                    partition->second= new vector<vector<new_lms_installmentlatefees_primitive_orm*> *>();
-                    partition->second->push_back(new vector<new_lms_installmentlatefees_primitive_orm*>);
-                    partition->second->back()->push_back(lf);
+                    map<int, pair<pair< new_lms_installmentextension_primitive_orm *,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *>* new_map = new map<int,pair<pair< new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *>();
+                    pair<pair< new_lms_installmentextension_primitive_orm *,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> * partition = new pair<pair< new_lms_installmentextension_primitive_orm *,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> () ;
+                    partition->first =  new pair<new_lms_installmentextension_primitive_orm*,float>();
+                    partition->first->first=nullptr ;
+                    partition->first->second = 0.0;
+                    partition->second= new vector<new_lms_installmentlatefees_primitive_orm*> ();
+                    partition->second->push_back(lf);
                     new_map->operator[](curr_lf_inst_id)=partition;
                     date_map->operator[](curr_date)=new_map;
                 }
@@ -368,3 +232,5 @@ map <string,map<int,pair<new_lms_installmentextension_primitive_orm*,vector<vect
     }
     return date_map;
 }
+
+Unmarginalize::~Unmarginalize(){}

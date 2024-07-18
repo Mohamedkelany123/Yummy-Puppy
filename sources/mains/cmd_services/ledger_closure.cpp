@@ -98,13 +98,13 @@ int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "unmarginalize_income"; 
-    string database = "cpp_alia";
-    string closure_date_string = "2024-07-7"; 
-    int threadsCount = 6;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432, database,"postgres","postgres");
+    string databaseName = "django_ostaz_02072024_aliaclosure";
+    string closure_date_string = "2024-07-18"; 
+    int threadsCount = 1;
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
-        cout << "Connected to DATABASE->[" << database << "]" << endl;
+        cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
         cout << "Threads Count->[" << threadsCount << "]" << endl;
         cout << "Step[" << step << "]" << endl;
         cout << "--------------------------------------------------------" << endl;
