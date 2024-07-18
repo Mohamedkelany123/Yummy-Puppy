@@ -42,13 +42,13 @@ PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(string _closure_date_string)
         ANDOperator(
             new UnaryOperator("ekyc_app_nidlog.status",eq,1),
             new UnaryOperator("ekyc_app_nidlog.nid_expense_ledger_entry_id",isnull,"",true),
-            new UnaryOperator("ekyc_app_nidlog.created_at",lte,_closure_date_string),
+            new UnaryOperator("ekyc_app_nidlog.created_at::date",lte,_closure_date_string),
             new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::NID_ISCORE-1)
         )
     );
     string query_closure_date = "'" + _closure_date_string + "'"; 
 
-    nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at <= " + query_closure_date + " order by id desc limit 1)","merchant_id");
+    nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at::date <= " + query_closure_date + " order by id desc limit 1)","merchant_id");
     nidLogsQuery->addExtraFromField("(select id from crm_app_customer cac where cac.national_id = ekyc_app_onboardingsession.national_id limit 1)","customer_id");
     nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaff cam where ekyc_app_onboardingsession.merchant_staff_id = cam.user_ptr_id limit 1)","merchant_id2");
     return nidLogsQuery;

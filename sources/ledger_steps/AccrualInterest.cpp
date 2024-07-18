@@ -340,7 +340,7 @@ PSQLJoinQueryIterator* AccrualInterest::settlement_accrual_agg(string _closure_d
         settlementAccrualQuery->filter(
             ANDOperator (
                 new UnaryOperator("loan_app_loan.id", in, "158353, 157649, 157619, 157545, 157536, 157397, 157344, 157331, 157329, 157303, 157210, 157201, 157078, 157050, 157038, 157017, 156898, 156897, 156871, 156867, 156829, 156765, 156685, 156683, 156653, 156631, 156626, 156613, 156596, 156519, 156500, 156488, 156478, 156270, 156228, 156226, 156216, 156208, 156187, 156169, 156158, 156151, 156133, 156113, 156111, 156104, 156094, 156077, 156076, 156067"),
-                new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", lte, _closure_date_string),
+                new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date::date", lte, _closure_date_string),
     
                 // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_INTEREST_ACCRUAL-1),
                 new UnaryOperator ("loan_app_loan.id" , ne, "14312"),

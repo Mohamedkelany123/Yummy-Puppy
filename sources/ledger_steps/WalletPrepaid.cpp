@@ -97,7 +97,7 @@ new_lms_customerwallettransaction_primitive_orm_iterator* WalletPrepaid::aggrega
                 new UnaryOperator ("wallet_ledger_amount_id",isnull,"",true),
                 new UnaryOperator("amount", gt, 0),
                 new UnaryOperator("order_id", isnull,"",true),
-                new UnaryOperator("created_at",lte, _closure_date_string)
+                new UnaryOperator("created_at::date",lte, _closure_date_string)
               
             )
         );
