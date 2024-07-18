@@ -127,7 +127,7 @@ int main (int argc, char ** argv)
     const char * step = "updating_provisions"; 
     string closure_date_string = "2024-07-02"; 
     int threadsCount = 1;
-    string databaseName = "sherif_go";
+    string databaseName = "c_plus_plus_07";
     bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
