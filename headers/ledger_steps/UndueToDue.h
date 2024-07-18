@@ -78,7 +78,7 @@ class UndueToDue : public LedgerClosureStep
 
         LedgerAmount * _init_ledger_amount();
 
-        void stampORMs(map <string,LedgerCompositLeg*> *leg_amounts);
+        void stampORMs(map <string,LedgerCompositLeg*> *leg_amounts, bool extra_interest=false);
 
         // //static methods
         static LedgerAmount * _get_installment_insterest(LedgerClosureStep *UndueToDue);
