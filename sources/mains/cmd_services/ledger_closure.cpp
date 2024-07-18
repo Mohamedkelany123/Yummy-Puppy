@@ -151,7 +151,6 @@ int main (int argc, char ** argv)
         );
     psqlUpdateQuery.update();
 
-//accrual-undue_to_due
 
     if ( strcmp (step,"disburse") == 0 || strcmp (step,"full_closure") == 0)
     {
