@@ -1,6 +1,4 @@
 #include "UpdatingProvisions.h"
-#include <iostream>
-#include <boost/format.hpp>
 
 loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator_onbalance(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date){
     string balance_query = "(WITH parent_account AS (\
@@ -43,9 +41,9 @@ loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator_onbalance(s
         )
     );
 
-    psqlJoinQuery->addExtraFromField(boost::str(boost::format(balance_query) % "Loans receivable (gross)" % start_date_string % end_date_string),"loans_rec_balance");
-    psqlJoinQuery->addExtraFromField(boost::str(boost::format(balance_query) % "Long-term loans receivable (net)" % start_date_string % end_date_string),"long_term_balance");
-    psqlJoinQuery->addExtraFromField(boost::str(boost::format(balance_query) % "Impairment provisions, On-balance sheet" % start_date_string % end_date_string),"impairment_provisions_balance");
+    psqlJoinQuery->addExtraFromField(str(format(balance_query) % "Loans receivable (gross)" % start_date_string % end_date_string),"loans_rec_balance");
+    psqlJoinQuery->addExtraFromField(str(format(balance_query) % "Long-term loans receivable (net)" % start_date_string % end_date_string),"long_term_balance");
+    psqlJoinQuery->addExtraFromField(str(format(balance_query) % "Impairment provisions, On-balance sheet" % start_date_string % end_date_string),"impairment_provisions_balance");
     psqlJoinQuery->addExtraFromField("(select percentage from loan_app_provision lap where status_id = (select status_id from loan_app_loanstatushistroy lal where loan_id= loan_app_loan.id and day <= " + end_date_string + " and status_type = 1 order by id desc limit 1))","history_provision_percentage");
     psqlJoinQuery->addExtraFromField("(select percentage from loan_app_provision where status_id = loan_app_loan.fra_status_id)","loan_provision_percentage");
 
@@ -104,9 +102,9 @@ PSQLJoinQueryIterator* UpdatingProvisions::aggregator_offbalance(string _closure
         )
     );
 
-    psqlJoinQuery->addExtraFromField(boost::str(boost::format(balance_query) % "Loans receivable (gross)" % start_date_string % end_date_string),"loans_rec_balance");
-    psqlJoinQuery->addExtraFromField(boost::str(boost::format(balance_query) % "Long-term loans receivable (net)" % start_date_string % end_date_string),"long_term_balance");
-    psqlJoinQuery->addExtraFromField(boost::str(boost::format(balance_query) % "Impairment provisions, On-balance sheet" % start_date_string % end_date_string),"impairment_provisions_balance");
+    psqlJoinQuery->addExtraFromField(str(format(balance_query) % "Loans receivable (gross)" % start_date_string % end_date_string),"loans_rec_balance");
+    psqlJoinQuery->addExtraFromField(str(format(balance_query) % "Long-term loans receivable (net)" % start_date_string % end_date_string),"long_term_balance");
+    psqlJoinQuery->addExtraFromField(str(format(balance_query) % "Impairment provisions, On-balance sheet" % start_date_string % end_date_string),"impairment_provisions_balance");
     psqlJoinQuery->addExtraFromField("(select percentage from loan_app_provision lap where status_id = (select status_id from loan_app_loanstatushistroy lal where loan_id= loan_app_loan.id and day <= " + end_date_string + " and status_type = 1 order by id desc limit 1))","history_provision_percentage");
     psqlJoinQuery->addExtraFromField("(select percentage from loan_app_provision where status_id = loan_app_loan.fra_status_id)","loan_provision_percentage");
 
