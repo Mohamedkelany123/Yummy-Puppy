@@ -242,11 +242,12 @@ string PSQLAbstractORM::getExtra (string fname)
 
 float PSQLAbstractORM::getExtraToFloat(string fname){
     string value = getExtra(fname);
-    return value.empty() ? 0.0 : stof(value);
+    return atof(value.c_str());;
 }
+
 int PSQLAbstractORM::getExtraToInt(string fname){
     string value = getExtra(fname);
-    return value.empty() ? 0 : stoi(value);
+    return atoi(value.c_str());;
 }
 
 void PSQLAbstractORM::set_is_add_referenced (bool _is_referenced)
