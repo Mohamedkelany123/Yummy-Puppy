@@ -2,8 +2,31 @@ include leaf_makefile.vars
 
 
 CUR_DIR=$(shell pwd)
+BIN_DIR=$(subst sources,bin,$(CUR_DIR))
 OBJ_DIR=$(subst sources,objects,$(CUR_DIR))
 SRC = $(wildcard $(CUR_DIR)/*.cpp)
+
+#-----------------------------------------------------------------------
+#Generating Bin Executables
+
+BINS = $(patsubst $(CUR_DIR)/%.cpp, $(BIN_DIR)/%, $(SRC))
+
+ALL_OBJECTS = $(shell find $(HOME_PATH) -name "*.cpp.o" )
+
+$(BIN_DIR)/%: $(OBJ_DIR)/%.cpp.oo $(ALL_CPP)
+	$(GCC) -std=c++17 $(LIBS) $(ALL_OBJECTS) $< -o $@ $(LINKER_FLAGS)
+
+$(BIN_DIR):
+	@mkdir -p $(BIN_DIR)
+
+build_tree: $(BIN_DIR)
+	@echo "Tree Built"
+
+target: build_tree $(BINS)
+
+#-----------------------------------------------------------------------
+#Generating object files for executables
+
 OBJS = $(patsubst $(CUR_DIR)/%.cpp, $(OBJ_DIR)/%.cpp.oo, $(SRC))
 
 $(OBJ_DIR)/%.cpp.oo: $(CUR_DIR)/%.cpp $(ALL_H)
@@ -16,8 +39,8 @@ build_tree: $(OBJ_DIR)
 
 make_target_cpp: build_tree $(OBJS)
 
-target: 
-	$(MAKE) -f bin_makefile all
+#--------------------------------------------------------------------
 
 clean:
 	rm -rf $(OBJ_DIR)/*
+	rm -rf $(BIN_DIR)/*

@@ -63,8 +63,7 @@ target: make_target_cpp
 
 all:   target
 
-
-make_target_cpp_clean: 
+make_target_clean:
 	@for a in $$(ls); do \
 		if [ -d $$a ]; then \
 			if [ -f $$a/Makefile ]; then \
@@ -78,30 +77,44 @@ make_target_cpp_clean:
 	@echo "Done!"
 
 
-make_target_bin_clean:
-	@for a in $$(ls); do \
-		if [ -d $$a ]; then \
-			if [ -f $$a/bin_makefile ]; then \
-				echo "processing folder $$a"; \
-				$(MAKE) -C $$a -f bin_makefile clean; \
-			fi; \
-		fi; \
-	done;
-	@echo "Done!"
+# make_target_cpp_clean: 
+# 	@for a in $$(ls); do \
+# 		if [ -d $$a ]; then \
+# 			if [ -f $$a/Makefile ]; then \
+# 				echo "processing folder $$a"; \
+# 				if ! $(MAKE) -C $$a -f Makefile clean ; then \
+# 					exit 1;\
+# 				fi; \
+# 			fi; \
+# 		fi; \
+# 	done;
+# 	@echo "Done!"
 
-make_target_dso_clean: 
-	@for a in $$(ls); do \
-		if [ -d $$a ]; then \
-			if [ -f $$a/dso_makefile ]; then \
-				echo "processing folder $$a"; \
-				$(MAKE) -C $$a -f dso_makefile clean ; \
-			fi; \
-		fi; \
-	done;
-	@echo "Done!"
 
-clean: make_target_cpp_clean make_target_bin_clean make_target_dso_clean
+# make_target_bin_clean:
+# 	@for a in $$(ls); do \
+# 		if [ -d $$a ]; then \
+# 			if [ -f $$a/bin_makefile ]; then \
+# 				echo "processing folder $$a"; \
+# 				$(MAKE) -C $$a -f bin_makefile clean; \
+# 			fi; \
+# 		fi; \
+# 	done;
+# 	@echo "Done!"
 
-.PHONY: all clean make_target_cpp make_target_bin make_target_dso make_target_cpp_clean make_target_bin_clean make_target_dso_clean
+# make_target_dso_clean: 
+# 	@for a in $$(ls); do \
+# 		if [ -d $$a ]; then \
+# 			if [ -f $$a/dso_makefile ]; then \
+# 				echo "processing folder $$a"; \
+# 				$(MAKE) -C $$a -f dso_makefile clean ; \
+# 			fi; \
+# 		fi; \
+# 	done;
+# 	@echo "Done!"
+
+clean: make_target_clean
+
+.PHONY: all clean make_target_cpp make_target_clean target
 
 
