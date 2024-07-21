@@ -16,6 +16,9 @@ build_tree: $(OBJ_DIR)
 
 make_target_cpp : build_tree $(OBJS)
 
+target: 
+	@echo ":/"
+
 clean:
 	rm -rf $(OBJ_DIR)/*
 

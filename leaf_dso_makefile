@@ -16,5 +16,8 @@ build_tree: $(OBJ_DIR)
 
 make_target_cpp: build_tree $(OBJS)
 
+target: 
+	$(MAKE) -f dso_makefile all
+
 clean:
 	rm -rf $(OBJ_DIR)/*
