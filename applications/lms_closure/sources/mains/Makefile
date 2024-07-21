@@ -1,1 +1,1 @@
-../../../../recursive_makefile
+../../../../leaf_bin_makefile
