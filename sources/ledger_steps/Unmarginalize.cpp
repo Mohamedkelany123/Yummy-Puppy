@@ -7,6 +7,7 @@ Unmarginalize::Unmarginalize(loan_app_loan_primitive_orm * loan,int ins_id,new_l
     installment_id = ins_id;
     installment_extension = installment_ext;
     late_fees = lf_list;
+    unmarginalized_amount = unmarginalized_inst_amount;
 }
 
 
@@ -43,6 +44,7 @@ LedgerAmount * Unmarginalize::_unmarginalize_interest(LedgerClosureStep *unmargi
     new_lms_installmentextension_primitive_orm * installment_extension =  ((Unmarginalize*)unmarginalize)->get_installment_extension();
     LedgerAmount * la = ((Unmarginalize*)unmarginalize)->_init_ledger_amount();
     double amount = 0.0;
+    cout << "UNMARGINALIZE AMOUNT IN INFERENCE FUNC : " << ((Unmarginalize*)unmarginalize)->get_unmarginalized_amount() << endl;
     la->setAmount(((Unmarginalize*)unmarginalize)->get_unmarginalized_amount());
 
     return la;
@@ -64,8 +66,23 @@ float Unmarginalize::get_unmarginalized_amount(){
     return unmarginalized_amount;
 }
 
-void Unmarginalize::stampORMs(ledger_entry_primitive_orm *entry, ledger_amount_primitive_orm *la_orm){
-    
+void Unmarginalize::stampORMs(map<string,LedgerCompositLeg*> * amounts){
+    for(const auto& pair : *amounts){
+        ledger_amount_primitive_orm* first_leg_amount = pair.second->getLedgerCompositeLeg()->first;
+        if(first_leg_amount != NULL){
+            if(pair.second->getLegId() == 1){
+                for(new_lms_installmentlatefees_primitive_orm * late_fee : *late_fees){
+                    late_fee->setUpdateRefernce("unmarginalization_ledger_amount_id",first_leg_amount);
+                }
+        }
+        else if(pair.second->getLegId() == 2){
+            installment_extension->setUpdateRefernce("unmarginalization_ledger_amount_id",first_leg_amount);
+        }
+        }
+        else{
+            cout << "ERROR in fetching first leg of the entry " << endl;
+        }   
+    }
 }
 
 PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
@@ -86,6 +103,7 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
             new ANDOperator(
                 // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
                 new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+                new UnaryOperator ("loan_app_loan.id" , in, "2"),
                 new UnaryOperator ("new_lms_installmentlatefees.unmarginalization_ledger_amount_id" , isnull, "",true),
                 new UnaryOperator ("new_lms_installmentlatefees.marginalization_ledger_amount_id" , isnotnull, "",true),
 
@@ -101,8 +119,8 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
                     ) ) ),
             new ANDOperator (
                 // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
-                // new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
-                new UnaryOperator ("new_lms_installmentextension.installment_ptr_id",eq,2716934),
+                new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+                new UnaryOperator ("loan_app_loan.id" , in, "2"),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
                 new UnaryOperator ("new_lms_installmentextension.interest_paid_at",lte,_closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.unmarginalization_ledger_amount_id",isnull,"",true),
@@ -114,13 +132,13 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
             )
         );
 
-        psqlQueryJoin->addExtraFromField("select amount from ledger_amount la where la.id = new_lms_installmentextension.partial_marginalization_ledger_amount_id limit 1","partial_marginalization_amount");
-        psqlQueryJoin->addExtraFromField("select amount from ledger_amount la where la.id = new_lms_installmentextension.marginalization_ledger_amount_id limit 1","marginalization_amount");
+        psqlQueryJoin->addExtraFromField("(select amount from ledger_amount la where la.id = new_lms_installmentextension.partial_marginalization_ledger_amount_id limit 1)","partial_marginalization_amount");
+        psqlQueryJoin->addExtraFromField("(select amount from ledger_amount la where la.id = new_lms_installmentextension.marginalization_ledger_amount_id limit 1)","marginalization_amount");
 
         psqlQueryJoin->setAggregates({
             {"loan_app_loan", {"id", 1}}});
 
-        psqlQueryJoin->setOrderBy("loan_app_loan.id asc,  new_lms_installmentextension.id asc, new_lms_installmentlatefees.id asc");
+        psqlQueryJoin->setOrderBy("loan_app_loan.id asc,  new_lms_installmentextension.installment_ptr_id asc, new_lms_installmentlatefees.id asc");
 
         return psqlQueryJoin;
 }
@@ -165,11 +183,13 @@ map <string,map<int,pair<pair<new_lms_installmentextension_primitive_orm*,float>
             }
             cout << "AMOUNT TO BE UNMARGINALIZED : " << unmarginalized_amount << endl;
             string curr_date = ext->get_unmarginalization_date();
+            int ext_unmarginalization_amount_id = ext->get_unmarginalization_ledger_amount_id();
             int curr_id = ext->get_installment_ptr_id();
             lf = ORML(new_lms_installmentlatefees,orms,i);
             int curr_lf_inst_id = lf->get_installment_extension_id();
             string  curr_lf_date=lf->get_unmarginalization_date();
-            if (curr_date!=""){
+            int lf_unmarginalization_amount_id = lf->get_unmarginalization_ledger_amount_id();
+            if (curr_date!="" && ext_unmarginalization_amount_id == 0){
                 auto iter = date_map->find(curr_date);
                
                 if (iter!= date_map->end()){ 
@@ -196,7 +216,7 @@ map <string,map<int,pair<pair<new_lms_installmentextension_primitive_orm*,float>
                 }
 
             }
-            if (curr_lf_date!="" ){
+            if (curr_lf_date!="" && lf_unmarginalization_amount_id == 0 ){
                 auto iter = date_map->find(curr_date);
                 if (iter!= date_map->end()){
 

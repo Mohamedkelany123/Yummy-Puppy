@@ -98,10 +98,10 @@ int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
     const char * step = "unmarginalize_income"; 
-    string databaseName = "django_ostaz_02072024_aliaclosure";
+    string databaseName = "c_plus_plus";
     string closure_date_string = "2024-07-18"; 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
+    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
@@ -378,11 +378,12 @@ int main (int argc, char ** argv)
 
         UnmarginalizeStruct unmarginalizeIncomeStruct;
         unmarginalizeIncomeStruct.blnkTemplateManager = UnmarginalizeIncomeTemplateManager;
+        unmarginalizeIncomeStruct.closure_date_string = closure_date_string;
 
         UnmarginalizeQuery->process_aggregate(threadsCount, UnmarginalizeFunc, (void*)&unmarginalizeIncomeStruct);
         
-        // psqlController.ORMCommit(true,true,true, "main");  
-        // OnboardingCommission::update_step(); 
+        psqlController.ORMCommit(true,true,true, "main");  
+        OnboardingCommission::update_step(); 
     }
 
     if (strcmp(step, "receiveCustomerPayments") == 0 || strcmp(step, "full_closure") == 0) {

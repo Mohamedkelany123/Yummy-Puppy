@@ -9,7 +9,7 @@
 
     typedef struct {
         BlnkTemplateManager *blnkTemplateManager;
-        float current_provision_percentage;    
+        string closure_date_string;   
     } UnmarginalizeStruct;
 
     void UnmarginalizeFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras);
