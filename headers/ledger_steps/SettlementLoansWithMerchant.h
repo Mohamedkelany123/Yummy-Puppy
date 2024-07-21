@@ -1,5 +1,5 @@
-#ifndef _DUETOOVERDUE_H_
-#define _DUETOOVERDUE_H_
+#ifndef _SETTLEMENTLOANSWITHMERCHANT_H_
+#define _SETTLEMENTLOANSWITHMERCHANT_H_
 
 #include <common.h>
 #include <common_orm.h>
@@ -54,7 +54,7 @@ class SettlementLoansWithMerchant : public LedgerClosureStep
 
         static LedgerAmount * _get_request_amount(LedgerClosureStep *settlementLoansWithMerchant);
         // //static methods
-        static LedgerAmount * _get_installment_insterest(LedgerClosureStep *dueToOverdue);
+        static LedgerAmount * unstampLoans();
         static LedgerAmount * _get_installment_principal(LedgerClosureStep *dueToOverdue);
         static LedgerAmount * _calc_installment_late_fees(LedgerClosureStep *dueToOverdue);
         bool checkAmounts();

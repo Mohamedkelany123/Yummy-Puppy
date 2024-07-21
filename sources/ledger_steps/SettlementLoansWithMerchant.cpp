@@ -8,31 +8,155 @@ void SettlementLoansWithMerchant::setupLedgerClosureService(LedgerClosureService
     ledgerClosureService->addHandler("Late repayment fee income accrual",DueToOverdue::_calc_installment_late_fees);
 }
 
-PSQLJoinQueryIterator *SettlementLoansWithMerchant::aggregator(string _closure_date_string)
-{
-
+PSQLJoinQueryIterator *SettlementLoansWithMerchant::reverseAggregator(string _closure_date_string)
+{   
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator("main",
         {
             new settlement_dashboard_settlementrequest_primitive_orm("main"), 
             new settlement_dashboard_merchantpaymentrequest_primitive_orm("main"), 
+            new ledger_entry_primitive_orm("main"), 
+            new ledger_amount_primitive_orm("main"), 
 
         },
         {
             {{"settlement_dashboard_settlementrequest", "request_id"}, {"settlement_dashboard_merchantpaymentrequest", "id"}}, 
+            {{"ledger_entry", "id"}, {"ledger_amount", "entry_id"}}
         });
 
-psqlQueryJoin->filter(
+    psqlQueryJoin->filter(
+            ANDOperator(
+                new UnaryOperator("settlement_dashboard_settlementrequest.status_id", in, "1, 3"),
+                new UnaryOperator("settlement_dashboard_merchantpaymentrequest.status_id", in, "2"),
+
+                new OROperator(
+                    new ANDOperator(
+                        new UnaryOperator("ledger_amount.merchant_payment_request",eq,"settlement_dashboard_merchantpaymentrequest.id"),
+                        new UnaryOperator("ledger_entry.template_id",eq, 63)
+                    )
+
+                    new ANDOperator(
+                        new UnaryOperator("ledger_amount.merchant_payment_request",eq,"settlement_dashboard_merchantpaymentrequest.id"),
+                        new UnaryOperator("ledger_entry.template_id",eq, 65)
+                    )
+
+                    new ANDOperator(
+                        new UnaryOperator("ledger_amount.merchant_payment_request",eq,"settlement_dashboard_merchantpaymentrequest.id"),
+                        new UnaryOperator("ledger_entry.template_id",eq, 169)
+                    )
+
+                    new ANDOperator(
+                        new UnaryOperator("ledger_amount.merchant_payment_request",eq,"settlement_dashboard_merchantpaymentrequest.id"),
+                        new UnaryOperator("ledger_entry.template_id",eq, 64)
+                    )
+                )
+
+                ));
+            
+    psqlQueryJoin->setDistinct("ledger_entry.id");
+    psqlQueryJoin->setAggregates(
+        {{"ledger_entry", {"id", 1}},
+    });
+
+    psqlQueryJoin->setOrderBy("settlement_dashboard_settlementrequest.id asc ");
+
+    return psqlQueryJoin;
+}
+
+
+PSQLJoinQueryIterator *SettlementLoansWithMerchant::paymentRequestAggregator(string _closure_date_string ,vector loan_ids)
+{
+    std::ostringstream oss;
+
+    for (size_t i = 0; i < loan_ids.size(); ++i) {
+        oss << loan_ids[i];
+        if (i != loan_ids.size() - 1) {
+            oss << ", ";
+        }
+    }
+
+    string loan_ids_string = oss.str();
+
+    PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator("main",
+        {
+            new settlement_dashboard_settlementrequest_primitive_orm("main"), 
+            new settlement_dashboard_merchantpaymentrequest_primitive_orm("main"),
+            new loan_app_loan_primitive_orm("main"),
+            new crm_app_purchase_primitive_orm("main")
+        },
+        {
+            {{"settlement_dashboard_settlementrequest", "request_id"}, {"settlement_dashboard_merchantpaymentrequest", "id"}}, 
+
+        });
+
+    psqlQueryJoin->filter(
         ANDOperator(
-            new UnaryOperator("settlement_dashboard_settlementrequest.status_id", in, "1, 3"),
-            ));
+            new UnaryOperator("settlement_dashboard_settlementrequest.status_id", eq, 1),
+            new UnaryOperator("settlement_dashboard_settlementrequest.link", ne, 0),
+            new UnaryOperator("loan_app_loan.id" , in ,loan_ids_string),
+            new UnaryOperator("crm_app_purchase.loan_id" , in ,loan_ids_string)
 
-psqlQueryJoin->setAggregates(
-    {{"settlement_dashboard_settlementrequest", {"id", 1}},
-});
+        ));
 
-psqlQueryJoin->setOrderBy("settlement_dashboard_settlementrequest.id asc ");
+    
 
-return psqlQueryJoin;
+    psqlQueryJoin->setAggregates(
+        {{"settlement_dashboard_settlementrequest", {"id", 1}},
+    });
+
+    psqlQueryJoin->setOrderBy("settlement_dashboard_settlementrequest.id asc ");
+
+    return psqlQueryJoin;
+}
+
+
+
+PSQLJoinQueryIterator *SettlementLoansWithMerchant::unstampLoans()
+{   
+    PSQLUpdateQuery psqlUpdateQuerySettledPay ("main","loan_app_loan",
+        ANDOperator(
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            new UnaryOperator(
+                "loan_app_loan.id",
+                in,
+                "(
+                select 
+                    lal.id 
+                from 
+                    loan_app_loan 
+                join 
+                    settlement_dashboard_merchantpaymentrequest sdm on lal.settled_pay = sdm.id 
+                join 
+                    settlement_dashboard_settlementrequest sds on sds.request_id = sdm.id 
+                where 
+                    sds.status in(1,3))")
+        ),
+        {{"settled_pay", "null"}}
+    );
+    psqlUpdateQuerySettledPay.update();   
+
+
+    PSQLUpdateQuery psqlUpdateQuerySettledCancel ("main","loan_app_loan",
+        ANDOperator(
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            new UnaryOperator(
+                "loan_app_loan.id",
+                in,
+                "(
+                select 
+                    lal.id 
+                from 
+                    loan_app_loan 
+                join 
+                    settlement_dashboard_merchantpaymentrequest sdm on lal.settled_cancel = sdm.id 
+                join 
+                    settlement_dashboard_settlementrequest sds on sds.request_id = sdm.id 
+                where 
+                    sds.status in(1,3))")
+        ),
+        {{"settled_cancel", "null"}}
+    );
+    psqlUpdateQuerySettledCancel.update();   
+    
 }
 // void SettlementLoansWithMerchant::update_step()
 // {
@@ -101,6 +225,12 @@ LedgerAmount *SettlementLoansWithMerchant::_get_request_amount(LedgerClosureStep
     //set and return amount
     ledgerAmount->setAmount(amount);
     return ledgerAmount;
+}
+
+LedgerAmount *SettlementLoansWithMerchant::_settle_with_merchant(LedgerClosureStep *settlementLoansWithMerchant)
+{
+
+    return nullptr;
 }
 
 SettlementLoansWithMerchant::SettlementLoansWithMerchant()

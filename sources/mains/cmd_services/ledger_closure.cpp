@@ -27,6 +27,10 @@
 #include <OnboardingCommissionFunc.h>
 #include <DueToOverdueFunc.h>
 #include <DueToOverdue.h>
+#include <SettlementLoansWithMerchant.h>
+#include <settlementLoansWithMerchantFunc.h>
+
+
 
 //<BuckedId,Percentage>
 map<int,float> get_loan_status_provisions_percentage()
@@ -405,6 +409,25 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main"); 
     }
 
+    if ( strcmp (step,"settlementLoansWithMerchant") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        PSQLJoinQueryIterator*  psqlQueryJoin = SettlementLoansWithMerchant::reverseAggregator(closure_date_string);
+        
+        ReverseSettlementLoansWithMerchantStruct reverseSettlementLoansWithMerchantStruct;
+        SettlementLoansWithMerchant::unstampLoans();
+        BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(6, -1);
+        psqlQueryJoin->process_aggregate(threadsCount,getMerchantPaymentRequestLoansFunc,(void *)&ReverseSettlementLoansWithMerchantStruct);
+        reverseSettlementLoansWithMerchantStruct.blnkTemplateManager = blnkTemplateManager;
+        set<int> loan_ids = new set<int>;
+        for(auto id : loan_ids) {
+            cout<<"loan id: "<<id<<endl;
+        }
+        psqlQueryJoin->process_aggregate(threadsCount, getMerchantPaymentRequestLoansFunc,(void *)loan_ids);
+        
+        delete(blnkTemplateManager);
+        delete(psqlQueryJoin);
+        psqlController.ORMCommit(true,true,true, "main"); 
+    }
 
     return 0;
 }
