@@ -141,10 +141,7 @@ int main (int argc, char ** argv) {
 // extern "c" not garbling function names
 extern "C" int main_closure (char* address, int port, char* database_name, char* username, char* password, char* step, char* closure_date_string, int threadsCount, int mod_value, int offset, char* loan_ids)
 {   
-    bool isLoanSpecific = (loan_ids != NULL && strcmp(loan_ids,"") !=0); 
-    if (isLoanSpecific){
-        cout << "Loan ids to close: " << loan_ids << endl;
-    }
+
 
     bool isMultiMachine = mod_value > 0; 
 
@@ -157,6 +154,45 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(threadsCount);
     BDate closure_date(closure_date_string);
+
+
+    bool isLoanSpecific = (loan_ids != NULL && strcmp(loan_ids,"") !=0); 
+    
+
+    if (isLoanSpecific && strcmp (step,"payment_closure") == 0){
+        cout << "Loan ids to close: " << loan_ids << endl;
+
+        //Check Loans Last LMS Closing day to check if loan is up to date. 
+        loan_app_loan_primitive_orm_iterator * itr = new loan_app_loan_primitive_orm_iterator("main");
+        itr->filter(
+            UnaryOperator("loan_app_loan.id",in,loan_ids)
+        );
+        bool exec = itr->execute();
+        string loans_to_close;
+        if (exec){
+            loan_app_loan_primitive_orm * loan = itr->next();
+            while(loan != nullptr){
+                BDate last_closing_day(loan->get_last_lms_closing_day());
+                BDate one_day_before(closure_date_string);
+                one_day_before.dec_day();
+
+                if(last_closing_day() < one_day_before()){
+                    loans_to_close+= to_string(loan->get_id()) + ",";
+                }
+                loan = itr->next();
+            }
+            if (!loans_to_close.empty()) {
+                loans_to_close.erase(loans_to_close.size() - 1);
+                delete[] loan_ids;
+                loan_ids = new char[loans_to_close.size()];
+                strcpy(loan_ids ,loans_to_close.c_str());
+            }else{
+                cout << "All loans are up to date!" << endl;
+                psqlController.clear(); 
+                return 0;
+            }
+        }
+    }
 
     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator(
@@ -1277,7 +1313,8 @@ extern "C" int main_closure (char* address, int port, char* database_name, char*
         );
         lastUpdateQuery.update();
     }
-   
+    
+    psqlController.clear(); 
     return 0;
 }
 

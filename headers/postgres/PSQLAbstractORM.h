@@ -3,6 +3,8 @@
 
 #include <PSQLConnection.h>
 
+
+
 class PSQLAbstractORM 
 {
     protected:
@@ -68,6 +70,8 @@ class PSQLAbstractORM
         string compose_field_with_index (string field_name);
         void setExtra (string fname, string fvalue);
         string getExtra (string fname);
+        float getExtraToFloat(string fname);
+        int getExtraToInt(string fname);
         void set_is_add_referenced(bool referenced);
         bool  get_is_add_referenced();
         virtual void operator = (const PSQLAbstractORM & _psqlAbstractORM);
@@ -125,5 +129,24 @@ class PSQLQueryJoin : public PSQLQuery
         ~PSQLQueryJoin ();
 
 };
+
+
+
+template <class T>
+class ORMVector : public vector<T *>
+{
+        private:
+        public:
+            ORMVector(){}
+            void operator += (T * orm) {
+                    this->push_back (orm);
+            }
+            ~ORMVector(){
+                    for ( int i = 0 ;i < this->size() ; i++ )
+                            delete ((*this)[i]);
+            }
+
+};
+
 
 #endif

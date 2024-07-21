@@ -29,7 +29,11 @@ BDate::BDate (struct tm & _tm)
 {
     tm = _tm;
 }
-time_t BDate::operator () ()
+BDate::BDate(time_t t)
+{
+    tm = *localtime(&t);
+}
+time_t BDate::operator()()
 {
     return mktime(&tm);
 }

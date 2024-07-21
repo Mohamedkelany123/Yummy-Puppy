@@ -138,5 +138,12 @@ int PSQLController::getCacheCounter ()
     return psqlORMCaches["main"]->cache_counter;
 }
 
+void PSQLController::clear() {
+    for (auto cache : psqlORMCaches){
+        delete (cache.second);
+    }
+    delete (psqlConnectionManager);
+    psqlConnectionManager = new PSQLConnectionManager();
+} 
 
 PSQLController psqlController;
