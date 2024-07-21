@@ -4,6 +4,8 @@ bin/*
 dso/*
 temp/*
 test/*
+**/*.so
+
 
 factory/db_primitive_orm/headers/
 factory/db_primitive_orm/sources/*.cpp
@@ -13,12 +15,12 @@ makefile.vars
 Webserver-Backend/objects/*
 Webserver-Backend/objects_fpic/*
 Webserver-Backend/bin/*
-*.pyc
+**/*.pyc
 .vscode
 
-applications/ledger_closure/bin*
-applications/ledger_closure/objects*
+applications/ledger_closure/bin/*
+applications/ledger_closure/objects/*
 
-applications/lms_closure/bin*
-applications/lms_closure/objects*
+applications/lms_closure/bin/*
+applications/lms_closure/objects/*
 
