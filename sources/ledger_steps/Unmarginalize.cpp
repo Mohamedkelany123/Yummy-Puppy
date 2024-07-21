@@ -44,7 +44,7 @@ LedgerAmount * Unmarginalize::_unmarginalize_interest(LedgerClosureStep *unmargi
     new_lms_installmentextension_primitive_orm * installment_extension =  ((Unmarginalize*)unmarginalize)->get_installment_extension();
     LedgerAmount * la = ((Unmarginalize*)unmarginalize)->_init_ledger_amount();
     double amount = 0.0;
-    cout << "UNMARGINALIZE AMOUNT IN INFERENCE FUNC : " << ((Unmarginalize*)unmarginalize)->get_unmarginalized_amount() << endl;
+    // cout << "UNMARGINALIZE AMOUNT IN INFERENCE FUNC : " << ((Unmarginalize*)unmarginalize)->get_unmarginalized_amount() << endl;
     la->setAmount(((Unmarginalize*)unmarginalize)->get_unmarginalized_amount());
 
     return la;
@@ -90,13 +90,6 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new loan_app_loan_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
         { {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}, {{"new_lms_installmentlatefees", "installment_extension_id"}, {"loan_app_installment", "id"}}});
-
-        // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = false and loan_app_loan.id = lai.loan_id)","short_term_principal");
-        // psqlQueryJoin->addExtraFromField("(SELECT SUM(lai.principal_expected) FROM loan_app_installment lai INNER JOIN new_lms_installmentextension nli on nli.installment_ptr_id  = lai.id where nli.is_long_term = true and loan_app_loan.id = lai.loan_id)","long_term_principal");
-        // psqlQueryJoin->addExtraFromField("(SELECT cap2.is_rescheduled FROM crm_app_purchase cap INNER JOIN crm_app_purchase cap2 ON cap.parent_purchase_id = cap2.id WHERE  cap.id = crm_app_purchase.id)","is_rescheduled");
-        // psqlQueryJoin->addExtraFromField("(select transaction_upfront_income_banked from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_banked");
-        // psqlQueryJoin->addExtraFromField("(select  transaction_upfront_income_unbanked  from loan_app_loanproduct lal where lal.id = loan_app_loan.loan_product_id)","transaction_upfront_income_unbanked");
-
 
         psqlQueryJoin->filter(
             OROperator(
@@ -168,12 +161,12 @@ map <string,map<int,pair<pair<new_lms_installmentextension_primitive_orm*,float>
         for ( int i = 0 ;i < ORML_SIZE(orms) ; i ++)
         {   
             ext = ORML(new_lms_installmentextension,orms,i);
-            cout << "INSTALLMENT ID: " << ext->get_installment_ptr_id() << endl;
+            // cout << "INSTALLMENT ID: " << ext->get_installment_ptr_id() << endl;
             PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms,i);
             float partial_marginalization_amount = gorm->toFloat("partial_marginalization_amount");
-            cout << "PARTIAL MARGINALIZATION AMOUNT : " << partial_marginalization_amount << endl;
+            // cout << "PARTIAL MARGINALIZATION AMOUNT : " << partial_marginalization_amount << endl;
             float marginalization_amount = gorm->toFloat("marginalization_amount");
-            cout << "MARGINALIZATION AMOUNT : " << marginalization_amount << endl;
+            // cout << "MARGINALIZATION AMOUNT : " << marginalization_amount << endl;
             float unmarginalized_amount = 0.0;
             if(ext->get_partial_marginalization_ledger_amount_id() == ext->get_marginalization_ledger_amount_id()){
                 unmarginalized_amount = partial_marginalization_amount;
@@ -181,7 +174,7 @@ map <string,map<int,pair<pair<new_lms_installmentextension_primitive_orm*,float>
             else{
                 unmarginalized_amount = partial_marginalization_amount + marginalization_amount;
             }
-            cout << "AMOUNT TO BE UNMARGINALIZED : " << unmarginalized_amount << endl;
+            // cout << "AMOUNT TO BE UNMARGINALIZED : " << unmarginalized_amount << endl;
             string curr_date = ext->get_unmarginalization_date();
             int ext_unmarginalization_amount_id = ext->get_unmarginalization_ledger_amount_id();
             int curr_id = ext->get_installment_ptr_id();

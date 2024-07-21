@@ -28,10 +28,6 @@ class Unmarginalize : public LedgerClosureStep
         map<string, funcPtr> funcMap;
         Unmarginalize(loan_app_loan_primitive_orm * loan,int ins_id,new_lms_installmentextension_primitive_orm * installment_ext, float unmarginalized_inst_amount ,vector<new_lms_installmentlatefees_primitive_orm *>* late_fees);
         
-        //Setters
-
-
-        
 
         //Getters
         vector<new_lms_installmentlatefees_primitive_orm*>* get_late_fees();
