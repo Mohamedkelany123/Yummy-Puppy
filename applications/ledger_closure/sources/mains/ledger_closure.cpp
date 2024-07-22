@@ -25,6 +25,8 @@
 #include <CustomerPaymentFunc.h>
 #include <OnboardingCommission.h>
 #include <OnboardingCommissionFunc.h>
+#include <Unmarginalize.h>
+#include <UnmarginalizeFunc.h>
 #include <UpdatingProvisions.h>
 #include <UpdatingProvisionsFunc.h>
 #include <DueToOverdueFunc.h>
@@ -124,10 +126,10 @@ vector<string> get_start_and_end_fiscal_year(){
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "updating_provisions"; 
-    string closure_date_string = "2024-07-02"; 
+    const char * step = "unmarginalize_income"; 
+    string databaseName = "c_plus_plus";
+    string closure_date_string = "2024-07-18"; 
     int threadsCount = 1;
-    string databaseName = "c_plus_plus_07";
     bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
@@ -394,6 +396,21 @@ int main (int argc, char ** argv)
         onboardingCommissionStruct.blnkTemplateManager = onboardingCommissionsTemplateManager;
 
         onboarding_commissions_iterator->process(threadsCount, OnboardingCommissionFunc, (void *)&onboardingCommissionStruct);
+        
+        psqlController.ORMCommit(true,true,true, "main");  
+        OnboardingCommission::update_step(); 
+    }
+
+    if ( strcmp (step,"unmarginalize_income") == 0 || strcmp (step,"full_closure") == 0){
+        cout << "Unmarginalize Income" << endl;
+        PSQLJoinQueryIterator*  UnmarginalizeQuery = Unmarginalize::aggregator(closure_date_string);
+        BlnkTemplateManager * UnmarginalizeIncomeTemplateManager = new BlnkTemplateManager(33, -1);
+
+        UnmarginalizeStruct unmarginalizeIncomeStruct;
+        unmarginalizeIncomeStruct.blnkTemplateManager = UnmarginalizeIncomeTemplateManager;
+        unmarginalizeIncomeStruct.closure_date_string = closure_date_string;
+
+        UnmarginalizeQuery->process_aggregate(threadsCount, UnmarginalizeFunc, (void*)&unmarginalizeIncomeStruct);
         
         psqlController.ORMCommit(true,true,true, "main");  
         OnboardingCommission::update_step(); 

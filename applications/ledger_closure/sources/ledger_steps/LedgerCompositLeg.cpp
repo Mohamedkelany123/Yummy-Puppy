@@ -171,6 +171,10 @@ std::pair <ledger_amount_primitive_orm *,ledger_amount_primitive_orm *> * Ledger
 return leg;
 }
 
+int LedgerCompositLeg::getLegId(){
+        return leg->first->get_leg_temple_id();
+}
+
 LedgerCompositLeg::~LedgerCompositLeg()
 {
         delete (leg);
