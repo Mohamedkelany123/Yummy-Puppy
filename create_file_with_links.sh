@@ -71,10 +71,31 @@ create_exec() {
     echo "Exec folder '$exec_name' created with symbolic links in '$target_dir/$exec_name'"
 }
 
+create_dso() {
+    local target_dir="$1"  # Target directory where the new folder will be created
+    local exec_name="$2"   # Name of the exec folder to be created
+
+    relative_path=$(realpath --relative-to="$target_dir/$exec_name" "$PROJECT_ROOT")
+
+    # Create the target directory if it doesn't exist
+    mkdir -p "$target_dir/$exec_name"
+
+    # Navigate to the target directory
+    cd "$target_dir/$exec_name"
+
+    echo "$relative_path/leaf_dso_makefile"
+
+    #Create symbolic links
+    ln -s "$relative_path/leaf_makefile.vars" leaf_makefile.vars
+    ln -s "$relative_path/leaf_dso_makefile" Makefile
+
+    echo "DSO folder '$exec_name' created with symbolic links in '$target_dir/$exec_name'"
+}
+
 # Check if the correct number of arguments is provided
 if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <type> <target_directory> <folder_name> "
-    echo "Type can be 'folder' , 'lib' ,or 'exec"
+    echo "Type can be 'folder' , 'lib' , 'dso' ,or 'exec"
     exit 1
 fi
 
@@ -91,6 +112,9 @@ case "$type" in
         ;;
     exec)
         create_exec "$target_directory" "$folder_name"
+        ;;
+    dso)
+        create_dso "$target_directory" "$folder_name"
         ;;
     *)
         echo "Invalid type. Type can be 'folder' , 'lib' ,or 'exec"

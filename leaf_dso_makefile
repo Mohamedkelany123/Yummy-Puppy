@@ -19,10 +19,10 @@ $(DSO_DIR)/%.so: $(OBJ_DIR)/%.cpp.dso $(ALL_CPP)
 $(DSO_DIR):
 	@mkdir -p $(DSO_DIR)
 
-build_tree: $(DSO_DIR)
+build_tree_dso: $(DSO_DIR)
 	@echo "Tree Built"
 
-target: build_tree $(DSOS)
+target: build_tree_dso $(DSOS)
 	@echo $(CUR_DIR)
 	@echo $(OBJ_DIR)
 	@echo $(DSOS)

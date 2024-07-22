@@ -19,10 +19,10 @@ $(BIN_DIR)/%: $(OBJ_DIR)/%.cpp.oo $(ALL_CPP)
 $(BIN_DIR):
 	@mkdir -p $(BIN_DIR)
 
-build_tree: $(BIN_DIR)
+build_tree_bin: $(BIN_DIR)
 	@echo "Tree Built"
 
-target: build_tree $(BINS)
+target: build_tree_bin $(BINS)
 
 #-----------------------------------------------------------------------
 #Generating object files for executables
