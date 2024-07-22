@@ -275,7 +275,7 @@ int main (int argc, char ** argv)
         delete(accrualTemplateManager);
         delete(settlementAccrualQuery);
         psqlController.ORMCommit(true,true,true, "main");  
-        // AccrualInterest::update_step();
+        AccrualInterest::update_step();
     }
 
 

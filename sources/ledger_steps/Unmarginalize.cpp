@@ -109,7 +109,9 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
                     new ANDOperator(
                         new UnaryOperator ("new_lms_installmentlatefees.is_cancelled" , eq, true),
                         new UnaryOperator ("new_lms_installmentlatefees.cancellation_date" ,lte,_closure_date_string)
-                    ) ) ),
+                    ) 
+                ) 
+            ),
             new ANDOperator (
                 // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
                 new UnaryOperator ("loan_app_loan.id" , ne, "14312"),

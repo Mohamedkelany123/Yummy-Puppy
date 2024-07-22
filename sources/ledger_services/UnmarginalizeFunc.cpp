@@ -2,14 +2,17 @@
 
 void UnmarginalizeFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras) {
     loan_app_loan_primitive_orm * lal_orm  = ORML(loan_app_loan,orms_list,0);
+
+    //map<paid_at, map<installment_id,pair<pair<ins_ext, unmarginalization_amount>, vector<latefees>>>>
     map <string,map<int,pair<pair<new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> * date_map = Unmarginalize::get_date_map(orms_list);
-    for (auto itr = date_map->cbegin(); itr != date_map->cend(); ++itr) 
+    for (auto itr = date_map->begin(); itr != date_map->end(); ++itr) 
     {
         //PER DATE LOOP (ENTRY)
         map<string,LedgerAmount*>* entryLedgerAmounts = new map<string,LedgerAmount*>();
         BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((UnmarginalizeStruct *) extras)->blnkTemplateManager,partition_number);
         localTemplateManager->createEntry(BDate(itr->first));
-        for (auto itr1 = itr->second->cbegin(); itr1 != itr->second->cend(); ++itr1) 
+
+        for (auto itr1 = itr->second->begin(); itr1 != itr->second->end(); ++itr1) 
         {
             BlnkTemplateManager* loopTemplateManager = new BlnkTemplateManager(localTemplateManager, partition_number);
             loopTemplateManager->setEntry(localTemplateManager->get_entry());
