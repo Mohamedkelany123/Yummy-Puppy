@@ -6,7 +6,7 @@ SRC = $(wildcard $(CUR_DIR)/*.cpp)
 
 
 #-----------------------------------------------------------------------
-#Generating Bin Executables
+#Generating DSO 
 
 DSO_DIR=$(subst sources,dso,$(CUR_DIR))
 DSOS = $(patsubst $(CUR_DIR)/%.cpp, $(DSO_DIR)/%.so, $(SRC))
@@ -29,7 +29,7 @@ target: build_tree $(DSOS)
 	@echo $(DSO_DIR)
 
 #-----------------------------------------------------------------------
-#Generating object files for executables
+#Generating object files for DSO
 
 OBJS = $(patsubst $(CUR_DIR)/%.cpp, $(OBJ_DIR)/%.cpp.dso, $(SRC))
 

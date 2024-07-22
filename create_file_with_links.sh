@@ -20,8 +20,6 @@ create_folder() {
     cd "$target_dir/$folder_name"
 
     # Create symbolic links to the recursive_makefile
-    ln -s "$relative_path/recursive_makefile" bin_makefile
-    ln -s "$relative_path/recursive_makefile" dso_makefile
     ln -s "$relative_path/recursive_makefile" Makefile
 
     echo "Folder '$folder_name' created with symbolic links in '$target_dir/$folder_name'"
@@ -64,10 +62,9 @@ create_exec() {
     # Navigate to the target directory
     cd "$target_dir/$exec_name"
 
-    echo "$relative_path/bin_makefile"
+    echo "$relative_path/leaf_bin_makefile"
 
     # Create symbolic links to the bin_makefile, leaf_makefile.vars, and leaf_bin_makefile
-    ln -s "$relative_path/bin_makefile" bin_makefile
     ln -s "$relative_path/leaf_makefile.vars" leaf_makefile.vars
     ln -s "$relative_path/leaf_bin_makefile" Makefile
 
