@@ -403,6 +403,7 @@ int main (int argc, char ** argv)
 
     if ( strcmp (step,"unmarginalize_income") == 0 || strcmp (step,"full_closure") == 0){
         cout << "Unmarginalize Income" << endl;
+
         PSQLJoinQueryIterator*  UnmarginalizeQuery = Unmarginalize::aggregator(closure_date_string);
         BlnkTemplateManager * UnmarginalizeIncomeTemplateManager = new BlnkTemplateManager(33, -1);
 

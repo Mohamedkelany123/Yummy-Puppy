@@ -67,7 +67,7 @@ make_target_clean:
 	@for a in $$(ls); do \
 		if [ -d $$a ]; then \
 			if [ -f $$a/Makefile ]; then \
-				echo "processing folder $$a"; \
+				echo "Make Clean processing folder $$a"; \
 				if ! $(MAKE) -C $$a -f Makefile clean ; then \
 					exit 1;\
 				fi; \
