@@ -1,17 +1,17 @@
 {
     "server_config":{
-        "listen_address" : "0.0.0.0",
+        "listen_address" : "192.168.1.51",
         "port_number" : "8080",
         "listen queue": "100000",
         "post_max_size" : "100000000",
-        "logfile" : "/Users/kmsobh/blnk/Webserver-Backend/LogFile.log",
+        "logfile" : "/home/kmsobh/blnk/kelany/ledger/ORM-C_plus_plus/Webserver-Backend/LogFile.log",
         "loglevel" : "LOG_LEVEL_DEBUG",
         "logtype" : "CONSOLE",
         "daemon": false
         },
         "AdvancedBlnkML": {
             "http_path": "/testing",
-            "so_path" : "/Users/kmsobh/blnk/orm_c++/dso/endpoints/first.so",
-	        "New_BlnkML_ConfigFile" : "/Users/kmsobh/blnk/repos/New-blnk-ml/ml-config.json"
+            "so_path" : "/home/kmsobh/blnk/kelany/ledger/ORM-C_plus_plus/dso/endpoints/first.so",
+	        "New_BlnkML_ConfigFile" : "/home/kmsobh/blnk/kelany/ledger/ORM-C_plus_plus/Webserver-Backend/conf/ml-config.json"
         }
 }
