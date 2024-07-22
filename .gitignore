@@ -18,9 +18,9 @@ Webserver-Backend/bin/*
 **/*.pyc
 .vscode
 
-applications/ledger_closure/bin/*
-applications/ledger_closure/objects/*
+applications/blnk_closure/ledger_closure/bin/*
+applications/blnk_closure/ledger_closure/objects/*
 
-applications/lms_closure/bin/*
-applications/lms_closure/objects/*
+applications/blnk_closure/lms_closure/bin/*
+applications/blnk_closure/lms_closure/objects/*
 

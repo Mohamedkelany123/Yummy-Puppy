@@ -177,7 +177,7 @@ string generateExtraField(string _account_name, string _start_fiscal_year,string
     ),\
     child_accounts AS (\
         SELECT id \
-        FROM ledger_account \ 
+        FROM ledger_account \
         WHERE parent_id = (SELECT id FROM parent_account) \
     )\
     SELECT SUM(amount) \
