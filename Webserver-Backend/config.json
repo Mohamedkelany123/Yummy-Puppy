@@ -11,7 +11,7 @@
         },
         "AdvancedBlnkML": {
             "http_path": "/testing",
-            "so_path" : "/home/kmsobh/blnk/kelany/ledger/ORM-C_plus_plus/dso/endpoints/first.so",
+            "so_path" : "/home/kmsobh/blnk/kelany/ledger/ORM-C_plus_plus/applications/blnk_closure/endpoints_test/dso/endpoints/first.so",
 	        "New_BlnkML_ConfigFile" : "/home/kmsobh/blnk/kelany/ledger/ORM-C_plus_plus/Webserver-Backend/conf/ml-config.json"
         }
 }
