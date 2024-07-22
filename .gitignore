@@ -21,4 +21,5 @@ bin/*
 Webserver-Backend/bin/*
 applications/blnk_closure/ledger_closure/bin/*
 applications/blnk_closure/lms_closure/bin/*
+applications/blnk_closure/endpoints_test/bin/*
 
