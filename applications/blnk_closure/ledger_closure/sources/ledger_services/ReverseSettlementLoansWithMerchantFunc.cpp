@@ -17,8 +17,8 @@ void processLoanOrms(vector<map <string,PSQLAbstractORM *> * > * orms_list, int 
 void getMerchantPaymentRequestLoansFunc(vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras)
 {
     set<int>* loan_ids = (set<int>*)extras;
-    settlement_dashboard_merchantpaymentrequest_primitive_orm * ;
-sdm_orm
+    settlement_dashboard_merchantpaymentrequest_primitive_orm * sdm_orm;
+
     for(int i=0; i<ORML_SIZE(orms_list); i++)
     {
         sdm_orm = ORML(settlement_dashboard_merchantpaymentrequest, orms_list, i);
@@ -41,20 +41,23 @@ void settleLoansWithMerchant(vector<map<string, PSQLAbstractORM *> *> *orms_list
     loan_app_loan_primitive_orm* lal_orm;
     int loanId, linkId;
 
+
     sdm_orm = ORML(settlement_dashboard_merchantpaymentrequest, orms_list, 0);
+    json transaction = sdm_orm->get_transactions();
+    int transactionsSize = transaction["transactions"].size();
+
     for (int i=0; i<transactionsSize; i++){
-        json transaction = sdm_orm->get_transactions();
-        loanId = transaction["transactions"][i]["loan_id"];
-        lal_orm = loanMap[loanId];
+        int loanId = transaction["transactions"][i]["loan_id"];
+        lal_orm = (*loanMap)[loanId];
         double loan_value = 0, parent_loan_value = 0;
         for (int j=0; j<ORML_SIZE(orms_list); j++) {
             sds_orm = ORML(settlement_dashboard_settlementrequest, orms_list, i);
             linkId = sds_orm->get_link();
             if (templateManagerMap.find(linkId)!=templateManagerMap.end()) {
                 templateManagerMap[linkId] = new BlnkTemplateManager(templateManager, partition_number);
-                templateManagerMap[linkId]->createEntry();
+                templateManagerMap[linkId]->createEntry(BDate("2024-12-12"));
             }
-            bool check_bool = transaction
+            bool check_bool = transaction;
             int category = sds_orm->get_category();
             string entry_date_string = sds_orm->get_entry_date();
         }
@@ -65,10 +68,9 @@ void settleLoansWithMerchant(vector<map<string, PSQLAbstractORM *> *> *orms_list
         
         
         json transaction = sdm_orm->get_transactions();
-        int transactionsSize = transaction["transactions"].size();
         for (int j=0; j<transactionsSize; j++){
-            loanId = transaction["transactions"][j]["loan_id"];
-            lal_orm = loanMap[loanId];
+            int loanId = transaction["transactions"][j]["loan_id"];
+            lal_orm = (*loanMap)[loanId];
         }
     }
 }
