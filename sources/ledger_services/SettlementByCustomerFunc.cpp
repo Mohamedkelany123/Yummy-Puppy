@@ -45,6 +45,7 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
     BDate closing_date = ((SettlementByCustomerStruct*)extras)->closing_day;
     set<loan_app_installment_primitive_orm*>* installmentsVector;
     ledger_entry_primitive_orm* entry;
+    float cash_in_escrow = ROUND(gorm->toFloat("ledger_paid_orders_amount")/100) - gorm->toFloat("principal_paid_amount") - gorm->toFloat("interest_paid_amount") - gorm->toFloat("early_paid_amount") - gorm->toFloat("extra_paid_amount") - gorm->toFloat("lf_paid_amount");
 
     for (auto installment : installmentsMap){
         installmentsVector = installment.second;
@@ -55,7 +56,6 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
                 nlie_orm = installmentToExtension[lai_orm];
                 vector<new_lms_installmentlatefees_primitive_orm*>* latefeesVector = lateFeeMap[lai_orm];
                 localTemplateManager->setEntry(entry);
-                float starting_cash_in_escrow = gorm->toFloat("ledger_paid_orders_amount") - gorm->toFloat("principal_paid_amount") - gorm->toFloat("interest_paid_amount") - gorm->toFloat("early_paid_amount") - gorm->toFloat("extra_paid_amount") - gorm->toFloat("lf_paid_amount");
                 int last_status = gorm->toInt("last_status");;
                 int unmarginalization_template_id = gorm->toInt("unmarginalization_template");;
                 string settlement_day_str = gorm->get("settlement_day");
@@ -66,7 +66,7 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
                 }
                 int template_id = 14;
                 SettlementByCustomer settlementByCustomer(lal_orm,pl_orm,lai_orm,nlie_orm,latefeesVector,
-                unmarginalization_template_id, closing_date, settlement_day_str, last_status, starting_cash_in_escrow);
+                unmarginalization_template_id, closing_date, settlement_day_str, last_status, cash_in_escrow);
 
                 LedgerClosureService* ledgerClosureService = new LedgerClosureService(&settlementByCustomer);
                 settlementByCustomer.setupLedgerClosureService(ledgerClosureService);
@@ -78,6 +78,7 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
                     map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
                     if (entry) {
                         settlementByCustomer.stampORMs(leg_amounts);
+                        cash_in_escrow = settlementByCustomer.get_cash_in_escrow();
                     }
                     else {
                         cerr << "Can not stamp ORM objects\n";

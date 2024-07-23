@@ -14,9 +14,6 @@ class SettlementByCustomer : public LedgerClosureStep{
         new_lms_installmentextension_primitive_orm* nli_orm;
         payments_loanorder_primitive_orm* plo_orm;
         vector <new_lms_installmentlatefees_primitive_orm*>* lf_orms;
-        // new_lms_installmentlatefees_primitive_orm* nlif_orm;
-        // vector <loan_app_installment_primitive_orm*> installments;        
-        // map <loan_app_installment_primitive_orm*, new_lms_installmentextension_primitive_orm*> installments_extensions;        
 
         int unmarginalization_template_id;
         int last_status;
@@ -35,15 +32,6 @@ class SettlementByCustomer : public LedgerClosureStep{
         int unmarg_interest_leg = 2;
 
         int securitized_legs[9] = {16,17,18,19,20,21,22,23,24}; 
-
-
-        // PSQLJoinQueryIterator* _principal_orders_agg(string _closure_date_string, string processed_order_ids);
-        // PSQLJoinQueryIterator* _interest_orders_agg(string _closure_date_string, string processed_order_ids);
-        // PSQLJoinQueryIterator* _early_orders_agg(string _closure_date_string, string processed_order_ids);
-        // PSQLJoinQueryIterator* _lfs_orders_agg(string _closure_date_string, string processed_order_ids);
-        // PSQLJoinQueryIterator* _extra_orders_agg(string _closure_date_string, string processed_order_ids);
-
-
 
     public:
         SettlementByCustomer();
@@ -70,14 +58,9 @@ class SettlementByCustomer : public LedgerClosureStep{
         BDate get_closing_day();
         float get_cash_in_escrow();
 
-        // vector <loan_app_installment_primitive_orm*> get_installments();        
-        // map <loan_app_installment_primitive_orm*, new_lms_installmentextension_primitive_orm*> get_installments_extensions();        
-        // map <loan_app_installment_primitive_orm*, vector <new_lms_installmentlatefees_primitive_orm*>> get_late_fees_map();
-
 
         //Field setters
         void set_cash_in_escrow(float amount);
-        // void set_unmarginalization_template_id();
 
         //Calculators
         static LedgerAmount* _skip_leg(LedgerClosureStep* settlementByCustomer);

@@ -91,10 +91,10 @@ PSQLJoinQueryIterator* SettlementByCustomer::aggregator(string _closure_date_str
                     )
                 ),
                 new ANDOperator(
-                    // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_BY_CUSTOMER-1),
+                    new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_BY_CUSTOMER-1),
                     new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnotnull,"",true),
-                    new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
-                    new UnaryOperator ("payments_loanorder.id" , in, "2083328")
+                    new UnaryOperator ("loan_app_loan.id" , ne, "14312")
+                    // new UnaryOperator ("payments_loanorder.id" , in, "2083328")
                 )
             )
         );
@@ -168,7 +168,6 @@ LedgerAmount *SettlementByCustomer::_get_marginalized_late_fees(LedgerClosureSte
     vector<new_lms_installmentlatefees_primitive_orm*>* nlif_orms = ((SettlementByCustomer*)settlementByCustomer)->get_new_lms_installmentlatefees();
     payments_loanorder_primitive_orm* plo_orm = ((SettlementByCustomer*)settlementByCustomer)->get_payments_loanorder();
 
-    // new_lms_installmentextension_primitive_orm* nli_orm = ((SettlementByCustomer*)settlementByCustomer)->get_new_lms_installmentextension();
     float total_amount = 0.0;
     for(auto *nlif_orm : *nlif_orms){
         if ((nlif_orm != nullptr) && nlif_orm->get_is_paid() && (nlif_orm->get_order_id() == plo_orm->get_id())){
@@ -182,13 +181,12 @@ LedgerAmount *SettlementByCustomer::_get_marginalized_late_fees(LedgerClosureSte
 }
 
 LedgerAmount *SettlementByCustomer::_get_marginalized_interest(LedgerClosureStep *settlementByCustomer){
-    // vector<loan_app_installment_primitive_orm*> lai_orms = ((SettlementByCustomer*)settlementByCustomer)->get_installments();
-    // map <loan_app_installment_primitive_orm*, new_lms_installmentextension_primitive_orm*> nli_orms = ((SettlementByCustomer*)settlementByCustomer)->get_installments_extensions();
     LedgerAmount* la = ((SettlementByCustomer*)settlementByCustomer)->_init_ledger_amount();
     float amount = 0.0;
 
     new_lms_installmentextension_primitive_orm *nli_orm = ((SettlementByCustomer*)settlementByCustomer)->get_new_lms_installmentextension();
     payments_loanorder_primitive_orm* plo_orm = ((SettlementByCustomer*)settlementByCustomer)->get_payments_loanorder();
+
     if (nli_orm->get_interest_order_id() == plo_orm->get_id()){
         if ((nli_orm->get_marginalization_ledger_amount_id() != 0) && nli_orm->get_is_interest_paid()
             && (nli_orm->get_unmarginalization_ledger_amount_id() == 0 || (nli_orm->get_unmarginalization_ledger_amount_id() != 0 
@@ -212,7 +210,6 @@ LedgerAmount *SettlementByCustomer::_get_marginalized_interest(LedgerClosureStep
 
 LedgerAmount *SettlementByCustomer::_get_late_fees_paid(LedgerClosureStep *settlementByCustomer)
 {
-    //TODO -- ADD CHECK ON LF PAID AT and payment ledger entry
     SettlementByCustomer* settlementByCustomerObject=((SettlementByCustomer*)settlementByCustomer);
     LedgerAmount* la = settlementByCustomerObject->_init_ledger_amount();
     new_lms_installmentextension_primitive_orm* nli_orm = settlementByCustomerObject->get_new_lms_installmentextension();
@@ -723,7 +720,6 @@ float SettlementByCustomer::get_interest_paid(LedgerClosureStep *settlementByCus
 
 float SettlementByCustomer::get_cash_in_escrow()
 {
-    cout << "Current cash in escrow: " << cash_in_escrow;
     return cash_in_escrow;
 }
 
@@ -825,12 +821,6 @@ bool SettlementByCustomer::intArrayIncludes(int arr[], int size, int value) {
     return false;
 }
 
-// bool SettlementByCustomer::_processLegToggle(bool is_installment_securitized, int leg_id){
-//     int securitized_legs[9] = {16,17,18,19,20,21,22,23,24}; 
-//     bool is_leg_securitized = intArrayIncludes(securitized_legs, 9, leg_id);
-//     return is_installment_securitized == is_leg_securitized;
-// }
-
 void SettlementByCustomer::update_step()
 {
     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
@@ -847,410 +837,3 @@ void SettlementByCustomer::update_step()
 SettlementByCustomer::~SettlementByCustomer()
 {
 }
-
-// vector <loan_app_installment_primitive_orm*> SettlementByCustomer::get_installments(){return installments;}        
-// map <loan_app_installment_primitive_orm*, new_lms_installmentextension_primitive_orm*> SettlementByCustomer::get_installments_extensions(){return installments_extensions;}       
-// map <loan_app_installment_primitive_orm*, vector <new_lms_installmentlatefees_primitive_orm*>> SettlementByCustomer::get_late_fees_map(){return late_fees_map;}   
-
-// PSQLJoinQueryIterator* SettlementByCustomer::aggregator22(string _closure_date_string, int _agg_number, string processed_order_ids)
-// {
-//     SettlementByCustomer instance;
-
-//     if(_agg_number == 1)
-//         return instance._principal_orders_agg(_closure_date_string, processed_order_ids);
-//     else if (_agg_number == 2)
-//         return instance._interest_orders_agg(_closure_date_string, processed_order_ids);
-//     else if (_agg_number == 3)
-//         return instance._early_orders_agg(_closure_date_string, processed_order_ids);
-//     else if (_agg_number == 4)
-//         return instance._extra_orders_agg(_closure_date_string, processed_order_ids);
-//     else if (_agg_number == 5)
-//         return instance._lfs_orders_agg(_closure_date_string, processed_order_ids);
-//     return nullptr;
-// }
-
-
-// PSQLJoinQueryIterator* SettlementByCustomer::_principal_orders_agg(string _closure_date_string, string processed_order_ids){
-//     PSQLJoinQueryIterator * principalQuery = new PSQLJoinQueryIterator ("main",
-//     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"), new payments_loanorder_primitive_orm("main"), new new_lms_installmentlatefees_primitive_orm("main")},
-//     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}},{{"payments_loanorder", "id"}, {"new_lms_installmentextension", "principal_order_id"}}, {{"new_lms_installmentextension", "installment_ptr_id"}, {"new_lms_installmentlatefees", "installment_extension_id"}}});
-
-//         principalQuery->filter(
-//             ANDOperator (
-//                 new UnaryOperator("new_lms_installmentextension.is_principal_paid", eq, true),
-//                 new UnaryOperator("new_lms_installmentextension.principal_payment_ledger_amount_id", isnull, "", true),
-//                 new UnaryOperator("new_lms_installmentextension.principal_paid_at::date", lte, _closure_date_string),
-//                 new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_BY_CUSTOMER-1),
-//                 new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnotnull,"",true),
-//                 new UnaryOperator("payments_loanorder.id", nin, processed_order_ids),
-    
-//                 new UnaryOperator ("loan_app_loan.id" , ne, "14312")
-//             )
-//         );
-//         principalQuery->addExtraFromField("(select template_id from ledger_entry le where entry_id = (select entry_id from ledger_amount where id = new_lms_installmentextension.unmarginalization_ledger_amount_id)","unmarginalization_template");        
-
-//         principalQuery->setOrderBy("loan_app_loan.id asc, loan_app_installment.id asc,new_lms_installmentlatefees.id");
-//         principalQuery->setAggregates ({
-//             {"loan_app_loan", {"id", 1}},  
-//         });
-
-//         return principalQuery;
-// }
-
-// PSQLJoinQueryIterator* SettlementByCustomer::_interest_orders_agg(string _closure_date_string, string processed_order_ids){
-//     PSQLJoinQueryIterator * interestQuery = new PSQLJoinQueryIterator ("main",
-//     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"), new payments_loanorder_primitive_orm("main"), new new_lms_installmentlatefees_primitive_orm("main")},
-//     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}},{{"payments_loanorder", "id"}, {"new_lms_installmentextension", "interest_order_id"}}, {{"new_lms_installmentextension", "installment_ptr_id"}, {"new_lms_installmentlatefees", "installment_extension_id"}}});
-
-//         interestQuery->filter(
-//             ANDOperator (
-//                 new UnaryOperator("new_lms_installmentextension.is_interest_paid", eq, true),
-//                 new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
-//                 new UnaryOperator("new_lms_installmentextension.interest_payment_ledger_amount_id", isnull, "", true),
-//                 new UnaryOperator("new_lms_installmentextension.interest_paid_at::date", lte, _closure_date_string),
-//                 new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_BY_CUSTOMER-1),
-//                 new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnotnull,"",true),
-//                 new UnaryOperator("payments_loanorder.id", nin, processed_order_ids),
-    
-//                 new UnaryOperator ("loan_app_loan.id" , ne, "14312")
-//             )
-//         );
-//         interestQuery->addExtraFromField("(select template_id from ledger_entry le where entry_id = (select entry_id from ledger_amount where id = new_lms_installmentextension.unmarginalization_ledger_amount_id)","unmarginalization_template");        
-
-//         interestQuery->setOrderBy("loan_app_loan.id asc, loan_app_installment.id asc,new_lms_installmentlatefees.id");
-//         interestQuery->setAggregates ({
-//             {"loan_app_loan", {"id", 1}},  
-//         });
-
-
-//         return interestQuery;
-// }
-
-// PSQLJoinQueryIterator* SettlementByCustomer::_early_orders_agg(string _closure_date_string, string processed_order_ids){
-//     PSQLJoinQueryIterator * earlyQuery = new PSQLJoinQueryIterator ("main",
-//     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"), new payments_loanorder_primitive_orm("main"), new new_lms_installmentlatefees_primitive_orm("main")},
-//     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}},{{"payments_loanorder", "id"}, {"new_lms_installmentextension", "early_order_id"}}, {{"new_lms_installmentextension", "installment_ptr_id"}, {"new_lms_installmentlatefees", "installment_extension_id"}}});
-
-//         earlyQuery->filter(
-//             ANDOperator (
-//                 new UnaryOperator("new_lms_installmentextension.is_early_paid", eq, true),
-//                 new UnaryOperator("new_lms_installmentextension.early_fee_payment_ledger_amount_id", isnull, "", true),
-//                 new UnaryOperator("new_lms_installmentextension.early_paid_at::date", lte, _closure_date_string),
-//                 new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_BY_CUSTOMER-1),
-//                 new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnotnull,"",true),
-//                 new UnaryOperator("payments_loanorder.id", nin, processed_order_ids),
-    
-//                 new UnaryOperator ("loan_app_loan.id" , ne, "14312")
-//             )
-//         );
-//         earlyQuery->addExtraFromField("(select template_id from ledger_entry le where entry_id = (select entry_id from ledger_amount where id = new_lms_installmentextension.unmarginalization_ledger_amount_id)","unmarginalization_template");        
-
-//         earlyQuery->setOrderBy("loan_app_loan.id asc, loan_app_installment.id asc,new_lms_installmentlatefees.id");
-//         earlyQuery->setAggregates ({
-//             {"loan_app_loan", {"id", 1}},  
-//         });
-
-
-//         return earlyQuery;
-// }
-
-// PSQLJoinQueryIterator* SettlementByCustomer::_extra_orders_agg(string _closure_date_string, string processed_order_ids){
-//     PSQLJoinQueryIterator * extraInterestQuery = new PSQLJoinQueryIterator ("main",
-//     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"), new payments_loanorder_primitive_orm("main"), new new_lms_installmentlatefees_primitive_orm("main")},
-//     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}},{{"payments_loanorder", "id"}, {"new_lms_installmentextension", "extra_interest_order_id"}}, {{"new_lms_installmentextension", "installment_ptr_id"}, {"new_lms_installmentlatefees", "installment_extension_id"}}});
-
-//         extraInterestQuery->filter(
-//             ANDOperator (
-//                 new UnaryOperator("new_lms_installmentextension.is_extra_interest_paid", eq, true),
-//                 new UnaryOperator("new_lms_installmentextension.extra_interest_payment_ledger_amount_id", isnull, "", true),
-//                 new UnaryOperator("new_lms_installmentextension.extra_interest_paid_at::date", lte, _closure_date_string),
-//                 new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_BY_CUSTOMER-1),
-//                 new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnotnull,"",true),
-//                 new UnaryOperator("payments_loanorder.id", nin, processed_order_ids),
-    
-//                 new UnaryOperator ("loan_app_loan.id" , ne, "14312")
-//             )
-//         );
-//         extraInterestQuery->addExtraFromField("(select template_id from ledger_entry le where entry_id = (select entry_id from ledger_amount where id = new_lms_installmentextension.unmarginalization_ledger_amount_id)","unmarginalization_template");        
-
-//         extraInterestQuery->setOrderBy("loan_app_loan.id asc, loan_app_installment.id asc,new_lms_installmentlatefees.id");
-//         extraInterestQuery->setAggregates ({
-//             {"loan_app_loan", {"id", 1}},  
-//         });
-
-
-//         return extraInterestQuery;
-// }
-
-// PSQLJoinQueryIterator* SettlementByCustomer::_lfs_orders_agg(string _closure_date_string, string processed_order_ids){
-//     PSQLJoinQueryIterator * lateFeesQuery = new PSQLJoinQueryIterator ("main",
-//     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"), new payments_loanorder_primitive_orm("main"), new new_lms_installmentlatefees_primitive_orm("main")},
-//     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}},{{"new_lms_installmentlatefees", "installment_extension_id"}, {"new_lms_installmentextension", "installment_ptr_id"}},{{"payments_loanorder", "id"}, {"new_lms_installmentlatefees", "order_id"}}, {{"new_lms_installmentextension", "installment_ptr_id"}, {"new_lms_installmentlatefees", "installment_extension_id"}}});
-
-//         lateFeesQuery->filter(
-//             ANDOperator (
-//                 new UnaryOperator("new_lms_installmentlatefees.is_paid", eq, true),
-//                 new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, false),
-//                 new UnaryOperator("new_lms_installmentlatefees.payment_amount_id", isnull, "", true),
-//                 new UnaryOperator("new_lms_installmentlatefees.paid_at::date", lte, _closure_date_string),
-//                 new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_BY_CUSTOMER-1),
-//                 new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnotnull,"",true),
-//                 new UnaryOperator("payments_loanorder.id", nin, processed_order_ids),
-
-//                 new UnaryOperator ("loan_app_loan.id" , ne, "14312")
-//             )
-//         );
-//         lateFeesQuery->addExtraFromField("(select template_id from ledger_entry le where entry_id = (select entry_id from ledger_amount where id = new_lms_installmentextension.unmarginalization_ledger_amount_id)","unmarginalization_template");        
-
-//         lateFeesQuery->setOrderBy("loan_app_loan.id asc, loan_app_installment.id asc,new_lms_installmentlatefees.id");
-//         lateFeesQuery->setAggregates ({
-//             {"loan_app_loan", {"id", 1}},  
-//         });
-
-
-//         return lateFeesQuery;
-
-
-// LedgerAmount *SettlementByCustomer::_get_undue_principal_paid_sec(LedgerClosureStep *settlementByCustomer)
-// {
-//     SettlementByCustomer* settlementByCustomerObject = (SettlementByCustomer*)settlementByCustomer;
-//     LedgerAmount* la = (settlementByCustomerObject)->_init_ledger_amount();
-//     new_lms_installmentextension_primitive_orm* nli_orm = (settlementByCustomerObject)->get_new_lms_installmentextension();
-//     loan_app_loan_primitive_orm* lal_orm = (settlementByCustomerObject)->get_loan_app_loan();
-//     if (!nli_orm->get_is_securitized() || (lal_orm->get_status_id() == 11 || lal_orm->get_status_id() == 15)) {
-//         la->setAmount(0);
-//         return la;
-//     }
-//     loan_app_installment_primitive_orm* lai_orm =(settlementByCustomerObject)->get_loan_app_installment();;
-//     payments_loanorder_primitive_orm* pl_orm = (settlementByCustomerObject)->get_payments_loanorder();
-//     float amount = 0.0;
-//     if(nli_orm->get_payment_status() == 3 || (nli_orm->get_payment_status() == 1 && (settlementByCustomerObject)->get_settlement_day() != nullptr
-//             && (*settlementByCustomerObject->get_settlement_day())() < BDate(nli_orm->get_undue_to_due_date())())){
-//         amount = (settlementByCustomerObject)->get_principal_paid(lal_orm, lai_orm, nli_orm, pl_orm);
-//     }
-//     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
-//         settlementByCustomerObject->set_cash_in_escrow(amount);
-//         la->setAmount(amount);
-//         la->setBondId(nli_orm->get_bond_id());
-//     }
-//     return la;
-// }
-// }
-
-// LedgerAmount *SettlementByCustomer::_get_due_interest_paid_sec(LedgerClosureStep *settlementByCustomer)
-// {
-//     SettlementByCustomer* settlementByCustomerObject = (SettlementByCustomer*)settlementByCustomer;
-//     LedgerAmount* la = (settlementByCustomerObject)->_init_ledger_amount();
-//     new_lms_installmentextension_primitive_orm* nli_orm = (settlementByCustomerObject)->get_new_lms_installmentextension();
-//     loan_app_loan_primitive_orm* lal_orm = (settlementByCustomerObject)->get_loan_app_loan();
-//     bool sec_inst_flag = nli_orm->get_is_securitized();
-//     bool process_leg = settlementByCustomerObject->_processLegToggle(sec_inst_flag, la->getLegId());
-//     if (!process_leg) {
-//         la->setAmount(0);
-//         return la;
-//     }
-//     loan_app_installment_primitive_orm* lai_orm =(settlementByCustomerObject)->get_loan_app_installment();;
-//     payments_loanorder_primitive_orm* pl_orm = (settlementByCustomerObject)->get_payments_loanorder();
-//     float amount = 0.0;
-//     bool is_sticky = (lal_orm->get_status_id() == 11 || lal_orm->get_status_id() == 15);
-//     if (is_sticky){
-//         if (nli_orm->get_is_principal_paid() && (BDate(pl_orm->get_paid_at())() < BDate(nli_orm->get_undue_to_due_date())())){
-//             amount = (settlementByCustomerObject)->get_interest_paid(settlementByCustomerObject, lal_orm, lai_orm, nli_orm, pl_orm);
-//         }
-//     } else {
-//         if (BDate(pl_orm->get_paid_at())() < BDate(nli_orm->get_due_to_overdue_date())() 
-//             && BDate(pl_orm->get_paid_at())() >= BDate(nli_orm->get_undue_to_due_date())() 
-//                 || ((BDate(pl_orm->get_paid_at())() < BDate(nli_orm->get_undue_to_due_date())()
-//                     && BDate(nli_orm->get_undue_to_due_date())() <= settlementByCustomerObject->get_closing_day()()) 
-//                         && nli_orm->get_payment_status() != 3)){
-//             amount = (settlementByCustomerObject)->get_interest_paid(settlementByCustomerObject, lal_orm, lai_orm, nli_orm, pl_orm);
-//         }
-//     }
-//     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
-//         settlementByCustomerObject->set_cash_in_escrow(amount);
-//         la->setAmount(amount);
-//         if (sec_inst_flag) la->setBondId(nli_orm->get_bond_id());
-//     }
-//     return la;
-// }
-
-// LedgerAmount *SettlementByCustomer::_get_undue_interest_paid_sec(LedgerClosureStep *settlementByCustomer)
-// {
-//     SettlementByCustomer* settlementByCustomerObject = (SettlementByCustomer*)settlementByCustomer;
-//     LedgerAmount* la = (settlementByCustomerObject)->_init_ledger_amount();
-//     new_lms_installmentextension_primitive_orm* nli_orm = (settlementByCustomerObject)->get_new_lms_installmentextension();
-//     loan_app_loan_primitive_orm* lal_orm = (settlementByCustomerObject)->get_loan_app_loan();
-//     if (!nli_orm->get_is_securitized() || (lal_orm->get_status_id() == 11 || lal_orm->get_status_id() == 15)) {
-//         la->setAmount(0);
-//         return la;
-//     }
-//     loan_app_installment_primitive_orm* lai_orm =(settlementByCustomerObject)->get_loan_app_installment();;
-//     payments_loanorder_primitive_orm* pl_orm = (settlementByCustomerObject)->get_payments_loanorder();
-//     float amount = 0.0;
-//     if(nli_orm->get_payment_status() == 3 || (nli_orm->get_payment_status() == 1 && (settlementByCustomerObject)->get_settlement_day() != nullptr
-//             && (*settlementByCustomerObject->get_settlement_day())() < BDate(nli_orm->get_undue_to_due_date())())){
-//         amount = (settlementByCustomerObject)->get_interest_paid(settlementByCustomerObject, lal_orm, lai_orm, nli_orm, pl_orm);
-//     }
-//     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
-//         settlementByCustomerObject->set_cash_in_escrow(amount);
-//         la->setAmount(amount);
-//         la->setBondId(nli_orm->get_bond_id());
-//     }
-//     return la;
-// }
-
-// LedgerAmount *SettlementByCustomer::_get_principal_long_term_sec(LedgerClosureStep *settlementByCustomer)
-// {
-//     SettlementByCustomer* settlementByCustomerObject = (SettlementByCustomer*)settlementByCustomer;
-//     LedgerAmount* la = (settlementByCustomerObject)->_init_ledger_amount();
-//     new_lms_installmentextension_primitive_orm* nli_orm = (settlementByCustomerObject)->get_new_lms_installmentextension();
-//     loan_app_loan_primitive_orm* lal_orm = (settlementByCustomerObject)->get_loan_app_loan();
-//     if (!nli_orm->get_is_securitized()) {
-//         la->setAmount(0);
-//         return la;
-//     }
-//     loan_app_installment_primitive_orm* lai_orm =(settlementByCustomerObject)->get_loan_app_installment();;
-//     payments_loanorder_primitive_orm* pl_orm = (settlementByCustomerObject)->get_payments_loanorder();
-//     float amount = 0.0;
-//     if(nli_orm->get_is_long_term() && nli_orm->get_payment_status() == 3 && nli_orm->get_is_principal_paid()
-//             && nli_orm->get_principal_payment_ledger_amount_id() == 0 && (BDate(nli_orm->get_principal_paid_at())() <= BDate(pl_orm->get_paid_at())())){
-//                 amount = lai_orm->get_principal_expected();
-//     }
-//     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
-//         settlementByCustomerObject->set_cash_in_escrow(amount);
-//         la->setAmount(amount);
-//         la->setBondId(nli_orm->get_bond_id());
-//     }
-//     return la;
-// }
-
-// LedgerAmount *SettlementByCustomer::_get_early_repayment_fee_income_sec(LedgerClosureStep *settlementByCustomer)
-// {
-//     SettlementByCustomer* settlementByCustomerObject = (SettlementByCustomer*)settlementByCustomer;
-//     LedgerAmount* la = (settlementByCustomerObject)->_init_ledger_amount();
-//     new_lms_installmentextension_primitive_orm* nli_orm = (settlementByCustomerObject)->get_new_lms_installmentextension();
-//     loan_app_loan_primitive_orm* lal_orm = (settlementByCustomerObject)->get_loan_app_loan();
-//     if (!nli_orm->get_is_securitized()) {
-//         la->setAmount(0);
-//         return la;
-//     }
-//     loan_app_installment_primitive_orm* lai_orm =(settlementByCustomerObject)->get_loan_app_installment();;
-//     payments_loanorder_primitive_orm* pl_orm = (settlementByCustomerObject)->get_payments_loanorder();
-//     float amount = 0.0;
-//     if (!lal_orm->get_disable_early_repayment_fees() && nli_orm->get_is_early_paid() && nli_orm->get_early_fee_payment_ledger_amount_id() == 0
-//             && (BDate(nli_orm->get_early_paid_at())() <= BDate(pl_orm->get_paid_at())())){
-//                 amount = ROUND((lal_orm->get_early_repayment_fee_rate() / 100) * lai_orm->get_principal_expected());
-//     }
-//     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
-//         settlementByCustomerObject->set_cash_in_escrow(amount);
-//         la->setAmount(amount);
-//         la->setBondId(nli_orm->get_bond_id());
-//     }
-//     return la;
-// }
-
-// LedgerAmount *SettlementByCustomer::_get_due_principal_paid_sec(LedgerClosureStep *settlementByCustomer)
-// {
-//     SettlementByCustomer* settlementByCustomerObject = (SettlementByCustomer*)settlementByCustomer;
-//     LedgerAmount* la = (settlementByCustomerObject)->_init_ledger_amount();
-//     new_lms_installmentextension_primitive_orm* nli_orm = (settlementByCustomerObject)->get_new_lms_installmentextension();
-//     loan_app_loan_primitive_orm* lal_orm = (settlementByCustomerObject)->get_loan_app_loan();
-//     if (nli_orm->get_is_securitized()) {
-//         la->setAmount(0);
-//         return la;
-//     }
-//     loan_app_installment_primitive_orm* lai_orm =(settlementByCustomerObject)->get_loan_app_installment();;
-//     payments_loanorder_primitive_orm* pl_orm = (settlementByCustomerObject)->get_payments_loanorder();
-//     float amount = 0.0;
-//     bool is_sticky = (lal_orm->get_status_id() == 11 || lal_orm->get_status_id() == 15);
-//     if (is_sticky){
-//         if (nli_orm->get_is_principal_paid() && (BDate(pl_orm->get_paid_at())() < BDate(nli_orm->get_undue_to_due_date())())){
-//             amount = (settlementByCustomerObject)->get_principal_paid(lal_orm, lai_orm, nli_orm, pl_orm);
-//         }
-//     } else {
-//         if (BDate(pl_orm->get_paid_at())() < BDate(nli_orm->get_due_to_overdue_date())() 
-//             && BDate(pl_orm->get_paid_at())() >= BDate(nli_orm->get_undue_to_due_date())() 
-//                 || ((BDate(pl_orm->get_paid_at())() < BDate(nli_orm->get_undue_to_due_date())()
-//                     && BDate(nli_orm->get_undue_to_due_date())() <= settlementByCustomerObject->get_closing_day()()) 
-//                         && nli_orm->get_payment_status() != 3)){
-//             amount = (settlementByCustomerObject)->get_principal_paid(lal_orm, lai_orm, nli_orm, pl_orm);
-//         }
-//     }
-//     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
-//         settlementByCustomerObject->set_cash_in_escrow(amount);
-//         la->setAmount(amount);
-//         la->setBondId(nli_orm->get_bond_id());
-//     }
-//     return la;
-// }
-
-// LedgerAmount *SettlementByCustomer::_get_late_fees_paid_sec(LedgerClosureStep *settlementByCustomer)
-// {
-//     SettlementByCustomer* settlementByCustomerObject=((SettlementByCustomer*)settlementByCustomer);
-//     LedgerAmount* la = settlementByCustomerObject->_init_ledger_amount();
-//     new_lms_installmentextension_primitive_orm* nli_orm = settlementByCustomerObject->get_new_lms_installmentextension();
-//     if (!nli_orm->get_is_securitized()) {
-//         la->setAmount(0);
-//         return la;
-//     }
-//     float total_amount = 0.0;
-//     vector<new_lms_installmentlatefees_primitive_orm*>* nlif_orms = settlementByCustomerObject->get_new_lms_installmentlatefees();
-//     for(auto *nlif_orm : *nlif_orms){
-//         if (nlif_orm != nullptr){
-//                 total_amount += nlif_orm->get_amount();
-//         }
-//     }
-//     if (total_amount <= settlementByCustomerObject->get_cash_in_escrow()){
-//         settlementByCustomerObject->set_cash_in_escrow(ROUND(total_amount));
-//         la->setAmount(ROUND(total_amount));
-//         la->setBondId(nli_orm->get_bond_id());
-//     }
-//     return la;
-// }
-
-// LedgerAmount *SettlementByCustomer::_get_overdue_principal_paid_sec(LedgerClosureStep *settlementByCustomer)
-// {
-//     SettlementByCustomer* settlementByCustomerObject=((SettlementByCustomer*)settlementByCustomer);
-//     LedgerAmount* la = settlementByCustomerObject->_init_ledger_amount();
-//     new_lms_installmentextension_primitive_orm* nli_orm = settlementByCustomerObject->get_new_lms_installmentextension();
-//     if (!nli_orm->get_is_securitized()) {
-//         la->setAmount(0);
-//         return la;
-//     }
-//     loan_app_loan_primitive_orm* lal_orm = settlementByCustomerObject->get_loan_app_loan();
-//     loan_app_installment_primitive_orm* lai_orm =settlementByCustomerObject->get_loan_app_installment();;
-//     payments_loanorder_primitive_orm* pl_orm = settlementByCustomerObject->get_payments_loanorder();
-//     float amount = 0.0;
-//     if(BDate(pl_orm->get_paid_at())() >= BDate(nli_orm->get_due_to_overdue_date())()){
-//         amount = settlementByCustomerObject->get_principal_paid(lal_orm, lai_orm, nli_orm, pl_orm);
-//     }
-//     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
-//         settlementByCustomerObject->set_cash_in_escrow(amount);
-//         la->setAmount(amount);
-//         la->setBondId(nli_orm->get_bond_id());
-//     }
-//     return la;
-// }
-// LedgerAmount *SettlementByCustomer::_get_overdue_interest_paid_sec(LedgerClosureStep *settlementByCustomer)
-// {
-//     SettlementByCustomer* settlementByCustomerObject=((SettlementByCustomer*)settlementByCustomer);
-//     LedgerAmount* la = settlementByCustomerObject->_init_ledger_amount();
-//     new_lms_installmentextension_primitive_orm* nli_orm = settlementByCustomerObject->get_new_lms_installmentextension();
-//     if (!nli_orm->get_is_securitized()) {
-//         la->setAmount(0);
-//         return la;
-//     }
-//     loan_app_loan_primitive_orm* lal_orm = settlementByCustomerObject->get_loan_app_loan();
-//     loan_app_installment_primitive_orm* lai_orm =settlementByCustomerObject->get_loan_app_installment();;
-//     payments_loanorder_primitive_orm* pl_orm = settlementByCustomerObject->get_payments_loanorder();
-//     float amount = 0.0;
-//     if(BDate(pl_orm->get_paid_at())() >= BDate(nli_orm->get_due_to_overdue_date())()){
-//         amount = settlementByCustomerObject->get_interest_paid(settlementByCustomerObject, lal_orm, lai_orm, nli_orm, pl_orm);
-//     }
-//     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
-//         settlementByCustomerObject->set_cash_in_escrow(amount);
-//         la->setAmount(amount);
-//         la->setBondId(nli_orm->get_bond_id());
-//     }
-//     return la;
-// }
