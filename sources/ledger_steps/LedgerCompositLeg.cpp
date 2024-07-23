@@ -19,8 +19,8 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
                 leg_side->set_amount_local(-entry_data->getAmount());
 
                 if(!( template_leg->getBondIdRequired())|| (template_leg->getBondIdRequired() &&  template_leg->getDebitBondIdRequired() && entry_data->getInstallmentId() != 0) ){
-                if (this->bond_id != 0){
-                        leg_side->set_bond_id(this->bond_id);
+                if (entry_data->getBondId() != 0){
+                        leg_side->set_bond_id(entry_data->getBondId());
                        }
                 }
         } else{
@@ -29,8 +29,8 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
                 leg_side->set_amount(entry_data->getAmount());
                 leg_side->set_amount_local(entry_data->getAmount());
                 if(!( template_leg->getBondIdRequired()) || (template_leg->getBondIdRequired() &&  template_leg->getCreditBondIdRequired() && entry_data->getInstallmentId() != 0 )){
-                if (this->bond_id != 0){
-                        leg_side->set_bond_id(this->bond_id);
+                if (entry_data->getBondId() != 0){
+                        leg_side->set_bond_id(entry_data->getBondId());
                        }
                 }
         }

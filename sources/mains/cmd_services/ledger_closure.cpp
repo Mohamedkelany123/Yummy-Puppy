@@ -125,11 +125,11 @@ vector<string> get_start_and_end_fiscal_year(){
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "due_for_settlement_with_merchant"; 
-    string closure_date_string = "2024-07-15"; 
+    const char * step = "settlement_by_customer"; 
+    string closure_date_string = "2024-07-01"; 
     int threadsCount = 1;
-    string databaseName = "sherif_go";
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
+    string databaseName = "django_ostaz_30062024_hazem";
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
@@ -439,11 +439,10 @@ int main (int argc, char ** argv)
     if ( strcmp (step,"settlement_by_customer") == 0 || strcmp (step,"full_closure") == 0)
     {
         cout << "Settlement By Customer" << endl;
-        cout << "-Principal Orders" << endl;
         string* processed_order_ids;
 
         PSQLJoinQueryIterator*  principal_orders_iterator = SettlementByCustomer::aggregator(closure_date_string);
-        BlnkTemplateManager * settlementByCustomerTemplateManager = new BlnkTemplateManager(10, -1);
+        BlnkTemplateManager * settlementByCustomerTemplateManager = new BlnkTemplateManager(14, -1);
         SettlementByCustomerStruct settlementByCustomerStruct;
         settlementByCustomerStruct.blnkTemplateManager = settlementByCustomerTemplateManager;
         settlementByCustomerStruct.closing_day = BDate(closure_date_string);
@@ -451,21 +450,10 @@ int main (int argc, char ** argv)
         principal_orders_iterator->process_aggregate(threadsCount, settlementByCustomerFunc, (void *)&settlementByCustomerStruct);
         
         delete(principal_orders_iterator);
+        delete(settlementByCustomerTemplateManager);
         psqlController.ORMCommit(true,true,true, "main");  
-
+        SettlementByCustomer::update_step(); 
         // //----------------------------------------------------------------------------------------//
-        // cout << "-Sticky Installments Becoming Due" << endl;
-        // PSQLJoinQueryIterator*  sticky_installments_becoming_due_iterator = UndueToDue::aggregator(closure_date_string, 2);
-        // UndueToDueStruct stickyUndueToDueStruct;
-        // stickyUndueToDueStruct.blnkTemplateManager = settlementByCustomerTemplateManager;
-        // stickyUndueToDueStruct.closing_day = BDate(closure_date_string);
-        
-        // sticky_installments_becoming_due_iterator->process_aggregate(threadsCount, StickyInstallmentBecomingDueFunc, (void *)&stickyUndueToDueStruct);
-        
-        // delete(sticky_installments_becoming_due_iterator);
-        // delete(undueToDueTemplateManager);
-        // psqlController.ORMCommit(true,true,true, "main");  
-        // UndueToDue::update_step(); 
     }
 
     if (strcmp(step, "marginalize_income")==0 || strcmp(step, "full_closure")==0 || 1) {
