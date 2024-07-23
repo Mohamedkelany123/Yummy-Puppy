@@ -61,7 +61,7 @@ class SettlementLoansWithMerchant : public LedgerClosureStep
         bool checkAmounts();
 
         static PSQLJoinQueryIterator* paymentRequestAggregator(string _closure_date_string);
-        static PSQLJoinQueryIterator* loanAggregator(string _closure_date_string, vector<int>* loan_ids);
+        static PSQLJoinQueryIterator* loanAggregator(string _closure_date_string, set<int>* loan_ids);
 
         static void update_step(); 
 

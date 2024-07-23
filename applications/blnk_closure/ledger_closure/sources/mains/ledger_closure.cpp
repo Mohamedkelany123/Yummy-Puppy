@@ -497,14 +497,14 @@ int main (int argc, char ** argv)
         MarginalizeIncome::update_step();
     }
 
-    if ( strcmp (step,"settlementLoansWithMerchant") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"settlement_loans_with_merchant") == 0 || strcmp (step,"full_closure") == 0)
     {
         PSQLJoinQueryIterator*  psqlQueryJoin = SettlementLoansWithMerchant::paymentRequestAggregator(closure_date_string);
         
         SettlementLoansWithMerchantStruct settlementLoansWithMerchantStruct;
         SettlementLoansWithMerchant::unstampLoans();
         BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(6, -1);
-        reverseSettlementLoansWithMerchantStruct.blnkTemplateManager = blnkTemplateManager;
+        settlementLoansWithMerchantStruct.blnkTemplateManager = blnkTemplateManager;
         set<int>* loan_ids = new set<int>;
         psqlQueryJoin->process_aggregate(threadsCount, getMerchantPaymentRequestLoansFunc,(void *)loan_ids);
         for(auto id : *loan_ids) {
@@ -514,7 +514,7 @@ int main (int argc, char ** argv)
         map<int, loan_app_loan_primitive_orm*> *loanMap = new map<int, loan_app_loan_primitive_orm*>;
         psqlQueryJoinLoans->process_aggregate(threadsCount, processLoanOrms,(void*)loanMap);
 
-        psqlQueryJoin->process_aggregate(threadsCount, settleLoansWithMerchant, (void*) settlementLoansWithMerchantStruct);
+        psqlQueryJoin->process_aggregate(threadsCount, settleLoansWithMerchant, (void*)&settlementLoansWithMerchantStruct);
         delete(blnkTemplateManager);
         delete(psqlQueryJoin);
         psqlController.ORMCommit(true,true,true, "main"); 

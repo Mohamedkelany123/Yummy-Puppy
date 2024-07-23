@@ -67,14 +67,15 @@ PSQLJoinQueryIterator *SettlementLoansWithMerchant::paymentRequestAggregator(str
 }
 
 
-PSQLJoinQueryIterator *SettlementLoansWithMerchant::loanAggregator(string _closure_date_string, vector<int>* loan_ids)
+PSQLJoinQueryIterator *SettlementLoansWithMerchant::loanAggregator(string _closure_date_string, set<int>* loan_ids)
 {
     std::ostringstream oss;
-    int loans_size = loan_ids->size();
-    for (size_t i = 0; i < loans_size - 1; ++i) {
-        oss << loan_ids->operator[](i) << ", ";
+    for (auto it=loan_ids->begin(); it!=loan_ids->end(); it++) {
+        oss << *it;
+        if (next(it,1) != loan_ids->end()) {
+            oss<<", ";
+        }
     }
-    oss << loan_ids->operator[](loans_size - 1);
 
     string loan_ids_string = oss.str();
 
