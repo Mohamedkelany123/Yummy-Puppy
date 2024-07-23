@@ -22,6 +22,7 @@
 #include <crm_app_merchantstaff_primitive_orm.h>
 #include <payments_paymentprovider_primitive_orm.h>
 #include <tms_app_loaninstallmentfundingrequest_primitive_orm.h>
+#include <settlement_dashboard_merchantpaymentrequest_primitive_orm.h>
 
 
 #endif
