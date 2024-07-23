@@ -7,7 +7,7 @@
 enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin,isnull,isnotnull };
 enum math_operator { mod, plus };
 
-enum JOIN_TYPE { none, aux,full,inner,left, right };
+enum JOIN_TYPE { none, aux,full,inner,left, right, cross };
 
 class Expression{
 

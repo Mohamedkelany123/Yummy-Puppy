@@ -52,7 +52,6 @@ bool PSQLAbstractQueryIterator::execute()
     else sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions +" order by "+orderby_string;
     
     cout << sql << endl;
-    
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;
@@ -187,27 +186,44 @@ PSQLAbstractQueryIterator(_data_source_name,"")
     conditions= "";
     pre_conditions = "";
     orm_objects = new vector <PSQLAbstractORM *> ();
+    std::set<string> tables_set;  
     for ( int i =0 ; i  < tables.size() ; i ++)
     {
-        if ( column_names != "") column_names += ",";
-        column_names += tables[i]->getFromString();
-        if (get_join_type(tables[i]->getTableName(),join_fields) == none)
+        if ( tables_set.find(tables[i]->getTableName()) == tables_set.end())
         {
-            if ( table_name != "") table_name += ",";
-            table_name += tables[i]->getTableName();
+            tables_set.insert(tables[i]->getTableName());
+            if ( column_names != "") column_names += ",";
+            column_names += tables[i]->getFromString();
+            JOIN_TYPE j = get_join_type(tables[i]->getTableName(),join_fields);
+            if (j == none || j==full)
+            {
+                if ( table_name != "") table_name += ",";
+                table_name += tables[i]->getTableName();
+            }
+            orm_objects->push_back(tables[i]);
+            orm_objects_map[tables[i]->getORMName()]=tables[i];
         }
-        orm_objects->push_back(tables[i]);
-        orm_objects_map[tables[i]->getORMName()]=tables[i];
     }
     for ( int i = 0 ; i < join_fields.size() ; i ++)
     {
+
+        
         if ( join_fields[i].second == JOIN_TYPE::full)
         {
             if ( join_string != "") join_string += " and ";
-            join_string += "\""+join_fields[i].first.first.first+"\"."+
-            "\""+join_fields[i].first.first.second+"\" = "+
-            "\""+join_fields[i].first.second.first+"\"."+
-            "\""+join_fields[i].first.second.second+"\"";
+            if (join_fields[i].first.first.first != "" && join_fields[i].first.first.first !="<<expression>>") join_string += "\""+join_fields[i].first.first.first+"\".";
+            if (join_fields[i].first.first.first =="<<expression>>") 
+                join_string += join_fields[i].first.first.second+" = ";
+            else join_string += "\""+join_fields[i].first.first.second+"\" = ";
+            if (join_fields[i].first.second.first != "" && join_fields[i].first.second.first !="<<expression>>") join_string += "\""+join_fields[i].first.second.first+"\".";
+            if (join_fields[i].first.second.first =="<<expression>>") 
+                join_string += join_fields[i].first.second.second;
+            else join_string += "\""+join_fields[i].first.second.second+"\"";
+        }
+        if ( join_fields[i].second == JOIN_TYPE::cross)
+        {
+            other_join_string += "cross join lateral ";
+            other_join_string += join_fields[i].first.first.first + " as "  + join_fields[i].first.first.second ;
         }
         else  if ( join_fields[i].second == JOIN_TYPE::left || join_fields[i].second == JOIN_TYPE::right || join_fields[i].second == JOIN_TYPE::inner)
         {

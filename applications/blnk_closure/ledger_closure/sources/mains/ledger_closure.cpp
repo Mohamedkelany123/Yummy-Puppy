@@ -130,7 +130,11 @@ vector<string> get_start_and_end_fiscal_year(){
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "unmarginalize_income"; 
+    // const char * step = "unmarginalize_income"; 
+    char step [1024];
+    memset (step,0,1024);
+    strcpy(step,"settlement_loans_with_merchant");
+    
     string databaseName = "c_plus_plus";
     string closure_date_string = "2024-07-18"; 
     int threadsCount = 1;
@@ -499,6 +503,14 @@ int main (int argc, char ** argv)
 
     if ( strcmp (step,"settlement_loans_with_merchant") == 0 || strcmp (step,"full_closure") == 0)
     {
+
+
+        PSQLJoinQueryIterator*  psqlQueryJoin1 = SettlementLoansWithMerchant::singleAggregator(closure_date_string);
+        cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+        psqlQueryJoin1->execute();
+        cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+        delete (psqlQueryJoin1);
+        exit (1);
         PSQLJoinQueryIterator*  psqlQueryJoin = SettlementLoansWithMerchant::paymentRequestAggregator(closure_date_string);
         
         SettlementLoansWithMerchantStruct settlementLoansWithMerchantStruct;

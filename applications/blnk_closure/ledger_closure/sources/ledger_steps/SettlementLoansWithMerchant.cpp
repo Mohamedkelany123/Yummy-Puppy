@@ -12,6 +12,34 @@ void SettlementLoansWithMerchant::setupLedgerClosureService(LedgerClosureService
     // ledgerClosureService->addHandler("Late repayment fee income accrual",SettlementLoansWithMerchant::_calc_installment_late_fees);
 }
 
+PSQLJoinQueryIterator *SettlementLoansWithMerchant::singleAggregator(string _closure_date_string)
+{
+        PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator("main",
+        {
+            new settlement_dashboard_settlementrequest_primitive_orm("main"), 
+            new settlement_dashboard_merchantpaymentrequest_primitive_orm("main"), 
+            new loan_app_loan_primitive_orm("main"), 
+            new crm_app_purchase_primitive_orm("main"), 
+
+        },
+        {
+
+            {{{"jsonb_array_elements(settlement_dashboard_merchantpaymentrequest.transactions->'transactions')","tr"},{"",""}},JOIN_TYPE::cross},
+
+
+            {{{"settlement_dashboard_merchantpaymentrequest","id"},{"settlement_dashboard_settlementrequest","request_id"}},JOIN_TYPE::full},
+
+            {{{"<<expression>>","(tr->>'loan_id')::int"},{"loan_app_loan","id"}},JOIN_TYPE::full},
+            {{{"loan_app_loan","id"},{"crm_app_purchase","loan_id"}},JOIN_TYPE::full}
+
+
+            // {{"settlement_dashboard_settlementrequest", "request_id"}, {"settlement_dashboard_merchantpaymentrequest", "id"}}, 
+            // {{"ledger_entry", "id"}, {"ledger_amount", "entry_id"}}
+        });
+
+    return psqlQueryJoin;
+}
+
 PSQLJoinQueryIterator *SettlementLoansWithMerchant::paymentRequestAggregator(string _closure_date_string)
 {   
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator("main",
