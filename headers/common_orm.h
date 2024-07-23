@@ -21,6 +21,7 @@
 #include <ledger_global_primitive_orm.h>
 #include <crm_app_merchantstaff_primitive_orm.h>
 #include <payments_paymentprovider_primitive_orm.h>
+#include <settlement_dashboard_merchantpaymentrequest_primitive_orm.h>
 
 
 #endif

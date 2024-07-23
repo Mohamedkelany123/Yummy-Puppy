@@ -1,14 +1,18 @@
 #include <SettlementLoansWithMerchant.h>
 
+void SettlementLoansWithMerchant::stampORMs(map<string, pair<ledger_amount_primitive_orm *, ledger_amount_primitive_orm *> *> *ledger_amount_orms)
+{
+}
+
 void SettlementLoansWithMerchant::setupLedgerClosureService(LedgerClosureService *ledgerClosureService)
 {
     
-    ledgerClosureService->addHandler("Settlement loans with merchant", SettlementLoansWithMerchant::_get_installment_insterest);
-    ledgerClosureService->addHandler("Loan principal becoming overdue", DueToOverdue::_get_installment_principal);
-    ledgerClosureService->addHandler("Late repayment fee income accrual",DueToOverdue::_calc_installment_late_fees);
+    // ledgerClosureService->addHandler("Settlement loans with merchant", SettlementLoansWithMerchant::_get_installment_insterest);
+    // ledgerClosureService->addHandler("Loan principal becoming overdue", SettlementLoansWithMerchant::_get_installment_principal);
+    // ledgerClosureService->addHandler("Late repayment fee income accrual",SettlementLoansWithMerchant::_calc_installment_late_fees);
 }
 
-PSQLJoinQueryIterator *SettlementLoansWithMerchant::reverseAggregator(string _closure_date_string)
+PSQLJoinQueryIterator *SettlementLoansWithMerchant::paymentRequestAggregator(string _closure_date_string)
 {   
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator("main",
         {
@@ -25,34 +29,34 @@ PSQLJoinQueryIterator *SettlementLoansWithMerchant::reverseAggregator(string _cl
 
     psqlQueryJoin->filter(
             ANDOperator(
-                new UnaryOperator("settlement_dashboard_settlementrequest.status_id", in, "1, 3"),
-                new UnaryOperator("settlement_dashboard_merchantpaymentrequest.status_id", in, "2"),
+                new UnaryOperator("settlement_dashboard_settlementrequest.status", in, "1, 3"),
+                new UnaryOperator("settlement_dashboard_merchantpaymentrequest.status", eq, 2),
 
                 new OROperator(
                     new ANDOperator(
-                        new UnaryOperator("ledger_amount.merchant_payment_request",eq,"settlement_dashboard_merchantpaymentrequest.id"),
+                        new UnaryOperator("ledger_amount.merchant_payment_request_id",eq,"settlement_dashboard_merchantpaymentrequest.id", true),
                         new UnaryOperator("ledger_entry.template_id",eq, 63)
-                    )
+                    ),
 
                     new ANDOperator(
-                        new UnaryOperator("ledger_amount.merchant_payment_request",eq,"settlement_dashboard_merchantpaymentrequest.id"),
+                        new UnaryOperator("ledger_amount.merchant_payment_request_id",eq,"settlement_dashboard_merchantpaymentrequest.id", true),
                         new UnaryOperator("ledger_entry.template_id",eq, 65)
-                    )
+                    ),
 
                     new ANDOperator(
-                        new UnaryOperator("ledger_amount.merchant_payment_request",eq,"settlement_dashboard_merchantpaymentrequest.id"),
+                        new UnaryOperator("ledger_amount.merchant_payment_request_id",eq,"settlement_dashboard_merchantpaymentrequest.id", true),
                         new UnaryOperator("ledger_entry.template_id",eq, 169)
-                    )
+                    ),
 
                     new ANDOperator(
-                        new UnaryOperator("ledger_amount.merchant_payment_request",eq,"settlement_dashboard_merchantpaymentrequest.id"),
+                        new UnaryOperator("ledger_amount.merchant_payment_request_id",eq,"settlement_dashboard_merchantpaymentrequest.id", true),
                         new UnaryOperator("ledger_entry.template_id",eq, 64)
                     )
                 )
 
                 ));
             
-    psqlQueryJoin->setDistinct("ledger_entry.id");
+    // psqlQueryJoin->setDistinct({{"ledger_entry", "id"}});
     psqlQueryJoin->setAggregates(
         {{"ledger_entry", {"id", 1}},
     });
@@ -63,16 +67,14 @@ PSQLJoinQueryIterator *SettlementLoansWithMerchant::reverseAggregator(string _cl
 }
 
 
-PSQLJoinQueryIterator *SettlementLoansWithMerchant::paymentRequestAggregator(string _closure_date_string ,vector loan_ids)
+PSQLJoinQueryIterator *SettlementLoansWithMerchant::loanAggregator(string _closure_date_string, vector<int>* loan_ids)
 {
     std::ostringstream oss;
-
-    for (size_t i = 0; i < loan_ids.size(); ++i) {
-        oss << loan_ids[i];
-        if (i != loan_ids.size() - 1) {
-            oss << ", ";
-        }
+    int loans_size = loan_ids->size();
+    for (size_t i = 0; i < loans_size - 1; ++i) {
+        oss << loan_ids->operator[](i) << ", ";
     }
+    oss << loan_ids->operator[](loans_size - 1);
 
     string loan_ids_string = oss.str();
 
@@ -108,9 +110,15 @@ PSQLJoinQueryIterator *SettlementLoansWithMerchant::paymentRequestAggregator(str
     return psqlQueryJoin;
 }
 
+void SettlementLoansWithMerchant::update_step()
+{
+}
 
+SettlementLoansWithMerchant::~SettlementLoansWithMerchant()
+{
+}
 
-PSQLJoinQueryIterator *SettlementLoansWithMerchant::unstampLoans()
+void SettlementLoansWithMerchant::unstampLoans()
 {   
     PSQLUpdateQuery psqlUpdateQuerySettledPay ("main","loan_app_loan",
         ANDOperator(
@@ -118,19 +126,10 @@ PSQLJoinQueryIterator *SettlementLoansWithMerchant::unstampLoans()
             new UnaryOperator(
                 "loan_app_loan.id",
                 in,
-                "(
-                select 
-                    lal.id 
-                from 
-                    loan_app_loan 
-                join 
-                    settlement_dashboard_merchantpaymentrequest sdm on lal.settled_pay = sdm.id 
-                join 
-                    settlement_dashboard_settlementrequest sds on sds.request_id = sdm.id 
-                where 
-                    sds.status in(1,3))")
+                "(select lal.id from loan_app_loan lal join settlement_dashboard_merchantpaymentrequest sdm on lal.settled_pay_id = sdm.id join settlement_dashboard_settlementrequest sds on sds.request_id = sdm.id where sds.status in(1,3))"
+            )
         ),
-        {{"settled_pay", "null"}}
+        {{"settled_pay_id", "null"}}
     );
     psqlUpdateQuerySettledPay.update();   
 
@@ -141,19 +140,10 @@ PSQLJoinQueryIterator *SettlementLoansWithMerchant::unstampLoans()
             new UnaryOperator(
                 "loan_app_loan.id",
                 in,
-                "(
-                select 
-                    lal.id 
-                from 
-                    loan_app_loan 
-                join 
-                    settlement_dashboard_merchantpaymentrequest sdm on lal.settled_cancel = sdm.id 
-                join 
-                    settlement_dashboard_settlementrequest sds on sds.request_id = sdm.id 
-                where 
-                    sds.status in(1,3))")
+                "(select lal.id from loan_app_loan lal join settlement_dashboard_merchantpaymentrequest sdm on lal.settled_cancel_id = sdm.id join settlement_dashboard_settlementrequest sds on sds.request_id = sdm.id where sds.status in(1,3))"
+            )
         ),
-        {{"settled_cancel", "null"}}
+        {{"settled_cancel_id", "null"}}
     );
     psqlUpdateQuerySettledCancel.update();   
     
@@ -175,7 +165,7 @@ LedgerAmount*  SettlementLoansWithMerchant::_init_ledger_amount(){
 
     lg->setCustomerId(lal_orm->get_customer_id());
     lg->setLoanId(lal_orm->get_id());
-    lg->setInstallmentId(lai_orm->get_id());
+    // lg->setInstallmentId(lai_orm->get_id());
     lg->setReversalBool(true);
     return lg;
 }
@@ -185,23 +175,25 @@ LedgerAmount *SettlementLoansWithMerchant::_get_request_amount(LedgerClosureStep
     LedgerAmount * ledgerAmount = ((SettlementLoansWithMerchant*) settlementLoansWithMerchant)->_init_ledger_amount();
     loan_app_loan_primitive_orm * lal_orm = ((SettlementLoansWithMerchant*) settlementLoansWithMerchant)->get_loan();
     settlement_dashboard_settlementrequest_primitive_orm * sds_orm = ((SettlementLoansWithMerchant*) settlementLoansWithMerchant)->get_settlement_dashboard_settlementrequest();
-    int request_type = sdm_orm->get_type();
+    int request_type = sds_orm->get_type();
     
     //getting variables from loan table
     double principle = lal_orm->get_principle();
-    double cashier_commision = lal_orm->get_cashier_commision();
+    double cashier_fee = lal_orm->get_cashier_fee();
     // double merchant_commission = lal_orm->get_merchant_commission();
     double loan_upfront_fee = lal_orm->get_loan_upfront_fee();
-    double cashier_fee = lal_orm->get_cashier_fee();
     double blnk_to_merchant_fee = lal_orm->get_bl_t_mer_fee();
     double merchant_to_blnk_fee = lal_orm->get_bl_t_mer_fee();
     
     //calculate values from the loan
-    double cashier_commision = ROUND((principle*cashier_fee)/100);
-    double merchant_commission = ROUND((principle*blnk_to_merchant_fee)/100);
-    double upfront_fee = ROUND((loan_upfront_fee/100)*principle);
-    double rebate_commission = ROUND((principle*merchant_to_blnk_fee)/100);
-
+    double cashier_commision = (principle*cashier_fee)/100;
+    cashier_commision = ROUND(cashier_commision);
+    double merchant_commission = (principle*blnk_to_merchant_fee)/100;
+    merchant_commission = ROUND(merchant_commission);
+    double upfront_fee = (loan_upfront_fee/100)*principle;
+    upfront_fee = ROUND(upfront_fee);
+    double rebate_commission = (principle*merchant_to_blnk_fee)/100;
+    rebate_commission = ROUND(rebate_commission);
     double amount = 0;
     switch (request_type)
     {
@@ -229,19 +221,23 @@ LedgerAmount *SettlementLoansWithMerchant::_get_request_amount(LedgerClosureStep
 
 LedgerAmount *SettlementLoansWithMerchant::_settle_with_merchant(LedgerClosureStep *settlementLoansWithMerchant)
 {
-
     return nullptr;
+}
+
+bool SettlementLoansWithMerchant::checkAmounts()
+{
+    return false;
 }
 
 SettlementLoansWithMerchant::SettlementLoansWithMerchant()
 {
 }
 
-SettlementLoansWithMerchant::SettlementLoansWithMerchant(settlement_dashboard_settlementrequest_primitive_orm *_sds_orm, settlement_dashboard_merchantpaymentrequest_primitive_orm *_sdm_orm)
+SettlementLoansWithMerchant::SettlementLoansWithMerchant(settlement_dashboard_settlementrequest_primitive_orm *_sds_orm, settlement_dashboard_merchantpaymentrequest_primitive_orm *_sdm_orm, loan_app_loan_primitive_orm *_lal_orm)
 {
     sds_orm = _sds_orm;
     sdm_orm = _sdm_orm;
-    
+    lal_orm = _lal_orm;
 }
 
 void SettlementLoansWithMerchant::set_settlement_dashboard_settlementrequest(settlement_dashboard_settlementrequest_primitive_orm *_sds_orm)
@@ -263,17 +259,17 @@ void SettlementLoansWithMerchant::set_closing_day(BDate _closing_day)
 {
     closing_day = _closing_day;
 }
-settlement_dashboard_merchantpaymentrequest_primitive_orm *SettlementLoansWithMerchant::get_settlement_dashboard_merchantpaymentrequest()
+settlement_dashboard_merchantpaymentrequest_primitive_orm* SettlementLoansWithMerchant::get_settlement_dashboard_merchantpaymentrequest()
 {
     return sdm_orm;
 }
 
-settlement_dashboard_settlementrequest_primitive_orm *SettlementLoansWithMerchant::get_settlement_dashboard_settlementrequest()
+settlement_dashboard_settlementrequest_primitive_orm* SettlementLoansWithMerchant::get_settlement_dashboard_settlementrequest()
 {
     return sds_orm;
 }
 
-loan_app_loan_prmitive_orm *SettlementLoansWithMerchant::get_loan()
+loan_app_loan_primitive_orm* SettlementLoansWithMerchant::get_loan()
 {
     return lal_orm;
 }

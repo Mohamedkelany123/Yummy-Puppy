@@ -28,7 +28,7 @@
 #include <DueToOverdueFunc.h>
 #include <DueToOverdue.h>
 #include <SettlementLoansWithMerchant.h>
-#include <settlementLoansWithMerchantFunc.h>
+#include <ReverseSettlementLoansWithMerchantFunc.h>
 
 
 
@@ -99,7 +99,7 @@ float get_iscore_credit_expense_fee(){
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-    const char * step = "undue_to_due"; 
+    const char * step = "settlementLoansWithMerchant"; 
     string closure_date_string = "2024-07-06"; 
     int threadsCount = 1;
     string databaseName = "django_ostaz_02072024_aliaclosure";
@@ -411,19 +411,22 @@ int main (int argc, char ** argv)
 
     if ( strcmp (step,"settlementLoansWithMerchant") == 0 || strcmp (step,"full_closure") == 0)
     {
-        PSQLJoinQueryIterator*  psqlQueryJoin = SettlementLoansWithMerchant::reverseAggregator(closure_date_string);
+        PSQLJoinQueryIterator*  psqlQueryJoin = SettlementLoansWithMerchant::paymentRequestAggregator(closure_date_string);
         
-        ReverseSettlementLoansWithMerchantStruct reverseSettlementLoansWithMerchantStruct;
+        SettlementLoansWithMerchantStruct settlementLoansWithMerchantStruct;
         SettlementLoansWithMerchant::unstampLoans();
         BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(6, -1);
-        psqlQueryJoin->process_aggregate(threadsCount,getMerchantPaymentRequestLoansFunc,(void *)&ReverseSettlementLoansWithMerchantStruct);
         reverseSettlementLoansWithMerchantStruct.blnkTemplateManager = blnkTemplateManager;
-        set<int> loan_ids = new set<int>;
-        for(auto id : loan_ids) {
+        set<int>* loan_ids = new set<int>;
+        psqlQueryJoin->process_aggregate(threadsCount, getMerchantPaymentRequestLoansFunc,(void *)loan_ids);
+        for(auto id : *loan_ids) {
             cout<<"loan id: "<<id<<endl;
         }
-        psqlQueryJoin->process_aggregate(threadsCount, getMerchantPaymentRequestLoansFunc,(void *)loan_ids);
-        
+        PSQLJoinQueryIterator* psqlQueryJoinLoans = SettlementLoansWithMerchant::loanAggregator(closure_date_string, loan_ids);
+        map<int, loan_app_loan_primitive_orm*> *loanMap = new map<int, loan_app_loan_primitive_orm*>;
+        psqlQueryJoinLoans->process_aggregate(threadsCount, processLoanOrms,(void*)loanMap);
+
+        psqlQueryJoin->process_aggregate(threadsCount, settleLoansWithMerchant, (void*) settlementLoansWithMerchantStruct);
         delete(blnkTemplateManager);
         delete(psqlQueryJoin);
         psqlController.ORMCommit(true,true,true, "main"); 

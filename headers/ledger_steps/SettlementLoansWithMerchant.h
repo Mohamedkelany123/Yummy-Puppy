@@ -28,7 +28,7 @@ class SettlementLoansWithMerchant : public LedgerClosureStep
     public:
         map<string, funcPtr> funcMap;
         SettlementLoansWithMerchant();
-        SettlementLoansWithMerchant(settlement_dashboard_settlementrequest_primitive_orm *_sds_orm, settlement_dashboard_merchantpaymentrequest_primitive_orm *_sdm_orm)
+        SettlementLoansWithMerchant(settlement_dashboard_settlementrequest_primitive_orm *_sds_orm, settlement_dashboard_merchantpaymentrequest_primitive_orm *_sdm_orm, loan_app_loan_primitive_orm* _lal_orm);
         // DueToOverdue(map <string,PSQLAbstractORM *> * _orms, BDate _closing_day, int _ledger_closure_service_type=1);
         
         //Setters
@@ -41,7 +41,7 @@ class SettlementLoansWithMerchant : public LedgerClosureStep
         //Getters
         settlement_dashboard_merchantpaymentrequest_primitive_orm* get_settlement_dashboard_merchantpaymentrequest();
         settlement_dashboard_settlementrequest_primitive_orm* get_settlement_dashboard_settlementrequest();
-        settlement_dashboard_settlementrequest_primitive_orm* get_loan();
+        loan_app_loan_primitive_orm* get_loan();
 
         int get_template_id();
         BDate get_closing_day();
@@ -50,20 +50,22 @@ class SettlementLoansWithMerchant : public LedgerClosureStep
         LedgerAmount * _init_ledger_amount();
 
         void stampORMs(map<string, pair<ledger_amount_primitive_orm *, ledger_amount_primitive_orm *>*>* ledger_amount_orms);
+        void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
 
 
-        static LedgerAmount * _get_request_amount(LedgerClosureStep *settlementLoansWithMerchant);
         // //static methods
-        static LedgerAmount * unstampLoans();
-        static LedgerAmount * _get_installment_principal(LedgerClosureStep *dueToOverdue);
-        static LedgerAmount * _calc_installment_late_fees(LedgerClosureStep *dueToOverdue);
+        static void unstampLoans();
+        static LedgerAmount * _get_request_amount(LedgerClosureStep *settlementLoansWithMerchant);
+        static LedgerAmount* _settle_with_merchant(LedgerClosureStep* settlementLoansWithMerchant);
+
         bool checkAmounts();
 
-        void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string);
+        static PSQLJoinQueryIterator* paymentRequestAggregator(string _closure_date_string);
+        static PSQLJoinQueryIterator* loanAggregator(string _closure_date_string, vector<int>* loan_ids);
+
         static void update_step(); 
 
-    ~DueToOverdue();
+        ~SettlementLoansWithMerchant();
 };
 
 

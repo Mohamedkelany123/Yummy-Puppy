@@ -233,6 +233,7 @@ bool UndueToDue::checkAmounts(){
                 nli_orm->set_undue_to_due_extra_interest_ledger_amount_id(undue_to_due_interest_amount_id);
         }
     }
+    return true;
 
 }
 
