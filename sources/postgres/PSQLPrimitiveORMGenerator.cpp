@@ -602,6 +602,25 @@ void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name)
 }
 
 
+void PSQLPrimitiveORMGenerator::generateStaticFetch(string class_name)
+{
+    extra_methods_def += "\t\tstatic ORMVector <"+class_name+"> fetch(string _data_source_name, const Expression & e);\n";
+	extra_methods +="\t\tORMVector <"+class_name+"> "+class_name+"::fetch(string _data_source_name, const Expression & e){\n";
+    extra_methods +="\t\t\tORMVector <"+class_name+"> ormVector;\n";
+    extra_methods +="\t\t\tbool _read_only = true;\n";
+    extra_methods +="\t\t\t"+class_name+"_iterator * i = new "+class_name+"_iterator(_data_source_name);\n";
+    extra_methods +="\t\t\ti->filter (e);\n";
+    extra_methods +="\t\t\ti->execute();\n";
+    extra_methods +="\t\t\t"+class_name+" * orm = NULL;\n";
+    extra_methods +="\t\t\tdo {\n";
+    extra_methods +="\t\t\t\torm = i->next(_read_only);\n";
+    extra_methods +="\t\t\t\tif (orm!= NULL) ormVector.push_back(orm);\n";
+    extra_methods +="\t\t\t} while (orm != NULL);\n";
+    extra_methods +="\t\t\tdelete(i);\n";
+    extra_methods +="\t\t\treturn ormVector;\n";
+    extra_methods +="\t\t}\n";
+}
+
 void PSQLPrimitiveORMGenerator::generateResolveReferences(string class_name,string table_name,map<string, vector<string>> columns_definition)
 {
     extra_methods_def += "\t\tvoid resolveReferences ();\n";
@@ -803,6 +822,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         generateAddToCache(class_name);
         generateIsUpdated(class_name);
         generateResolveReferences(class_name,table_name,results);
+        generateStaticFetch(class_name);
         snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,
         class_name_upper.c_str(),class_name_upper.c_str(),includes.c_str(),
         class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),

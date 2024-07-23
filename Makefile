@@ -13,7 +13,7 @@ orm_c++:
 	$(MAKE) -C sources/postgres make_target_cpp
 	$(MAKE) -C sources/utils make_target_cpp
 	$(MAKE) -C sources/mains/orm_generator make_target_cpp
-	$(MAKE) -C sources/mains/orm_generator -f bin_makefile  all
+	$(MAKE) -C sources/mains/orm_generator -f Makefile target
 
 build_factory:
 	@echo "Setting up factory"

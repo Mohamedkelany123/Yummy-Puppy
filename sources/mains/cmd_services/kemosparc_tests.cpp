@@ -14,9 +14,9 @@ int main (int argc, char ** argv)
 {
 
     int threadsCount = 1 ;
-    // bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_30042024_omneya","development","5k6MLFM9CLN3bD1");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,"django_ostaz_02072024_aliaclosure","development","5k6MLFM9CLN3bD1");
 //    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus_kelany","postgres","postgres");
-    bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_08072024","postgres","postgres");
+    // bool connect = psqlController.addDataSource("main","localhost",5432,"django_ostaz_08072024","postgres","postgres");
     if (connect){
         cout << "Connected to DATABASE"  << endl;
     }
@@ -86,18 +86,28 @@ int main (int argc, char ** argv)
     psqlQueryJoin->filter(
         ANDOperator 
         (
-            new UnaryOperator ("loan_app_installment.loan_id",lte,100)
+            new UnaryOperator ("loan_app_installment.loan_id",eq,30)
         )
     );
-    
+    psqlQueryJoin->setAggregates({{"loan_app_installment", {"loan_id",1}}, {"tms_app_loaninstallmentfundingrequest", {"funding_facility_id",1}}});
     psqlQueryJoin->setOrderBy("loan_app_installment.id asc");
-    psqlQueryJoin->process(threadsCount, [](map <string,PSQLAbstractORM*> * orms,int partition_number,mutex * shared_lock,void * extras) {
+    int * counter = 0;
 
-            loan_app_loan_primitive_orm * lal = ORM(loan_app_loan, orms);
-            loan_app_installment_primitive_orm * lai = ORM(loan_app_installment, orms);
-            tms_app_loaninstallmentfundingrequest_primitive_orm * tlai = ORM(tms_app_loaninstallmentfundingrequest, orms);
+    // typedef{
+    //     int * counter;
+    // }temp;
 
-            cout << "BOND ID->" <<  tlai->get_funding_facility_id() << " LOAN ID->" <<  lai->get_loan_id() << " Installment ID->" <<  lai->get_id() << endl;
+    psqlQueryJoin->process_aggregate(threadsCount, [](vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras) {
+
+            cout << "-------------------IN FUNC----------------" << endl;
+            // loan_app_loan_primitive_orm * lal = ORML(loan_app_loan, orms,0);
+            loan_app_installment_primitive_orm *  lai = ORML(loan_app_installment,orms,0);
+            cout << "LOAN ID : " << lai->get_loan_id() << endl;
+            // loan_app_installment_primitive_orm * lai = ORML(loan_app_installment, orms);
+            tms_app_loaninstallmentfundingrequest_primitive_orm * tlai = ORML(tms_app_loaninstallmentfundingrequest, orms,0);
+
+            cout << "BOND ID->" <<  tlai->get_funding_facility_id() << endl;
+            // " LOAN ID->" <<  lai->get_loan_id() << " Installment ID->" <<  lai->get_id() << endl;
             // cout << "Installment: " << lai->get_fra_cycles() << endl; 
             // lai->set_ndays(1011);
             // cout << "Installment: " << lai->get_fra_cycles() << endl; 

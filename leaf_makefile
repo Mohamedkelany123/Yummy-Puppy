@@ -1,6 +1,9 @@
 include leaf_makefile.vars
 
 
+#----------------------------------------------------------------------
+#Generate object files to then be linked and used
+
 CUR_DIR=$(shell pwd)
 OBJ_DIR=$(subst sources,objects,$(CUR_DIR))
 SRC = $(wildcard $(CUR_DIR)/*.cpp)
@@ -15,6 +18,9 @@ build_tree: $(OBJ_DIR)
 	@echo "Tree Built"
 
 make_target_cpp : build_tree $(OBJS)
+
+target: 
+	@echo ":/"
 
 clean:
 	rm -rf $(OBJ_DIR)/*

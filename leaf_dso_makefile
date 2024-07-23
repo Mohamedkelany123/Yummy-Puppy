@@ -1,9 +1,36 @@
 include leaf_makefile.vars
 
-
 CUR_DIR=$(shell pwd)
 OBJ_DIR=$(subst sources,objects,$(CUR_DIR))
 SRC = $(wildcard $(CUR_DIR)/*.cpp)
+
+
+#-----------------------------------------------------------------------
+#Generating DSO 
+
+DSO_DIR=$(subst sources,dso,$(CUR_DIR))
+DSOS = $(patsubst $(CUR_DIR)/%.cpp, $(DSO_DIR)/%.so, $(SRC))
+
+ALL_OBJECTS = $(shell find $(HOME_PATH) -name "*.cpp.o" )
+
+$(DSO_DIR)/%.so: $(OBJ_DIR)/%.cpp.dso $(ALL_CPP)
+	$(GCC) -shared -std=c++17 $(LIBS) $(ALL_OBJECTS) $< -o $@ $(LINKER_FLAGS)
+
+$(DSO_DIR):
+	@mkdir -p $(DSO_DIR)
+
+build_tree_dso: $(DSO_DIR)
+	@echo "Tree Built"
+
+target: build_tree_dso $(DSOS)
+	@echo $(CUR_DIR)
+	@echo $(OBJ_DIR)
+	@echo $(DSOS)
+	@echo $(DSO_DIR)
+
+#-----------------------------------------------------------------------
+#Generating object files for DSO
+
 OBJS = $(patsubst $(CUR_DIR)/%.cpp, $(OBJ_DIR)/%.cpp.dso, $(SRC))
 
 $(OBJ_DIR)/%.cpp.dso: $(CUR_DIR)/%.cpp $(ALL_H)
@@ -16,5 +43,8 @@ build_tree: $(OBJ_DIR)
 
 make_target_cpp: build_tree $(OBJS)
 
+#-----------------------------------------------------------------------
+
 clean:
 	rm -rf $(OBJ_DIR)/*
+	rm -rf $(DSO_DIR)/*

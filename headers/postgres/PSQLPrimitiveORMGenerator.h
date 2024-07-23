@@ -50,6 +50,7 @@ class PSQLPrimitiveORMGenerator
         void generateConstructorAndDestructor(string class_name,string table_name,string table_index, map<string,vector<string>> columns_definition);
         void generateAddToCache(string class_name);
         void generateIsUpdated(string class_name);
+        void generateStaticFetch(string class_name);
         void generateResolveReferences(string class_name,string table_name,map<string, vector<string>> columns_definition);
         void generateCloner(string class_name);
         void generateUpdateQuery(string class_name,string table_name,map<string, vector<string>> columns_definition);

@@ -4,15 +4,15 @@
 
 
 # Define variables
-LMS_COMMAND="./bin/mains/cmd_services/new_lms"
+LMS_COMMAND="./applications/lms_closure/bin/mains/new_lms"
 ADDRESS="192.168.1.51"
 PORT_NUMBER="5432"
-DB_NAME="django_ostaz_before_closure"
+DB_NAME="Qorish_Go"
 USERNAME="postgres"
 PASSWORD="postgres"
 STEP="full_closure"
-DATE="2024-07-23"
-THREADS_COUNT="1"
+DATE="2024-07-16"
+THREADS_COUNT="8"
 
 # mod 2 offset(0,1) ....
 MOD="0"
