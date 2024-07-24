@@ -37,7 +37,7 @@
 #include <MarginalizeIncomeFunc.h>
 #include <SettlementLoansWithMerchant.h>
 #include <ReverseSettlementLoansWithMerchantFunc.h>
-#include <ledger_helper_functions.cpp>
+#include <ledger_helper_functions.h>
 
 
 int main (int argc, char ** argv)
