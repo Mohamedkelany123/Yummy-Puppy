@@ -50,7 +50,7 @@ void MarginalizeIncome::setupLedgerClosureService(LedgerClosureService *ledgerCl
     }
 }
 
-PSQLJoinQueryIterator *MarginalizeIncome::aggregator(string _closure_date_string)
+PSQLJoinQueryIterator *MarginalizeIncome::aggregator(QueryExtraFeilds * query_fields)
 {
 
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator("main",
@@ -77,7 +77,7 @@ PSQLJoinQueryIterator *MarginalizeIncome::aggregator(string _closure_date_string
                     new UnaryOperator("new_lms_installmentextension.marginalization_date", isnotnull, "", true)
                 )
             ),
-            new UnaryOperator("new_lms_installmentextension.marginalization_date", lte, _closure_date_string),
+            new UnaryOperator("new_lms_installmentextension.marginalization_date", lte, query_fields->closure_date_string),
             new UnaryOperator("new_lms_installmentextension.marginalization_ledger_amount_id", isnull, "", true),
             new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
             new UnaryOperator("new_lms_installmentextension.accrual_ledger_amount_id", isnotnull, "", true),
@@ -92,7 +92,7 @@ PSQLJoinQueryIterator *MarginalizeIncome::aggregator(string _closure_date_string
                 )
             ),
             new UnaryOperator("new_lms_installmentlatefees.marginalization_ledger_amount_id", isnull, "", true),
-            new UnaryOperator("new_lms_installmentlatefees.marginalization_date", lte, _closure_date_string)
+            new UnaryOperator("new_lms_installmentlatefees.marginalization_date", lte, query_fields->closure_date_string)
         )
     );
 

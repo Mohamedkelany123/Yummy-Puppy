@@ -18,9 +18,9 @@ class AccrualInterest : public LedgerClosureStep {
         string settled_history;
         int accrual_type;
 
-        PSQLJoinQueryIterator* partial_accrual_agg(string _closure_date_string);
-        PSQLJoinQueryIterator* accrual_agg(string _closure_date_string);
-        PSQLJoinQueryIterator* settlement_accrual_agg(string _closure_date_string);
+        PSQLJoinQueryIterator* partial_accrual_agg(QueryExtraFeilds * query_fields);
+        PSQLJoinQueryIterator* accrual_agg(QueryExtraFeilds * query_fields);
+        PSQLJoinQueryIterator* settlement_accrual_agg(QueryExtraFeilds * query_fields);
     public:
         map<string, funcPtr> funcMap;
         AccrualInterest();
@@ -52,7 +52,7 @@ class AccrualInterest : public LedgerClosureStep {
         static LedgerAmount *_get_marginalization_interest(LedgerClosureStep* accrualInterest);
         static LedgerAmount *_get_accrued_interest(LedgerClosureStep* accrualInterest);
 
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string, int _agg_number=0);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields, int _agg_number=0);
         static void update_step(); 
 
 

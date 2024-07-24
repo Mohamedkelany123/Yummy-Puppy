@@ -10,7 +10,7 @@ CustomerPayment::CustomerPayment(loan_app_loan_primitive_orm *_lal_orm, payments
     first_loan_order_id = _first_loan_order_id;
 }
 
-PSQLJoinQueryIterator *CustomerPayment::aggregator(string _closure_date_string)
+PSQLJoinQueryIterator *CustomerPayment::aggregator(QueryExtraFeilds * query_fields)
 {
     PSQLJoinQueryIterator* psqlJoinQueryIterator = new PSQLJoinQueryIterator(
         "main",
@@ -20,7 +20,7 @@ PSQLJoinQueryIterator *CustomerPayment::aggregator(string _closure_date_string)
     psqlJoinQueryIterator->filter(
         ANDOperator (
             new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnull, "", true),
-            new UnaryOperator("payments_loanorder.paid_at::date", lte, _closure_date_string),
+            new UnaryOperator("payments_loanorder.paid_at::date", lte,query_fields->closure_date_string),
             // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::REPAYMENT_BY_CUSTOMER-1)
             new UnaryOperator("payments_loanorder.status", nin, "2, 3"),
             new UnaryOperator("payments_loanorder.payment_method_id", ne, 34),

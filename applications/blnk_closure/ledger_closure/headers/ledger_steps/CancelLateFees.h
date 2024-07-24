@@ -54,7 +54,7 @@ class CancelLateFees : public LedgerClosureStep
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
 
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_feilds);
         static void update_step(); 
         void stampORMs(ledger_amount_primitive_orm * la_orm);
 

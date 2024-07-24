@@ -46,7 +46,7 @@ class Unmarginalize : public LedgerClosureStep
         //static methods
         static LedgerAmount *_unmarginalize_late_fee(LedgerClosureStep *Unmarginalize);
         static LedgerAmount *_unmarginalize_interest(LedgerClosureStep *Unmarginalize);
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields);
         static void update_step(); 
         static map <string,map<int,pair<pair<new_lms_installmentextension_primitive_orm*,float>*,vector<new_lms_installmentlatefees_primitive_orm*> *> *> *> * get_date_map(vector<map <string,PSQLAbstractORM *> * > * orms);
         

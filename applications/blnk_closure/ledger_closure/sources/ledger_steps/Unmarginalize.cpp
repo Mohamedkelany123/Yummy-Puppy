@@ -85,7 +85,7 @@ void Unmarginalize::stampORMs(map<string,LedgerCompositLeg*> * amounts){
     }
 }
 
-PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
+PSQLJoinQueryIterator* Unmarginalize::aggregator(QueryExtraFeilds * query_fields){
 
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new loan_app_loan_primitive_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main"),new new_lms_installmentlatefees_primitive_orm("main")},
@@ -104,11 +104,11 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
                 new OROperator(
                     new ANDOperator(
                         new UnaryOperator ("new_lms_installmentlatefees.is_paid" , eq, true),
-                        new UnaryOperator ("new_lms_installmentlatefees.paid_at" ,lte,_closure_date_string)
+                        new UnaryOperator ("new_lms_installmentlatefees.paid_at" ,lte,query_fields->closure_date_string)
                     ),
                     new ANDOperator(
                         new UnaryOperator ("new_lms_installmentlatefees.is_cancelled" , eq, true),
-                        new UnaryOperator ("new_lms_installmentlatefees.cancellation_date" ,lte,_closure_date_string)
+                        new UnaryOperator ("new_lms_installmentlatefees.cancellation_date" ,lte,query_fields->closure_date_string)
                     ) 
                 ) 
             ),
@@ -117,7 +117,7 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(string _closure_date_string){
                 new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
                 new UnaryOperator ("loan_app_loan.id" , in, "2"),
                 new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
-                new UnaryOperator ("new_lms_installmentextension.interest_paid_at",lte,_closure_date_string),
+                new UnaryOperator ("new_lms_installmentextension.interest_paid_at",lte,query_fields->closure_date_string),
                 new UnaryOperator ("new_lms_installmentextension.unmarginalization_ledger_amount_id",isnull,"",true),
                 new OROperator(                
                     new UnaryOperator ("new_lms_installmentextension.marginalization_ledger_amount_id",isnotnull,"",true),

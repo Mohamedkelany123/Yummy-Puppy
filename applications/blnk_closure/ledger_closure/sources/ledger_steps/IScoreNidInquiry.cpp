@@ -32,7 +32,7 @@ IScoreNidInquiry::IScoreNidInquiry(map<string,PSQLAbstractORM *> * _orms, float 
     inquiryFee = _inquiry_fee;
 }
 
-PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(string _closure_date_string){
+PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(QueryExtraFeilds * query_fields){
     PSQLJoinQueryIterator * nidLogsQuery = new PSQLJoinQueryIterator("main",
     {new ekyc_app_nidlog_primitive_orm("main"), new ekyc_app_onboardingsession_primitive_orm("main")},
     {{{"ekyc_app_nidlog","onboarding_session_id"},{"ekyc_app_onboardingsession","id"}}}
@@ -42,11 +42,11 @@ PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(string _closure_date_string)
         ANDOperator(
             new UnaryOperator("ekyc_app_nidlog.status",eq,1),
             new UnaryOperator("ekyc_app_nidlog.nid_expense_ledger_entry_id",isnull,"",true),
-            new UnaryOperator("ekyc_app_nidlog.created_at::date",lte,_closure_date_string),
+            new UnaryOperator("ekyc_app_nidlog.created_at::date",lte,query_fields->closure_date_string),
             new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::NID_ISCORE-1)
         )
     );
-    string query_closure_date = "'" + _closure_date_string + "'"; 
+    string query_closure_date = "'" + query_fields->closure_date_string + "'"; 
 
     nidLogsQuery->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at::date <= " + query_closure_date + " order by id desc limit 1)","merchant_id");
     nidLogsQuery->addExtraFromField("(select id from crm_app_customer cac where cac.national_id = ekyc_app_onboardingsession.national_id limit 1)","customer_id");
