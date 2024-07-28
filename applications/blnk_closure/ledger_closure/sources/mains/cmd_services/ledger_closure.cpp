@@ -43,15 +43,21 @@
 
 int main (int argc, char ** argv)
 {
+    /*Step:
+        -[run_closure]: Will Run all steps except  (credit_iscore + iscore_nid_inquiry + onboarding_commission)
+        -[full_closure]: will run all steps
+    */
     char step [1024];
     memset (step,0,1024);
-    strcpy(step,"disburse");
+    strcpy(step,"run_closure");
+    
+    
     string databaseName = "c_plus_plus";
     string closure_date_string = "2024-07-18"; 
     int threadsCount = 1;   
-    string loan_ids = "15435";
-    int mod_value = 1;
-    int offset = 1;
+    string loan_ids = "";
+    int mod_value = 0;
+    int offset = 0;
 
     
     QueryExtraFeilds * queryExtraFeilds= new QueryExtraFeilds();
@@ -96,7 +102,7 @@ int main (int argc, char ** argv)
     psqlUpdateQuery.update();
 
 
-    if ( strcmp (step,"disburse") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"disburse") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         cout << "Start: Disburse" << endl;
         PSQLJoinQueryIterator*  psqlQueryJoin = DisburseLoan::aggregator(queryExtraFeilds);
@@ -120,8 +126,7 @@ int main (int argc, char ** argv)
 
     }
 
-
-    if ( strcmp (step,"ledger_accruel_initial_interest") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"ledger_accruel_initial_interest") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         cout << "Start: First Accrual" << endl;
         //FIRST ACCRUAL
@@ -161,7 +166,7 @@ int main (int argc, char ** argv)
 
     }
 
-    if ( strcmp (step,"cancel_loan") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"cancel_loan") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         cout << "Start: Cancel Loan" << endl;
         PSQLJoinQueryIterator*  psqlQueryJoin = CancelLoan::aggregator(queryExtraFeilds);
@@ -184,7 +189,7 @@ int main (int argc, char ** argv)
 
     }
 
-    if ( strcmp (step,"accrual") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"accrual") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         //Partial accrue interest aggregator
         PSQLJoinQueryIterator*  partialAccrualQuery = AccrualInterest::aggregator(queryExtraFeilds, 1);
@@ -221,7 +226,7 @@ int main (int argc, char ** argv)
     }
 
 
-    if ( strcmp (step,"undue_to_due") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"undue_to_due") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         cout << "Undue To Due" << endl;
         cout << "-Intallments Becoming Due" << endl;
@@ -252,7 +257,7 @@ int main (int argc, char ** argv)
     }
 
 
-    if (strcmp(step, "due_to_overdue")==0 || strcmp(step, "full_closure")==0) {
+    if (strcmp(step, "due_to_overdue")==0 || strcmp(step, "run_closure")==0 || strcmp(step, "full_closure")==0 ) {
         PSQLJoinQueryIterator*  installmentsBecomingOverdueIterator = DueToOverdue::aggregator(queryExtraFeilds);
         BlnkTemplateManager* dueToOverdueTemplateManager = new BlnkTemplateManager(12, -1);
         DueToOverdueStruct dueToOverdueStruct;
@@ -266,7 +271,7 @@ int main (int argc, char ** argv)
         DueToOverdue::update_step();
     }
 
-    if ( strcmp (step,"cancel_latefees") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"cancel_latefees") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         PSQLJoinQueryIterator*  cancel_late_fees_iterator = CancelLateFees::aggregator(queryExtraFeilds);       
         BlnkTemplateManager * cancelLateFeesManager = new BlnkTemplateManager(50, -1);
@@ -278,7 +283,7 @@ int main (int argc, char ** argv)
         CancelLateFees::update_step(); 
     }
 
-    if ( strcmp (step,"wallet_prepaid") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"wallet_prepaid") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         
         new_lms_customerwallettransaction_primitive_orm_iterator*  wallet_prepaid_iterator = WalletPrepaid::aggregator(queryExtraFeilds);       
@@ -292,7 +297,7 @@ int main (int argc, char ** argv)
     }
 
 
-    if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         //Partial accrue interest aggregator
         PSQLJoinQueryIterator*  longToShortTermQuery = LongToShortTerm::aggregator(queryExtraFeilds);
@@ -310,7 +315,7 @@ int main (int argc, char ** argv)
         LongToShortTerm::update_step();
     }
 
-    if ( strcmp (step,"iscore_nid_inquiry") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"iscore_nid_inquiry") == 0 || strcmp (step,"run_closure") == 0)
     {
         //Partial accrue interest aggregator
         cout << "Starting IScore NID inquiry step!" << endl;
@@ -329,7 +334,7 @@ int main (int argc, char ** argv)
     }
 
 
-    if ( strcmp (step,"onboarding_commission") == 0 || strcmp (step,"full_closure") == 0){
+    if ( strcmp (step,"onboarding_commission") == 0 || strcmp (step,"run_closure") == 0){
         cout << "Onboarding Commission" << endl;
         PSQLJoinQueryIterator*  onboarding_commissions_iterator = OnboardingCommission::aggregator(queryExtraFeilds);
         BlnkTemplateManager * onboardingCommissionsTemplateManager = new BlnkTemplateManager(68, -1);
@@ -343,7 +348,7 @@ int main (int argc, char ** argv)
         OnboardingCommission::update_step(); 
     }
 
-    if ( strcmp (step,"unmarginalize_income") == 0 || strcmp (step,"full_closure") == 0){
+    if ( strcmp (step,"unmarginalize_income") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 ){
         cout << "Unmarginalize Income" << endl;
 
         PSQLJoinQueryIterator*  UnmarginalizeQuery = Unmarginalize::aggregator(queryExtraFeilds);
@@ -359,7 +364,7 @@ int main (int argc, char ** argv)
         OnboardingCommission::update_step(); 
     }
 
-    if (strcmp(step, "receive_customer_payments") == 0 || strcmp(step, "full_closure") == 0) {
+    if (strcmp(step, "receive_customer_payments") == 0 || strcmp(step, "run_closure") == 0 || strcmp(step, "full_closure") == 0 ) {
         PSQLJoinQueryIterator* psqlJoinQueryIterator = CustomerPayment::aggregator(queryExtraFeilds);
         map<int, BlnkTemplateManager*>* blnkTemplateManagerMap = new map<int, BlnkTemplateManager*>;
         int template_ids[] = {18, 19, 44, 165, 53, 119, 133};
@@ -380,7 +385,7 @@ int main (int argc, char ** argv)
         CustomerPayment::update_step();
     }
 
-    if ( strcmp (step,"updating_provisions") == 0 || strcmp (step,"full_closure") == 0){
+    if ( strcmp (step,"updating_provisions") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 ){
         cout << "Updating Provisions" << endl;
         std::vector<std::string> dates = get_start_and_end_fiscal_year();
         BlnkTemplateManager * updatingProvisionsTemplateManager = new BlnkTemplateManager(22, -1);
@@ -406,7 +411,7 @@ int main (int argc, char ** argv)
         delete updatingProvisionsTemplateManager;
     }
     
-    if ( strcmp (step,"credit_iscore") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"credit_iscore") == 0 || strcmp (step,"run_closure") == 0)
     {
         PSQLJoinQueryIterator*  psqlQueryJoin = CreditIScore::aggregator(queryExtraFeilds);
 
@@ -421,7 +426,7 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main"); 
     }
 
-    if (strcmp(step, "marginalize_income")==0 || strcmp(step, "full_closure")==0 || 1) {
+    if (strcmp(step, "marginalize_income") == 0 || strcmp(step, "run_closure")== 0 || strcmp(step, "full_closure") == 0 ) {
         PSQLJoinQueryIterator*  marginalizeIncomeIterator = MarginalizeIncome::aggregator(queryExtraFeilds);
         BlnkTemplateManager* marginalizeIncomeTemplateManager = new BlnkTemplateManager(34, -1);
         MarginalizeIncomeStruct marginalizeIncomeStruct;
@@ -435,7 +440,7 @@ int main (int argc, char ** argv)
         MarginalizeIncome::update_step();
     }
 
-    if ( strcmp (step,"settlement_loans_with_merchant") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"settlement_loans_with_merchant") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         PSQLJoinQueryIterator*  psqlQueryJoin1 = SettlementLoansWithMerchant::singleAggregator(closure_date_string);
         cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
@@ -464,7 +469,7 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main"); 
     }
 
-    if ( strcmp (step,"due_for_settlement_with_merchant") == 0 || strcmp (step,"full_closure") == 0)
+    if ( strcmp (step,"due_for_settlement_with_merchant") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {   
         vector<string> fascal_year_vars = get_start_and_end_fiscal_year();
         loan_app_loan_primitive_orm_iterator*  dueForSettlementIterator = DueForSettlement::aggregator(queryExtraFeilds, fascal_year_vars[0]);
