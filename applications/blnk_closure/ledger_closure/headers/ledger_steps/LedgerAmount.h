@@ -18,13 +18,14 @@ class LedgerAmount
         int latefee_id;
         int leg_id;
         int entry_id;
+        int merchant_payment_request_id;
         float amount;
         int account_id;
         bool is_credit;
         bool reversal_bool;
     public:
         LedgerAmount();
-        LedgerAmount(int _id , int _debit_account_id, int _cashier_id, int _credit_account_id, int _customer_id, int _loan_id, int _installment_id, int _merchant_id, int _bond_id, int _latefee_id, int _leg_id, int _entry_id, float _amount, int _account_id, bool _is_credit, bool _is_reversed);
+        LedgerAmount(int _id , int _debit_account_id, int _cashier_id, int _credit_account_id, int _customer_id, int _loan_id, int _installment_id, int _merchant_id, int _bond_id, int _latefee_id, int _leg_id, int _entry_id, int merchant_payment_request_id, float _amount, int _account_id, bool _is_credit, bool _is_reversed);
 
         // Setters
         void setId(int id);
@@ -39,6 +40,7 @@ class LedgerAmount
         void setLatefeeId(int latefee_id);
         void setLegId(int leg_id);
         void setEntryId(int entry_id);
+        void setMerchantPaymentRequestId(int _merchant_payment_request_id);
         void setAmount(float amount);
         void setAccountId(float account_id);
         void setIsCredit(bool is_credit);
@@ -59,6 +61,7 @@ class LedgerAmount
         int getLatefeeId();
         int getLegId();
         int getEntryId();
+        int getMerchantPaymentRequestId();
         float getAmount();
         int getAccountId();
         bool getIsCredit();

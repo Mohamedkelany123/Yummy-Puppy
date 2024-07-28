@@ -36,7 +36,7 @@
 #include <MarginalizeIncome.h>
 #include <MarginalizeIncomeFunc.h>
 #include <SettlementLoansWithMerchant.h>
-#include <ReverseSettlementLoansWithMerchantFunc.h>
+#include <SettlementLoansWithMerchantFunc.h>
 
 
 
@@ -504,31 +504,16 @@ int main (int argc, char ** argv)
     if ( strcmp (step,"settlement_loans_with_merchant") == 0 || strcmp (step,"full_closure") == 0)
     {
 
+        vector<string> fiscal_year_vars = get_start_and_end_fiscal_year();
 
-        PSQLJoinQueryIterator*  psqlQueryJoin1 = SettlementLoansWithMerchant::singleAggregator(closure_date_string);
-        cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-        psqlQueryJoin1->execute();
-        cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-        delete (psqlQueryJoin1);
-        exit (1);
-        PSQLJoinQueryIterator*  psqlQueryJoin = SettlementLoansWithMerchant::paymentRequestAggregator(closure_date_string);
-        
+        PSQLJoinQueryIterator*  psqlQueryJoin = SettlementLoansWithMerchant::aggregator(closure_date_string, fiscal_year_vars[0]);
         SettlementLoansWithMerchantStruct settlementLoansWithMerchantStruct;
         SettlementLoansWithMerchant::unstampLoans();
         BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(6, -1);
         settlementLoansWithMerchantStruct.blnkTemplateManager = blnkTemplateManager;
-        set<int>* loan_ids = new set<int>;
-        psqlQueryJoin->process_aggregate(threadsCount, getMerchantPaymentRequestLoansFunc,(void *)loan_ids);
-        for(auto id : *loan_ids) {
-            cout<<"loan id: "<<id<<endl;
-        }
-        PSQLJoinQueryIterator* psqlQueryJoinLoans = SettlementLoansWithMerchant::loanAggregator(closure_date_string, loan_ids);
-        map<int, loan_app_loan_primitive_orm*> *loanMap = new map<int, loan_app_loan_primitive_orm*>;
-        psqlQueryJoinLoans->process_aggregate(threadsCount, processLoanOrms,(void*)loanMap);
-
-        psqlQueryJoin->process_aggregate(threadsCount, settleLoansWithMerchant, (void*)&settlementLoansWithMerchantStruct);
+        psqlQueryJoin->process_aggregate(threadsCount, settleLoansWithMerchantFunc, (void*)&settlementLoansWithMerchantStruct);
+        delete (psqlQueryJoin);        
         delete(blnkTemplateManager);
-        delete(psqlQueryJoin);
         psqlController.ORMCommit(true,true,true, "main"); 
     }
 
