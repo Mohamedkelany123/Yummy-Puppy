@@ -604,10 +604,10 @@ void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name)
 
 void PSQLPrimitiveORMGenerator::generateStaticFetch(string class_name)
 {
-    extra_methods_def += "\t\tstatic ORMVector <"+class_name+"> fetch(string _data_source_name, const Expression & e);\n";
-	extra_methods +="\t\tORMVector <"+class_name+"> "+class_name+"::fetch(string _data_source_name, const Expression & e){\n";
+    extra_methods_def += "\t\tstatic ORMVector <"+class_name+"> fetch(string _data_source_name, const Expression & e, bool _read_only = true);\n";
+	extra_methods +="\t\tORMVector <"+class_name+"> "+class_name+"::fetch(string _data_source_name, const Expression & e, bool _read_only){\n";
     extra_methods +="\t\t\tORMVector <"+class_name+"> ormVector;\n";
-    extra_methods +="\t\t\tbool _read_only = true;\n";
+    // extra_methods +="\t\t\tbool _read_only = true;\n";
     extra_methods +="\t\t\t"+class_name+"_iterator * i = new "+class_name+"_iterator(_data_source_name);\n";
     extra_methods +="\t\t\ti->filter (e);\n";
     extra_methods +="\t\t\ti->execute();\n";
