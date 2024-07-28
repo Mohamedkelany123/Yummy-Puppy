@@ -139,6 +139,7 @@ void PSQLConnection::startTransaction ()
 {
     PQexec(psql_connection,"SET AUTOCOMMIT OFF");
     PQexec(psql_connection,"BEGIN");
+    PQexec(psql_connection, "SET CONSTRAINTS ALL IMMEDIATE");
 }
 void PSQLConnection::commitTransaction()
 {
