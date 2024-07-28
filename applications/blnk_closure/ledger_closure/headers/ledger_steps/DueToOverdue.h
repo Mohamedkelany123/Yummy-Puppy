@@ -61,7 +61,7 @@ class DueToOverdue : public LedgerClosureStep
         bool checkAmounts();
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
-        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_feilds);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields);
         static void update_step(); 
 
     ~DueToOverdue();

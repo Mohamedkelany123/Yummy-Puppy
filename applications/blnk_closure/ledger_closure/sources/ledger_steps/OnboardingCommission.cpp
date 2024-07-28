@@ -94,7 +94,9 @@ PSQLJoinQueryIterator *OnboardingCommission::aggregator(QueryExtraFeilds * query
             new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
 
             new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_entry_date", lte, query_fields->closure_date_string),
-            new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_entry_id", isnull, "", true)
+            new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_entry_id", isnull, "", true),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
 

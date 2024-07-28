@@ -210,7 +210,9 @@ loan_app_loan_primitive_orm_iterator *DueForSettlement::aggregator(QueryExtraFei
                     WHERE lal2.status_id IN (12, 13)\
                         AND lal2.status_type = 0\
                         AND lal2.day <= loan_app_loan.settlement_to_merchant_date"
-            )
+            ),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
 

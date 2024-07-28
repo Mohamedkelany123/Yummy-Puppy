@@ -241,10 +241,10 @@ PSQLJoinQueryIterator* DisburseLoan::aggregator(QueryExtraFeilds * query_fields)
             (
                 // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::DISBURSE_LOAN-1)),
                 new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
-
-                
                 new UnaryOperator ("loan_app_loan.loan_creation_ledger_entry_id",isnull,"",true),
-                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,query_fields->closure_date_string)
+                new UnaryOperator ("loan_app_loan.loan_booking_day",lte,query_fields->closure_date_string),
+                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             )
         );
 

@@ -324,7 +324,9 @@ PSQLJoinQueryIterator* AccrualInterest::accrual_agg(QueryExtraFeilds * query_fie
             new UnaryOperator("loan_app_loan.status_id", nin, "12, 13"),
             new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
             new UnaryOperator("new_lms_installmentextension.status_id", nin, "8, 15, 16"),
-            new UnaryOperator ("loan_app_loan.id",ne,"14312")
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
 
@@ -352,7 +354,9 @@ PSQLJoinQueryIterator* AccrualInterest::settlement_accrual_agg(QueryExtraFeilds 
                 new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_amount", ne, 0),
                 new UnaryOperator("loan_app_loan.status_id", nin, "12, 13"),
                 new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
-                new UnaryOperator ("loan_app_loan.id",ne,"14312")
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             )
         );
 

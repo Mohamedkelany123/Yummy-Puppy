@@ -73,7 +73,9 @@ loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::loans_to_get_f
             
             new UnaryOperator ("loan_app_loan.first_accrual_adjustment_ledger_entry_id",isnull,"", true),
             new UnaryOperator ("loan_app_loan.yearly_interest",ne,"0"),
-            new UnaryOperator ("loan_app_loan.status_id",nin,"7,12,13")
+            new UnaryOperator ("loan_app_loan.status_id",nin,"7,12,13"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
         
@@ -94,7 +96,9 @@ loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::loans_to_get_s
 
             new UnaryOperator ("loan_app_loan.second_accrual_adjustment_ledger_entry_id",isnull,"", true),
             new UnaryOperator ("loan_app_loan.yearly_interest",ne,"0"),
-            new UnaryOperator ("loan_app_loan.status_id",nin,"7,12,13")
+            new UnaryOperator ("loan_app_loan.status_id",nin,"7,12,13"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
         

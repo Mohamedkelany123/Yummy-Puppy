@@ -86,7 +86,7 @@ void WalletPrepaid::stampORMs(ledger_amount_primitive_orm * la_orm)
    transaction_orm->setUpdateRefernce("wallet_ledger_amount_id", la_orm);
 }
 
-new_lms_customerwallettransaction_primitive_orm_iterator* WalletPrepaid::aggregator(QueryExtraFeilds * query_feilds)
+new_lms_customerwallettransaction_primitive_orm_iterator* WalletPrepaid::aggregator(QueryExtraFeilds * query_fields)
 {
     new_lms_customerwallettransaction_primitive_orm_iterator * wallet_transactions_iterator = new new_lms_customerwallettransaction_primitive_orm_iterator ("main");
 
@@ -97,7 +97,9 @@ new_lms_customerwallettransaction_primitive_orm_iterator* WalletPrepaid::aggrega
                 new UnaryOperator ("wallet_ledger_amount_id",isnull,"",true),
                 new UnaryOperator("amount", gt, 0),
                 new UnaryOperator("order_id", isnull,"",true),
-                new UnaryOperator("created_at::date",lte, query_feilds->closure_date_string)
+                new UnaryOperator("created_at::date",lte, query_fields->closure_date_string),
+                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
               
             )
         );

@@ -92,7 +92,9 @@ PSQLJoinQueryIterator *MarginalizeIncome::aggregator(QueryExtraFeilds * query_fi
                 )
             ),
             new UnaryOperator("new_lms_installmentlatefees.marginalization_ledger_amount_id", isnull, "", true),
-            new UnaryOperator("new_lms_installmentlatefees.marginalization_date", lte, query_fields->closure_date_string)
+            new UnaryOperator("new_lms_installmentlatefees.marginalization_date", lte, query_fields->closure_date_string),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
 

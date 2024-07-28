@@ -24,7 +24,9 @@ PSQLJoinQueryIterator *CustomerPayment::aggregator(QueryExtraFeilds * query_fiel
             // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::REPAYMENT_BY_CUSTOMER-1)
             new UnaryOperator("payments_loanorder.status", nin, "2, 3"),
             new UnaryOperator("payments_loanorder.payment_method_id", ne, 34),
-            new UnaryOperator("loan_app_loan.id", ne, 14312)
+            new UnaryOperator("loan_app_loan.id", ne, 14312),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
 

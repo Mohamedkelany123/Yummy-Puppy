@@ -92,38 +92,42 @@ PSQLJoinQueryIterator* Unmarginalize::aggregator(QueryExtraFeilds * query_fields
         { {{"loan_app_loan", "id"}, {"loan_app_installment", "loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}, {{"new_lms_installmentlatefees", "installment_extension_id"}, {"loan_app_installment", "id"}}});
 
         psqlQueryJoin->filter(
-            OROperator(
-            new ANDOperator(
-                // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
-                new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
-                new UnaryOperator ("loan_app_loan.id" , in, "2"),
-                new UnaryOperator ("new_lms_installmentlatefees.unmarginalization_ledger_amount_id" , isnull, "",true),
-                new UnaryOperator ("new_lms_installmentlatefees.marginalization_ledger_amount_id" , isnotnull, "",true),
-
-
+            ANDOperator(
                 new OROperator(
                     new ANDOperator(
-                        new UnaryOperator ("new_lms_installmentlatefees.is_paid" , eq, true),
-                        new UnaryOperator ("new_lms_installmentlatefees.paid_at" ,lte,query_fields->closure_date_string)
+                        // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
+                        new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+                        new UnaryOperator ("loan_app_loan.id" , in, "2"),
+                        new UnaryOperator ("new_lms_installmentlatefees.unmarginalization_ledger_amount_id" , isnull, "",true),
+                        new UnaryOperator ("new_lms_installmentlatefees.marginalization_ledger_amount_id" , isnotnull, "",true),
+
+
+                        new OROperator(
+                            new ANDOperator(
+                                new UnaryOperator ("new_lms_installmentlatefees.is_paid" , eq, true),
+                                new UnaryOperator ("new_lms_installmentlatefees.paid_at" ,lte,query_fields->closure_date_string)
+                            ),
+                            new ANDOperator(
+                                new UnaryOperator ("new_lms_installmentlatefees.is_cancelled" , eq, true),
+                                new UnaryOperator ("new_lms_installmentlatefees.cancellation_date" ,lte,query_fields->closure_date_string)
+                            ) 
+                        ) 
                     ),
-                    new ANDOperator(
-                        new UnaryOperator ("new_lms_installmentlatefees.is_cancelled" , eq, true),
-                        new UnaryOperator ("new_lms_installmentlatefees.cancellation_date" ,lte,query_fields->closure_date_string)
-                    ) 
-                ) 
-            ),
-            new ANDOperator (
-                // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
-                new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
-                new UnaryOperator ("loan_app_loan.id" , in, "2"),
-                new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
-                new UnaryOperator ("new_lms_installmentextension.interest_paid_at",lte,query_fields->closure_date_string),
-                new UnaryOperator ("new_lms_installmentextension.unmarginalization_ledger_amount_id",isnull,"",true),
-                new OROperator(                
-                    new UnaryOperator ("new_lms_installmentextension.marginalization_ledger_amount_id",isnotnull,"",true),
-                    new UnaryOperator ("new_lms_installmentextension.partial_marginalization_ledger_amount_id",isnotnull,"",true)
-                )
-            )
+                    new ANDOperator (
+                        // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::REVERSE_MARGINALIZATION-1)),
+                        new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+                        new UnaryOperator ("loan_app_loan.id" , in, "2"),
+                        new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
+                        new UnaryOperator ("new_lms_installmentextension.interest_paid_at",lte,query_fields->closure_date_string),
+                        new UnaryOperator ("new_lms_installmentextension.unmarginalization_ledger_amount_id",isnull,"",true),
+                        new OROperator(                
+                            new UnaryOperator ("new_lms_installmentextension.marginalization_ledger_amount_id",isnotnull,"",true),
+                            new UnaryOperator ("new_lms_installmentextension.partial_marginalization_ledger_amount_id",isnotnull,"",true)
+                        )
+                    )
+                ),
+                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             )
         );
 

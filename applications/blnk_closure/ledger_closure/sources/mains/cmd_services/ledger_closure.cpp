@@ -45,13 +45,13 @@ int main (int argc, char ** argv)
 {
     char step [1024];
     memset (step,0,1024);
-    strcpy(step,"settlement_loans_with_merchant");
+    strcpy(step,"disburse");
     string databaseName = "c_plus_plus";
     string closure_date_string = "2024-07-18"; 
     int threadsCount = 1;   
-    string loan_ids = "";
-    int mod_value = 0;
-    int offset = 0;
+    string loan_ids = "15435";
+    int mod_value = 1;
+    int offset = 1;
 
     
     QueryExtraFeilds * queryExtraFeilds= new QueryExtraFeilds();
@@ -59,9 +59,11 @@ int main (int argc, char ** argv)
     queryExtraFeilds->mod_value = mod_value;
     queryExtraFeilds->offset = offset;
     queryExtraFeilds->closure_date_string = closure_date_string;
+
     if (queryExtraFeilds->loan_ids != ""){
         queryExtraFeilds->isLoanSpecific = true;
     }
+    
     queryExtraFeilds->isMultiMachine = queryExtraFeilds->mod_value > 0;
 
     

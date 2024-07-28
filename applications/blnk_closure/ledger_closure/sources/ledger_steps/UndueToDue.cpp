@@ -277,8 +277,10 @@ PSQLJoinQueryIterator* UndueToDue::installments_becoming_due_agg(QueryExtraFeild
                 new UnaryOperator ("loan_app_loan.status_id",nin,"12,13"),
                 new UnaryOperator ("new_lms_installmentextension.status_id",nin,"8,15,16,12,13"),
 
-                new UnaryOperator ("loan_app_loan.id",ne,"14312")
-                 
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
+                    
             )
         );
         
@@ -297,7 +299,7 @@ PSQLJoinQueryIterator* UndueToDue::installments_becoming_due_agg(QueryExtraFeild
         
         return installments_becoming_due_iterator;
 }
-PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(QueryExtraFeilds * query_fields)
+PSQLJoinQueryIterator* UndueToDue::sticky_installments_becoming_due_agg(QueryExtraFeilds * query_fields)
 {
        PSQLJoinQueryIterator * sticky_installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
         {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
@@ -351,10 +353,9 @@ PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(QueryExtr
                     )                
                 ),
 
-                new UnaryOperator ("loan_app_loan.id",ne,"14312") 
-
-
-
+                new UnaryOperator ("loan_app_loan.id",ne,"14312") ,
+                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             )
         );
 
@@ -379,7 +380,7 @@ PSQLJoinQueryIterator* UndueToDue::aggregator(QueryExtraFeilds * query_fields, i
     if(_agg_number == 1)
         return undueToDue.installments_becoming_due_agg(query_fields);
     else if(_agg_number == 2)
-        return undueToDue.sticky_nstallments_becoming_due_agg(query_fields);
+        return undueToDue.sticky_installments_becoming_due_agg(query_fields);
 
     return nullptr;
 }   

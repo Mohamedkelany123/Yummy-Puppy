@@ -40,7 +40,7 @@ class UndueToDue : public LedgerClosureStep
         int ledger_closure_service_type;
 
         PSQLJoinQueryIterator* installments_becoming_due_agg(QueryExtraFeilds * query_fields);
-        PSQLJoinQueryIterator* sticky_nstallments_becoming_due_agg(QueryExtraFeilds * query_fields);
+        PSQLJoinQueryIterator* sticky_installments_becoming_due_agg(QueryExtraFeilds * query_fields);
     public:
         map<string, funcPtr> funcMap;
         UndueToDue();

@@ -37,7 +37,9 @@ loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator_onbalance(Q
         ANDOperator(
             new UnaryOperator("loan_app_loan.last_closing_day",lt,query_fields->closure_date_string),
             new UnaryOperator("loan_app_loan.loan_booking_day",lte,query_fields->closure_date_string),
-            new UnaryOperator("loan_app_loan.status_id",nin,"12,13")
+            new UnaryOperator("loan_app_loan.status_id",nin,"12,13"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::UPDATE_PROVISION-1)
         )
     );
@@ -98,7 +100,9 @@ PSQLJoinQueryIterator* UpdatingProvisions::aggregator_offbalance(QueryExtraFeild
         ANDOperator(
             new UnaryOperator("loan_app_loan.last_closing_day",lt,query_fields->closure_date_string),
             new UnaryOperator("loan_app_loan.loan_booking_day",lte,query_fields->closure_date_string),
-            new UnaryOperator("loan_app_loan.status_id",nin,"12,13")
+            new UnaryOperator("loan_app_loan.status_id",nin,"12,13"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::UPDATE_PROVISION-1)
         )
     );
