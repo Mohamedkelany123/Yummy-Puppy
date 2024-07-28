@@ -44,8 +44,7 @@ PSQLJoinQueryIterator* IScoreNidInquiry::aggregator(QueryExtraFeilds * query_fie
             new UnaryOperator("ekyc_app_nidlog.status",eq,1),
             new UnaryOperator("ekyc_app_nidlog.nid_expense_ledger_entry_id",isnull,"",true),
             new UnaryOperator("ekyc_app_nidlog.created_at::date",lte,query_fields->closure_date_string),
-            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
-            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
+            query_fields->isMultiMachine ? new BinaryOperator ("ekyc_app_nidlog.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator()
         )
     );
     string query_closure_date = "'" + query_fields->closure_date_string + "'"; 

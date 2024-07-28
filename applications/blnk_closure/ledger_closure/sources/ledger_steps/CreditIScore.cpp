@@ -37,8 +37,7 @@ PSQLJoinQueryIterator* CreditIScore::aggregator(QueryExtraFeilds * query_fields)
                 new UnaryOperator ("credit_app_inquirylog.status",in,"'NO_HIT','BANKED','ZERO_BANKED_LIMIT'"),
                 new UnaryOperator ("crm_app_customer.created_at",gte,"2023-09-01"),
                 new UnaryOperator ("credit_app_inquirylog.created_at::date",lte,query_fields->closure_date_string),
-                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
-                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
+                query_fields->isMultiMachine ? new BinaryOperator ("crm_app_customer.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator()
             )
         );
 

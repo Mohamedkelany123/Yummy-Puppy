@@ -98,9 +98,7 @@ new_lms_customerwallettransaction_primitive_orm_iterator* WalletPrepaid::aggrega
                 new UnaryOperator("amount", gt, 0),
                 new UnaryOperator("order_id", isnull,"",true),
                 new UnaryOperator("created_at::date",lte, query_fields->closure_date_string),
-                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
-                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
-              
+                query_fields->isMultiMachine ? new BinaryOperator ("id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator()
             )
         );
 
