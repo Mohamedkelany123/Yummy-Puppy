@@ -9,10 +9,11 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
     new_lms_installmentlatefees_primitive_orm* nlilf_orm = ORML(new_lms_installmentlatefees, orms_list, 0);
     PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms_list, 0);
     BlnkTemplateManager* blnkTemplateManager = ((SettlementByCustomerStruct*)extras)->blnkTemplateManager;
+    BlnkTemplateManager* secTemplateManager = ((SettlementByCustomerStruct*)extras)->securitizationTemplateManager;
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(blnkTemplateManager, partition_number);
+    BlnkTemplateManager* localSecTemplateManager = new BlnkTemplateManager(secTemplateManager, partition_number);
     map<loan_app_installment_primitive_orm*, new_lms_installmentextension_primitive_orm*> installmentToExtension;
     BDate entry_date = BDate(pl_orm->get_paid_at());
-    localTemplateManager->createEntry(entry_date);
     for (int i=0; i<ORML_SIZE(orms_list); i++){
         installmentToExtension[lai_orm] = nlie_orm;
     }
@@ -45,17 +46,18 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
     BDate closing_date = ((SettlementByCustomerStruct*)extras)->closing_day;
     set<loan_app_installment_primitive_orm*>* installmentsVector;
     ledger_entry_primitive_orm* entry;
+    
     float cash_in_escrow = ROUND(gorm->toFloat("ledger_paid_orders_amount")/100) - gorm->toFloat("principal_paid_amount") - gorm->toFloat("interest_paid_amount") - gorm->toFloat("early_paid_amount") - gorm->toFloat("extra_paid_amount") - gorm->toFloat("lf_paid_amount");
+    float paid_sec_amount = 0.0f;
+    bool is_entry_created = false;
 
     for (auto installment : installmentsMap){
         installmentsVector = installment.second;
-        entry = localTemplateManager->get_entry();
 
         for(auto it=installmentsVector->begin(); it!=installmentsVector->end(); ++it) {
                 lai_orm = (*it);
                 nlie_orm = installmentToExtension[lai_orm];
                 vector<new_lms_installmentlatefees_primitive_orm*>* latefeesVector = lateFeeMap[lai_orm];
-                localTemplateManager->setEntry(entry);
                 int last_status = gorm->toInt("last_status");;
                 int unmarginalization_template_id = gorm->toInt("unmarginalization_template");;
                 string settlement_day_str = gorm->get("settlement_day");
@@ -73,12 +75,19 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
                 map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
 
                 if (ledgerAmounts != nullptr) {
+                    if (!is_entry_created){
+                        localTemplateManager->createEntry(entry_date);
+                        is_entry_created = true;
+                    }
+                    entry = localTemplateManager->get_entry();
+                    localTemplateManager->setEntry(entry);
                     localTemplateManager->setEntryData(ledgerAmounts);
                     ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(entry_date);
                     map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
                     if (entry) {
                         settlementByCustomer.stampORMs(leg_amounts);
                         cash_in_escrow = settlementByCustomer.get_cash_in_escrow();
+                        paid_sec_amount += settlementByCustomer.get_paid_sec_amount();
                     }
                     else {
                         cerr << "Can not stamp ORM objects\n";
@@ -87,6 +96,23 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
                 }
                 delete (ledgerClosureService);
             }
+    }
+    if (paid_sec_amount > 0.0f){
+        secTemplateManager->createEntry(entry_date);
+        DueToSecuritizationBond dueToSecBond(pl_orm->get_loan_id(), paid_sec_amount, nlie_orm->get_bond_id());
+        LedgerClosureService* ledgerClosureService = new LedgerClosureService(&dueToSecBond);
+        dueToSecBond.setupLedgerClosureService(ledgerClosureService);
+        map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
+
+        if (ledgerAmounts != nullptr)
+        {
+            secTemplateManager->setEntryData(ledgerAmounts);
+
+            ledger_entry_primitive_orm* entry = secTemplateManager->buildEntry(entry_date);
+        }
+
+        // delete secTemplateManager;
+        delete ledgerClosureService;
 
     }
     

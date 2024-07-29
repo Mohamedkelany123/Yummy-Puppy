@@ -19,6 +19,7 @@ class SettlementByCustomer : public LedgerClosureStep{
         int last_status;
         BDate closing_day;
         BDate* settlement_day;
+        float paid_securitization_amount;
 
         //Cash in escrow fields 
         float cash_in_escrow;
@@ -57,10 +58,12 @@ class SettlementByCustomer : public LedgerClosureStep{
         BDate* get_settlement_day();
         BDate get_closing_day();
         float get_cash_in_escrow();
+        float get_paid_sec_amount();
 
 
         //Field setters
         void set_cash_in_escrow(float amount);
+        void set_paid_sec_amount(float amount);
 
         //Calculators
         static LedgerAmount* _skip_leg(LedgerClosureStep* settlementByCustomer);

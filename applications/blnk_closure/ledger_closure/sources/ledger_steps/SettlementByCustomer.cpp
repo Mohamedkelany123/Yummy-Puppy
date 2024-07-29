@@ -31,7 +31,8 @@ SettlementByCustomer::SettlementByCustomer(loan_app_loan_primitive_orm * _lal_or
         settlement_day = new BDate(_settlement_day);
     }
     last_status = _last_status;
-    cash_in_escrow = _starting_cash_in_escrow;
+    cash_in_escrow = std::ceil(_starting_cash_in_escrow);
+    paid_securitization_amount = 0.0f;
 }
 
 PSQLJoinQueryIterator* SettlementByCustomer::aggregator(string _closure_date_string){
@@ -94,7 +95,7 @@ PSQLJoinQueryIterator* SettlementByCustomer::aggregator(string _closure_date_str
                     new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_BY_CUSTOMER-1),
                     new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnotnull,"",true),
                     new UnaryOperator ("loan_app_loan.id" , ne, "14312")
-                    // new UnaryOperator ("payments_loanorder.id" , in, "2083328")
+                    // new UnaryOperator ("payments_loanorder.id" , in, "2105015, 2105014, 2105013, 2105010, 2104976, 2104967, 2104963, 2104962, 2104960, 2104957, 2104950, 2104948, 2102708, 2102707, 2100737, 2100740")
                 )
             )
         );
@@ -204,6 +205,7 @@ LedgerAmount *SettlementByCustomer::_get_marginalized_interest(LedgerClosureStep
         }
     }
 
+    if (nli_orm->get_is_securitized()) la->setBondId(nli_orm->get_bond_id());
     la->setAmount(amount);
     return la;
 }
@@ -251,6 +253,7 @@ LedgerAmount *SettlementByCustomer::_get_late_fees_paid_sec(LedgerClosureStep *s
     }
     if (total_amount <= settlementByCustomerObject->get_cash_in_escrow()){
         settlementByCustomerObject->set_cash_in_escrow(ROUND(total_amount));
+        settlementByCustomerObject->set_paid_sec_amount(ROUND(total_amount));
         la->setAmount(ROUND(total_amount));
         la->setBondId(nli_orm->get_bond_id());
     }
@@ -298,6 +301,7 @@ LedgerAmount *SettlementByCustomer::_get_overdue_principal_paid_sec(LedgerClosur
     }
     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
         settlementByCustomerObject->set_cash_in_escrow(amount);
+        settlementByCustomerObject->set_paid_sec_amount(amount);
         la->setAmount(amount);
         la->setBondId(nli_orm->get_bond_id());
     }
@@ -345,6 +349,7 @@ LedgerAmount *SettlementByCustomer::_get_overdue_interest_paid_sec(LedgerClosure
     }
     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
         settlementByCustomerObject->set_cash_in_escrow(amount);
+        settlementByCustomerObject->set_paid_sec_amount(amount);
         la->setAmount(amount);
         la->setBondId(nli_orm->get_bond_id());
     }
@@ -414,6 +419,7 @@ LedgerAmount *SettlementByCustomer::_get_due_principal_paid_sec(LedgerClosureSte
     }
     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
         settlementByCustomerObject->set_cash_in_escrow(amount);
+        settlementByCustomerObject->set_paid_sec_amount(amount);
         la->setAmount(amount);
         la->setBondId(nli_orm->get_bond_id());
     }
@@ -483,6 +489,7 @@ LedgerAmount *SettlementByCustomer::_get_due_interest_paid_sec(LedgerClosureStep
     }
     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
         settlementByCustomerObject->set_cash_in_escrow(amount);
+        settlementByCustomerObject->set_paid_sec_amount(amount);
         la->setAmount(amount);
         la->setBondId(nli_orm->get_bond_id());
     }
@@ -530,8 +537,9 @@ LedgerAmount *SettlementByCustomer::_get_undue_principal_paid_sec(LedgerClosureS
             && (*settlementByCustomerObject->get_settlement_day())() < BDate(nli_orm->get_undue_to_due_date())())){
         amount = (settlementByCustomerObject)->get_principal_paid(lal_orm, lai_orm, nli_orm, pl_orm);
     }
-      if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
+    if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
         settlementByCustomerObject->set_cash_in_escrow(amount);
+        settlementByCustomerObject->set_paid_sec_amount(amount);
         la->setAmount(amount);
         la->setBondId(nli_orm->get_bond_id());
     }
@@ -581,6 +589,7 @@ LedgerAmount *SettlementByCustomer::_get_undue_interest_paid_sec(LedgerClosureSt
     }
     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
         settlementByCustomerObject->set_cash_in_escrow(amount);
+        settlementByCustomerObject->set_paid_sec_amount(amount);
         la->setAmount(amount);
         la->setBondId(nli_orm->get_bond_id());
     }
@@ -632,6 +641,7 @@ LedgerAmount *SettlementByCustomer::_get_principal_long_term_sec(LedgerClosureSt
 
     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
         settlementByCustomerObject->set_cash_in_escrow(amount);
+        settlementByCustomerObject->set_paid_sec_amount(amount);
         la->setAmount(amount);
         la->setBondId(nli_orm->get_bond_id());
     }
@@ -681,6 +691,7 @@ LedgerAmount *SettlementByCustomer::_get_early_repayment_fee_income_sec(LedgerCl
     }
     if (amount <= settlementByCustomerObject->get_cash_in_escrow()){
         settlementByCustomerObject->set_cash_in_escrow(amount);
+        settlementByCustomerObject->set_paid_sec_amount(amount);
         la->setAmount(amount);
         la->setBondId(nli_orm->get_bond_id());
     }
@@ -723,9 +734,19 @@ float SettlementByCustomer::get_cash_in_escrow()
     return cash_in_escrow;
 }
 
+float SettlementByCustomer::get_paid_sec_amount()
+{
+    return paid_securitization_amount;
+}
+
 void SettlementByCustomer::set_cash_in_escrow(float amount)
 {
-    cash_in_escrow -= amount;
+    cash_in_escrow -= ROUND(amount);
+}
+
+void SettlementByCustomer::set_paid_sec_amount(float amount)
+{
+    paid_securitization_amount += amount;
 }
 
 loan_app_loan_primitive_orm *SettlementByCustomer::get_loan_app_loan()

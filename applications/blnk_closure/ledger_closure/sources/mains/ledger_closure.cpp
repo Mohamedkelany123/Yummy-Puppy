@@ -133,23 +133,22 @@ vector<string> get_start_and_end_fiscal_year(){
 int main (int argc, char ** argv)
 {
     // const char * step = "full_closure"; 
-<<<<<<< HEAD:sources/mains/cmd_services/ledger_closure.cpp
     const char * step = "settlement_by_customer"; 
-    string closure_date_string = "2024-07-01"; 
+    string closure_date_string = "2024-07-03"; 
     int threadsCount = 1;
-    string databaseName = "django_ostaz_30062024_hazem";
+    string databaseName = "django_ostaz_06072024_sherif2";
     bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
-=======
-    // const char * step = "unmarginalize_income"; 
-    char step [1024];
-    memset (step,0,1024);
-    strcpy(step,"settlement_loans_with_merchant");
+
+    // // const char * step = "unmarginalize_income"; 
+    // char step [1024];
+    // memset (step,0,1024);
+    // strcpy(step,"settlement_loans_with_merchant");
     
-    string databaseName = "c_plus_plus";
-    string closure_date_string = "2024-07-18"; 
-    int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
->>>>>>> 67c0a7ea31925d05b112aa2520aa0b2431a1bd4b:applications/blnk_closure/ledger_closure/sources/mains/ledger_closure.cpp
+    // string databaseName = "c_plus_plus";
+    // string closure_date_string = "2024-07-18"; 
+    // int threadsCount = 1;
+    // bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
+
     if (connect){
         cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
@@ -505,8 +504,10 @@ int main (int argc, char ** argv)
 
         PSQLJoinQueryIterator*  principal_orders_iterator = SettlementByCustomer::aggregator(closure_date_string);
         BlnkTemplateManager * settlementByCustomerTemplateManager = new BlnkTemplateManager(14, -1);
+        BlnkTemplateManager * securitizationTemplateManager = new BlnkTemplateManager(82, -1);
         SettlementByCustomerStruct settlementByCustomerStruct;
         settlementByCustomerStruct.blnkTemplateManager = settlementByCustomerTemplateManager;
+        settlementByCustomerStruct.securitizationTemplateManager = securitizationTemplateManager;
         settlementByCustomerStruct.closing_day = BDate(closure_date_string);
         
         principal_orders_iterator->process_aggregate(threadsCount, settlementByCustomerFunc, (void *)&settlementByCustomerStruct);

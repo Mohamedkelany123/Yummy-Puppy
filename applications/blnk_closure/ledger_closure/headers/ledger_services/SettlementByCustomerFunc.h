@@ -6,11 +6,13 @@
 #include <functional>
 #include <TemplateManager.h>
 #include <SettlementByCustomer.h>
+#include <DueToSecBond.h>
 
 
 
 typedef struct {
     BlnkTemplateManager* blnkTemplateManager;
+    BlnkTemplateManager* securitizationTemplateManager;
     BDate closing_day;
 } SettlementByCustomerStruct;
 
