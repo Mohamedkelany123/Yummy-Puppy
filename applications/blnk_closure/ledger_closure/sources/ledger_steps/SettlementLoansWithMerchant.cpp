@@ -28,6 +28,7 @@ LedgerAmount *SettlementLoansWithMerchant::get_amount(LedgerClosureStep *settlem
     ledgerAmount->setMerchantId(merchant_id);
     ledgerAmount->setMerchantPaymentRequestId(merchant_payment_request_id);
     ledgerAmount->setCustomerId(customer_id);
+    return ledgerAmount;
 }
 
 LedgerAmount *SettlementLoansWithMerchant::get_parent_amount(LedgerClosureStep *settlementLoansWithMerchant)
@@ -35,7 +36,7 @@ LedgerAmount *SettlementLoansWithMerchant::get_parent_amount(LedgerClosureStep *
 
 }
 
-string generateExtraField(string _account_name, string _start_fiscal_year,string _closing_day)
+string calculateAmountSum(string _account_name, string _start_fiscal_year,string _closing_day)
 {
     return "(WITH parent_account AS (\
         SELECT id \
@@ -86,8 +87,8 @@ PSQLJoinQueryIterator *SettlementLoansWithMerchant::aggregator(string _closure_d
     psqlQueryJoin->addExtraFromField("case when tr->>'check_bool'='true' then true else false end", "check_bool");
     psqlQueryJoin->addExtraFromField("case when tr->>'can_settle_bool'='true' then true else false end", "can_settle_bool");
 
-    psqlQueryJoin->addExtraFromField(generateExtraField("Due For Settlement, merchants", start_fiscal_year, _closure_date_string), "balance_106");
-    psqlQueryJoin->addExtraFromField(generateExtraField("Due For Settlement, merchants contra", start_fiscal_year, _closure_date_string), "balance_179");
+    psqlQueryJoin->addExtraFromField(calculateAmountSum("Due For Settlement, merchants", start_fiscal_year, _closure_date_string), "balance_106");
+    psqlQueryJoin->addExtraFromField(calculateAmountSum("Due For Settlement, merchants contra", start_fiscal_year, _closure_date_string), "balance_179");
 
     psqlQueryJoin->filter(
         ANDOperator(
@@ -97,9 +98,7 @@ PSQLJoinQueryIterator *SettlementLoansWithMerchant::aggregator(string _closure_d
     );
 
     psqlQueryJoin->setAggregates({
-        {"settlement_dashboard_merchantpaymentrequest", {"id", 1}},
-        {"settlement_dashboard_settlementrequest", {"link", 1}},
-        {"loan_app_loan", {"id", 1}}
+        {"settlement_dashboard_merchantpaymentrequest", {"id", 1}}
     });
     return psqlQueryJoin;
 }
@@ -182,25 +181,3 @@ SettlementLoansWithMerchant::SettlementLoansWithMerchant(double _amount, int _lo
     activation_user_id = _activation_user_id;
 }
 
-
-
-void SettlementLoansWithMerchant::set_template_id(int _template_id)
-{
-    template_id = _template_id;
-}
-
-void SettlementLoansWithMerchant::set_closing_day(BDate _closing_day)
-{
-    closing_day = _closing_day;
-}
-
-
-int SettlementLoansWithMerchant::get_template_id()
-{
-    return template_id;
-}
-
-BDate SettlementLoansWithMerchant::get_closing_day()
-{
-    return closing_day;
-}

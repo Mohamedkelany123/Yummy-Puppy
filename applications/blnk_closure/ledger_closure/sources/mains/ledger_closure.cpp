@@ -510,7 +510,11 @@ int main (int argc, char ** argv)
         SettlementLoansWithMerchantStruct settlementLoansWithMerchantStruct;
         SettlementLoansWithMerchant::unstampLoans();
         BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(6, -1);
+        BlnkTemplateManager* paymentTemplateManager = new BlnkTemplateManager(64, -1);
+        BlnkTemplateManager* receiveTemplateManager = new BlnkTemplateManager(169, -1);
         settlementLoansWithMerchantStruct.blnkTemplateManager = blnkTemplateManager;
+        settlementLoansWithMerchantStruct.paymentTemplateManager = paymentTemplateManager;
+        settlementLoansWithMerchantStruct.receiveTemplateManager = receiveTemplateManager;
         psqlQueryJoin->process_aggregate(threadsCount, settleLoansWithMerchantFunc, (void*)&settlementLoansWithMerchantStruct);
         delete (psqlQueryJoin);        
         delete(blnkTemplateManager);

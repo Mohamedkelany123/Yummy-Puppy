@@ -140,8 +140,10 @@ string get_aux_condition (string table_name, vector <pair<pair<pair<string,strin
             join_condition += " and ";
             join_condition += "\""+join_fields[i].first.first.first+"\"."+
             "\""+join_fields[i].first.first.second+"\" = "+
-            "\""+join_fields[i].first.second.first+"\"."+
-            "\""+join_fields[i].first.second.second+"\"";
+            if (join_fields[i].first.second.first != "" && join_fields[i].first.second.first !="<<expression>>") join_string += "\""+join_fields[i].first.second.first+"\".";
+            if (join_fields[i].first.second.first =="<<expression>>") 
+                join_condition += join_fields[i].first.second.second;
+            else join_condition += "\""+join_fields[i].first.second.second+"\"";
         }
     }
     return join_condition;
