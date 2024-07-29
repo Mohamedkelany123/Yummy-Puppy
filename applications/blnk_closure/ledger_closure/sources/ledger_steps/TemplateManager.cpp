@@ -173,6 +173,7 @@ void BlnkTemplateManager::setEntryData(map<string, LedgerAmount *> *_entry_data)
 void BlnkTemplateManager::createEntry(BDate entry_date)
 {
     entry  = new ledger_entry_primitive_orm("main", true,true,cache_partition_number);
+    cout << "entry date:::::   " << entry_date.getDateString() << endl;
     entry->set_entry_date(entry_date.getDateString());
     entry->set_template_id(template_id);
     entry->set_month_code(1);

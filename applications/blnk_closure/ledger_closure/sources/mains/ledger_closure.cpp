@@ -135,10 +135,10 @@ int main (int argc, char ** argv)
     memset (step,0,1024);
     strcpy(step,"settlement_loans_with_merchant");
     
-    string databaseName = "c_plus_plus";
-    string closure_date_string = "2024-07-18"; 
+    string databaseName = "django_ostaz_23072024_abdallah2";
+    string closure_date_string = "2024-07-29"; 
     int threadsCount = 1;
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;

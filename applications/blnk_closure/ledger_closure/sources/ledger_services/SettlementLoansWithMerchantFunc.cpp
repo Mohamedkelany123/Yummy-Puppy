@@ -128,9 +128,6 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                 sdm_orm = ORM(settlement_dashboard_merchantpaymentrequest, ormIterator);
                 sds_orm = ORM(settlement_dashboard_settlementrequest, ormIterator);
                 gorm = ORM(PSQLGeneric,ormIterator);
-                category = sds_orm->get_category();
-                entry_date = BDate(sds_orm->get_entry_date());
-                activation_user_id = sds_orm->get_activation_user_id();
                 string type = gorm->get("type");
                 double parent_principle = gorm->toDouble("parent_principle");
                 double parent_cashier_fee = gorm->toDouble("parent_cashier_fee");
@@ -152,8 +149,6 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                     has_unsettled = true;
                 }
             }
-            string entry_date_string = sds_orm->get_entry_date();
-            BDate entry_date(entry_date);
             string type = gorm->get("type");
             double balance_106 = gorm->toDouble("balance_106"), balance_179 = gorm->toDouble("balance_179");
             bool check_bool = gorm->toBool("check_bool");
@@ -167,6 +162,9 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
             double parent_balance_179 = gorm->toDouble("parent_balance_179");
             BlnkTemplateManager *localTemplateManager = new BlnkTemplateManager(templateManager, partition_number);
             if (check_bool && can_settle_bool) {
+                category = sds_orm->get_category();
+                entry_date = BDate(sds_orm->get_entry_date());
+                activation_user_id = sds_orm->get_activation_user_id();
                 if (type == "Full Refund") {
                     double amount = loan_value;
                     bool check_flag = true;
@@ -289,19 +287,23 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
         sdl_orm->setUpdateRefernce("request", sdm_orm);
         sdl_orm->set_link(sds_orm->get_link());
         stringstream cancelled_loans_stream, loans_stream;
+        loans_stream << "{";
         for (auto loan : loans) {
             loans_stream << loan->get_id();
             if (loan != *loans.rbegin()) {
                 loans_stream << ", ";
             }
         }
+        loans_stream << "}";
         sdm_orm->set_loans(loans_stream.str());
+        cancelled_loans_stream << "{";
         for (auto loan : cancelled_loans) {
             cancelled_loans_stream << loan->get_id();
             if (loan != *loans.rbegin()) {
                 cancelled_loans_stream << ", ";
             }
         }
+        cancelled_loans_stream << "}";
         sdm_orm->set_canceled_loans(cancelled_loans_stream.str());
 
         if (!has_unsettled) {
