@@ -255,7 +255,7 @@ void UndueToDue::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts, bool e
 }
 
 
-PSQLJoinQueryIterator* UndueToDue::installments_becoming_due_agg(string _closure_date_string)
+PSQLJoinQueryIterator* UndueToDue::installments_becoming_due_agg(QueryExtraFeilds * query_fields)
 {
      PSQLJoinQueryIterator * installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
         {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
@@ -265,7 +265,7 @@ PSQLJoinQueryIterator* UndueToDue::installments_becoming_due_agg(string _closure
         installments_becoming_due_iterator->filter(
             ANDOperator 
             (
-                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,_closure_date_string),
+                new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",lte,query_fields->closure_date_string),
                 // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::LEDGER_UNDUE_TO_DUE-1)),
                 new OROperator (
                     new UnaryOperator ("new_lms_installmentextension.undue_to_due_ledger_amount_id ",isnull,"",true),
@@ -277,8 +277,10 @@ PSQLJoinQueryIterator* UndueToDue::installments_becoming_due_agg(string _closure
                 new UnaryOperator ("loan_app_loan.status_id",nin,"12,13"),
                 new UnaryOperator ("new_lms_installmentextension.status_id",nin,"8,15,16,12,13"),
 
-                new UnaryOperator ("loan_app_loan.id",ne,"14312")
-                 
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
+                    
             )
         );
         
@@ -297,7 +299,7 @@ PSQLJoinQueryIterator* UndueToDue::installments_becoming_due_agg(string _closure
         
         return installments_becoming_due_iterator;
 }
-PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(string _closure_date_string)
+PSQLJoinQueryIterator* UndueToDue::sticky_installments_becoming_due_agg(QueryExtraFeilds * query_fields)
 {
        PSQLJoinQueryIterator * sticky_installments_becoming_due_iterator = new PSQLJoinQueryIterator ("main",
         {new loan_app_loan_bl_orm("main"), new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
@@ -309,7 +311,7 @@ PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(string _c
             (
                 new OROperator (
                     // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::LEDGER_UNDUE_TO_DUE-1)),
-                    new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,_closure_date_string),
+                    new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,query_fields->closure_date_string),
                     new ANDOperator(
                         new UnaryOperator ("new_lms_installmentextension.is_interest_paid",eq,true),
                         new UnaryOperator ("new_lms_installmentextension.undue_to_due_date",gt,"interest_paid_at", true)
@@ -322,7 +324,7 @@ PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(string _c
 
                 new UnaryOperator ("new_lms_installmentextension.payment_status",in,"2,4"),
                 new UnaryOperator ("new_lms_installmentextension.is_principal_paid",eq,true),
-                new UnaryOperator ("new_lms_installmentextension.principal_paid_at::date",lte,_closure_date_string),
+                new UnaryOperator ("new_lms_installmentextension.principal_paid_at::date",lte,query_fields->closure_date_string),
 
 
                 new OROperator(
@@ -351,10 +353,9 @@ PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(string _c
                     )                
                 ),
 
-                new UnaryOperator ("loan_app_loan.id",ne,"14312") 
-
-
-
+                new UnaryOperator ("loan_app_loan.id",ne,"14312") ,
+                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             )
         );
 
@@ -372,14 +373,14 @@ PSQLJoinQueryIterator* UndueToDue::sticky_nstallments_becoming_due_agg(string _c
         
         return sticky_installments_becoming_due_iterator;
 }
-PSQLJoinQueryIterator* UndueToDue::aggregator(string _closure_date_string, int _agg_number)
+PSQLJoinQueryIterator* UndueToDue::aggregator(QueryExtraFeilds * query_fields, int _agg_number)
 {
     UndueToDue undueToDue;
 
     if(_agg_number == 1)
-        return undueToDue.installments_becoming_due_agg(_closure_date_string);
+        return undueToDue.installments_becoming_due_agg(query_fields);
     else if(_agg_number == 2)
-        return undueToDue.sticky_nstallments_becoming_due_agg(_closure_date_string);
+        return undueToDue.sticky_installments_becoming_due_agg(query_fields);
 
     return nullptr;
 }   

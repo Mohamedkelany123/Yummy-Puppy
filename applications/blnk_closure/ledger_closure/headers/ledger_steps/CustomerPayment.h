@@ -21,7 +21,7 @@ class CustomerPayment : public LedgerClosureStep {
     public:
         CustomerPayment(loan_app_loan_primitive_orm* _lal_orm, payments_loanorder_primitive_orm* _plo_orm, payments_loanorderheader_primitive_orm* _ploh_orm, BDate _closing_day, int _template_id, int _first_loan_order_id);
         map<string, funcPtr> funcMap;
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields);
         loan_app_loan_primitive_orm* get_loan_app_loan();
         payments_loanorder_primitive_orm* get_payments_loanorder();
         payments_loanorderheader_primitive_orm* get_payments_loanorderheader();

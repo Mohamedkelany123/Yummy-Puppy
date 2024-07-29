@@ -79,7 +79,7 @@ void OnboardingCommission::setupLedgerClosureService(LedgerClosureService *ledge
     ledgerClosureService->addHandler("Onboarding Commission", OnboardingCommission::_calculate_merchant_commission);
 }
 
-PSQLJoinQueryIterator *OnboardingCommission::aggregator(string _closure_date_string, int _agg_number)
+PSQLJoinQueryIterator *OnboardingCommission::aggregator(QueryExtraFeilds * query_fields)
 {
     PSQLJoinQueryIterator *onboarding_commission_iterator = new PSQLJoinQueryIterator("main",
         {new crm_app_customer_primitive_orm("main"), new ekyc_app_onboardingsession_primitive_orm("main")},
@@ -93,8 +93,9 @@ PSQLJoinQueryIterator *OnboardingCommission::aggregator(string _closure_date_str
             // new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_stamped", eq, to_string(onboardingCommissionLedgerStamp::NOT_STAMPED)),
             new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
 
-            new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_entry_date", lte, _closure_date_string),
-            new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_entry_id", isnull, "", true)
+            new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_entry_date", lte, query_fields->closure_date_string),
+            new UnaryOperator("ekyc_app_onboardingsession.onboarding_commission_ledger_entry_id", isnull, "", true),
+            query_fields->isMultiMachine ? new BinaryOperator ("crm_app_customer.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator()
         )
     );
 

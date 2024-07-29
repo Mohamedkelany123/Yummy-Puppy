@@ -29,9 +29,9 @@ class UpdatingProvisions : public LedgerClosureStep {
     void calculateMissingProvisions();
     void setupLedgerClosureService(LedgerClosureService * ledgerClosureService);
     LedgerAmount * _init_ledger_amount();
-    static PSQLJoinQueryIterator* aggregator(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date);
-    static loan_app_loan_primitive_orm_iterator* aggregator_onbalance(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date);
-    static PSQLJoinQueryIterator* aggregator_offbalance(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date);
+    static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields,string start_fiscal_year,string end_fiscal_year,string end_date);
+    static loan_app_loan_primitive_orm_iterator* aggregator_onbalance(QueryExtraFeilds * query_fields,string start_fiscal_year,string end_fiscal_year,string end_date);
+    static PSQLJoinQueryIterator* aggregator_offbalance(QueryExtraFeilds * query_fields,string start_fiscal_year,string end_fiscal_year,string end_date);
     static void update_step(); 
 
     //Getters

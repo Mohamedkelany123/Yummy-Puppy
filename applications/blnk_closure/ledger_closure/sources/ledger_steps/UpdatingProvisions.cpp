@@ -1,7 +1,7 @@
 #include "UpdatingProvisions.h"
 
 
-loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator_onbalance(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date){
+loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator_onbalance(QueryExtraFeilds * query_fields,string start_fiscal_year,string end_fiscal_year,string end_date){
     string balance_query = "(WITH parent_account AS (\
         SELECT id \
         FROM ledger_account \
@@ -35,9 +35,11 @@ loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator_onbalance(s
 
     psqlJoinQuery->filter(
         ANDOperator(
-            new UnaryOperator("loan_app_loan.last_closing_day",lt,_closure_date_string),
-            new UnaryOperator("loan_app_loan.loan_booking_day",lte,_closure_date_string),
-            new UnaryOperator("loan_app_loan.status_id",nin,"12,13")
+            new UnaryOperator("loan_app_loan.last_closing_day",lt,query_fields->closure_date_string),
+            new UnaryOperator("loan_app_loan.loan_booking_day",lte,query_fields->closure_date_string),
+            new UnaryOperator("loan_app_loan.status_id",nin,"12,13"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::UPDATE_PROVISION-1)
         )
     );
@@ -53,7 +55,7 @@ loan_app_loan_primitive_orm_iterator* UpdatingProvisions::aggregator_onbalance(s
     return psqlJoinQuery;
 }
 
-PSQLJoinQueryIterator* UpdatingProvisions::aggregator_offbalance(string _closure_date_string,string start_fiscal_year,string end_fiscal_year,string end_date){
+PSQLJoinQueryIterator* UpdatingProvisions::aggregator_offbalance(QueryExtraFeilds * query_fields,string start_fiscal_year,string end_fiscal_year,string end_date){
     string balance_query = "(WITH parent_account AS (\
         SELECT id \
         FROM ledger_account \
@@ -96,9 +98,11 @@ PSQLJoinQueryIterator* UpdatingProvisions::aggregator_offbalance(string _closure
 
     psqlJoinQuery->filter(
         ANDOperator(
-            new UnaryOperator("loan_app_loan.last_closing_day",lt,_closure_date_string),
-            new UnaryOperator("loan_app_loan.loan_booking_day",lte,_closure_date_string),
-            new UnaryOperator("loan_app_loan.status_id",nin,"12,13")
+            new UnaryOperator("loan_app_loan.last_closing_day",lt,query_fields->closure_date_string),
+            new UnaryOperator("loan_app_loan.loan_booking_day",lte,query_fields->closure_date_string),
+            new UnaryOperator("loan_app_loan.status_id",nin,"12,13"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::UPDATE_PROVISION-1)
         )
     );

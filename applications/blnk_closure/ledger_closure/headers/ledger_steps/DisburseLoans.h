@@ -41,8 +41,6 @@ class DisburseLoan : public LedgerClosureStep
         void set_long_term_principal(float _long_term_principal);
         void set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm);
 
-        
-
         //Getters
         loan_app_loan_primitive_orm* get_loan_app_loan();
         crm_app_customer_primitive_orm *get_crm_app_customer();
@@ -54,8 +52,6 @@ class DisburseLoan : public LedgerClosureStep
         int get_template_id();
         float get_long_term_principal();
         bool get_is_rescheduled();
-
-
 
         float _calculate_loan_upfront_fee();
         LedgerAmount * _init_ledger_amount();
@@ -73,7 +69,7 @@ class DisburseLoan : public LedgerClosureStep
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
 
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string, int _agg_number=0);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields);
         static void update_step(); 
 
         

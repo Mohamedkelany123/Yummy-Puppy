@@ -327,7 +327,6 @@ void PSQLORMCache::commit_parallel(string data_source_name, bool transaction, bo
 
         if (transaction && orm_transaction)
         {
-            // cout << "#####################333CREATED TRANSACTION" << endl;
             psqlConnection->startTransaction();
         }
 

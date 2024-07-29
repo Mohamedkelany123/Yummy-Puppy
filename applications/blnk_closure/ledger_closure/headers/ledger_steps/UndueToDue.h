@@ -39,8 +39,8 @@ class UndueToDue : public LedgerClosureStep
         //Type 1 Both, 2 Interest Only, 3 LoanPrincipal. 
         int ledger_closure_service_type;
 
-        PSQLJoinQueryIterator* installments_becoming_due_agg(string _closure_date_string);
-        PSQLJoinQueryIterator* sticky_nstallments_becoming_due_agg(string _closure_date_string);
+        PSQLJoinQueryIterator* installments_becoming_due_agg(QueryExtraFeilds * query_fields);
+        PSQLJoinQueryIterator* sticky_installments_becoming_due_agg(QueryExtraFeilds * query_fields);
     public:
         map<string, funcPtr> funcMap;
         UndueToDue();
@@ -86,7 +86,7 @@ class UndueToDue : public LedgerClosureStep
         bool checkAmounts();
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string, int _agg_number=0);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields, int _agg_number=0);
         static void update_step(); 
 
     ~UndueToDue();

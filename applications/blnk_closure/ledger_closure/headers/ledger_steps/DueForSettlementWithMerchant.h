@@ -68,7 +68,7 @@ class DueForSettlement : public LedgerClosureStep
 
 
 
-        static loan_app_loan_primitive_orm_iterator* aggregator(string _closure_date_string,  string _start_fiscal_year);
+        static loan_app_loan_primitive_orm_iterator* aggregator(QueryExtraFeilds * query_fields,  string _start_fiscal_year);
         static void update_step(); 
 
 

@@ -55,7 +55,7 @@ class WalletPrepaid : public LedgerClosureStep
         // //static methods
     
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
-        static new_lms_customerwallettransaction_primitive_orm_iterator* aggregator(string _closure_date_string);
+        static new_lms_customerwallettransaction_primitive_orm_iterator* aggregator(QueryExtraFeilds * query_feilds);
         static string get_paymob_name();
 
         static void update_step(); 

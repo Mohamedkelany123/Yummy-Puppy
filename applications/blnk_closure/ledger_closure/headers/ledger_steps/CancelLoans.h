@@ -38,7 +38,7 @@ class CancelLoan : public LedgerClosureStep
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
 
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string, int _agg_number=0);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields);
         static void update_step(); 
 
 

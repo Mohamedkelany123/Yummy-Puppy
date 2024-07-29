@@ -25,7 +25,7 @@ class DueToOverdue : public LedgerClosureStep
         BDate closing_day;
         BDate due_to_overdue_date;
 
-        PSQLJoinQueryIterator* installments_becoming_overdue_agg(string _closure_date_string);
+        PSQLJoinQueryIterator* installments_becoming_overdue_agg(QueryExtraFeilds * query_feilds);
     public:
         map<string, funcPtr> funcMap;
         DueToOverdue();
@@ -61,7 +61,7 @@ class DueToOverdue : public LedgerClosureStep
         bool checkAmounts();
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields);
         static void update_step(); 
 
     ~DueToOverdue();

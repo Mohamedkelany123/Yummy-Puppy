@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <ctime>
 #include <string>
 #include <stdio.h>
 #include <unistd.h>

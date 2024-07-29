@@ -15,8 +15,8 @@ class InitialLoanInterestAccrual : public LedgerClosureStep
         BDate last_installment_principal_paid_at;
         bool is_first_date;       
 
-        loan_app_loan_primitive_orm_iterator* loans_to_get_first_accrual_agg(string _closure_date_string);
-        loan_app_loan_primitive_orm_iterator* loans_to_get_second_accrual_agg(string _closure_date_string);
+        loan_app_loan_primitive_orm_iterator* loans_to_get_first_accrual_agg(QueryExtraFeilds * query_fields);
+        loan_app_loan_primitive_orm_iterator* loans_to_get_second_accrual_agg(QueryExtraFeilds * query_fields);
     public:
         map<string, funcPtr> funcMap;
         InitialLoanInterestAccrual();
@@ -40,7 +40,7 @@ class InitialLoanInterestAccrual : public LedgerClosureStep
 
         void setupLedgerClosureService (LedgerClosureService * ledgerClosureService);
 
-        static loan_app_loan_primitive_orm_iterator* aggregator(string _closure_date_string, int _agg_number=0);
+        static loan_app_loan_primitive_orm_iterator* aggregator(QueryExtraFeilds * query_fields, int _agg_number=0);
         static void update_step(); 
 
     ~InitialLoanInterestAccrual();

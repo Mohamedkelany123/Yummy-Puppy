@@ -7,7 +7,7 @@ LongToShortTerm::LongToShortTerm(map <string,PSQLAbstractORM * > * _orms_list):L
     nli_orm = ORM(new_lms_installmentextension, _orms_list);
 }
 
-PSQLJoinQueryIterator* LongToShortTerm::aggregator(string _closure_date_string){
+PSQLJoinQueryIterator* LongToShortTerm::aggregator(QueryExtraFeilds * query_fields){
     PSQLJoinQueryIterator * psqlJoinQuery = new PSQLJoinQueryIterator("main",
     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"),new new_lms_installmentextension_primitive_orm("main")},
     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}},{{"loan_app_installment","id"},{"new_lms_installmentextension","installment_ptr_id"}}});
@@ -15,7 +15,7 @@ PSQLJoinQueryIterator* LongToShortTerm::aggregator(string _closure_date_string){
     psqlJoinQuery->filter(
         ANDOperator
         (
-            new UnaryOperator("new_lms_installmentextension.long_to_short_term_date",lte,_closure_date_string),
+            new UnaryOperator("new_lms_installmentextension.long_to_short_term_date",lte,query_fields->closure_date_string),
             new UnaryOperator("new_lms_installmentextension.short_term_ledger_amount_id",isnull, "", true),
             // new UnaryOperator("loan_app_loan.closure_status",eq,ledger_status::RECLASSIFY_LONG_TERM-1),
             new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
@@ -32,7 +32,9 @@ PSQLJoinQueryIterator* LongToShortTerm::aggregator(string _closure_date_string){
                     new UnaryOperator("new_lms_installmentextension.is_principal_paid",eq,false)
                 
             ),
-            new UnaryOperator("loan_app_loan.status_id",nin,"12,13")
+            new UnaryOperator("loan_app_loan.status_id",nin,"12,13"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
 

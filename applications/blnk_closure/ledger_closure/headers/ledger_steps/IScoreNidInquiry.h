@@ -32,7 +32,7 @@ class IScoreNidInquiry : public LedgerClosureStep
         //static methods
         static LedgerAmount * _calculate_inquiry_fee(LedgerClosureStep *IScoreNidInquiry);
         static void update_step(); 
-        static  PSQLJoinQueryIterator* aggregator(string _closure_date_string);
+        static  PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields);
 
         ~IScoreNidInquiry();
 };  
