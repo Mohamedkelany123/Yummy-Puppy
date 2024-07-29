@@ -434,7 +434,7 @@ int main (int argc, char ** argv)
         cout << "Settlement By Customer" << endl;
         string* processed_order_ids;
 
-        PSQLJoinQueryIterator*  principal_orders_iterator = SettlementByCustomer::aggregator(closure_date_string);
+        PSQLJoinQueryIterator*  paid_orders_iterator = SettlementByCustomer::aggregator(queryExtraFeilds);
         BlnkTemplateManager * settlementByCustomerTemplateManager = new BlnkTemplateManager(14, -1);
         BlnkTemplateManager * securitizationTemplateManager = new BlnkTemplateManager(82, -1);
         SettlementByCustomerStruct settlementByCustomerStruct;
@@ -442,9 +442,9 @@ int main (int argc, char ** argv)
         settlementByCustomerStruct.securitizationTemplateManager = securitizationTemplateManager;
         settlementByCustomerStruct.closing_day = BDate(closure_date_string);
         
-        principal_orders_iterator->process_aggregate(threadsCount, settlementByCustomerFunc, (void *)&settlementByCustomerStruct);
+        paid_orders_iterator->process_aggregate(threadsCount, settlementByCustomerFunc, (void *)&settlementByCustomerStruct);
         
-        delete(principal_orders_iterator);
+        delete(paid_orders_iterator);
         delete(settlementByCustomerTemplateManager);
         psqlController.ORMCommit(true,true,true, "main");  
         SettlementByCustomer::update_step(); 

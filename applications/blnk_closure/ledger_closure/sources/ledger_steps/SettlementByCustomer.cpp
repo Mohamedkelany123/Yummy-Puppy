@@ -35,7 +35,7 @@ SettlementByCustomer::SettlementByCustomer(loan_app_loan_primitive_orm * _lal_or
     paid_securitization_amount = 0.0f;
 }
 
-PSQLJoinQueryIterator* SettlementByCustomer::aggregator(string _closure_date_string){
+PSQLJoinQueryIterator* SettlementByCustomer::aggregator(QueryExtraFeilds * query_fields){
     PSQLJoinQueryIterator * ordersQuery = new PSQLJoinQueryIterator("main",
         {   
             new payments_loanorder_primitive_orm("main"),
@@ -57,7 +57,7 @@ PSQLJoinQueryIterator* SettlementByCustomer::aggregator(string _closure_date_str
                     new ANDOperator (
                         new UnaryOperator("new_lms_installmentextension.is_principal_paid", eq, true),
                         new UnaryOperator("new_lms_installmentextension.principal_payment_ledger_amount_id", isnull, "", true),
-                        new UnaryOperator("new_lms_installmentextension.principal_paid_at::date", lte, _closure_date_string),         
+                        new UnaryOperator("new_lms_installmentextension.principal_paid_at::date", lte, query_fields->closure_date_string),         
                         new UnaryOperator("payments_loanorder.id", eq, "new_lms_installmentextension.principal_order_id",true)  
                     ),
                     //INTEREST
@@ -65,14 +65,14 @@ PSQLJoinQueryIterator* SettlementByCustomer::aggregator(string _closure_date_str
                         new UnaryOperator("new_lms_installmentextension.is_interest_paid", eq, true),
                         new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
                         new UnaryOperator("new_lms_installmentextension.interest_payment_ledger_amount_id", isnull, "", true),
-                        new UnaryOperator("new_lms_installmentextension.interest_paid_at::date", lte, _closure_date_string),
+                        new UnaryOperator("new_lms_installmentextension.interest_paid_at::date", lte, query_fields->closure_date_string),
                         new UnaryOperator("payments_loanorder.id", eq, "new_lms_installmentextension.interest_order_id",true)
                     ),
                     //EARLYFEES
                     new ANDOperator (
                         new UnaryOperator("new_lms_installmentextension.is_early_paid", eq, true),
                         new UnaryOperator("new_lms_installmentextension.early_fee_payment_ledger_amount_id", isnull, "", true),
-                        new UnaryOperator("new_lms_installmentextension.early_paid_at::date", lte, _closure_date_string),
+                        new UnaryOperator("new_lms_installmentextension.early_paid_at::date", lte, query_fields->closure_date_string),
                         new UnaryOperator("payments_loanorder.id", eq, "new_lms_installmentextension.early_order_id",true)      
                     ),
                     //LATEFEES
@@ -80,28 +80,30 @@ PSQLJoinQueryIterator* SettlementByCustomer::aggregator(string _closure_date_str
                         new UnaryOperator("new_lms_installmentlatefees.is_paid", eq, true),
                         new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, false),
                         new UnaryOperator("new_lms_installmentlatefees.payment_amount_id", isnull, "", true),
-                        new UnaryOperator("new_lms_installmentlatefees.paid_at::date", lte, _closure_date_string),
+                        new UnaryOperator("new_lms_installmentlatefees.paid_at::date", lte, query_fields->closure_date_string),
                         new UnaryOperator("payments_loanorder.id", eq, "new_lms_installmentlatefees.order_id",true)         
                     ),
                     //EXTRAINTEREST
                     new ANDOperator (
                         new UnaryOperator("new_lms_installmentextension.is_extra_interest_paid", eq, true),
                         new UnaryOperator("new_lms_installmentextension.extra_interest_payment_ledger_amount_id", isnull, "", true),
-                        new UnaryOperator("new_lms_installmentextension.extra_interest_paid_at::date", lte, _closure_date_string),
+                        new UnaryOperator("new_lms_installmentextension.extra_interest_paid_at::date", lte, query_fields->closure_date_string),
                         new UnaryOperator("payments_loanorder.id", eq, "new_lms_installmentextension.extra_interest_order_id",true)  
                     )
                 ),
                 new ANDOperator(
                     new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_BY_CUSTOMER-1),
                     new UnaryOperator("payments_loanorder.payment_ledger_entry_id", isnotnull,"",true),
-                    new UnaryOperator ("loan_app_loan.id" , ne, "14312")
+                    new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
+                    query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                    query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
                     // new UnaryOperator ("payments_loanorder.id" , in, "2105015, 2105014, 2105013, 2105010, 2104976, 2104967, 2104963, 2104962, 2104960, 2104957, 2104950, 2104948, 2102708, 2102707, 2100737, 2100740")
                 )
             )
         );
         ordersQuery->addExtraFromField("(select coalesce(template_id,0) from ledger_entry le where id = (select entry_id from ledger_amount where id = new_lms_installmentextension.unmarginalization_ledger_amount_id))","unmarginalization_template");        
         ordersQuery->addExtraFromField("(select day from loan_app_loanstatushistroy where loan_app_loanstatushistroy.loan_id  = loan_app_loan.id and reversal_order_id is null and status_type = 0 and status_id in (8,16) order by id desc limit 1)","settlement_day");        
-        ordersQuery->addExtraFromField("(select status_id from loan_app_loanstatushistroy where loan_app_loanstatushistroy.loan_id  = loan_app_loan.id and day <= '" + _closure_date_string + "' and status_type = 0 order by id desc limit 1)","last_status");        
+        ordersQuery->addExtraFromField("(select status_id from loan_app_loanstatushistroy where loan_app_loanstatushistroy.loan_id  = loan_app_loan.id and day <= '" + query_fields->closure_date_string + "' and status_type = 0 order by id desc limit 1)","last_status");        
         ordersQuery->addExtraFromField("(select coalesce(sum(amount), 0) from payments_loanorder pl where loan_id = loan_app_loan.id and status = 1 and payment_ledger_entry_id is not null)","ledger_paid_orders_amount");        
         ordersQuery->addExtraFromField("(select coalesce(sum(lai.principal_expected), 0) from new_lms_installmentextension nli, loan_app_installment lai, payments_loanorder pl where lai.id = nli.installment_ptr_id and pl.id = nli.principal_order_id and lai.loan_id = loan_app_loan.id and nli.is_principal_paid = true and pl.payment_ledger_entry_id is not null and nli.principal_payment_ledger_amount_id  is not null)","principal_paid_amount");//PRINC
         ordersQuery->addExtraFromField("(select coalesce(sum(nli.actual_accrued_amount + nli.partial_accrual_amount + nli.settlement_accrual_interest_amount), 0) from new_lms_installmentextension nli, loan_app_installment lai, payments_loanorder pl where lai.id = nli.installment_ptr_id and pl.id = nli.interest_order_id and lai.loan_id = loan_app_loan.id and nli.is_interest_paid = true and pl.payment_ledger_entry_id is not null and nli.interest_payment_ledger_amount_id is not null)","interest_paid_amount");//INTER       

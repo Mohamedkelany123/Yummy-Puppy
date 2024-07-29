@@ -91,7 +91,7 @@ class SettlementByCustomer : public LedgerClosureStep{
         static LedgerAmount* _get_early_repayment_fee_income_sec(LedgerClosureStep* settlementByCustomer);
         ///////////////////////////////////////////////////////////////////////////////////////////
 
-        static PSQLJoinQueryIterator* aggregator(string _closure_date_string);
+        static PSQLJoinQueryIterator* aggregator(QueryExtraFeilds * query_fields);
         void stampORMs(map <string,LedgerCompositLeg*> * leg_amounts);
         static void update_step();
         // static PSQLJoinQueryIterator* aggregator22(string _closure_date_string, int agg_num, string processed_order_ids);
