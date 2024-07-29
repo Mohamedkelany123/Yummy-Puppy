@@ -189,6 +189,7 @@ int main (int argc, char ** argv)
 
     }
 
+
     if ( strcmp (step,"accrual") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         //Partial accrue interest aggregator
@@ -271,6 +272,25 @@ int main (int argc, char ** argv)
         DueToOverdue::update_step();
     }
 
+
+
+    if (strcmp(step, "marginalize_income") == 0 || strcmp(step, "run_closure")== 0 || strcmp(step, "full_closure") == 0 ) {
+        PSQLJoinQueryIterator*  marginalizeIncomeIterator = MarginalizeIncome::aggregator(queryExtraFeilds);
+        BlnkTemplateManager* marginalizeIncomeTemplateManager = new BlnkTemplateManager(34, -1);
+        MarginalizeIncomeStruct marginalizeIncomeStruct;
+        marginalizeIncomeStruct.blnkTemplateManager = marginalizeIncomeTemplateManager;
+        marginalizeIncomeStruct.marginalization_day = BDate(closure_date_string);
+        marginalizeIncomeIterator->process_aggregate(threadsCount, MarginalizeIncomeFunc, (void *)&marginalizeIncomeStruct);
+
+        delete(marginalizeIncomeIterator);
+        psqlController.ORMCommit(true, false, true, "main");
+        delete(marginalizeIncomeTemplateManager);
+        MarginalizeIncome::update_step();
+    }
+
+
+
+
     if ( strcmp (step,"cancel_latefees") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
         PSQLJoinQueryIterator*  cancel_late_fees_iterator = CancelLateFees::aggregator(queryExtraFeilds);       
@@ -282,20 +302,6 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main");  
         CancelLateFees::update_step(); 
     }
-
-    if ( strcmp (step,"wallet_prepaid") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
-    {
-        
-        new_lms_customerwallettransaction_primitive_orm_iterator*  wallet_prepaid_iterator = WalletPrepaid::aggregator(queryExtraFeilds);       
-        BlnkTemplateManager * walletPrepaidManager = new BlnkTemplateManager(134, -1);
-        WalletPrepaidStruct walletPrepaidStruct;
-        walletPrepaidStruct.blnkTemplateManager = walletPrepaidManager;
-        wallet_prepaid_iterator->process(threadsCount, WalletPrepaidFunc, (void *)&walletPrepaidStruct);
-        delete(wallet_prepaid_iterator);
-        psqlController.ORMCommit(true,true,true, "main");  
-        WalletPrepaid::update_step(); 
-    }
-
 
     if ( strcmp (step,"long_to_short") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
     {
@@ -314,6 +320,43 @@ int main (int argc, char ** argv)
 
         LongToShortTerm::update_step();
     }
+
+
+    if ( strcmp (step,"wallet_prepaid") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
+    {
+        
+        new_lms_customerwallettransaction_primitive_orm_iterator*  wallet_prepaid_iterator = WalletPrepaid::aggregator(queryExtraFeilds);       
+        BlnkTemplateManager * walletPrepaidManager = new BlnkTemplateManager(134, -1);
+        WalletPrepaidStruct walletPrepaidStruct;
+        walletPrepaidStruct.blnkTemplateManager = walletPrepaidManager;
+        wallet_prepaid_iterator->process(threadsCount, WalletPrepaidFunc, (void *)&walletPrepaidStruct);
+        delete(wallet_prepaid_iterator);
+        psqlController.ORMCommit(true,true,true, "main");  
+        WalletPrepaid::update_step(); 
+    }
+
+    if (strcmp(step, "receive_customer_payments") == 0 || strcmp(step, "run_closure") == 0 || strcmp(step, "full_closure") == 0 ) {
+        PSQLJoinQueryIterator* psqlJoinQueryIterator = CustomerPayment::aggregator(queryExtraFeilds);
+        map<int, BlnkTemplateManager*>* blnkTemplateManagerMap = new map<int, BlnkTemplateManager*>;
+        int template_ids[] = {18, 19, 44, 165, 53, 119, 133};
+        BlnkTemplateManager* blnkTemplateManager = nullptr;
+        for (auto template_id : template_ids) {
+            blnkTemplateManager = new BlnkTemplateManager(template_id, -1);
+            blnkTemplateManagerMap->operator[](template_id) = blnkTemplateManager;
+        }
+        ReceiveCustomerPaymentStruct receiveCustomerPaymentStruct;
+        receiveCustomerPaymentStruct.blnkTemplateManagerMap = blnkTemplateManagerMap;
+        receiveCustomerPaymentStruct.closing_date = BDate(closure_date_string);
+        psqlJoinQueryIterator->process(threadsCount, receiveCustomerPaymentFunc, (void*)&receiveCustomerPaymentStruct);
+        delete psqlJoinQueryIterator;
+        for(auto it=blnkTemplateManagerMap->begin(); it!=blnkTemplateManagerMap->end(); it++) {
+            delete it->second;
+        }
+        psqlController.ORMCommit(true, true, true, "main");
+        CustomerPayment::update_step();
+    }
+
+
 
     if ( strcmp (step,"iscore_nid_inquiry") == 0 || strcmp (step,"run_closure") == 0)
     {
@@ -364,26 +407,7 @@ int main (int argc, char ** argv)
         OnboardingCommission::update_step(); 
     }
 
-    if (strcmp(step, "receive_customer_payments") == 0 || strcmp(step, "run_closure") == 0 || strcmp(step, "full_closure") == 0 ) {
-        PSQLJoinQueryIterator* psqlJoinQueryIterator = CustomerPayment::aggregator(queryExtraFeilds);
-        map<int, BlnkTemplateManager*>* blnkTemplateManagerMap = new map<int, BlnkTemplateManager*>;
-        int template_ids[] = {18, 19, 44, 165, 53, 119, 133};
-        BlnkTemplateManager* blnkTemplateManager = nullptr;
-        for (auto template_id : template_ids) {
-            blnkTemplateManager = new BlnkTemplateManager(template_id, -1);
-            blnkTemplateManagerMap->operator[](template_id) = blnkTemplateManager;
-        }
-        ReceiveCustomerPaymentStruct receiveCustomerPaymentStruct;
-        receiveCustomerPaymentStruct.blnkTemplateManagerMap = blnkTemplateManagerMap;
-        receiveCustomerPaymentStruct.closing_date = BDate(closure_date_string);
-        psqlJoinQueryIterator->process(threadsCount, receiveCustomerPaymentFunc, (void*)&receiveCustomerPaymentStruct);
-        delete psqlJoinQueryIterator;
-        for(auto it=blnkTemplateManagerMap->begin(); it!=blnkTemplateManagerMap->end(); it++) {
-            delete it->second;
-        }
-        psqlController.ORMCommit(true, true, true, "main");
-        CustomerPayment::update_step();
-    }
+
 
     if ( strcmp (step,"updating_provisions") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 ){
         cout << "Updating Provisions" << endl;
@@ -424,20 +448,6 @@ int main (int argc, char ** argv)
         delete(blnkTemplateManager);
         delete(psqlQueryJoin);
         psqlController.ORMCommit(true,true,true, "main"); 
-    }
-
-    if (strcmp(step, "marginalize_income") == 0 || strcmp(step, "run_closure")== 0 || strcmp(step, "full_closure") == 0 ) {
-        PSQLJoinQueryIterator*  marginalizeIncomeIterator = MarginalizeIncome::aggregator(queryExtraFeilds);
-        BlnkTemplateManager* marginalizeIncomeTemplateManager = new BlnkTemplateManager(34, -1);
-        MarginalizeIncomeStruct marginalizeIncomeStruct;
-        marginalizeIncomeStruct.blnkTemplateManager = marginalizeIncomeTemplateManager;
-        marginalizeIncomeStruct.marginalization_day = BDate(closure_date_string);
-        marginalizeIncomeIterator->process_aggregate(threadsCount, MarginalizeIncomeFunc, (void *)&marginalizeIncomeStruct);
-
-        delete(marginalizeIncomeIterator);
-        psqlController.ORMCommit(true, false, true, "main");
-        delete(marginalizeIncomeTemplateManager);
-        MarginalizeIncome::update_step();
     }
 
     if ( strcmp (step,"settlement_loans_with_merchant") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 )
