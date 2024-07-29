@@ -2,28 +2,27 @@
 
 
 void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras) {
+    
     payments_loanorder_primitive_orm * pl_orm = ORML(payments_loanorder, orms_list, 0);
     loan_app_loan_primitive_orm* lal_orm = ORML(loan_app_loan, orms_list, 0);
-    loan_app_installment_primitive_orm* lai_orm = ORML(loan_app_installment, orms_list, 0);
-    new_lms_installmentextension_primitive_orm* nlie_orm = ORML(new_lms_installmentextension, orms_list, 0);
-    new_lms_installmentlatefees_primitive_orm* nlilf_orm = ORML(new_lms_installmentlatefees, orms_list, 0);
     PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms_list, 0);
+
+    loan_app_installment_primitive_orm* lai_orm = nullptr;
+    new_lms_installmentextension_primitive_orm* nlie_orm = nullptr;
+    new_lms_installmentlatefees_primitive_orm* nlilf_orm = nullptr;
+    
     BlnkTemplateManager* blnkTemplateManager = ((SettlementByCustomerStruct*)extras)->blnkTemplateManager;
     BlnkTemplateManager* secTemplateManager = ((SettlementByCustomerStruct*)extras)->securitizationTemplateManager;
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(blnkTemplateManager, partition_number);
     BlnkTemplateManager* localSecTemplateManager = new BlnkTemplateManager(secTemplateManager, partition_number);
+
     map<loan_app_installment_primitive_orm*, new_lms_installmentextension_primitive_orm*> installmentToExtension;
     BDate entry_date = BDate(pl_orm->get_paid_at());
-    for (int i=0; i<ORML_SIZE(orms_list); i++){
-        installmentToExtension[lai_orm] = nlie_orm;
-    }
-
 
     map<payments_loanorder_primitive_orm*, set<loan_app_installment_primitive_orm*>*> installmentsMap;
     map<loan_app_installment_primitive_orm*, vector<new_lms_installmentlatefees_primitive_orm*>*> lateFeeMap;
 
     for (int i=0; i<ORML_SIZE(orms_list); i++) {
-        lal_orm = ORML(loan_app_loan, orms_list, i);
         lai_orm = ORML(loan_app_installment, orms_list, i);
         nlie_orm = ORML(new_lms_installmentextension, orms_list, i);
         nlilf_orm = ORML(new_lms_installmentlatefees, orms_list, i);
@@ -98,6 +97,7 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
             }
     }
     if (paid_sec_amount > 0.0f){
+        //TODO: Sec map per installment
         secTemplateManager->createEntry(entry_date);
         DueToSecuritizationBond dueToSecBond(pl_orm->get_loan_id(), paid_sec_amount, nlie_orm->get_bond_id());
         LedgerClosureService* ledgerClosureService = new LedgerClosureService(&dueToSecBond);
