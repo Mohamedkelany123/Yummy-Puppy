@@ -76,12 +76,12 @@ void %s::process(int partitions_count,std::function<void(%s * orm,int partition_
         vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
         vector <thread *> threads;
         mutex shared_lock;
-        for ( int i  = 0 ; i < p->size() ; i ++)
+        for (long unsigned int i  = 0 ; i < p->size() ; i ++)
         {
             thread * t = new thread(process_internal, this,data_source_name, (*p)[i],i,&shared_lock,extra_params,f);
             threads.push_back(t);
         }
-        for ( int i  = 0 ; i < p->size() ; i ++)
+        for (long unsigned int i  = 0 ; i < p->size() ; i ++)
         {
                 thread * t = threads[i];
                 t->join();

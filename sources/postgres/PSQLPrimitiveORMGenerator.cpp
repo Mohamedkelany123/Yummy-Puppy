@@ -7,7 +7,7 @@ void PSQLPrimitiveORMGenerator::generateSerializer(string class_name,string tabl
     extra_methods_def += "\t\tstring serialize (PSQLConnection * _psqlConnection=NULL);\n";
     extra_methods += "\t\tstring "+class_name+"::serialize (PSQLConnection * _psqlConnection){\n";
     extra_methods += "\t\t\tstring serialize_string = \"\\\""+class_name+"\\\":{\";\n";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
             string orm_field_name = "orm_"+columns_definition["column_name"][i];
 
@@ -51,7 +51,7 @@ void PSQLPrimitiveORMGenerator::generateDeserializer(string class_name,string ta
     extra_methods_def += "\t\tvoid deSerialize (json orm_json,bool _read_only = false);\n";
     extra_methods += "\t\tvoid "+class_name+"::deSerialize (json orm_json,bool _read_only){\n";
     // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         string orm_field_name = "orm_"+columns_definition["column_name"][i];
         bool string_flag = false;
@@ -81,7 +81,7 @@ void PSQLPrimitiveORMGenerator::generateEqualToOperator(string class_name,string
     extra_methods_def += "\t\tbool operator == ("+class_name+" & "+class_name+"_object );\n";
     extra_methods += "\t\tbool "+class_name+"::operator == ("+class_name+" & "+class_name+"_object ){\n";
     // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         bool string_flag = false;
         for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
@@ -270,7 +270,7 @@ void PSQLPrimitiveORMGenerator::generateFromString (string class_name,string tab
     extra_methods_def += "\t\tstring getFromString ();\n";
     extra_methods += "\t\tstring "+class_name+"::getFromString (){\n";
     extra_methods += "\t\t\tif (!field_clear_mask_flag.any() ) return \"";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         if ( i > 0 )  extra_methods  += ",";
         extra_methods += "\\\""+table_name+"\\\".\\\""+columns_definition["column_name"][i]+"\\\" as \\\""+table_index+"_"+columns_definition["column_name"][i]+"\\\"";
@@ -278,7 +278,7 @@ void PSQLPrimitiveORMGenerator::generateFromString (string class_name,string tab
     extra_methods += "\";\n";
     extra_methods += "\t\t\telse {\n";
     extra_methods += "\t\t\t\tstring f_str=\"\";\n";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         extra_methods  += "\t\t\t\tif (field_clear_mask_flag.test("+to_string(i)+")) {\n";
         extra_methods  += "\t\t\t\tif (f_str != \"\" ) f_str +=\",\";\n ";
@@ -296,7 +296,7 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string 
     extra_methods_def += "\t\tvoid assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false);\n";
     extra_methods += "\t\tvoid "+class_name+"::assignResults (AbstractDBQuery * psqlQuery,bool _read_only){\n";
     // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
             AbstractDatabaseColumn * abstractDatabaseColumn = databaseColumnFactory[columns_definition["udt_name"][i]]->clone(columns_definition["column_name"][i]);
@@ -324,7 +324,7 @@ void PSQLPrimitiveORMGenerator::generateFieldsMap (string class_name,string tabl
     extra_methods += "\t\tmap<string,string> "+class_name+"::generateFieldsMap (){\n";
     extra_methods += "\t\t\tmap <string,string> fields_map;\n";
 
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         string db_field_name = columns_definition["column_name"][i];
         string orm_field_name = "orm_"+columns_definition["column_name"][i];
@@ -360,7 +360,7 @@ void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,st
     extra_methods += "\t\t\tthis->table_index=orm.table_index;\n";
     extra_methods += "\t\t\tcached=orm.cached;\n";
 
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
             extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
@@ -371,7 +371,7 @@ void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,st
     extra_methods += "\t\t\tupdate_flag=orm.update_flag;\n";
     extra_methods += "\t\t\tnull_flag=orm.null_flag;\n";
     extra_methods += "\t\t\tfield_clear_mask_flag=orm.field_clear_mask_flag;\n";
-    extra_methods += "\t\t\tfor (int i = 0 ; i< update_flag.size() ; i ++) update_flag.set(i) ;\n";
+    extra_methods += "\t\t\tfor (long unsigned int i = 0 ; i< update_flag.size() ; i ++) update_flag.set(i) ;\n";
     extra_methods += "\t\t\tnull_flag=orm.null_flag;\n";
     extra_methods += "\t\t\tsetIdentifier(-1);\n";
     extra_methods += "\t\t\tif (cached) this->addToCache();\n";
@@ -385,7 +385,7 @@ void PSQLPrimitiveORMGenerator::generateAssignmentOperator (string class_name,st
     extra_methods += "\t\t\tthis->table_index=orm->table_index;\n";
     extra_methods += "\t\t\tcached=orm->cached;\n";
 
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
             extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
@@ -447,7 +447,7 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
 
     constructor_destructor += "\t\t\tif (add_to_cache) this->addToCache();\n";
 
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         constructor_destructor  += "\t\t\tif (std::find(field_clear_mask.begin(), field_clear_mask.end(), \""+columns_definition["column_name"][i]+"\") != field_clear_mask.end()) field_clear_mask_flag.set("+to_string(i)+");\n";
     }
@@ -626,7 +626,7 @@ void PSQLPrimitiveORMGenerator::generateResolveReferences(string class_name,stri
     extra_methods_def += "\t\tvoid resolveReferences ();\n";
     extra_methods += "\t\tvoid "+class_name+"::resolveReferences (){\n";
 
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         string db_field_name = columns_definition["column_name"][i];
         string orm_field_name = "orm_"+columns_definition["column_name"][i];
@@ -656,7 +656,7 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
     extra_methods += "\t\t\tcommitUpdateReferences(_psqlConnection);\n";
     extra_methods += "\t\t\tresolveReferences();\n";
     extra_methods += "\t\t\tstring update_string = \"\";\n";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         string db_field_name = columns_definition["column_name"][i];
         string orm_field_name = "orm_"+columns_definition["column_name"][i];
@@ -723,7 +723,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
     // extra_methods += "\t\t\tstring insert_string = \"\";\n";
     string columns_string = "";
     string values_string = "";
-    for (int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    for (long unsigned int i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         string db_field_name = columns_definition["column_name"][i];
         string orm_field_name = "orm_"+columns_definition["column_name"][i];
