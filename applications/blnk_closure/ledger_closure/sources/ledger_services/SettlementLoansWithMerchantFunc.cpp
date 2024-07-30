@@ -12,7 +12,7 @@ double _get_request_amount(settlement_dashboard_merchantpaymentrequest_primitive
     // double merchant_commission = lal_orm->get_merchant_commission();
     double loan_upfront_fee = lal_orm->get_loan_upfront_fee();
     double blnk_to_merchant_fee = lal_orm->get_bl_t_mer_fee();
-    double merchant_to_blnk_fee = lal_orm->get_bl_t_mer_fee();
+    double merchant_to_blnk_fee = lal_orm->get_mer_t_bl_fee();
     
     //calculate values from the loan
     double cashier_commision = (principle*cashier_fee)/100;
@@ -45,6 +45,27 @@ double _get_request_amount(settlement_dashboard_merchantpaymentrequest_primitive
 
     return amount;
 }
+
+/*
+    def _get_request_amount(self,sub_payment_request,loan):
+        from decimal import Decimal
+        cashier_commision = round(loan.principle*loan.cashier_fee/100, 2)
+        merchant_commission = round(loan.principle *loan.bl_t_mer_fee / 100, 2)
+        product_value = loan.principle
+        upfront_fee = round((loan.loan_upfront_fee/100)*float(loan.principle), 2)
+        rebate_commission = round(loan.principle*loan.mer_t_bl_fee/100, 2)
+        if sub_payment_request.type==0: #ProductValue
+            amount= product_value
+        if sub_payment_request.type==1: #CashierCommission
+            amount= cashier_commision
+        if sub_payment_request.type==2: #MerchantCommission
+            amount= merchant_commission
+        if sub_payment_request.type==3: #UpFrontFeeValue
+            amount= -upfront_fee
+        if sub_payment_request.type==4: #RebateCommission
+            amount= -rebate_commission
+        return round(Decimal(amount),2)
+*/
 
 double _get_request_amount(int request_type, double principle, double cashier_fee, double mer_t_bl_fee, double bl_t_mer_fee, double loan_upfront_fee)
 {
@@ -146,9 +167,6 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                 if (type == "Partial Refund") {
                     parent_loan_value += _get_request_amount(request_type, parent_principle, parent_cashier_fee, parent_mer_t_bl_fee, parent_bl_t_mer_fee, parent_loan_upfront_fee);
                 }
-                if (sds_orm->get_is_settled() == false) {
-                    has_unsettled = true;
-                }
             }
             string type = gorm->get("type");
             double balance_106 = gorm->toDouble("balance_106"), balance_179 = gorm->toDouble("balance_179");
@@ -163,11 +181,11 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
             double parent_balance_179 = gorm->toDouble("parent_balance_179");
             BlnkTemplateManager *localTemplateManager, *parentTemplateManager;
             
+            bool is_reverse = false;
             if (check_bool && can_settle_bool) {
                 category = sds_orm->get_category();
                 entry_date = BDate(sds_orm->get_entry_date());
                 activation_user_id = sds_orm->get_activation_user_id();
-                bool is_reverse;
                 if (type == "Full Refund") {
                     if (category == 1) {
                         localTemplateManager = new BlnkTemplateManager(templateManager, partition_number);
@@ -191,12 +209,14 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                         localTemplateManager->buildEntry(entry_date);
                     }
                     ledger_entry_primitive_orm* entry = localTemplateManager->get_entry();
-                    settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm = new settlement_dashboard_loanentryrequest_primitive_orm("main");
-                    sdl_orm->setUpdateRefernce("entry", entry);
-                    sdl_orm->setUpdateRefernce("request", sdm_orm);
-                    sdl_orm->setUpdateRefernce("loan", lal_orm);
+                    entry->set_created_by(0);
+                    entry->set_user_id(activation_user_id);
+                    settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm = new settlement_dashboard_loanentryrequest_primitive_orm("main", true, true, partition_number);
+                    sdl_orm->setAddRefernce("entry_id", entry);
+                    sdl_orm->setAddRefernce("request_id", sdm_orm);
+                    sdl_orm->setAddRefernce("loan_id", lal_orm);
                     sdl_orm->set_link(sds_orm->get_link());
-                    lal_orm->setUpdateRefernce("settled_cancel", sdm_orm);
+                    lal_orm->setUpdateRefernce("settled_cancel_id", sdm_orm);
                     total_amount -= amount;
                     cancelled_loans.insert(lal_orm);
                 }
@@ -223,8 +243,10 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                         parentTemplateManager->buildEntry(entry_date);
                     }
                     ledger_entry_primitive_orm* entry_parent = parentTemplateManager->get_entry();
-                    settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm_parent = new settlement_dashboard_loanentryrequest_primitive_orm("main");
-                    sdl_orm_parent->setUpdateRefernce("entry", entry_parent);
+                    entry_parent->set_created_by(0);
+                    entry_parent->set_user_id(activation_user_id);
+                    settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm_parent = new settlement_dashboard_loanentryrequest_primitive_orm("main", true, true, partition_number);
+                    sdl_orm_parent->setAddRefernce("entry_id", entry_parent);
                     sdl_orm_parent->set_request_id(sdm_orm->get_id());
                     sdl_orm_parent->set_loan_id(parent_loan_id);
                     sdl_orm_parent->set_link(sds_orm->get_link());
@@ -251,10 +273,12 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                     localTemplateManager->setEntryData(ledgerAmounts);
                     localTemplateManager->buildEntry(entry_date);
                     ledger_entry_primitive_orm* entry = localTemplateManager->get_entry();
-                    settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm = new settlement_dashboard_loanentryrequest_primitive_orm("main");
-                    sdl_orm->setUpdateRefernce("entry", entry);
+                    entry->set_created_by(0);
+                    entry->set_user_id(activation_user_id);
+                    settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm = new settlement_dashboard_loanentryrequest_primitive_orm("main", true, true, partition_number);
+                    sdl_orm->setAddRefernce("entry_id", entry);
                     sdl_orm->set_request_id(sdm_orm->get_id());
-                    sdl_orm->set_loan_id(parent_loan_id);
+                    sdl_orm->set_loan_id(lal_orm->get_id());
                     sdl_orm->set_link(sds_orm->get_link());
                     lal_orm->set_settled_cancel_id(sdm_orm->get_id());
                     total_amount += amount;
@@ -277,10 +301,12 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                     localTemplateManager->setEntryData(ledgerAmounts);
                     localTemplateManager->buildEntry(entry_date);
                     ledger_entry_primitive_orm* entry = localTemplateManager->get_entry();
-                    settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm = new settlement_dashboard_loanentryrequest_primitive_orm("main");
-                    sdl_orm->setUpdateRefernce("entry", entry);
+                    entry->set_created_by(0);
+                    entry->set_user_id(activation_user_id);
+                    settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm = new settlement_dashboard_loanentryrequest_primitive_orm("main", true, true, partition_number);
+                    sdl_orm->setAddRefernce("entry_id", entry);
                     sdl_orm->set_request_id(sdm_orm->get_id());
-                    sdl_orm->set_loan_id(parent_loan_id);
+                    sdl_orm->set_loan_id(lal_orm->get_id());
                     sdl_orm->set_link(sds_orm->get_link());
                     lal_orm->set_settled_cancel_id(sdm_orm->get_id());
                     total_amount += amount;
@@ -290,6 +316,7 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
         }
         int bank = sdm_orm->get_bank_id();
         int bank_to = sdm_orm->get_bank_to_id();
+        cout << "settlement request id: " << sds_orm->get_id() << endl;
         int sub_payment_bank = sds_orm->get_bank_id();
         if ((bank == 0 || sub_payment_bank == 0) && bank != 0) {
             bank = sub_payment_bank;
@@ -308,6 +335,8 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
             localTemplateManager->setEntryData(ledgerAmounts);
             localTemplateManager->buildEntry(entry_date);
             entry = localTemplateManager->get_entry();
+            entry->set_created_by(0);
+            entry->set_user_id(activation_user_id);
         }
         else {
             SettleTransaction settleTransaction(lal_orm->get_merchant_id(), bank, bank_to, sdm_orm->get_id(), category, total_amount);
@@ -318,10 +347,13 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
             localTemplateManager->setEntryData(ledgerAmounts);
             localTemplateManager->buildEntry(entry_date);
             entry = localTemplateManager->get_entry();
+            entry->set_created_by(0);
+            entry->set_user_id(activation_user_id);
         }
-        settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm = new settlement_dashboard_loanentryrequest_primitive_orm("main");
-        sdl_orm->setUpdateRefernce("entry", entry);
-        sdl_orm->setUpdateRefernce("request", sdm_orm);
+        settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm = new settlement_dashboard_loanentryrequest_primitive_orm("main", true ,true, partition_number);
+        sdl_orm->setAddRefernce("entry_id", entry);
+        sdl_orm->set_request_id(sdm_orm->get_id());
+        sdl_orm->set_loan_id(lal_orm->get_id());
         sdl_orm->set_link(sds_orm->get_link());
         stringstream cancelled_loans_stream, loans_stream;
         loans_stream << "{";
@@ -343,7 +375,18 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
         cancelled_loans_stream << "}";
         sdm_orm->set_canceled_loans(cancelled_loans_stream.str());
 
-        if (!has_unsettled) {
+        int sdm_id = sdm_orm->get_id();
+        ORMVector <settlement_dashboard_settlementrequest_primitive_orm> ormVector = settlement_dashboard_settlementrequest_primitive_orm::fetch(
+            "main",
+             ANDOperator( 
+                new UnaryOperator("request_id", eq, sdm_id),
+                new UnaryOperator("is_settled", eq, false)
+            )
+        );
+
+
+
+        if (ormVector.size() == 0) {
             sdm_orm->set_is_settled(true);
             sdm_orm->set_status(1);
         }

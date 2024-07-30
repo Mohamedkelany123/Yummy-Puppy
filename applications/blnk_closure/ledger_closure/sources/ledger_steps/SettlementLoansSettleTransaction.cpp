@@ -18,6 +18,12 @@ LedgerAmount *SettleTransaction::_init_ledger_amount()
     lg->setMerchantId(merchant_id);
     lg->setMerchantPaymentRequestId(payment_request_id);
     lg->setReversalBool(false);
+    if (category == 0) {
+        lg->setCreditAccountId(bank);
+    }
+    else {
+        lg->setDebitAccountId(bank_to);
+    }
     return lg;
 }
 

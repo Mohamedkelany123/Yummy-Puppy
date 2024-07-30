@@ -21,7 +21,7 @@ class SettlementLoansWithMerchant : public LedgerClosureStep
     public:
         map<string, funcPtr> funcMap;
         SettlementLoansWithMerchant();
-        SettlementLoansWithMerchant(double _amount, int _loan_id, int _payment_request_id, int _merchant_id, int _customer_id, int _category, int _activation_user_id, bool is_reverse);        
+        SettlementLoansWithMerchant(double _amount, int _loan_id, int _payment_request_id, int _merchant_id, int _customer_id, int _category, int _activation_user_id, bool _is_reverse);        
 
         LedgerAmount * _init_ledger_amount();
 
@@ -43,7 +43,7 @@ class SettlementLoansWithMerchant : public LedgerClosureStep
         ~SettlementLoansWithMerchant();
 };
 
-string calculateAmountSum(string _account_name, string _start_fiscal_year,string _closing_day);
+string calculateAmountSum(string _account_name, string loan_id, string _start_fiscal_year,string _closing_day);
 
 
 

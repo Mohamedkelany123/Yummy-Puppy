@@ -24,7 +24,7 @@ LedgerAmount *SettlementLoansWithMerchant::get_amount(LedgerClosureStep *settlem
     int merchant_payment_request_id = ((SettlementLoansWithMerchant*)settlementLoansWithMerchant)->payment_request_id;
     int customer_id = ((SettlementLoansWithMerchant*)settlementLoansWithMerchant)->customer_id;
     ledgerAmount->setLoanId(loan_id);
-    ledgerAmount->setAmount(amount);
+    ledgerAmount->setAmount(ROUND(amount));
     ledgerAmount->setMerchantId(merchant_id);
     ledgerAmount->setMerchantPaymentRequestId(merchant_payment_request_id);
     ledgerAmount->setCustomerId(customer_id);
@@ -36,7 +36,7 @@ LedgerAmount *SettlementLoansWithMerchant::get_parent_amount(LedgerClosureStep *
 
 }
 
-string calculateAmountSum(string _account_name, string _start_fiscal_year,string _closing_day)
+string calculateAmountSum(string _account_name, string loan_id, string _start_fiscal_year,string _closing_day)
 {
     return "(WITH parent_account AS (\
         SELECT id \
@@ -57,7 +57,7 @@ string calculateAmountSum(string _account_name, string _start_fiscal_year,string
         SELECT id \
         FROM parent_account \
     ) \
-    AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closing_day + "')";
+    AND loan_id = "  + loan_id + " and le.entry_date between '" + _start_fiscal_year + "' and '" + _closing_day + "')";
 }
 
 PSQLJoinQueryIterator *SettlementLoansWithMerchant::aggregator(string _closure_date_string, string start_fiscal_year)
@@ -84,16 +84,24 @@ PSQLJoinQueryIterator *SettlementLoansWithMerchant::aggregator(string _closure_d
     psqlQueryJoin->addExtraFromField("(select lal2.mer_t_bl_fee from crm_app_purchase cap2,loan_app_loan lal2 where crm_app_purchase.parent_purchase_id = cap2.id and cap2.loan_id=lal2.id limit 1)", "parent_mer_t_bl_fee");
     psqlQueryJoin->addExtraFromField("(select lal2.bl_t_mer_fee from crm_app_purchase cap2,loan_app_loan lal2 where crm_app_purchase.parent_purchase_id = cap2.id and cap2.loan_id=lal2.id limit 1)", "parent_bl_t_mer_fee");
     psqlQueryJoin->addExtraFromField("(select lal2.loan_upfront_fee from crm_app_purchase cap2,loan_app_loan lal2 where crm_app_purchase.parent_purchase_id = cap2.id and cap2.loan_id=lal2.id limit 1)", "parent_loan_upfront_fee");
+    psqlQueryJoin->addExtraFromField("(select lal2.settled_pay_id from crm_app_purchase cap2,loan_app_loan lal2 where crm_app_purchase.parent_purchase_id = cap2.id and cap2.loan_id=lal2.id limit 1)", "parent_settle_pay_id");
+    psqlQueryJoin->addExtraFromField("(select lal2.merchant_id from crm_app_purchase cap2,loan_app_loan lal2 where crm_app_purchase.parent_purchase_id = cap2.id and cap2.loan_id=lal2.id limit 1)", "parent_merchant_id");
     psqlQueryJoin->addExtraFromField("case when tr->>'check_bool'='true' then true else false end", "check_bool");
     psqlQueryJoin->addExtraFromField("case when tr->>'can_settle_bool'='true' then true else false end", "can_settle_bool");
+    psqlQueryJoin->addExtraFromField("tr->>'type'", "type");
 
-    psqlQueryJoin->addExtraFromField(calculateAmountSum("Due For Settlement, merchants", start_fiscal_year, _closure_date_string), "balance_106");
-    psqlQueryJoin->addExtraFromField(calculateAmountSum("Due For Settlement, merchants contra", start_fiscal_year, _closure_date_string), "balance_179");
+
+    psqlQueryJoin->addExtraFromField(calculateAmountSum("Due For Settlement, merchants", "loan_app_loan.id", start_fiscal_year, _closure_date_string), "balance_106");
+    psqlQueryJoin->addExtraFromField(calculateAmountSum("Due For Settlement, merchants contra", "loan_app_loan.id", start_fiscal_year, _closure_date_string), "balance_179");
+
+    psqlQueryJoin->addExtraFromField(calculateAmountSum("Due For Settlement, merchants", "(select lal2.id from crm_app_purchase cap2,loan_app_loan lal2 where crm_app_purchase.parent_purchase_id = cap2.id and cap2.loan_id=lal2.id limit 1)", start_fiscal_year, _closure_date_string), "parent_balance_106");
+    psqlQueryJoin->addExtraFromField(calculateAmountSum("Due For Settlement, merchants contra", "(select lal2.id from crm_app_purchase cap2,loan_app_loan lal2 where crm_app_purchase.parent_purchase_id = cap2.id and cap2.loan_id=lal2.id limit 1)", start_fiscal_year, _closure_date_string), "parent_balance_179");
 
     psqlQueryJoin->filter(
         ANDOperator(
+            new UnaryOperator("settlement_dashboard_merchantpaymentrequest.status", eq, 0),
             new UnaryOperator("settlement_dashboard_settlementrequest.status", eq, 1),
-            new UnaryOperator("settlement_dashboard_merchantpaymentrequest.status", eq, 0)
+            new UnaryOperator("settlement_dashboard_settlementrequest.link", ne, 0)
         )
     );
 
@@ -170,7 +178,7 @@ SettlementLoansWithMerchant::SettlementLoansWithMerchant()
 {
 }
 
-SettlementLoansWithMerchant::SettlementLoansWithMerchant(double _amount, int _loan_id, int _payment_request_id, int _merchant_id, int _customer_id, int _category, int _activation_user_id, bool is_reverse)
+SettlementLoansWithMerchant::SettlementLoansWithMerchant(double _amount, int _loan_id, int _payment_request_id, int _merchant_id, int _customer_id, int _category, int _activation_user_id, bool _is_reverse)
 {
     amount = _amount;
     loan_id = _loan_id;
@@ -179,6 +187,6 @@ SettlementLoansWithMerchant::SettlementLoansWithMerchant(double _amount, int _lo
     customer_id = _customer_id;
     category = _category;
     activation_user_id = _activation_user_id;
-    cout << "amount: " << amount << endl;
+    is_reverse = _is_reverse;
 }
 
