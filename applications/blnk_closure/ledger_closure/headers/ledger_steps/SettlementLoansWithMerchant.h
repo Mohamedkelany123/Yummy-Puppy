@@ -16,12 +16,12 @@ class SettlementLoansWithMerchant : public LedgerClosureStep
     private:
         double amount;
         int loan_id, payment_request_id, merchant_id, customer_id, category, activation_user_id;
-        bool is_settlement;
+        bool is_settlement, is_reverse;
 
     public:
         map<string, funcPtr> funcMap;
         SettlementLoansWithMerchant();
-        SettlementLoansWithMerchant(double _amount, int _loan_id, int _payment_request_id, int _merchant_id, int _customer_id, int _category, int _activation_user_id);        
+        SettlementLoansWithMerchant(double _amount, int _loan_id, int _payment_request_id, int _merchant_id, int _customer_id, int _category, int _activation_user_id, bool is_reverse);        
 
         LedgerAmount * _init_ledger_amount();
 

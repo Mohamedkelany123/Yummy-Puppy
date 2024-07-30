@@ -9,7 +9,7 @@
 #include "SettlementLoansSettleTransaction.h"
 
 typedef struct {
-    BlnkTemplateManager *blnkTemplateManager, *paymentTemplateManager, *receiveTemplateManager;
+    BlnkTemplateManager *blnkTemplateManager, *paymentTemplateManager, *receiveTemplateManager, *reverseTemplateManager;
 } SettlementLoansWithMerchantStruct;
 
 void settleLoansWithMerchantFunc(vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras);

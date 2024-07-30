@@ -84,6 +84,7 @@ double _get_request_amount(int request_type, double principle, double cashier_fe
 void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_list, int partition_number, mutex *shared_lock, void *extras)
 {
     BlnkTemplateManager* templateManager = (BlnkTemplateManager*)(((SettlementLoansWithMerchantStruct*)extras)->blnkTemplateManager);
+    BlnkTemplateManager* reverseTemplateManager = (BlnkTemplateManager*)(((SettlementLoansWithMerchantStruct*)extras)->reverseTemplateManager);
     BlnkTemplateManager* paymentTemplateManager = (BlnkTemplateManager*)(((SettlementLoansWithMerchantStruct*)extras)->paymentTemplateManager);
     BlnkTemplateManager* receiveTemplateManager = (BlnkTemplateManager*)(((SettlementLoansWithMerchantStruct*)extras)->receiveTemplateManager);
     settlement_dashboard_merchantpaymentrequest_primitive_orm* sdm_orm;
@@ -160,19 +161,29 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
             int parent_settle_pay_id = gorm->toInt("parent_settle_pay_id");
             double parent_balance_106 = gorm->toDouble("parent_balance_106");
             double parent_balance_179 = gorm->toDouble("parent_balance_179");
-            BlnkTemplateManager *localTemplateManager = new BlnkTemplateManager(templateManager, partition_number);
+            BlnkTemplateManager *localTemplateManager, *parentTemplateManager;
+            
             if (check_bool && can_settle_bool) {
                 category = sds_orm->get_category();
                 entry_date = BDate(sds_orm->get_entry_date());
                 activation_user_id = sds_orm->get_activation_user_id();
+                bool is_reverse;
                 if (type == "Full Refund") {
+                    if (category == 1) {
+                        localTemplateManager = new BlnkTemplateManager(templateManager, partition_number);
+                        is_reverse = false;
+                    }
+                    else {
+                        localTemplateManager = new BlnkTemplateManager(reverseTemplateManager, partition_number);
+                        is_reverse = true;
+                    }
                     double amount = loan_value;
                     bool check_flag = true;
                     if (balance_106 == 0 && balance_179 == 0 && settled_pay_id != 0) {
                         check_flag = false;
                     }
                     if (check_flag) {
-                        SettlementLoansWithMerchant settlementWithMerchant(loan_value, lal_orm->get_id(), sdm_orm->get_id(), lal_orm->get_merchant_id(), lal_orm->get_customer_id(), category, sds_orm->get_activation_user_id());
+                        SettlementLoansWithMerchant settlementWithMerchant(loan_value, lal_orm->get_id(), sdm_orm->get_id(), lal_orm->get_merchant_id(), lal_orm->get_customer_id(), category, sds_orm->get_activation_user_id(), is_reverse);
                         LedgerClosureService* ledgerClosureService = new LedgerClosureService(&settlementWithMerchant);
                         settlementWithMerchant.setupLedgerClosureService(ledgerClosureService);
                         map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
@@ -190,20 +201,28 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                     cancelled_loans.insert(lal_orm);
                 }
                 else if (type == "Partial Refund") {
+                    if (category == 1) {
+                        parentTemplateManager = new BlnkTemplateManager(templateManager, partition_number);
+                        is_reverse = false;
+                    }
+                    else {
+                        parentTemplateManager = new BlnkTemplateManager(reverseTemplateManager, partition_number);
+                        is_reverse = true;
+                    }
                     double amount = parent_loan_value;
                     bool check_flag = true;
                     if (balance_106 == 0 && balance_179 == 0 && parent_settle_pay_id != 0) {
                         check_flag = false;
                     }
                     if (check_flag) {
-                        SettlementLoansWithMerchant settlementWithMerchant(loan_value, parent_loan_id, sdm_orm->get_id(), parent_merchant_id, lal_orm->get_customer_id(), category, sds_orm->get_activation_user_id());
+                        SettlementLoansWithMerchant settlementWithMerchant(loan_value, parent_loan_id, sdm_orm->get_id(), parent_merchant_id, lal_orm->get_customer_id(), category, sds_orm->get_activation_user_id(), is_reverse);
                         LedgerClosureService* ledgerClosureService = new LedgerClosureService(&settlementWithMerchant);
                         settlementWithMerchant.setupLedgerClosureService(ledgerClosureService);
                         map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
-                        localTemplateManager->setEntryData(ledgerAmounts);
-                        localTemplateManager->buildEntry(entry_date);
+                        parentTemplateManager->setEntryData(ledgerAmounts);
+                        parentTemplateManager->buildEntry(entry_date);
                     }
-                    ledger_entry_primitive_orm* entry_parent = localTemplateManager->get_entry();
+                    ledger_entry_primitive_orm* entry_parent = parentTemplateManager->get_entry();
                     settlement_dashboard_loanentryrequest_primitive_orm* sdl_orm_parent = new settlement_dashboard_loanentryrequest_primitive_orm("main");
                     sdl_orm_parent->setUpdateRefernce("entry", entry_parent);
                     sdl_orm_parent->set_request_id(sdm_orm->get_id());
@@ -215,8 +234,17 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                     total_amount -= amount;
                     cancelled_loans.insert(parent_lal_orm);
 
+                    if (category == 0) {
+                        localTemplateManager = new BlnkTemplateManager(templateManager, partition_number);
+                        is_reverse = false;
+                    }
+                    else {
+                        localTemplateManager = new BlnkTemplateManager(reverseTemplateManager, partition_number);
+                        is_reverse = true;
+                    }
+
                     amount = loan_value;
-                    SettlementLoansWithMerchant settlementWithMerchant(loan_value, lal_orm->get_id(), sdm_orm->get_id(), lal_orm->get_merchant_id(), lal_orm->get_customer_id(), category, sds_orm->get_activation_user_id());
+                    SettlementLoansWithMerchant settlementWithMerchant(loan_value, lal_orm->get_id(), sdm_orm->get_id(), lal_orm->get_merchant_id(), lal_orm->get_customer_id(), category, sds_orm->get_activation_user_id(), is_reverse);
                     LedgerClosureService* ledgerClosureService = new LedgerClosureService(&settlementWithMerchant);
                     settlementWithMerchant.setupLedgerClosureService(ledgerClosureService);
                     map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
@@ -233,8 +261,16 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
                     loans.insert(lal_orm);
                 }
                 else {
+                    if (category == 0) {
+                        localTemplateManager = new BlnkTemplateManager(templateManager, partition_number);
+                        is_reverse = false;
+                    }
+                    else {
+                        localTemplateManager = new BlnkTemplateManager(reverseTemplateManager, partition_number);
+                        is_reverse = true;
+                    }
                     double amount = loan_value;     
-                    SettlementLoansWithMerchant settlementWithMerchant(loan_value, lal_orm->get_id(), sdm_orm->get_id(), lal_orm->get_merchant_id(), lal_orm->get_customer_id(), category, sds_orm->get_activation_user_id());
+                    SettlementLoansWithMerchant settlementWithMerchant(amount, lal_orm->get_id(), sdm_orm->get_id(), lal_orm->get_merchant_id(), lal_orm->get_customer_id(), category, sds_orm->get_activation_user_id(), is_reverse);
                     LedgerClosureService* ledgerClosureService = new LedgerClosureService(&settlementWithMerchant);
                     settlementWithMerchant.setupLedgerClosureService(ledgerClosureService);
                     map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
@@ -261,6 +297,7 @@ void settleLoansWithMerchantFunc(vector<map<string, PSQLAbstractORM *> *> *orms_
         if ((bank_to == 0 || sub_payment_bank != bank_to) && bank_to != 0) {
             bank_to = sub_payment_bank;
         }
+        cout << "Total amount: " << total_amount << endl;
         ledger_entry_primitive_orm* entry;
         if (category == 0) {
             SettleTransaction settleTransaction(lal_orm->get_merchant_id(), bank, bank_to, sdm_orm->get_id(), category, total_amount);

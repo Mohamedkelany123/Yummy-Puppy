@@ -6,7 +6,7 @@ void SettlementLoansWithMerchant::stampORMs(map<string, pair<ledger_amount_primi
 
 void SettlementLoansWithMerchant::setupLedgerClosureService(LedgerClosureService *ledgerClosureService)
 {
-    if (category == 1) {
+    if (!is_reverse) {
         ledgerClosureService->addHandler("Settlement loans with merchant", SettlementLoansWithMerchant::get_amount);
     }
     else {
@@ -170,7 +170,7 @@ SettlementLoansWithMerchant::SettlementLoansWithMerchant()
 {
 }
 
-SettlementLoansWithMerchant::SettlementLoansWithMerchant(double _amount, int _loan_id, int _payment_request_id, int _merchant_id, int _customer_id, int _category, int _activation_user_id)
+SettlementLoansWithMerchant::SettlementLoansWithMerchant(double _amount, int _loan_id, int _payment_request_id, int _merchant_id, int _customer_id, int _category, int _activation_user_id, bool is_reverse)
 {
     amount = _amount;
     loan_id = _loan_id;
@@ -179,5 +179,6 @@ SettlementLoansWithMerchant::SettlementLoansWithMerchant(double _amount, int _lo
     customer_id = _customer_id;
     category = _category;
     activation_user_id = _activation_user_id;
+    cout << "amount: " << amount << endl;
 }
 
