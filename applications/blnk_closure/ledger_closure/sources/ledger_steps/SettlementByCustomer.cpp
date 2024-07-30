@@ -5,7 +5,7 @@
 //         lal_orm = nullptr;
 //         // lai_orm = nullptr;
 //         // nli_orm = nullptr;
-//         // nlif_orm = nullptr;
+//         // nlif_orm = nullptr;l
 //         loan_app_loan_primitive_orm * lal_orm;
 //         payments_loanorder_primitive_orm* plo_orm;
 //         vector <loan_app_installment_primitive_orm*> installments;        
@@ -120,33 +120,33 @@
 //         return ordersQuery;
 // }
 
-void SettlementByCustomer::setupLedgerClosureService(LedgerClosureService *ledgerClosureService)
-{
-    // ledgerClosureService->addHandler("Reversing marginalized late repayment fee income, if applicable", _get_marginalized_late_fees);
-    // ledgerClosureService->addHandler("Reversing marginalized interest income, if applicable", _get_marginalized_interest);
-    // ledgerClosureService->addHandler("Reversal of late repayment fee income, if applicable", _skip_leg);
-    // ledgerClosureService->addHandler("Repayment of late repayment fee receivable, if applicable", _get_late_fees_paid);
-    // ledgerClosureService->addHandler("Repayment of accrued interest receivable, overdue, if applicable", _get_overdue_interest_paid);
-    // ledgerClosureService->addHandler("Repayment of loans receivable, overdue, if applicable", _get_overdue_principal_paid);
-    // ledgerClosureService->addHandler("Repayment of accrued interest receivable, (due), if applicable", _get_due_interest_paid);
-    // ledgerClosureService->addHandler("Repayment of loans receivable, (due)", _get_due_principal_paid);
-    // ledgerClosureService->addHandler("Repayment of accrued interest receivable, undue", _get_undue_interest_paid);
-    // ledgerClosureService->addHandler("Repayment of loans receivable, undue", _get_undue_principal_paid);
-    // ledgerClosureService->addHandler("Repayment of Long term loan receivable", _get_principal_long_term);
-    // ledgerClosureService->addHandler("Repayment of early repayment fee", _get_early_repayment_fee_income);
-    // ledgerClosureService->addHandler("Reversal of provisions balance", _skip_leg);
-    // ledgerClosureService->addHandler("Payment of merchant notes payable (short term)", _skip_leg);
-    // ledgerClosureService->addHandler("Payment of merchant notes payable (long term)", _skip_leg);
-    // ledgerClosureService->addHandler("Repayment of late repayment fee receivable, if applicable (securitization)", _get_late_fees_paid_sec);
-    // ledgerClosureService->addHandler("Repayment of accrued interest receivable, overdue, if applicable (securitization)", _get_overdue_interest_paid_sec);
-    // ledgerClosureService->addHandler("Repayment of loans receivable, overdue, if applicable (securitization)", _get_overdue_principal_paid_sec);
-    // ledgerClosureService->addHandler("Repayment of accrued interest receivable, (due), if applicable (securitization)", _get_due_interest_paid_sec);
-    // ledgerClosureService->addHandler("Repayment of loans receivable, (due) (securitization)", _get_due_principal_paid_sec);
-    // ledgerClosureService->addHandler("Repayment of accrued interest receivable, undue (securitization)", _get_undue_interest_paid_sec);
-    // ledgerClosureService->addHandler("Repayment of loans receivable, undue (securitization)", _get_undue_principal_paid_sec);
-    // ledgerClosureService->addHandler("Repayment of Long term loan receivable (securitization)", _get_principal_long_term_sec);
-    // ledgerClosureService->addHandler("Repayment of early repayment fee (securitization)", _get_early_repayment_fee_income_sec);
-}
+// void SettlementByCustomer::setupLedgerClosureService(LedgerClosureService *ledgerClosureService)
+// {
+//     ledgerClosureService->addHandler("Reversing marginalized late repayment fee income, if applicable", _get_marginalized_late_fees);
+//     ledgerClosureService->addHandler("Reversing marginalized interest income, if applicable", _get_marginalized_interest);
+//     ledgerClosureService->addHandler("Reversal of late repayment fee income, if applicable", _skip_leg);
+//     ledgerClosureService->addHandler("Repayment of late repayment fee receivable, if applicable", _get_late_fees_paid);
+//     ledgerClosureService->addHandler("Repayment of accrued interest receivable, overdue, if applicable", _get_overdue_interest_paid);
+//     ledgerClosureService->addHandler("Repayment of loans receivable, overdue, if applicable", _get_overdue_principal_paid);
+//     ledgerClosureService->addHandler("Repayment of accrued interest receivable, (due), if applicable", _get_due_interest_paid);
+//     ledgerClosureService->addHandler("Repayment of loans receivable, (due)", _get_due_principal_paid);
+//     ledgerClosureService->addHandler("Repayment of accrued interest receivable, undue", _get_undue_interest_paid);
+//     ledgerClosureService->addHandler("Repayment of loans receivable, undue", _get_undue_principal_paid);
+//     ledgerClosureService->addHandler("Repayment of Long term loan receivable", _get_principal_long_term);
+//     ledgerClosureService->addHandler("Repayment of early repayment fee", _get_early_repayment_fee_income);
+//     ledgerClosureService->addHandler("Reversal of provisions balance", _skip_leg);
+//     ledgerClosureService->addHandler("Payment of merchant notes payable (short term)", _skip_leg);
+//     ledgerClosureService->addHandler("Payment of merchant notes payable (long term)", _skip_leg);
+//     ledgerClosureService->addHandler("Repayment of late repayment fee receivable, if applicable (securitization)", _get_late_fees_paid_sec);
+//     ledgerClosureService->addHandler("Repayment of accrued interest receivable, overdue, if applicable (securitization)", _get_overdue_interest_paid_sec);
+//     ledgerClosureService->addHandler("Repayment of loans receivable, overdue, if applicable (securitization)", _get_overdue_principal_paid_sec);
+//     ledgerClosureService->addHandler("Repayment of accrued interest receivable, (due), if applicable (securitization)", _get_due_interest_paid_sec);
+//     ledgerClosureService->addHandler("Repayment of loans receivable, (due) (securitization)", _get_due_principal_paid_sec);
+//     ledgerClosureService->addHandler("Repayment of accrued interest receivable, undue (securitization)", _get_undue_interest_paid_sec);
+//     ledgerClosureService->addHandler("Repayment of loans receivable, undue (securitization)", _get_undue_principal_paid_sec);
+//     ledgerClosureService->addHandler("Repayment of Long term loan receivable (securitization)", _get_principal_long_term_sec);
+//     ledgerClosureService->addHandler("Repayment of early repayment fee (securitization)", _get_early_repayment_fee_income_sec);
+// }
 
 // LedgerAmount * SettlementByCustomer::_init_ledger_amount()
 // {
