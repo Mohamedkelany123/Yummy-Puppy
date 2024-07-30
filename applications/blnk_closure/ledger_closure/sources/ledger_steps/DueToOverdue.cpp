@@ -1,6 +1,6 @@
 #include <DueToOverdue.h>
 
-PSQLJoinQueryIterator* DueToOverdue::installments_becoming_overdue_agg(string _closure_date_string)
+PSQLJoinQueryIterator* DueToOverdue::installments_becoming_overdue_agg(QueryExtraFeilds * query_fields)
 {
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {
@@ -18,13 +18,15 @@ PSQLJoinQueryIterator* DueToOverdue::installments_becoming_overdue_agg(string _c
 
     psqlQueryJoin->filter(
         ANDOperator (
-            new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte,_closure_date_string),
-            new UnaryOperator("new_lms_installmentlatefees.day", lte, _closure_date_string),
+            new UnaryOperator ("new_lms_installmentextension.due_to_overdue_date",lte, query_fields->closure_date_string),
+            new UnaryOperator("new_lms_installmentlatefees.day", lte, query_fields->closure_date_string),
             new UnaryOperator("new_lms_installmentlatefees.accrual_ledger_amount_id", isnull, "", true),
             // new UnaryOperator("loan_app_loan.closure_status", eq, closure_status::DUE_TO_OVERDUE-1),
-            new UnaryOperator("new_lms_installmentextension.due_to_overdue_date", lte, _closure_date_string),
+            new UnaryOperator("new_lms_installmentextension.due_to_overdue_date", lte,  query_fields->closure_date_string),
             new UnaryOperator("new_lms_installmentextension.payment_status", nin, "1, 3, 6"),
-            new UnaryOperator("loan_app_loan.id", ne, 14312)
+            new UnaryOperator("loan_app_loan.id", ne, 14312),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             // new OROperator (
             //     new UnaryOperator("new_lms_installmentlatefees.is_cancelled", eq, false),
             //     new ANDOperator(
@@ -151,10 +153,10 @@ BDate DueToOverdue::get_due_to_overdue_day()
     return due_to_overdue_date;
 }
 
-PSQLJoinQueryIterator *DueToOverdue::aggregator(string _closure_date_string)
+PSQLJoinQueryIterator *DueToOverdue::aggregator(QueryExtraFeilds * query_feilds)
 {
     DueToOverdue dueToOverdue;
-    return dueToOverdue.installments_becoming_overdue_agg(_closure_date_string);
+    return dueToOverdue.installments_becoming_overdue_agg(query_feilds);
 }
 
 LedgerAmount * DueToOverdue::_init_ledger_amount()

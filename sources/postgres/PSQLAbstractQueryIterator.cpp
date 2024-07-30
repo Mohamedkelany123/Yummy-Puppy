@@ -36,22 +36,26 @@ void PSQLAbstractQueryIterator::filter (const Expression & e,bool print_sql)
 bool PSQLAbstractQueryIterator::execute()
 {
     if (psqlConnection == NULL ) return false;
-
+    
+    string extra_from;
     for (auto e : extras)
-        from_string += "," +e.second+" \""+e.first+"\"";
+        extra_from += "," +e.second+" \""+e.first+"\"";
 
     string select_stmt = "";
     if (distinct != "") {
         select_stmt = distinct;
+        
     } else {
         select_stmt = from_string;
     }
+
+    select_stmt += extra_from;
 
     if (orderby_string == "")
         sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions +" order by "+orderby_string;
     
-    cout << sql << endl;
+    // cout << sql << endl;
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;

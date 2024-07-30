@@ -239,7 +239,7 @@ LedgerAmount *AccrualInterest::_get_accrued_interest(LedgerClosureStep *accrualI
 
 
 
-PSQLJoinQueryIterator* AccrualInterest::partial_accrual_agg(string _closure_date_string)
+PSQLJoinQueryIterator* AccrualInterest::partial_accrual_agg(QueryExtraFeilds * query_fields)
 {
     PSQLJoinQueryIterator * partialAccrualQuery = new PSQLJoinQueryIterator ("main",
     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
@@ -247,7 +247,7 @@ PSQLJoinQueryIterator* AccrualInterest::partial_accrual_agg(string _closure_date
     
     partialAccrualQuery->filter(
         ANDOperator (
-            new UnaryOperator("new_lms_installmentextension.partial_accrual_date", lte, _closure_date_string),
+            new UnaryOperator("new_lms_installmentextension.partial_accrual_date", lte, query_fields->closure_date_string),
             new UnaryOperator("loan_app_loan.id", in, "158353, 157649, 157619, 157545, 157536, 157397, 157344, 157331, 157329, 157303, 157210, 157201, 157078, 157050, 157038, 157017, 156898, 156897, 156871, 156867, 156829, 156765, 156685, 156683, 156653, 156631, 156626, 156613, 156596, 156519, 156500, 156488, 156478, 156270, 156228, 156226, 156216, 156208, 156187, 156169, 156158, 156151, 156133, 156113, 156111, 156104, 156094, 156077, 156076, 156067"),
 
             
@@ -294,7 +294,7 @@ PSQLJoinQueryIterator* AccrualInterest::partial_accrual_agg(string _closure_date
 
     return partialAccrualQuery;
 }
-PSQLJoinQueryIterator* AccrualInterest::accrual_agg(string _closure_date_string)
+PSQLJoinQueryIterator* AccrualInterest::accrual_agg(QueryExtraFeilds * query_fields)
 {
     PSQLJoinQueryIterator * accrualQuery = new PSQLJoinQueryIterator ("main",
     {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
@@ -312,10 +312,10 @@ PSQLJoinQueryIterator* AccrualInterest::accrual_agg(string _closure_date_string)
             new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
 
             new OROperator (
-                new UnaryOperator("new_lms_installmentextension.accrual_date", lte, _closure_date_string),
+                new UnaryOperator("new_lms_installmentextension.accrual_date", lte, query_fields->closure_date_string),
                 new ANDOperator(
                     new UnaryOperator("new_lms_installmentextension.payment_status", eq, 1),
-                    new UnaryOperator("new_lms_installmentextension.accrual_date", gt, _closure_date_string)
+                    new UnaryOperator("new_lms_installmentextension.accrual_date", gt, query_fields->closure_date_string)
                 )
             ),
             new UnaryOperator("new_lms_installmentextension.accrual_ledger_amount_id", isnull, "", true),
@@ -324,14 +324,16 @@ PSQLJoinQueryIterator* AccrualInterest::accrual_agg(string _closure_date_string)
             new UnaryOperator("loan_app_loan.status_id", nin, "12, 13"),
             new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
             new UnaryOperator("new_lms_installmentextension.status_id", nin, "8, 15, 16"),
-            new UnaryOperator ("loan_app_loan.id",ne,"14312")
+            new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
 
     accrualQuery->setOrderBy("loan_app_loan.id");
     return accrualQuery;
 }
-PSQLJoinQueryIterator* AccrualInterest::settlement_accrual_agg(string _closure_date_string)
+PSQLJoinQueryIterator* AccrualInterest::settlement_accrual_agg(QueryExtraFeilds * query_fields)
 {
          PSQLJoinQueryIterator * settlementAccrualQuery = new PSQLJoinQueryIterator ("main",
         {new loan_app_loan_primitive_orm("main"),new loan_app_installment_primitive_orm("main"), new new_lms_installmentextension_primitive_orm("main")},
@@ -340,7 +342,7 @@ PSQLJoinQueryIterator* AccrualInterest::settlement_accrual_agg(string _closure_d
         settlementAccrualQuery->filter(
             ANDOperator (
                 new UnaryOperator("loan_app_loan.id", in, "158353, 157649, 157619, 157545, 157536, 157397, 157344, 157331, 157329, 157303, 157210, 157201, 157078, 157050, 157038, 157017, 156898, 156897, 156871, 156867, 156829, 156765, 156685, 156683, 156653, 156631, 156626, 156613, 156596, 156519, 156500, 156488, 156478, 156270, 156228, 156226, 156216, 156208, 156187, 156169, 156158, 156151, 156133, 156113, 156111, 156104, 156094, 156077, 156076, 156067"),
-                new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date::date", lte, _closure_date_string),
+                new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date::date", lte, query_fields->closure_date_string),
     
                 // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_INTEREST_ACCRUAL-1),
                 new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
@@ -352,7 +354,9 @@ PSQLJoinQueryIterator* AccrualInterest::settlement_accrual_agg(string _closure_d
                 new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_amount", ne, 0),
                 new UnaryOperator("loan_app_loan.status_id", nin, "12, 13"),
                 new UnaryOperator("loan_app_installment.interest_expected", ne, 0),
-                new UnaryOperator ("loan_app_loan.id",ne,"14312")
+                new UnaryOperator ("loan_app_loan.id",ne,"14312"),
+                query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+                query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
             )
         );
 
@@ -360,16 +364,16 @@ PSQLJoinQueryIterator* AccrualInterest::settlement_accrual_agg(string _closure_d
         return settlementAccrualQuery;
 }
 
-PSQLJoinQueryIterator* AccrualInterest::aggregator(string _closure_date_string, int _agg_number)
+PSQLJoinQueryIterator* AccrualInterest::aggregator(QueryExtraFeilds * query_fields, int _agg_number)
 {
     AccrualInterest instance;
 
     if(_agg_number == 1)
-        return instance.partial_accrual_agg(_closure_date_string);
+        return instance.partial_accrual_agg(query_fields);
     else if (_agg_number == 2)
-        return instance.accrual_agg(_closure_date_string);
+        return instance.accrual_agg(query_fields);
     else if (_agg_number == 3)
-        return instance.settlement_accrual_agg(_closure_date_string);
+        return instance.settlement_accrual_agg(query_fields);
 
     return nullptr;
 }

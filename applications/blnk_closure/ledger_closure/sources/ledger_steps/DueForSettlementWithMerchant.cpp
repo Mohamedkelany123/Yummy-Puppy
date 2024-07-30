@@ -192,14 +192,14 @@ string generateExtraField(string _account_name, string _start_fiscal_year,string
     AND loan_id = loan_app_loan.id and le.entry_date between '" + _start_fiscal_year + "' and '" + _closing_day + "')";
 }
 
-loan_app_loan_primitive_orm_iterator *DueForSettlement::aggregator(string _closure_date_string, string _start_fiscal_year)
+loan_app_loan_primitive_orm_iterator *DueForSettlement::aggregator(QueryExtraFeilds * query_fields, string _start_fiscal_year)
 {
     loan_app_loan_primitive_orm_iterator * dueForSettlementIterator = new loan_app_loan_primitive_orm_iterator("main");
 
       dueForSettlementIterator->filter(
         ANDOperator 
         (
-            new UnaryOperator ("loan_app_loan.settlement_to_merchant_date",lte,_closure_date_string),
+            new UnaryOperator ("loan_app_loan.settlement_to_merchant_date",lte,query_fields->closure_date_string),
             
             // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::SETTLEMENT_WITH_MERCHANT-1)),
             new UnaryOperator ("loan_app_loan.settlement_to_merchant_ledger_entry_id" , isnull,"",true),
@@ -210,30 +210,32 @@ loan_app_loan_primitive_orm_iterator *DueForSettlement::aggregator(string _closu
                     WHERE lal2.status_id IN (12, 13)\
                         AND lal2.status_type = 0\
                         AND lal2.day <= loan_app_loan.settlement_to_merchant_date"
-            )
+            ),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
 
     //1- "Accrued expenses, merchants, commissions"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Accrued expenses, merchants, commissions", _start_fiscal_year, _closure_date_string),"merchant_commission_expense");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Accrued expenses, merchants, commissions", _start_fiscal_year, query_fields->closure_date_string),"merchant_commission_expense");
     //2- "Accounts payable, merchandise, merchants"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Accounts payable, merchandise, merchants", _start_fiscal_year, _closure_date_string),"merchant_merchandise_value");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Accounts payable, merchandise, merchants", _start_fiscal_year, query_fields->closure_date_string),"merchant_merchandise_value");
     //3- "Accrued expenses, merchants, cashiers commissions"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Accrued expenses, merchants, cashiers commissions", _start_fiscal_year, _closure_date_string),"cashier_commission_expense");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Accrued expenses, merchants, cashiers commissions", _start_fiscal_year, query_fields->closure_date_string),"cashier_commission_expense");
     //4- "Accrued expenses, merchants, deferred commissions, Due"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Accrued expenses, merchants, deferred commissions, Due", _start_fiscal_year, _closure_date_string),"merchant_deferred_commission_expense");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Accrued expenses, merchants, deferred commissions, Due", _start_fiscal_year, query_fields->closure_date_string),"merchant_deferred_commission_expense");
     //5- "Accrued expenses, merchants, repayment fees"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Accrued expenses, merchants, repayment fees", _start_fiscal_year, _closure_date_string),"merchant_repayment_fee_expense");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Accrued expenses, merchants, repayment fees", _start_fiscal_year, query_fields->closure_date_string),"merchant_repayment_fee_expense");
     //6- "Due current notes payable, merchants"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Due current notes payable, merchants", _start_fiscal_year, _closure_date_string),"merchant_notes_payable");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Due current notes payable, merchants", _start_fiscal_year, query_fields->closure_date_string),"merchant_notes_payable");
     //7- "Cash in transit, merchants"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Cash in transit, merchants", _start_fiscal_year, _closure_date_string),"collection_of_cash_in_transit");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Cash in transit, merchants", _start_fiscal_year, query_fields->closure_date_string),"collection_of_cash_in_transit");
     //8- "Accounts receivable, merchants, commission income"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Accounts receivable, merchants, commission income", _start_fiscal_year, _closure_date_string),"collection_of_commission_income");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Accounts receivable, merchants, commission income", _start_fiscal_year, query_fields->closure_date_string),"collection_of_commission_income");
     //9- "Accounts receivable, merchant, transaction upfront fee"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Accounts receivable, merchant, transaction upfront fee", _start_fiscal_year, _closure_date_string),"collection_of_upfront_fees");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Accounts receivable, merchant, transaction upfront fee", _start_fiscal_year, query_fields->closure_date_string),"collection_of_upfront_fees");
     //10- "Accounts receivable, merchant, transaction investigation fee"
-    dueForSettlementIterator->addExtraFromField(generateExtraField("Accounts receivable, merchant, transaction investigation fee", _start_fiscal_year, _closure_date_string),"collection_of_transaction_investigation_fee");
+    dueForSettlementIterator->addExtraFromField(generateExtraField("Accounts receivable, merchant, transaction investigation fee", _start_fiscal_year, query_fields->closure_date_string),"collection_of_transaction_investigation_fee");
 
     return dueForSettlementIterator;
 }

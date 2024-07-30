@@ -60,20 +60,22 @@ bool InitialLoanInterestAccrual::get_is_first_date(){return is_first_date;}
 BDate InitialLoanInterestAccrual::get_last_installment_principal_paid_at(){return last_installment_principal_paid_at;}
 
 
-loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::loans_to_get_first_accrual_agg(string _closure_date_string){
+loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::loans_to_get_first_accrual_agg(QueryExtraFeilds * query_fields){
     loan_app_loan_primitive_orm_iterator * loans_to_get_first_accrual_iterator = new loan_app_loan_primitive_orm_iterator("main");
 
     loans_to_get_first_accrual_iterator->filter(
         ANDOperator 
         (
-            new UnaryOperator ("loan_app_loan.first_accrual_adjustment_date",lte,_closure_date_string),
+            new UnaryOperator ("loan_app_loan.first_accrual_adjustment_date",lte,query_fields->closure_date_string),
             
             // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::FIRST_INCOME_ACCRUAL-1)),
             new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
             
             new UnaryOperator ("loan_app_loan.first_accrual_adjustment_ledger_entry_id",isnull,"", true),
             new UnaryOperator ("loan_app_loan.yearly_interest",ne,"0"),
-            new UnaryOperator ("loan_app_loan.status_id",nin,"7,12,13")
+            new UnaryOperator ("loan_app_loan.status_id",nin,"7,12,13"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
         
@@ -81,33 +83,35 @@ loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::loans_to_get_f
         
     return loans_to_get_first_accrual_iterator;
 }
-loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::loans_to_get_second_accrual_agg(string _closure_date_string){
+loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::loans_to_get_second_accrual_agg(QueryExtraFeilds * query_fields){
     loan_app_loan_primitive_orm_iterator * loans_to_get_first_accrual_iterator = new loan_app_loan_primitive_orm_iterator("main");
 
     loans_to_get_first_accrual_iterator->filter(
         ANDOperator 
         (
-            new UnaryOperator ("loan_app_loan.second_accrual_adjustment_date",lte,_closure_date_string),
+            new UnaryOperator ("loan_app_loan.second_accrual_adjustment_date",lte,query_fields->closure_date_string),
             
             // new UnaryOperator ("loan_app_loan.closure_status",eq,to_string(ledger_status::FIRST_INCOME_ACCRUAL-1)),
             new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
 
             new UnaryOperator ("loan_app_loan.second_accrual_adjustment_ledger_entry_id",isnull,"", true),
             new UnaryOperator ("loan_app_loan.yearly_interest",ne,"0"),
-            new UnaryOperator ("loan_app_loan.status_id",nin,"7,12,13")
+            new UnaryOperator ("loan_app_loan.status_id",nin,"7,12,13"),
+            query_fields->isMultiMachine ? new BinaryOperator ("loan_app_loan.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator(),
+            query_fields->isLoanSpecific ? new UnaryOperator ("loan_app_loan.id", in, query_fields->loan_ids) : new UnaryOperator()
         )
     );
         
     return loans_to_get_first_accrual_iterator;
 }
 
-loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::aggregator(string _closure_date_string, int _agg_number){
+loan_app_loan_primitive_orm_iterator* InitialLoanInterestAccrual::aggregator(QueryExtraFeilds * query_fields, int _agg_number){
     InitialLoanInterestAccrual initialLoanInterestAccrual;
 
     if (_agg_number == 1){
-        return initialLoanInterestAccrual.loans_to_get_first_accrual_agg(_closure_date_string);
+        return initialLoanInterestAccrual.loans_to_get_first_accrual_agg(query_fields);
     }else if(_agg_number == 2){
-        return initialLoanInterestAccrual.loans_to_get_second_accrual_agg(_closure_date_string);
+        return initialLoanInterestAccrual.loans_to_get_second_accrual_agg(query_fields);
     }
 
     return nullptr;

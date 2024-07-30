@@ -20,7 +20,7 @@ void CreditIScore::setupLedgerClosureService (LedgerClosureService * ledgerClosu
 
 CreditIScore::~CreditIScore(){}
 
-PSQLJoinQueryIterator* CreditIScore::aggregator(string _closure_date_string){
+PSQLJoinQueryIterator* CreditIScore::aggregator(QueryExtraFeilds * query_fields){
 
     PSQLJoinQueryIterator * psqlQueryJoin = new PSQLJoinQueryIterator ("main",
         {new credit_app_inquirylog_primitive_orm("main"), new crm_app_customer_primitive_orm("main"),  new ekyc_app_onboardingsession_primitive_orm("main")},
@@ -36,13 +36,12 @@ PSQLJoinQueryIterator* CreditIScore::aggregator(string _closure_date_string){
                 new UnaryOperator ("crm_app_customer.state",in,"3,4,5,7"),
                 new UnaryOperator ("credit_app_inquirylog.status",in,"'NO_HIT','BANKED','ZERO_BANKED_LIMIT'"),
                 new UnaryOperator ("crm_app_customer.created_at",gte,"2023-09-01"),
-                new UnaryOperator ("credit_app_inquirylog.created_at::date",lte,_closure_date_string),
-                new UnaryOperator("credit_app_inquirylog.id", in, "392629,392628,392627,392626,392624,392623,392622,392621,392620,392619,392618,392613,392612,392611,392610,392609,392608,392607,392606,392605")
-
+                new UnaryOperator ("credit_app_inquirylog.created_at::date",lte,query_fields->closure_date_string),
+                query_fields->isMultiMachine ? new BinaryOperator ("crm_app_customer.id",mod,query_fields->mod_value,eq,query_fields->offset) : new BinaryOperator()
             )
         );
 
-        psqlQueryJoin->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at::date <= '" + _closure_date_string + "' order by id desc limit 1)","merchant_id");
+        psqlQueryJoin->addExtraFromField("(select merchant_id from crm_app_merchantstaffhistory cam where cam.staff_id=ekyc_app_onboardingsession.merchant_staff_id and cam.created_at::date <= '" + query_fields->closure_date_string + "' order by id desc limit 1)","merchant_id");
         psqlQueryJoin->addExtraFromField("(select merchant_id from crm_app_merchantstaff cam where ekyc_app_onboardingsession.merchant_staff_id = cam.user_ptr_id limit 1)","merchant_id2");
         
         return psqlQueryJoin;

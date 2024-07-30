@@ -5,6 +5,17 @@
 
 class LedgerClosureService;
 
+typedef struct{
+    bool isLoanSpecific;
+    bool isMultiMachine;
+    
+    int mod_value;
+    int offset;
+
+    string loan_ids;
+    string closure_date_string;
+}QueryExtraFeilds;
+
 class LedgerClosureStep {
     protected:
     public:
