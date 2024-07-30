@@ -31,6 +31,9 @@
 #include <UpdatingProvisionsFunc.h>
 #include <DueToOverdueFunc.h>
 #include <DueToOverdue.h>
+#include <SettlementByCustomer.h>
+#include <SettlementByCustomerFunc.h>
+
 #include <DueForSettlementWithMerchant.h>
 #include <DueForSettlementWithMerchantFunc.h>
 #include <MarginalizeIncome.h>
@@ -347,6 +350,28 @@ int main (int argc, char ** argv)
         CustomerPayment::update_step();
     }
 
+    if ( strcmp (step,"settlement_by_customer") == 0 || strcmp (step,"full_closure") == 0)
+    {
+        cout << "Settlement By Customer" << endl;
+        string* processed_order_ids;
+
+        PSQLJoinQueryIterator*  paid_orders_iterator = SettlementByCustomer::aggregator(queryExtraFeilds);
+        BlnkTemplateManager * settlementByCustomerTemplateManager = new BlnkTemplateManager(14, -1);
+        BlnkTemplateManager * securitizationTemplateManager = new BlnkTemplateManager(82, -1);
+        SettlementByCustomerStruct settlementByCustomerStruct;
+        settlementByCustomerStruct.blnkTemplateManager = settlementByCustomerTemplateManager;
+        settlementByCustomerStruct.securitizationTemplateManager = securitizationTemplateManager;
+        settlementByCustomerStruct.closing_day = BDate(closure_date_string);
+        
+        paid_orders_iterator->process_aggregate(threadsCount, settlementByCustomerFunc, (void *)&settlementByCustomerStruct);
+        
+        delete(paid_orders_iterator);
+        delete(settlementByCustomerTemplateManager);
+        psqlController.ORMCommit(true,true,true, "main");  
+        SettlementByCustomer::update_step(); 
+        // //----------------------------------------------------------------------------------------//
+    }
+
     if ( strcmp (step,"unmarginalize_income") == 0 || strcmp (step,"run_closure") == 0 || strcmp (step,"full_closure") == 0 ){
         cout << "Unmarginalize Income" << endl;
 
@@ -456,7 +481,19 @@ int main (int argc, char ** argv)
         psqlController.ORMCommit(true,true,true, "main"); 
     }
 
+    if (strcmp(step, "marginalize_income") == 0 || strcmp(step, "run_closure")== 0 || strcmp(step, "full_closure") == 0 ) {
+        PSQLJoinQueryIterator*  marginalizeIncomeIterator = MarginalizeIncome::aggregator(queryExtraFeilds);
+        BlnkTemplateManager* marginalizeIncomeTemplateManager = new BlnkTemplateManager(34, -1);
+        MarginalizeIncomeStruct marginalizeIncomeStruct;
+        marginalizeIncomeStruct.blnkTemplateManager = marginalizeIncomeTemplateManager;
+        marginalizeIncomeStruct.marginalization_day = BDate(closure_date_string);
+        marginalizeIncomeIterator->process_aggregate(threadsCount, MarginalizeIncomeFunc, (void *)&marginalizeIncomeStruct);
 
+        delete(marginalizeIncomeTemplateManager);
+        delete(marginalizeIncomeTemplateManager);
+        psqlController.ORMCommit(true,true,true, "main");  
+        MarginalizeIncome::update_step(); 
+    }
 
     //RUNSSS USING CHRONTAB 
     if ( strcmp (step,"CHRONTAB_SETTLEMENT_WITH_MERCHANT") == 0)
