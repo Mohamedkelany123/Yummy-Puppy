@@ -175,7 +175,7 @@ int main (int argc, char ** argv)
         PSQLJoinQueryIterator*  psqlQueryJoin = CancelLoan::aggregator(queryExtraFeilds);
 
         CancelLoanStruct cancelLoanStruct;
-        BlnkTemplateManager *  blnkTemplateManager_cancel = new BlnkTemplateManager(5, -1);
+        BlnkTemplateManager *  blnkTemplateManager_cancel = new BlnkTemplateManager(7, -1);
         cancelLoanStruct.blnkTemplateManager_cancel = blnkTemplateManager_cancel;
         BlnkTemplateManager * blnkTemplateManager_reverse = new BlnkTemplateManager(6, -1);
         cancelLoanStruct.blnkTemplateManager_reverse = blnkTemplateManager_reverse;

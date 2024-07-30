@@ -139,15 +139,16 @@ ledger_entry_primitive_orm* BlnkTemplateManager::buildEntry (BDate entry_date)
     return entry;
 }
 
-ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_amount_primitive_orm*> * _ledger_amounts, BDate entry_date)
+ledger_entry_primitive_orm* BlnkTemplateManager::reverseEntry (vector <ledger_amount_primitive_orm*> * _ledger_amounts, BDate entry_date,string description)
 {
     if(!_ledger_amounts->empty()){
-        this->createEntry(entry_date);
+        this->createEntry(entry_date, description);
 
 
         for ( auto la : *_ledger_amounts)
             {
                 ledger_amount_primitive_orm * new_ledger_amount = new ledger_amount_primitive_orm("main");
+                //Ledger Amounts will be created automatically because we overloaded (operator =) which will add it to the cache.
                 *new_ledger_amount = *la;
                 new_ledger_amount->set_reversal_bool(0);
                 new_ledger_amount->set_account_id( new_ledger_amount->get_account_id());
@@ -170,7 +171,7 @@ void BlnkTemplateManager::setEntryData(map<string, LedgerAmount *> *_entry_data)
 {
     entry_data = _entry_data;
 }
-void BlnkTemplateManager::createEntry(BDate entry_date)
+void BlnkTemplateManager::createEntry(BDate entry_date, string description)
 {
     entry  = new ledger_entry_primitive_orm("main", true,true,cache_partition_number);
     entry->set_entry_date(entry_date.getDateString());
@@ -179,6 +180,8 @@ void BlnkTemplateManager::createEntry(BDate entry_date)
     entry->set_type("NO");
     entry->set_status("PO");
     entry->set_created_by(1);
+    if (description != "")
+        entry->set_description(description);
 }
 
 ledger_entry_primitive_orm *BlnkTemplateManager::get_entry()

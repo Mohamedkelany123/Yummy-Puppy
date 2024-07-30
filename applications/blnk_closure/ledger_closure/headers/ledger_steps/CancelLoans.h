@@ -14,6 +14,7 @@ class CancelLoan : public LedgerClosureStep
     private:
         loan_app_loan_primitive_orm * lal_orm;
         int template_id;
+        int loanstatushistroy_status_id;
 
     public:
         map<string, funcPtr> funcMap;
@@ -22,12 +23,14 @@ class CancelLoan : public LedgerClosureStep
         //Setters
         void set_loan_app_loan(loan_app_loan_primitive_orm* _lal_orm);
         void set_template_id(int _template_id);
+        void set_loanstatushistroy_status_id(int _loanstatushistroy_status_id);
 
         
 
         //Getters
         loan_app_loan_primitive_orm* get_loan_app_loan();
         int get_template_id();
+        int get_loanstatushistroy_status_id();
 
 
         LedgerAmount * _init_ledger_amount();

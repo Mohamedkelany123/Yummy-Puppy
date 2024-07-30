@@ -27,33 +27,12 @@ LedgerAmount*  CancelLoan::_init_ledger_amount(){
 }
 
 
-
-
-loan_app_loan_primitive_orm* CancelLoan::get_loan_app_loan()  {
-    return lal_orm;
-}
-
-void CancelLoan::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
-{
-    lal_orm = _lal_orm;
-}
-
-
-
-int CancelLoan::get_template_id()  {
-    return template_id;
-}
-
-
-
-void CancelLoan::set_template_id(int _template_id)
-{
-    template_id = _template_id;
-}
-
-
-
-
+loan_app_loan_primitive_orm* CancelLoan::get_loan_app_loan()  {return lal_orm;}
+void CancelLoan::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm){lal_orm = _lal_orm;}
+int CancelLoan::get_template_id()  {return template_id;}
+int CancelLoan::get_loanstatushistroy_status_id(){return loanstatushistroy_status_id;}
+void CancelLoan::set_template_id(int _template_id){template_id = _template_id;}
+void CancelLoan::set_loanstatushistroy_status_id(int _loanstatushistroy_status_id){ loanstatushistroy_status_id= _loanstatushistroy_status_id;}
 
 LedgerAmount * CancelLoan::_get_upfront_fee(LedgerClosureStep *cancelLoan)
 {
@@ -70,8 +49,10 @@ PSQLJoinQueryIterator* CancelLoan::aggregator(QueryExtraFeilds * query_fields){
         {new loan_app_loan_bl_orm("main"), new ledger_amount_primitive_orm("main")},
         {{{"loan_app_loan","id"},{"ledger_amount","loan_id"}}});
 
+
         psqlQueryJoin->addExtraFromField("(select count(*)>0 from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.day::date <= \'"+ query_fields->closure_date_string +"\' and lal.loan_id = loan_app_loan.id)","is_included");
         psqlQueryJoin->addExtraFromField("(select distinct lal.day from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.loan_id = loan_app_loan.id)","cancellation_day");
+        psqlQueryJoin->addExtraFromField("(select distinct status_id from loan_app_loanstatushistroy lal where lal.status_id in (12,13) and lal.loan_id = loan_app_loan.id)","loanstatushistroy_status_id");
         psqlQueryJoin->filter(
             ANDOperator 
             (

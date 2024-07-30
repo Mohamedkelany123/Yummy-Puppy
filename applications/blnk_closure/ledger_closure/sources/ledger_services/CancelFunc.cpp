@@ -4,10 +4,14 @@ void CancelLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int 
     loan_app_loan_primitive_orm * _lal_orm  = ORML(loan_app_loan,orms_list,0);
     
     PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms_list,0);
+
+    //Need to make sure that lal.day is less than closure_date
     string is_included = gorm->get("is_included");
+
     string cancellation_day = gorm->get("cancellation_day");
+    int loanstatushistroy_status_id = gorm->toInt("loanstatushistroy_status_id");
 
-
+    string description = "Loan Cancelled";
     if (is_included=="t"){
         BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((CancelLoanStruct *) extras)->blnkTemplateManager_reverse,partition_number);
 
@@ -16,7 +20,11 @@ void CancelLoanFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int 
         {
             la_orms->push_back(ORML(ledger_amount,orms_list,i));
         }
-        ledger_entry_primitive_orm* entry = localTemplateManager->reverseEntry(la_orms,BDate(cancellation_day));
+
+        if(loanstatushistroy_status_id == 13){
+            description = "Loan cancelled due to partial refund";
+        }
+        ledger_entry_primitive_orm* entry = localTemplateManager->reverseEntry(la_orms,BDate(cancellation_day), description);
         if (_lal_orm->get_loan_upfront_fee()>0 && !_lal_orm->get_refund_upfront_fee_bool()){
             BlnkTemplateManager* localTemplateManager_cancel = new BlnkTemplateManager(((CancelLoanStruct *) extras)->blnkTemplateManager_cancel,partition_number);
             CancelLoan cancelLoan(_lal_orm);
