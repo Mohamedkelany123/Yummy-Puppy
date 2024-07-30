@@ -20,7 +20,7 @@ class DisburseLoan : public LedgerClosureStep
         crm_app_customer_primitive_orm* cac_orm;
         float prov_percentage;
         float short_term_principal, long_term_principal;
-        bool is_rescheduled;
+        bool created_from_rescheduling;
         vector <new_lms_installmentextension_primitive_orm *> * ie_list;
 
         json transaction_upfront_income_banked;
@@ -37,7 +37,7 @@ class DisburseLoan : public LedgerClosureStep
         void set_template_id(int _template_id);
         void set_provision_percentage(float _provision_percentage);
         void set_short_term_principal(float _short_term_principal);
-        void set_is_rescheduled(bool _is_rescheduled);
+        void set_created_from_rescheduling(bool _created_from_rescheduling);
         void set_long_term_principal(float _long_term_principal);
         void set_crm_app_customer(crm_app_customer_primitive_orm *_cac_orm);
 
@@ -51,9 +51,9 @@ class DisburseLoan : public LedgerClosureStep
         float get_short_term_principal();
         int get_template_id();
         float get_long_term_principal();
-        bool get_is_rescheduled();
+        bool get_created_from_rescheduling();
 
-        float _calculate_loan_upfront_fee();
+        float get_upfront_income_cash();
         LedgerAmount * _init_ledger_amount();
 
         void stampORMs(ledger_entry_primitive_orm* entry, ledger_amount_primitive_orm * la_orm);
