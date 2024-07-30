@@ -98,21 +98,21 @@ void settlementByCustomerFunc(vector<map <string,PSQLAbstractORM *> * > * orms_l
     }
     if (paid_sec_amount > 0.0f){
         //TODO: Sec map per installment
-        secTemplateManager->createEntry(entry_date);
-        DueToSecuritizationBond dueToSecBond(pl_orm->get_loan_id(), paid_sec_amount, nlie_orm->get_bond_id());
-        LedgerClosureService* ledgerClosureService = new LedgerClosureService(&dueToSecBond);
-        dueToSecBond.setupLedgerClosureService(ledgerClosureService);
-        map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
+        // secTemplateManager->createEntry(entry_date);
+        // DueToSecuritizationBond dueToSecBond(pl_orm->get_loan_id(), paid_sec_amount, nlie_orm->get_bond_id());
+        // LedgerClosureService* ledgerClosureService = new LedgerClosureService(&dueToSecBond);
+        // dueToSecBond.setupLedgerClosureService(ledgerClosureService);
+        // map<string, LedgerAmount*>* ledgerAmounts = ledgerClosureService->inference();
 
-        if (ledgerAmounts != nullptr)
-        {
-            secTemplateManager->setEntryData(ledgerAmounts);
+        // if (ledgerAmounts != nullptr)
+        // {
+            // secTemplateManager->setEntryData(ledgerAmounts);
 
-            ledger_entry_primitive_orm* entry = secTemplateManager->buildEntry(entry_date);
-        }
+            // ledger_entry_primitive_orm* entry = secTemplateManager->buildEntry(entry_date);
+        // }
 
         // delete secTemplateManager;
-        delete ledgerClosureService;
+        // delete ledgerClosureService;
 
     }
     
