@@ -3,13 +3,16 @@
 LedgerAmount *MarginalizeIncome::_marginalize_interest(LedgerClosureStep *marginalizeIncome)
 {
     LedgerAmount* ledgerAmount = ((MarginalizeIncome*) marginalizeIncome)->_init_ledger_amount();
+
     loan_app_installment_primitive_orm* lai_orm = ((MarginalizeIncome*) marginalizeIncome)->get_loan_app_installment();
     new_lms_installmentextension_primitive_orm* nlie_orm = ((MarginalizeIncome*) marginalizeIncome)->get_new_lms_installment_extention();
     int partial_marginalization_ledger_amount_id = nlie_orm->get_partial_marginalization_ledger_amount_id();
+
     double actual_accrued_amount = nlie_orm->get_actual_accrued_amount();
     double first_installment_interest_adjustment = nlie_orm->get_first_installment_interest_adjustment();
     double interest_expected = lai_orm->get_interest_expected();
     double amount;
+
     if (partial_marginalization_ledger_amount_id != 0) {
         amount = actual_accrued_amount + first_installment_interest_adjustment;
     }
@@ -69,7 +72,6 @@ PSQLJoinQueryIterator *MarginalizeIncome::aggregator(QueryExtraFeilds * query_fi
 
     psqlQueryJoin->filter(
         ANDOperator(
-            new UnaryOperator("loan_app_loan.id", in, "158353, 157649, 157619, 157545, 157536, 157397, 157344, 157331, 157329, 157303, 157210, 157201, 157078, 157050, 157038, 157017, 156898, 156897, 156871, 156867, 156829, 156765, 156685, 156683, 156653, 156631, 156626, 156613, 156596, 156519, 156500, 156488, 156478, 156270, 156228, 156226, 156216, 156208, 156187, 156169, 156158, 156151, 156133, 156113, 156111, 156104, 156094, 156077, 156076, 156067"),
             new OROperator(
                 new UnaryOperator("new_lms_installmentextension.is_marginalized", eq, true),
                 new ANDOperator(
