@@ -39,7 +39,7 @@
 #include <MarginalizeIncome.h>
 #include <MarginalizeIncomeFunc.h>
 #include <SettlementLoansWithMerchant.h>
-#include <ReverseSettlementLoansWithMerchantFunc.h>
+#include <SettlementLoansWithMerchantFunc.h>
 #include <ledger_helper_functions.h>
 
 
@@ -52,11 +52,12 @@ int main (int argc, char ** argv)
     */
     char step [1024];
     memset (step,0,1024);
-    strcpy(step,"run_closure");
+    strcpy(step,"settlement_loans_with_merchant");
     
     
-    string databaseName = "c_plus_plus";
-    string closure_date_string = "2024-07-18"; 
+
+    string databaseName = "django_ostaz_23072024_abdallah2";
+    string closure_date_string = "2024-07-29"; 
     int threadsCount = 1;   
     string loan_ids = "";
     int mod_value = 0;
@@ -77,9 +78,10 @@ int main (int argc, char ** argv)
 
     
     
-    bool connect = psqlController.addDataSource("main","192.168.1.51",5432,databaseName,"postgres","postgres");
+    bool connect = psqlController.addDataSource("main","192.168.65.216",5432,databaseName,"development","5k6MLFM9CLN3bD1");
     if (connect){
         cout << "--------------------------------------------------------" << endl;
+        cout << "hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii abdallah\n";
         cout << "Connected to DATABASE->[" << databaseName << "]" << endl;
         cout << "Threads Count->[" << threadsCount << "]" << endl;
         cout << "Step[" << step << "]" << endl;
@@ -498,30 +500,22 @@ int main (int argc, char ** argv)
     //RUNSSS USING CHRONTAB 
     if ( strcmp (step,"CHRONTAB_SETTLEMENT_WITH_MERCHANT") == 0)
     {
-        PSQLJoinQueryIterator*  psqlQueryJoin1 = SettlementLoansWithMerchant::singleAggregator(closure_date_string);
-        cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-        psqlQueryJoin1->execute();
-        cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-        delete (psqlQueryJoin1);
-        exit (1);
-        PSQLJoinQueryIterator*  psqlQueryJoin = SettlementLoansWithMerchant::paymentRequestAggregator(closure_date_string);
-        
+
+        vector<string> fiscal_year_vars = get_start_and_end_fiscal_year();
+        PSQLJoinQueryIterator*  psqlQueryJoin = SettlementLoansWithMerchant::aggregator(closure_date_string, fiscal_year_vars[0]);
         SettlementLoansWithMerchantStruct settlementLoansWithMerchantStruct;
         SettlementLoansWithMerchant::unstampLoans();
-        BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(6, -1);
+        BlnkTemplateManager *  blnkTemplateManager = new BlnkTemplateManager(63, -1);
+        BlnkTemplateManager* reverseTemplateManager = new BlnkTemplateManager(65, -1);
+        BlnkTemplateManager* paymentTemplateManager = new BlnkTemplateManager(64, -1);
+        BlnkTemplateManager* receiveTemplateManager = new BlnkTemplateManager(169, -1);
         settlementLoansWithMerchantStruct.blnkTemplateManager = blnkTemplateManager;
-        set<int>* loan_ids = new set<int>;
-        psqlQueryJoin->process_aggregate(threadsCount, getMerchantPaymentRequestLoansFunc,(void *)loan_ids);
-        for(auto id : *loan_ids) {
-            cout<<"loan id: "<<id<<endl;
-        }
-        PSQLJoinQueryIterator* psqlQueryJoinLoans = SettlementLoansWithMerchant::loanAggregator(closure_date_string, loan_ids);
-        map<int, loan_app_loan_primitive_orm*> *loanMap = new map<int, loan_app_loan_primitive_orm*>;
-        psqlQueryJoinLoans->process_aggregate(threadsCount, processLoanOrms,(void*)loanMap);
-
-        psqlQueryJoin->process_aggregate(threadsCount, settleLoansWithMerchant, (void*)&settlementLoansWithMerchantStruct);
+        settlementLoansWithMerchantStruct.reverseTemplateManager = reverseTemplateManager;
+        settlementLoansWithMerchantStruct.paymentTemplateManager = paymentTemplateManager;
+        settlementLoansWithMerchantStruct.receiveTemplateManager = receiveTemplateManager;
+        psqlQueryJoin->process_aggregate(threadsCount, settleLoansWithMerchantFunc, (void*)&settlementLoansWithMerchantStruct);
+        delete (psqlQueryJoin);        
         delete(blnkTemplateManager);
-        delete(psqlQueryJoin);
         psqlController.ORMCommit(true,true,true, "main"); 
     }
 

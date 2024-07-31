@@ -60,6 +60,21 @@ void LedgerCompositLeg::buildLeg (TemplateLeg * template_leg,  LedgerAmount * en
 
         }
 
+        if(entry_data->getMerchantPaymentRequestId() != 0) {
+                leg_side->set_merchant_payment_request_id(entry_data->getMerchantPaymentRequestId());
+        } 
+
+        if (is_debit) {
+                if (entry_data->getDebitAccountId() != 0) {
+                        leg_side->set_account_id(entry_data->getDebitAccountId());
+                }
+        }
+        else {
+                if(entry_data->getCreditAccountId() != 0) {
+                        leg_side->set_account_id(entry_data->getCreditAccountId());
+                }
+        }
+
         leg_side->set_reversal_bool(entry_data->getReveresalBool());
 
 }
