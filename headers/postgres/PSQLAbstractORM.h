@@ -143,7 +143,7 @@ class ORMVector : public vector<T *>
                     this->push_back (orm);
             }
             ~ORMVector(){
-                    for ( int i = 0 ;i < this->size() ; i++ )
+                    for ( size_t i = 0 ;i < this->size() ; i++ )
                             delete ((*this)[i]);
             }
 

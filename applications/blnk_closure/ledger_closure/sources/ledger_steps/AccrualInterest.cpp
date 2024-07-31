@@ -23,6 +23,8 @@ AccrualInterest::AccrualInterest(map<string, PSQLAbstractORM *> *_orms, int _acc
         marginalization_history = _marginalization_history;
         last_order_date = _last_order_date;
         settled_history = _settled_history;
+    } else if(_accrual_type == 2){
+        marginalization_history = gorm->get("marginalization_history");
     }
     lal_orm = _lal_orm;  
     lai_orm =_lai_orm;
@@ -79,75 +81,15 @@ void AccrualInterest::stampORMs(map<string, LedgerCompositLeg *> *leg_amounts)
     }
 }
 
-void AccrualInterest::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm)
-{
-    lal_orm = _lal_orm;
-}
-
-void AccrualInterest::set_loan_app_installment(loan_app_installment_primitive_orm *_lai_orm)
-{
-    lai_orm = _lai_orm;
-}
-
-void AccrualInterest::set_new_lms_installmentextension(new_lms_installmentextension_primitive_orm *_nli_orm)
-{
-    nli_orm = _nli_orm;
-}
-
-void AccrualInterest::set_marginalization_history(string _marginalization_history)
-{
-    marginalization_history = _marginalization_history;
-}
-
-void AccrualInterest::set_last_order_date(string _last_order_date)
-{
-    last_order_date = _last_order_date;
-}
-
-void AccrualInterest::set_settled_history(string _settled_history)
-{
-    settled_history = _settled_history;
-}
-
-void AccrualInterest::set_accrual_type(int _accrual_type)
-{
-    accrual_type = _accrual_type;
-}
-
-loan_app_loan_primitive_orm *AccrualInterest::get_loan_app_loan()
-{
-    return lal_orm;
-}
-
-loan_app_installment_primitive_orm *AccrualInterest::get_loan_app_installment()
-{
-    return lai_orm;
-}
-
-new_lms_installmentextension_primitive_orm* AccrualInterest::get_new_lms_installmentextension()
-{
-    return nli_orm;
-}
-
-const string AccrualInterest::get_marginalization_history()
-{
-    return marginalization_history;
-}
-
-const string AccrualInterest::get_last_order_date()
-{
-    return last_order_date;
-}
-
-const string AccrualInterest::get_settled_history()
-{
-    return settled_history;
-}
-
-const int AccrualInterest::get_accrual_type()
-{
-    return accrual_type;
-}
+void AccrualInterest::set_loan_app_loan(loan_app_loan_primitive_orm *_lal_orm){lal_orm= _lal_orm;}
+void AccrualInterest::set_loan_app_installment(loan_app_installment_primitive_orm *_lai_orm){lai_orm= _lai_orm;}
+void AccrualInterest::set_new_lms_installmentextension(new_lms_installmentextension_primitive_orm *_nli_orm){nli_orm= _nli_orm;}
+void AccrualInterest::set_marginalization_history(string _marginalization_history){marginalization_history= _marginalization_history;}
+loan_app_loan_primitive_orm *AccrualInterest::get_loan_app_loan(){return lal_orm;}
+loan_app_installment_primitive_orm *AccrualInterest::get_loan_app_installment(){return lai_orm;}
+new_lms_installmentextension_primitive_orm* AccrualInterest::get_new_lms_installmentextension(){return nli_orm;}
+const string AccrualInterest::get_marginalization_history(){return marginalization_history;}
+const int AccrualInterest::get_accrual_type(){return accrual_type;}
 
 LedgerAmount *AccrualInterest::_get_marginalization_interest(LedgerClosureStep *accrualInterest)
 {
@@ -162,26 +104,22 @@ LedgerAmount *AccrualInterest::_get_marginalization_interest(LedgerClosureStep *
     string history = ((AccrualInterest*) accrualInterest)->get_marginalization_history();
 
     // 1) accrual 2) partial accrual 3) settlement accrual
-    if (accrual_type == 3) {
+    if (accrual_type == 3)
         return ledgerAmount;
-    }
-
-    if (accrual_type == 2 && partialMarginalizationLedgerAmountId == 0) {
+    if (accrual_type == 2 && partialMarginalizationLedgerAmountId == 0) 
         return ledgerAmount;
-    }
-
-    if (accrual_type != 2 && marginalizationLedgerAmountId == 0) {
+    if (accrual_type != 2 && marginalizationLedgerAmountId == 0)
         return ledgerAmount;
-    }
+    
     bool is_marginalized = nli_orm->get_is_marginalized();
     bool is_partially_marginalized = nli_orm->get_is_partially_marginalized();
     bool is_interest_paid = nli_orm->get_is_interest_paid();
-    BDate interest_paid_at = BDate(nli_orm->get_interest_paid_at());
-    BDate marginalization_date = BDate(nli_orm->get_marginalization_date());
-    BDate history_bdate = BDate(history);
-    BDate accrual_date = BDate(nli_orm->get_accrual_date());
-    BDate partial_accrual_date = BDate(nli_orm->get_partial_accrual_date());
-    BDate partial_marginalization = BDate(nli_orm->get_partial_marginalization_date());
+    BDate interest_paid_at(nli_orm->get_interest_paid_at());
+    BDate marginalization_date(nli_orm->get_marginalization_date());
+    BDate history_bdate(history);
+    BDate accrual_date((nli_orm->get_accrual_date()));
+    BDate partial_accrual_date(nli_orm->get_partial_accrual_date());
+    BDate partial_marginalization(nli_orm->get_partial_marginalization_date());
     float first_installment_interest_adjustment = nli_orm->get_first_installment_interest_adjustment();
     
     if (history != "") {
@@ -214,26 +152,20 @@ LedgerAmount *AccrualInterest::_get_accrued_interest(LedgerClosureStep *accrualI
     int accrual_type = ((AccrualInterest*)accrualInterest)->get_accrual_type();
     BDate installment_day = BDate(lai_orm->get_day());
     
-    float expected_partial_accrual_amount = nli_orm->get_expected_partial_accrual_amount();
-    float settlement_accrual_interest_amount = nli_orm->get_settlement_accrual_interest_amount();
-    float expected_accrual_amount = nli_orm->get_expected_accrual_amount();
 
-
-    if(installment_day.get_day() == 1 && accrual_type == 1) {
-        ledgerAmount->setAmount(expected_accrual_amount);
+    if (accrual_type == 2) {
+        float expected_partial_accrual_amount = nli_orm->get_expected_partial_accrual_amount();
+        ledgerAmount->setAmount(expected_partial_accrual_amount);
+    }
+    else if(accrual_type == 3) {
+        float settlement_accrual_interest_amount = nli_orm->get_settlement_accrual_interest_amount();
+        ledgerAmount->setAmount(settlement_accrual_interest_amount);
     }
     else {
-        if (accrual_type == 2) {
-            ledgerAmount->setAmount(expected_partial_accrual_amount);
-
-        }
-        else if(accrual_type == 3) {
-            ledgerAmount->setAmount(settlement_accrual_interest_amount);
-        }
-        else {
-            ledgerAmount->setAmount(expected_accrual_amount);
-        }
+        float expected_accrual_amount = nli_orm->get_expected_accrual_amount();
+        ledgerAmount->setAmount(expected_accrual_amount);
     }
+
     return ledgerAmount;
 }
 
@@ -248,10 +180,6 @@ PSQLJoinQueryIterator* AccrualInterest::partial_accrual_agg(QueryExtraFeilds * q
     partialAccrualQuery->filter(
         ANDOperator (
             new UnaryOperator("new_lms_installmentextension.partial_accrual_date", lte, query_fields->closure_date_string),
-            new UnaryOperator("loan_app_loan.id", in, "158353, 157649, 157619, 157545, 157536, 157397, 157344, 157331, 157329, 157303, 157210, 157201, 157078, 157050, 157038, 157017, 156898, 156897, 156871, 156867, 156829, 156765, 156685, 156683, 156653, 156631, 156626, 156613, 156596, 156519, 156500, 156488, 156478, 156270, 156228, 156226, 156216, 156208, 156187, 156169, 156158, 156151, 156133, 156113, 156111, 156104, 156094, 156077, 156076, 156067"),
-
-            
-    
             // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::PARTIAL_INTEREST_ACCRUAL-1),
             new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
 
@@ -262,12 +190,12 @@ PSQLJoinQueryIterator* AccrualInterest::partial_accrual_agg(QueryExtraFeilds * q
             new OROperator(
                 new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", true),
                 new ANDOperator(
-                    new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", false),
+                    new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", true),
                     new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date",gte, "new_lms_installmentextension.partial_accrual_date", true),
                     new UnaryOperator("loan_app_loan.status_id", eq,15)
                 ),
                 new ANDOperator(
-                    new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", false),
+                    new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date", isnull, "", true),
                     new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date",gt, "new_lms_installmentextension.partial_accrual_date", true),
                     new UnaryOperator("loan_app_loan.status_id", ne,15)
                 )
@@ -290,6 +218,9 @@ PSQLJoinQueryIterator* AccrualInterest::partial_accrual_agg(QueryExtraFeilds * q
             new UnaryOperator ("loan_app_loan.id",ne,"14312")
         )
     );
+
+    partialAccrualQuery->addExtraFromField("(select day from loan_app_loanstatushistroy lalsh  where loan_app_loan.id=lalsh.loan_id and status_type =0 and previous_status_id =loan_app_loan.marginalization_bucket_id and lalsh.status_id>loan_app_loan.marginalization_bucket_id and day <= new_lms_installmentextension.partial_accrual_date and status_id not in (6,7,8,12,13,14,15,16) order by id desc limit 1)","marginalization_history");
+
     partialAccrualQuery->setOrderBy("loan_app_loan.id");
 
     return partialAccrualQuery;
@@ -301,13 +232,9 @@ PSQLJoinQueryIterator* AccrualInterest::accrual_agg(QueryExtraFeilds * query_fie
     {{{"loan_app_loan","id"},{"loan_app_installment","loan_id"}}, {{"loan_app_installment", "id"}, {"new_lms_installmentextension", "installment_ptr_id"}}});
 
     accrualQuery->addExtraFromField("(select day from loan_app_loanstatushistroy lalsh  where loan_app_loan.id=lalsh.loan_id and status_type =0 and previous_status_id =loan_app_loan.marginalization_bucket_id and lalsh.status_id>loan_app_loan.marginalization_bucket_id and day <= new_lms_installmentextension.partial_accrual_date and status_id not in (6,7,8,12,13,14,15,16) order by id desc limit 1)","marginalization_history");
-    accrualQuery->addExtraFromField("(select paid_at from payments_loanorder plo where plo.status=1 AND loan_app_loan.id=plo.loan_id order by paid_at desc limit 1)","last_order_date");
-    accrualQuery->addExtraFromField("(select day from loan_app_loanstatushistroy lalsh where loan_app_loan.id=lalsh.loan_id and lalsh.reversal_order_id is null and lalsh.status_type=0 and lalsh.status_id=8 order by id desc limit 1)","settled_history");
 
     accrualQuery->filter(
         ANDOperator (
-            new UnaryOperator("loan_app_loan.id", in, "158353, 157649, 157619, 157545, 157536, 157397, 157344, 157331, 157329, 157303, 157210, 157201, 157078, 157050, 157038, 157017, 156898, 156897, 156871, 156867, 156829, 156765, 156685, 156683, 156653, 156631, 156626, 156613, 156596, 156519, 156500, 156488, 156478, 156270, 156228, 156226, 156216, 156208, 156187, 156169, 156158, 156151, 156133, 156113, 156111, 156104, 156094, 156077, 156076, 156067"),
-
             // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::INTEREST_ACCRUAL-1),
             new UnaryOperator ("loan_app_loan.id" , ne, "14312"),
 
@@ -341,7 +268,6 @@ PSQLJoinQueryIterator* AccrualInterest::settlement_accrual_agg(QueryExtraFeilds 
         
         settlementAccrualQuery->filter(
             ANDOperator (
-                new UnaryOperator("loan_app_loan.id", in, "158353, 157649, 157619, 157545, 157536, 157397, 157344, 157331, 157329, 157303, 157210, 157201, 157078, 157050, 157038, 157017, 156898, 156897, 156871, 156867, 156829, 156765, 156685, 156683, 156653, 156631, 156626, 156613, 156596, 156519, 156500, 156488, 156478, 156270, 156228, 156226, 156216, 156208, 156187, 156169, 156158, 156151, 156133, 156113, 156111, 156104, 156094, 156077, 156076, 156067"),
                 new UnaryOperator("new_lms_installmentextension.settlement_accrual_interest_date::date", lte, query_fields->closure_date_string),
     
                 // new UnaryOperator("loan_app_loan.closure_status", eq, ledger_status::SETTLEMENT_INTEREST_ACCRUAL-1),

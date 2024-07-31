@@ -38,7 +38,6 @@ class Unmarginalize : public LedgerClosureStep
 
 
 
-        // float _calculate_loan_upfront_fee();
         LedgerAmount * _init_ledger_amount();
 
         void stampORMs(map<string,LedgerCompositLeg *> *  amounts);

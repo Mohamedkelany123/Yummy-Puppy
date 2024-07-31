@@ -29,12 +29,12 @@ class BlnkTemplateManager {
         map <string , TemplateLeg>* getTemplateLegs(); //return this->templatelegs
 
         ledger_entry_primitive_orm* buildEntry (BDate _entry_date);
-        ledger_entry_primitive_orm* reverseEntry (vector <ledger_amount_primitive_orm*> * _ledger_amounts, BDate _entry_date);
+        ledger_entry_primitive_orm* reverseEntry (vector <ledger_amount_primitive_orm*> * _ledger_amounts, BDate _entry_date,string description="");
 
         void setEntry(ledger_entry_primitive_orm* entry);
 
         void setEntryData(map <string,LedgerAmount*> * _entry_data);
-        void createEntry(BDate _entry_date);
+        void createEntry(BDate _entry_date, string description="");
         ledger_entry_primitive_orm* get_entry();
 
         map <string,LedgerCompositLeg*> * get_ledger_amounts();
