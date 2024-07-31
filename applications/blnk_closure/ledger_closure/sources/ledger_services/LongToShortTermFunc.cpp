@@ -12,9 +12,9 @@ void LongToShortTermFunc(map<string,PSQLAbstractORM*>*orms, int partition_number
     if(ledgerAmounts != nullptr)
     {
         localTemplateManager->setEntryData(ledgerAmounts);
-        string stamping_date = nli_orm->get_long_to_short_term_date();
+        BDate long_to_short_term_date(nli_orm->get_long_to_short_term_date());
 
-        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(BDate(stamping_date));
+        ledger_entry_primitive_orm* entry = localTemplateManager->buildEntry(long_to_short_term_date);
         map <string,LedgerCompositLeg*> * leg_amounts = localTemplateManager->get_ledger_amounts();
 
         if (entry){
@@ -24,7 +24,7 @@ void LongToShortTermFunc(map<string,PSQLAbstractORM*>*orms, int partition_number
             cerr << "Can not stamp ORM objects\n";
         }
     }
-
+    delete (ledgerAmounts);
     delete (ledgerClosureService);
 
 

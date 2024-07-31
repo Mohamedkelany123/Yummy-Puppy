@@ -50,7 +50,7 @@ class LedgerClosure:
                     where created_at::date = '{self.current_date}'
                     order by entry_date  desc, template_id  desc
                 """
-        excluded_columns = [ 'id', 'created_at', 'updated_at', 'description']
+        excluded_columns = [ 'id', 'created_at', 'updated_at']
         compare_amount_attributes = []
         temp = self.exec(query, excluded_columns, "Ledger Entry", compare_amount_attributes)
         # if temp:

@@ -101,6 +101,7 @@ LedgerAmount * LongToShortTerm::_reclassify_inst_balance(LedgerClosureStep *long
     return la;
 }
 
+//Leg Not Used Yet
 LedgerAmount * LongToShortTerm::_reclassify_merchant_balance(LedgerClosureStep *longToShortTerm){
     LedgerAmount * la = ((LongToShortTerm*)longToShortTerm)->_init_ledger_amount();
     la->setAmount(0.0);
