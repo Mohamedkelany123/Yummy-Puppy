@@ -269,8 +269,8 @@ int main (int argc, char ** argv)
         installmentsBecomingOverdueIterator->process_aggregate(threadsCount, InstallmentBecomingOverdueFunc, (void *)&dueToOverdueStruct);
 
         delete(installmentsBecomingOverdueIterator);
-        psqlController.ORMCommit(true, false, true, "main");
         delete(dueToOverdueTemplateManager);
+        psqlController.ORMCommit(true, false, true, "main");
         DueToOverdue::update_step();
     }
 

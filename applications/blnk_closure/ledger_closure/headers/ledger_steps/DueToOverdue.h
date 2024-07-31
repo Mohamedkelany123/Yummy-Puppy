@@ -24,12 +24,12 @@ class DueToOverdue : public LedgerClosureStep
         // float prov_percentage;
         BDate closing_day;
         BDate due_to_overdue_date;
+        bool installment_included;
 
-        PSQLJoinQueryIterator* installments_becoming_overdue_agg(QueryExtraFeilds * query_feilds);
     public:
         map<string, funcPtr> funcMap;
         DueToOverdue();
-        DueToOverdue(loan_app_loan_primitive_orm * _lal_orm, loan_app_installment_primitive_orm* _lai_orm, new_lms_installmentextension_primitive_orm* _nlie_orm, new_lms_installmentlatefees_primitive_orm* _nlilf_orm, BDate _due_to_overdue_date);
+        DueToOverdue(loan_app_loan_primitive_orm * _lal_orm, loan_app_installment_primitive_orm* _lai_orm, new_lms_installmentextension_primitive_orm* _nlie_orm, new_lms_installmentlatefees_primitive_orm* _nlilf_orm, BDate _due_to_overdue_date, bool _installment_included= true);
         DueToOverdue(map <string,PSQLAbstractORM *> * _orms, BDate _closing_day, int _ledger_closure_service_type=1);
         
         //Setters
@@ -41,6 +41,7 @@ class DueToOverdue : public LedgerClosureStep
         void set_template_id(int _template_id);
         void set_closing_day(BDate _closing_day);
         void set_due_to_overdue_date(BDate _due_to_overdue_date);
+        void set_installment_included(bool _installment_included);
         //Getters
         loan_app_loan_primitive_orm* get_loan_app_loan();
         loan_app_installment_primitive_orm* get_loan_app_installment();

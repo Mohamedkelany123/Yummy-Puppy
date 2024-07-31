@@ -2,20 +2,18 @@
 
 void InstallmentBecomingOverdueFunc (vector<map <string,PSQLAbstractORM *> * > * orms_list, int partition_number, mutex* shared_lock,void * extras) {
     loan_app_loan_primitive_orm * lal_orm  = ORML(loan_app_loan,orms_list,0);
-    PSQLGeneric_primitive_orm * gorm = ORML(PSQLGeneric,orms_list,0);
-    string last_entry_date_string = gorm->get("last_entry_date");
 
     BlnkTemplateManager* localTemplateManager = new BlnkTemplateManager(((DueToOverdueStruct *) extras)->blnkTemplateManager,partition_number);
 
-    loan_app_installment_primitive_orm* lai_orm;
-    new_lms_installmentextension_primitive_orm* nlie_orm = ORML(new_lms_installmentextension, orms_list, 0);
-    new_lms_installmentlatefees_primitive_orm* nlilf_orm;
+    loan_app_installment_primitive_orm* lai_orm = nullptr;
+    new_lms_installmentextension_primitive_orm* nlie_orm = nullptr;
+    new_lms_installmentlatefees_primitive_orm* nlilf_orm = nullptr;
 
     
-    map<string, LedgerAmount*>* ledgerAmounts;
-
+    BlnkTemplateManager* loopTemplateManager = nullptr;
+    map<string, LedgerAmount*>* ledgerAmounts = nullptr;
     ledger_entry_primitive_orm* entry = nullptr;
-    BlnkTemplateManager* loopTemplateManager;
+
 
     
     for (int i=0; i<ORML_SIZE(orms_list); i++) {
@@ -25,10 +23,8 @@ void InstallmentBecomingOverdueFunc (vector<map <string,PSQLAbstractORM *> * > *
         nlilf_orm = ORML(new_lms_installmentlatefees, orms_list, i);
 
         if (nlilf_orm == nullptr) {
-            cout << "nlilf_orm is nullptr at iteration ";
+            cout << "No Late Fees For Installment[" << lai_orm->get_id() << "]" << endl;
             continue; 
-            cout << "after continue " ;
-
         }
         BDate due_to_overdue_date(nlilf_orm->get_day());
         int payment_status = nlie_orm->get_payment_status();
@@ -44,6 +40,7 @@ void InstallmentBecomingOverdueFunc (vector<map <string,PSQLAbstractORM *> * > *
             || (late_fee_is_paid && late_fee_paid_at() >= due_to_overdue_date())
             || (late_fee_is_cancelled && late_fee_cancellation_date() >= due_to_overdue_date())
         ) {
+            //Create a new entry only in the first iteration because in every iteration there is a new localtemplatemanager
             if (entry == nullptr) {
                 localTemplateManager->createEntry(due_to_overdue_date);
                 entry = localTemplateManager->get_entry();
@@ -51,7 +48,15 @@ void InstallmentBecomingOverdueFunc (vector<map <string,PSQLAbstractORM *> * > *
             loopTemplateManager->setEntry(entry);
             DueToOverdue dueToOverdue(lal_orm, lai_orm, nlie_orm, nlilf_orm, due_to_overdue_date);
             LedgerClosureService* ledgerClosureService = new LedgerClosureService(&dueToOverdue);
-            dueToOverdue.setupLedgerClosureService(ledgerClosureService);
+
+            //Case Installment add all 3 legs(Principal, interest, latefees) else add only latefees leg.
+            if (installment_due_to_overdue_date() == due_to_overdue_date()) {
+                dueToOverdue.setupLedgerClosureService(ledgerClosureService);
+            }else{
+                dueToOverdue.set_installment_included(false);
+                dueToOverdue.setupLedgerClosureService(ledgerClosureService);
+            }
+
             ledgerAmounts = ledgerClosureService->inference();
             if (ledgerAmounts != nullptr) {
                 loopTemplateManager->setEntryData(ledgerAmounts);
@@ -59,23 +64,18 @@ void InstallmentBecomingOverdueFunc (vector<map <string,PSQLAbstractORM *> * > *
                 map<string, pair<ledger_amount_primitive_orm *, ledger_amount_primitive_orm *>*>* ledger_amount_orms = loopTemplateManager->get_ledger_amount_orms();
                 if (ledger_amount_orms->size()) {
                     dueToOverdue.stampORMs(ledger_amount_orms);
-                    // delete(ledger_amount_orms);
                 }
                 else {
-                    cerr << "No legs created\n";
-                    // delete(ledger_amount_orms);
-                    exit(1);
+                    cerr << "No legs created in due to overdue\n";
                 }
             }
             else {
                 cout << "No Due to overdue amounts created\n";
             }
+            delete(ledgerClosureService);
         }
 
-        
-        // delete(loopTemplateManager);
-        // delete(ledgerClosureService);
-        // delete(ledgerAmounts);
+
+        delete(localTemplateManager);
     }
-    delete(localTemplateManager);
 }
