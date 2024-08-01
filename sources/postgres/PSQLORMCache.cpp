@@ -1,6 +1,6 @@
 #include <PSQLORMCache.h>
 #include <PSQLController.h>
- 
+#include <common.h>
 
 bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex * shared_lock,PSQLConnection * _psqlConnection,vector <bool> * threads_results, bool transactional, bool orm_transaction)
 {
@@ -116,7 +116,7 @@ bool PSQLORMCache::doesExist (string name,long _identifier)
 //     PSQLAbstractORM * orm = NULL;
 //     string name = seeder->getORMName();
 //     long identifier = seeder->getIdentifier(psqlQuery);
-//     // std::lock_guard<std::mutex> guard(lock);
+//     // lock_guard<mutex> guard(lock);
 //     lock.lock();
 //     orm  = fetch(name,identifier);
 //     if (orm != NULL) 
@@ -173,7 +173,7 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
     orm->assignResults(psqlQuery, true);
     orm->setCached(true);
 
-    std::lock_guard<std::mutex> guard(lock);
+    lock_guard<mutex> guard(lock);
     if (threads_count < partition_number)
         threads_count = partition_number;
 
@@ -192,7 +192,7 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
 
 PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractORM)
 {
-    std::lock_guard<std::mutex> guard(lock);
+    lock_guard<mutex> guard(lock);
     cache_counter++;
     PSQLAbstractORM * orm = NULL;
     int enforced_cache_index = psqlAbstractORM->get_enforced_partition_number();
@@ -267,8 +267,8 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
         else
         {
             psqlAbstractORM->lock_me(true);
-            // std::ostringstream ss;
-            // ss << std::this_thread::get_id() ;
+            // ostringstream ss;
+            // ss << this_thread::get_id() ;
             // printf("assigning new %p for old %p   -   %s\n",psqlAbstractORM,orm,ss.str().c_str());
             update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;
             for ( int i  = update_thread_cache.size() ; i < update_cache_items_count%threads_count +1 ; i++)
@@ -288,7 +288,7 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
 }
 bool PSQLORMCache::release(string name,PSQLAbstractORM * psqlAbstractORM)
 {
-    std::lock_guard<std::mutex> guard(lock);
+    lock_guard<mutex> guard(lock);
     PSQLAbstractORM * orm = NULL;
     if (psqlAbstractORM->getIdentifier() == -1 ) return false;
     else  if (update_cache.find(name) != update_cache.end()) 
@@ -303,7 +303,7 @@ bool PSQLORMCache::release(string name,PSQLAbstractORM * psqlAbstractORM)
 }
 void PSQLORMCache::release()
 {
-    std::lock_guard<std::mutex> guard(lock);
+    lock_guard<mutex> guard(lock);
     for (auto orm_cache: update_cache)
         for (auto orm_cache_item:orm_cache.second) 
             orm_cache_item.second->unlock_me();
@@ -488,22 +488,29 @@ void PSQLORMCache::commit_sequential (string data_source_name, bool transaction,
     }
 }
 
-void PSQLORMCache::commit(string data_source_name, bool parallel,bool transaction, bool clean_updates)
-{
-    cout << "Staring to commit " << endl;
+void PSQLORMCache::commit(string data_source_name, bool parallel, bool transaction, bool clean_updates) {
+    auto start = chrono::steady_clock::now();
+    cout << "Starting to commit " << endl;
 
+    lock_guard<mutex> guard(lock);
 
-    std::lock_guard<std::mutex> guard(lock);
-    if ( parallel ) {
-        if (transaction){
-            commit_parallel (data_source_name, transaction, false);
-            commit_parallel (data_source_name, transaction, true);
-        }else commit_parallel (data_source_name, transaction, false);
+    if (parallel) {
+        if (transaction) {
+            commit_parallel(data_source_name, transaction, false);
+            commit_parallel(data_source_name, transaction, true);
+        } else {
+            commit_parallel(data_source_name, transaction, false);
+        }
         clear_cache(clean_updates);
+    } else {
+        commit_sequential(data_source_name, transaction);
     }
-    else commit_sequential(data_source_name, transaction);
+
     cout << "Exiting commit" << endl;
 
+    auto end = chrono::steady_clock::now();
+    auto duration = chrono::duration_cast<chrono::seconds>(end - start).count();
+    cout << "COMMITTIME-> " << duration << " seconds" << endl;
 }
 void PSQLORMCache::commit(string data_source_name, string name )
 {
@@ -527,7 +534,7 @@ void PSQLORMCache::flush(string name,long id)
 }
 void PSQLORMCache::unlock_current_thread_orms()
 {
-    std::lock_guard<std::mutex> guard(lock);
+    lock_guard<mutex> guard(lock);
     for (auto orm_cache: update_cache)
         for (auto orm_cache_item:orm_cache.second) 
             orm_cache_item.second->unlock_me(true);
@@ -535,7 +542,7 @@ void PSQLORMCache::unlock_current_thread_orms()
 
 PSQLORMCache::~PSQLORMCache()
 {
-    std::lock_guard<std::mutex> guard(lock);
+    lock_guard<mutex> guard(lock);
     for (auto orm_cache: update_cache)
         for (auto orm_cache_item:orm_cache.second) 
             delete (orm_cache_item.second);
