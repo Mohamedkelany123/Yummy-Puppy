@@ -95,7 +95,7 @@ int main (int argc, char ** argv)
     psqlController.addDefault("updated_at","now()",true,true);
     psqlController.addDefault("updated_at","now()",false,true);
     psqlController.setORMCacheThreads(threadsCount);
-
+    
 
     PSQLUpdateQuery psqlUpdateQuery ("main","loan_app_loan",
         ANDOperator(

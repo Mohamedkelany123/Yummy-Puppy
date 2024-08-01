@@ -31,10 +31,7 @@ LedgerAmount *SettlementLoansWithMerchant::get_amount(LedgerClosureStep *settlem
     return ledgerAmount;
 }
 
-LedgerAmount *SettlementLoansWithMerchant::get_parent_amount(LedgerClosureStep *settlementLoansWithMerchant)
-{
 
-}
 
 string calculateAmountSum(string _account_name, string loan_id, string _start_fiscal_year,string _closing_day)
 {

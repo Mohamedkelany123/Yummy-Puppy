@@ -23,6 +23,7 @@
 #include <payments_paymentprovider_primitive_orm.h>
 #include <tms_app_loaninstallmentfundingrequest_primitive_orm.h>
 #include <settlement_dashboard_merchantpaymentrequest_primitive_orm.h>
+#include <ledger_account_primitive_orm.h>
 
 
 #endif

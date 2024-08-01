@@ -30,7 +30,6 @@ class SettlementLoansWithMerchant : public LedgerClosureStep
 
         // //static methods
         static LedgerAmount* get_amount(LedgerClosureStep* settlementLoansWithMerchant);
-        static LedgerAmount* get_parent_amount(LedgerClosureStep* settlementLoansWithMerchant);
         static void unstampLoans();
         static LedgerAmount* _settle_with_merchant(LedgerClosureStep* settlementLoansWithMerchant);
 
