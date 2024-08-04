@@ -435,7 +435,7 @@ void PSQLPrimitiveORMGenerator::generateExternDSOEntryPoint (string class_name,s
     extern_entry_point += "#endif";
 }
 
-void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name,string table_index, map<string, vector<string>> columns_definition)
+void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name,string table_index, map<string, vector<string>> columns_definition, vector<string> & tables_to_generate)
 {
     includes = "#include <PSQLController.h>\n";
     includes += "#include <PSQLBool.h>\n";
@@ -470,6 +470,9 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     string default_constructor_pointer = "";
     for (;psqlQuery->fetchNextRow();)
     {
+        if (find(tables_to_generate.begin(), tables_to_generate.end(), psqlQuery->getValue("fk_table")) == tables_to_generate.end()){
+            continue;
+        }
         declaration += "\t\t\tbool "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only;\n";
         constructor_destructor += "\t\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
         default_constructor += "\t\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
@@ -787,7 +790,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
     extra_methods += "\t\t}\n";
 }
 
-void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
+void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, vector<string> &tables_to_generate)
 {
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery("select table_name,column_name,data_type,numeric_precision,numeric_precision_radix,numeric_scale,is_nullable,is_generated,identity_generation,is_identity,column_default,identity_increment,udt_name from information_schema.COLUMNS where table_name='"+table_name+"'");
     string class_name = table_name+"_primitive_orm";
@@ -813,7 +816,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         generateGetIdentifier(class_name);
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
-        generateConstructorAndDestructor(class_name,table_name,table_index,results);
+        generateConstructorAndDestructor(class_name,table_name,table_index,results,tables_to_generate);
         generateUpdateQuery(class_name,table_name,results);
         generateInsertQuery(class_name,table_name,results);
         generateSerializer(class_name,table_name,results);

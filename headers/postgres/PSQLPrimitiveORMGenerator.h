@@ -47,7 +47,7 @@ class PSQLPrimitiveORMGenerator
         void generateAssignmentOperator (string class_name,string table_name,map<string, vector<string>> columns_definition);
         void generateGetIdentifier(string class_name);
         void generateExternDSOEntryPoint (string class_name,string table_name);
-        void generateConstructorAndDestructor(string class_name,string table_name,string table_index, map<string,vector<string>> columns_definition);
+        void generateConstructorAndDestructor(string class_name,string table_name,string table_index, map<string,vector<string>> columns_definition, vector<string> & tablesToGenerate);
         void generateAddToCache(string class_name);
         void generateIsUpdated(string class_name);
         void generateStaticFetch(string class_name);
@@ -62,7 +62,7 @@ class PSQLPrimitiveORMGenerator
         void write_headers_and_sources(string class_name);
     public:
         PSQLPrimitiveORMGenerator();
-        void generate(string table_name,string table_index);
+        void generate(string table_name,string table_index, vector<string> & tablesToGenerate);
         void compile(string table_name);
         ~PSQLPrimitiveORMGenerator();
 };
