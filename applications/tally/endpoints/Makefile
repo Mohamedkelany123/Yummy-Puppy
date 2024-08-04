@@ -1,1 +1,1 @@
-../../../leaf_dso_makefile
+../../../recursive_makefile
