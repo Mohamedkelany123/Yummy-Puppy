@@ -1,0 +1,3 @@
+[submodule "applications/blnk_closure"]
+	path = applications/blnk_closure
+	url = git@github.com:blnk-ai/blnk_closure.git
