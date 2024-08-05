@@ -4,15 +4,6 @@
 #include <EndpointService.h>
 // #include <loan_app_loan_primitive_orm.h>
 
-class AbstractSerializer
-{
-    private:
-    public:
-        AbstractSerializer(){}
-        virtual void serialize (string ss) = 0;
-        virtual string deserialize () = 0;
-        virtual ~AbstractSerializer(){}
-};
 
 class KeyValue: public AbstractSerializer
 {
