@@ -2,6 +2,7 @@
 #include <ThorSerialize/SerUtil.h>
 #include <ThorSerialize/JsonThor.h>
 #include <EndpointService.h>
+#include <AbstractSerializer.h>
 // #include <loan_app_loan_primitive_orm.h>
 
 
