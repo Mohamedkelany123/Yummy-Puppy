@@ -5,13 +5,12 @@
 #include <PSQLPrimitiveORMGenerator.h>
 #include <PSQLController.h>
 #include <reader.h>
-// #include <crm_app_customer_primitive_orm.h>
-// #include <loan_app_loan_primitive_orm.h>
-// #include <auth_group_primitive_orm.h>
 //g++ -shared -fPIC -std=c++20 ./factory/db_primitive_orm/sources/crm_app_customer_primitive_orm.cpp $(ls ./objects | grep -v orm_c++|awk '{print "./objects/" $1}') -o ./dso/crm_app_customer_primitive_orm.so -I./headers/postgres/ -I ./ -I./headers/abstract -I /usr/local/Cellar/libpq/16.0/include/ -I ./factory/db_primitive_orm/headers/ -L/usr/local/Cellar/libpq/16.0/lib -lpthread -ldl -lpq
 
 typedef PSQLAbstractORM * create_object_routine();
 
+void generate(const ConfigReader& conf);
+void clean(const ConfigReader& conf);
 
 int main (int argc, char ** argv)
 {
@@ -21,7 +20,32 @@ int main (int argc, char ** argv)
         return -1;
     }
 
+    string command = argv[1];
     ConfigReader conf = ConfigReader(argv[2]);
+
+
+    if (command == "generate") {
+        generate(conf);
+    } else if (command == "clean") {
+        clean(conf);
+    } else {
+        printf("%s is not a command. Possible commands are: generate, clean\n", command.c_str());
+        return -1;
+    }
+    
+    // if (argc == 4){
+    //     for ( int i = 0 ; i  < tables.size() && i < 20 ; i ++)
+    //     {
+    //         cout << "Compiling " << tables[i] << endl;
+    //         psqlPrimitiveORMGenerator->compile(tables[i]);
+    //     }
+    // }
+
+    return 0;
+}
+
+void generate(const ConfigReader& conf) {
+    
     string datasource_key = conf.GetValue("factory", "datasource");
 
     for (auto datasource : conf.GetValue("datasources")) {
@@ -38,24 +62,35 @@ int main (int argc, char ** argv)
     if (tables.size() == 0) {
         tables = psqlConnection->getTableNames();
     }
-    PSQLPrimitiveORMGenerator * psqlPrimitiveORMGenerator = new PSQLPrimitiveORMGenerator();
+
+    string orm_folder = conf.GetValue("factory", "directory");
+    PSQLPrimitiveORMGenerator * psqlPrimitiveORMGenerator = new PSQLPrimitiveORMGenerator(datasource_key, orm_folder);
     for ( int i = 0 ; i  < tables.size() ; i ++)
     {
         cout << "Generating " << tables[i] << endl;
         psqlPrimitiveORMGenerator->generate(tables[i],std::to_string(i),tables);
     }
 
-
-    if (argc == 4){
-        for ( int i = 0 ; i  < tables.size() && i < 20 ; i ++)
-        {
-            cout << "Compiling " << tables[i] << endl;
-            psqlPrimitiveORMGenerator->compile(tables[i]);
-        }
-    }
-
     psqlController.releaseConnection(datasource_key, psqlConnection);
     delete (psqlPrimitiveORMGenerator);
+}
 
-    return 0;
+void clean(const ConfigReader& conf) {
+
+    string orm_folder = conf.GetValue("factory", "directory");
+
+    string delete_headers = "rm -rf " + orm_folder + H_FOLDER + "/*.h";
+    string delete_sources = "rm -rf " + orm_folder + CPP_FOLDER + "/*.cpp";
+
+    cout << delete_headers << endl;
+    int status1 = system (delete_headers.c_str());
+    if (status1 != 0) {
+        cout << "Failed to delete headers\n";
+    }
+
+    cout << delete_sources << endl;
+    int status2 = system (delete_sources.c_str());
+    if (status2 != 0) {
+        cout << "Failed to delete sources\n";
+    }
 }

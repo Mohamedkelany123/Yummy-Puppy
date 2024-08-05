@@ -22,7 +22,7 @@ class ConfigReader {
         }
 
         template <typename... Args>
-        json GetValue(const string& first, const Args&... args) {
+        json GetValue(const string& first, const Args&... args) const {
             json current = this->filedata;
 
             initializer_list<string> keys = {first, args...};
@@ -31,7 +31,7 @@ class ConfigReader {
                     current = current[key];
                     continue;
                 }
-                return NULL;
+                throw std::invalid_argument("Key not found: " + key);
             }
 
             return current;

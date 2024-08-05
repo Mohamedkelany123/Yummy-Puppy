@@ -1,0 +1,28 @@
+{
+    "datasources": [
+        {
+            "key": "main",
+            "ip": "192.168.65.216",
+            "port": 5432,
+            "username": "development",
+            "password": "5k6MLFM9CLN3bD1",
+            "dbname": "django_ostaz_16072024_sherif2" 
+        },
+        {
+            "key": "secondary",
+            "ip": "192.168.65.216",
+            "port": 5432,
+            "username": "development",
+            "password": "5k6MLFM9CLN3bD1",
+            "dbname": "django_ostaz_16072024_sherif" 
+        }
+    ],
+    "factory": {
+        "datasource": "main",
+        "directory": "./factory/db_primitive_orm",
+        "restrict_orms": [
+            "loan_app_loan",
+            "loan_app_installment"
+        ]
+    }
+}

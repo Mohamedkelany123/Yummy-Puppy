@@ -134,8 +134,8 @@ void PSQLPrimitiveORMGenerator::write_headers_and_sources(string class_name)
     for(auto& c : class_name) lower_case += tolower(c);
     class_name= lower_case;
 
-    string h_file_name = SOURCES_H_FILENAME +class_name+".h";
-    string cpp_file_name = SOURCES_CPP_FILENAME +class_name+".cpp";
+    string h_file_name = this->orm_folder + H_FOLDER + "/" + class_name + ".h";
+    string cpp_file_name = this->orm_folder + CPP_FOLDER + "/" + class_name + ".cpp";
     
     FILE * f = fopen (h_file_name.c_str(),"wt");
     if ( f != NULL )
@@ -153,9 +153,15 @@ void PSQLPrimitiveORMGenerator::write_headers_and_sources(string class_name)
 }
 
 
-PSQLPrimitiveORMGenerator::PSQLPrimitiveORMGenerator()
+PSQLPrimitiveORMGenerator::PSQLPrimitiveORMGenerator(string p_datasource, string p_orm_folder)
 {
-    psqlConnection = psqlController.getPSQLConnection("main");
+    this->orm_folder = p_orm_folder;
+    this->datasource = p_datasource;
+
+    PSQLPrimitiveORMGenerator::createFoldersIfNotExist(orm_folder+H_FOLDER);
+    PSQLPrimitiveORMGenerator::createFoldersIfNotExist(orm_folder+CPP_FOLDER);
+
+    psqlConnection = psqlController.getPSQLConnection(datasource);
     for ( int i = 0 ; PSQLInt2::get_native_type(i) != "" ; i ++)
         databaseColumnFactory[PSQLInt2::get_native_type(i)] = new PSQLInt2();
     for ( int i = 0 ; PSQLInt4::get_native_type(i) != "" ; i ++)
@@ -852,12 +858,26 @@ void PSQLPrimitiveORMGenerator::compile(string table_name)
 }
 
 
+void PSQLPrimitiveORMGenerator::createFoldersIfNotExist(const string& path) {
+    fs::path dirPath(path);
+
+    if (!fs::exists(dirPath)) {
+        if (fs::create_directories(dirPath)) {
+            cout << "Successfully created directories: " << path << endl;
+        } else {
+            cerr << "Failed to create directories: " << path << endl;
+        }
+    } else {
+        cout << "Directory already exists: " << path << endl;
+    }
+}
+
 
 PSQLPrimitiveORMGenerator::~PSQLPrimitiveORMGenerator()
 {
     for (auto psql_type: databaseColumnFactory) 
         delete (psql_type.second);
-    psqlController.releaseConnection ("main",psqlConnection);
+    psqlController.releaseConnection (this->datasource,psqlConnection);
     if (template_h != NULL) free (template_h);
     if (template_cpp != NULL) free (template_cpp);
     free (h_file);

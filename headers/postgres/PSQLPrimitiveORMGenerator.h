@@ -12,13 +12,16 @@
 
 #define TEMPLATE_H_FILENAME "./templates/headers/ORMPrimitiveTemplate.h"
 #define TEMPLATE_CPP_FILENAME "./templates/sources/ORMPrimitiveTemplate.cpp"
-#define SOURCES_H_FILENAME "./factory/db_primitive_orm/headers/"
-#define SOURCES_CPP_FILENAME "./factory/db_primitive_orm/sources/"
+#define H_FOLDER "/headers"
+#define CPP_FOLDER "/sources"
 
 #define MAX_SOURCE_FILE_SIZE 5*1024*1024
 class PSQLPrimitiveORMGenerator
 {
     private:
+        string orm_folder;
+        string datasource;
+
         string declaration;
         string setters;
         string getters;
@@ -60,8 +63,10 @@ class PSQLPrimitiveORMGenerator
         void generateEqualToOperator(string class_name,string table_name,map<string, vector<string>> columns_definition);
         void fetch_templates();
         void write_headers_and_sources(string class_name);
+
+        static void createFoldersIfNotExist(const string& path);
     public:
-        PSQLPrimitiveORMGenerator();
+        PSQLPrimitiveORMGenerator(string datasource, string p_orm_folder);
         void generate(string table_name,string table_index, vector<string> & tablesToGenerate);
         void compile(string table_name);
         ~PSQLPrimitiveORMGenerator();
