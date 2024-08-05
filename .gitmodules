@@ -1,3 +1,9 @@
 [submodule "applications/blnk_closure"]
 	path = applications/blnk_closure
 	url = git@github.com:blnk-ai/blnk_closure.git
+[submodule "applications/orm_c_plus_plus_misc"]
+	path = applications/orm_c_plus_plus_misc
+	url = git@github.com:blnk-ai/orm_c_plus_plus_misc.git
+[submodule "applications/tally_dashboard_services"]
+	path = applications/tally_dashboard_services
+	url = git@github.com:blnk-ai/tally_dashboard_services.git
