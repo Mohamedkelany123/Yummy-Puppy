@@ -134,8 +134,8 @@ void PSQLPrimitiveORMGenerator::write_headers_and_sources(string class_name)
     for(auto& c : class_name) lower_case += tolower(c);
     class_name= lower_case;
 
-    string h_file_name = SOURCES_H_FILENAME +class_name+".h";
-    string cpp_file_name = SOURCES_CPP_FILENAME +class_name+".cpp";
+    string h_file_name = this->orm_folder + H_FOLDER + "/" + class_name + ".h";
+    string cpp_file_name = this->orm_folder + CPP_FOLDER + "/" + class_name + ".cpp";
     
     FILE * f = fopen (h_file_name.c_str(),"wt");
     if ( f != NULL )
@@ -153,9 +153,15 @@ void PSQLPrimitiveORMGenerator::write_headers_and_sources(string class_name)
 }
 
 
-PSQLPrimitiveORMGenerator::PSQLPrimitiveORMGenerator()
+PSQLPrimitiveORMGenerator::PSQLPrimitiveORMGenerator(string p_datasource, string p_orm_folder)
 {
-    psqlConnection = psqlController.getPSQLConnection("main");
+    this->orm_folder = p_orm_folder;
+    this->datasource = p_datasource;
+
+    PSQLPrimitiveORMGenerator::createFoldersIfNotExist(orm_folder+H_FOLDER);
+    PSQLPrimitiveORMGenerator::createFoldersIfNotExist(orm_folder+CPP_FOLDER);
+
+    psqlConnection = psqlController.getPSQLConnection(datasource);
     for ( int i = 0 ; PSQLInt2::get_native_type(i) != "" ; i ++)
         databaseColumnFactory[PSQLInt2::get_native_type(i)] = new PSQLInt2();
     for ( int i = 0 ; PSQLInt4::get_native_type(i) != "" ; i ++)
@@ -435,7 +441,7 @@ void PSQLPrimitiveORMGenerator::generateExternDSOEntryPoint (string class_name,s
     extern_entry_point += "#endif";
 }
 
-void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name,string table_index, map<string, vector<string>> columns_definition)
+void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_name,string table_name,string table_index, map<string, vector<string>> columns_definition, vector<string> & tables_to_generate)
 {
     includes = "#include <PSQLController.h>\n";
     includes += "#include <PSQLBool.h>\n";
@@ -470,6 +476,9 @@ void PSQLPrimitiveORMGenerator::generateConstructorAndDestructor(string class_na
     string default_constructor_pointer = "";
     for (;psqlQuery->fetchNextRow();)
     {
+        if (find(tables_to_generate.begin(), tables_to_generate.end(), psqlQuery->getValue("fk_table")) == tables_to_generate.end()){
+            continue;
+        }
         declaration += "\t\t\tbool "+psqlQuery->getValue("fk_table") +"_"+psqlQuery->getValue("fk_column")+"_read_only;\n";
         constructor_destructor += "\t\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
         default_constructor += "\t\t\trelatives_def[\""+psqlQuery->getValue("pk_column")+"\"][\""+psqlQuery->getValue("fk_table")+"\"]=\""+psqlQuery->getValue("fk_column")+"\";\n";
@@ -787,7 +796,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
     extra_methods += "\t\t}\n";
 }
 
-void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
+void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, vector<string> &tables_to_generate)
 {
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery("select table_name,column_name,data_type,numeric_precision,numeric_precision_radix,numeric_scale,is_nullable,is_generated,identity_generation,is_identity,column_default,identity_increment,udt_name from information_schema.COLUMNS where table_name='"+table_name+"'");
     string class_name = table_name+"_primitive_orm";
@@ -813,7 +822,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index)
         generateGetIdentifier(class_name);
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
-        generateConstructorAndDestructor(class_name,table_name,table_index,results);
+        generateConstructorAndDestructor(class_name,table_name,table_index,results,tables_to_generate);
         generateUpdateQuery(class_name,table_name,results);
         generateInsertQuery(class_name,table_name,results);
         generateSerializer(class_name,table_name,results);
@@ -849,12 +858,26 @@ void PSQLPrimitiveORMGenerator::compile(string table_name)
 }
 
 
+void PSQLPrimitiveORMGenerator::createFoldersIfNotExist(const string& path) {
+    fs::path dirPath(path);
+
+    if (!fs::exists(dirPath)) {
+        if (fs::create_directories(dirPath)) {
+            cout << "Successfully created directories: " << path << endl;
+        } else {
+            cerr << "Failed to create directories: " << path << endl;
+        }
+    } else {
+        cout << "Directory already exists: " << path << endl;
+    }
+}
+
 
 PSQLPrimitiveORMGenerator::~PSQLPrimitiveORMGenerator()
 {
     for (auto psql_type: databaseColumnFactory) 
         delete (psql_type.second);
-    psqlController.releaseConnection ("main",psqlConnection);
+    psqlController.releaseConnection (this->datasource,psqlConnection);
     if (template_h != NULL) free (template_h);
     if (template_cpp != NULL) free (template_cpp);
     free (h_file);
