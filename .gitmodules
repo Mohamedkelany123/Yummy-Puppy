@@ -7,3 +7,6 @@
 [submodule "applications/tally_dashboard_services"]
 	path = applications/tally_dashboard_services
 	url = git@github.com:blnk-ai/tally_dashboard_services.git
+[submodule "applications/LOS"]
+	path = applications/LOS
+	url = git@github.com:blnk-ai/LOS.git
