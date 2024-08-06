@@ -19,7 +19,7 @@
     ],
     "factory": {
         "datasource": "main",
-        "directory": "./factory/db_primitive_orm",
+        "directory": "./applications/blnk_closure/factory/db_primitive_orm",
         "restrict_orms": [
         ]
     }
