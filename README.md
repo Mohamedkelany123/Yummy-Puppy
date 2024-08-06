@@ -31,8 +31,25 @@ git clone --recurse-submodules <CURRENT_REPO_URL>
 git submodule init applications/blnk_closure
 git submodule update applications/blnk_closure
 ```
+- To remove submodule:
+```
+git submodule deinit applications/blnk_closure
+```
 
-### 2. tally_dashboard_services
+### 2. LOS
+
+- [Repo Link](https://github.com/blnk-ai/LOS)
+- To clone submodule:
+```
+git submodule init applications/LOS
+git submodule update applications/LOS
+```
+- To remove submodule:
+```
+git submodule deinit applications/LOS
+```
+
+### 3. tally_dashboard_services
 
 - [Repo Link](https://github.com/blnk-ai/tally_dashboard_services)
 - To clone submodule:
@@ -40,8 +57,12 @@ git submodule update applications/blnk_closure
 git submodule init applications/tally_dashboard_services
 git submodule update applications/tally_dashboard_services
 ```
+- To remove submodule:
+```
+git submodule deinit applications/tally_dashboard_services
+```
 
-### 3. orm_c_plus_plus_misc
+### 4. orm_c_plus_plus_misc
 
 - [Repo Link](https://github.com/blnk-ai/orm_c_plus_plus_misc)
 - To clone submodule:
@@ -49,10 +70,15 @@ git submodule update applications/tally_dashboard_services
 git submodule init applications/orm_c_plus_plus_misc
 git submodule update applications/orm_c_plus_plus_misc
 ```
+- To remove submodule:
+```
+git submodule deinit applications/orm_c_plus_plus_misc
+```
+
 ### To add new application (submodule):
 
 ```
-git submodule add <REPO_URL> applications/
+git submodule add <REPO_URL> applications/<REPO_NAME>
 ```
 
 ---

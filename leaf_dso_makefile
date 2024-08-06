@@ -11,7 +11,14 @@ SRC = $(wildcard $(CUR_DIR)/*.cpp)
 DSO_DIR=$(subst sources,dso,$(CUR_DIR))
 DSOS = $(patsubst $(CUR_DIR)/%.cpp, $(DSO_DIR)/%.so, $(SRC))
 
-ALL_OBJECTS = $(shell find $(HOME_PATH) -name "*.cpp.o" )
+ALL_OBJECTS = $(shell find $(HOME_PATH) ! -path "*/applications/*" -name "*.cpp.o" )
+
+IS_SUBMODULE := $(shell git rev-parse --show-superproject-working-tree)
+ifneq ($(strip $(IS_SUBMODULE)),)
+	SUBMODULE_PATH = $(shell git rev-parse --show-toplevel)
+	ALL_OBJECTS += $(shell find $(SUBMODULE_PATH) -name "*.cpp.o" )
+endif
+
 
 $(DSO_DIR)/%.so: $(OBJ_DIR)/%.cpp.dso $(ALL_CPP)
 	$(GCC) -shared -std=c++17 $(LIBS) $(ALL_OBJECTS) $< -o $@ $(LINKER_FLAGS)
