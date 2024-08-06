@@ -10,3 +10,6 @@
 [submodule "applications/LOS"]
 	path = applications/LOS
 	url = git@github.com:blnk-ai/LOS.git
+[submodule "poco"]
+	path = poco
+	url = git@github.com:pocoproject/poco.git
