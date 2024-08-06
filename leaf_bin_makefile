@@ -11,7 +11,13 @@ SRC = $(wildcard $(CUR_DIR)/*.cpp)
 
 BINS = $(patsubst $(CUR_DIR)/%.cpp, $(BIN_DIR)/%, $(SRC))
 
-ALL_OBJECTS = $(shell find $(HOME_PATH) -name "*.cpp.o" )
+ALL_OBJECTS = $(shell find $(HOME_PATH) ! -path "*/applications/*" -name "*.cpp.o" )
+
+IS_SUBMODULE := $(shell git rev-parse --show-superproject-working-tree)
+ifneq ($(strip $(IS_SUBMODULE)),)
+	SUBMODULE_PATH = $(shell git rev-parse --show-toplevel)
+	ALL_OBJECTS += $(shell find $(SUBMODULE_PATH) -name "*.cpp.o" )
+endif
 
 $(BIN_DIR)/%: $(OBJ_DIR)/%.cpp.oo $(ALL_CPP)
 	$(GCC) -std=c++17 $(LIBS) $(ALL_OBJECTS) $< -o $@ $(LINKER_FLAGS)
