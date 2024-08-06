@@ -9,10 +9,12 @@ RULE_NAME=all
 make_target_cpp: 
 	@for a in $$(ls); do \
 		if [ -d $$a ]; then \
-			if [ -f $$a/Makefile ]; then \
-				echo "Make target CPP processing folder $$a"; \
-				if ! $(MAKE) -C $$a -f Makefile make_target_cpp ; then \
-					exit 1;\
+			if [ "$$a" != "poco" ]; then \
+				if [ -f $$a/Makefile ]; then \
+					echo "Make target CPP processing folder $$a"; \
+					if ! $(MAKE) -C $$a -f Makefile make_target_cpp ; then \
+						exit 1;\
+					fi; \
 				fi; \
 			fi; \
 		fi; \
@@ -23,10 +25,12 @@ make_target_cpp:
 target: make_target_cpp
 	@for a in $$(ls); do \
 		if [ -d $$a ]; then \
-			if [ -f $$a/Makefile ]; then \
-				echo "Make target processing folder $$a"; \
-				if ! $(MAKE) -C $$a -f Makefile target; then \
-					exit 1; \
+			if [ "$$a" != "poco" ]; then \
+				if [ -f $$a/Makefile ]; then \
+					echo "Make target processing folder $$a"; \
+					if ! $(MAKE) -C $$a -f Makefile target; then \
+						exit 1; \
+					fi; \
 				fi; \
 			fi; \
 		fi; \

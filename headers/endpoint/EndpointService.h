@@ -3,7 +3,11 @@
 #include <PSQLAbstractQueryIterator.h>
 #include <HTTPService.h>
 #include <HTTPResponseHeader.h>
+#include <Poco/JWT/JWT.h>
+#include <Poco/JWT/Token.h>
+#include <Poco/JWT/Signer.h>
 
+using namespace Poco::JWT;
 
 template <class I,class O>
 class EndpointService : public HTTPService {
@@ -32,8 +36,16 @@ class EndpointService : public HTTPService {
         bool execute(HTTPRequest * p_httpRequest,TCPSocket * p_tcpSocket)
         {
             string data = p_httpRequest->getBody(); // get the HTTPRequest body data
+            
+            Poco::JWT::Token token;
+            token.setType("JWT");
+            token.setSubject("1234567890");
+            token.payload().set("name", std::string("John Doe"));
+            token.setIssuedAt(Poco::Timestamp());
 
-
+            Poco::JWT::Signer signer("0123456789ABCDEF0123456789ABCDEF");
+            std::string jwt = signer.sign(token, Poco::JWT::Signer::ALGO_HS256);
+            cout << "XXXXXxXXXXXXXX:    " << jwt << endl;
             string reply = endpoint_entry(data,lambda);
 
             // string reply = "{\"msg\":\"Hello all\"}";
