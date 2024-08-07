@@ -231,10 +231,10 @@ PSQLAbstractQueryIterator(_data_source_name,"")
             other_join_string += "cross join lateral ";
             other_join_string += join_fields[i].first.first.first + " as "  + join_fields[i].first.first.second ;
         }
-        else  if ( join_fields[i].second == JOIN_TYPE::left || join_fields[i].second == JOIN_TYPE::right || join_fields[i].second == JOIN_TYPE::inner)
+        else  if ( join_fields[i].second == JOIN_TYPE::left_join || join_fields[i].second == JOIN_TYPE::right_join || join_fields[i].second == JOIN_TYPE::inner)
         {
-            if ( join_fields[i].second == JOIN_TYPE::left) other_join_string += "left join ";
-            else if ( join_fields[i].second == JOIN_TYPE::right) other_join_string += "right join ";
+            if ( join_fields[i].second == JOIN_TYPE::left_join) other_join_string += "left join ";
+            else if ( join_fields[i].second == JOIN_TYPE::right_join) other_join_string += "right join ";
             else if ( join_fields[i].second == JOIN_TYPE::inner) other_join_string += "inner join ";
             other_join_string += "\""+join_fields[i].first.second.first+"\" on " +
             "\""+join_fields[i].first.second.first+"\"."+

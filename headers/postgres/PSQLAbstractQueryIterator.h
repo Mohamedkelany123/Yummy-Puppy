@@ -5,9 +5,9 @@
 #include <PSQLController.h>
 
 enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin,isnull,isnotnull };
-enum math_operator { mod, plus };
+enum math_operator { mod, plus_operator };
 
-enum JOIN_TYPE { none, aux,full,inner,left, right, cross };
+enum JOIN_TYPE { none, aux,full,inner,left_join, right_join, cross };
 
 class Expression{
 
@@ -150,7 +150,7 @@ class BinaryOperator : public Expression {
     public:
         BinaryOperator(){
             name = "0";
-            op1 = math_operator::plus;
+            op1 = math_operator::plus_operator;
             value1 = "0";
             op2 = unary_operator::eq;
             value2 = "0";
@@ -183,7 +183,7 @@ class BinaryOperator : public Expression {
         string const generate() const
         {
             if ( op1 == mod ) return UnaryOperator(name + " % " + value1,op2,value2, value_is_field_name).generate();
-            else if ( op1 == math_operator::plus ) return UnaryOperator(name + " + " + value1,op2,value2, value_is_field_name).generate();
+            else if ( op1 == math_operator::plus_operator ) return UnaryOperator(name + " + " + value1,op2,value2, value_is_field_name).generate();
             else return "";
         }
         virtual ~BinaryOperator(){}

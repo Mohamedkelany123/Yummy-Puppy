@@ -34,8 +34,6 @@
 #include <iterator>
 #include <chrono> 
 
-namespace fs = std::filesystem;
-
 using namespace std;
 using json = nlohmann::json;
 
