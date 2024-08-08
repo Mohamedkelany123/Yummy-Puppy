@@ -21,16 +21,25 @@ void BDate::set_date (string date_string)
         tm.tm_isdst = DL_SAVING;
     }
 }
+BDate::BDate()
+{
+    init_current_date();
+}
+
 BDate::BDate(string date_string)
 {
+    is_null = false;
     set_date(date_string);
 }
+
 BDate::BDate (struct tm & _tm)
 {
+    is_null = false;
     tm = _tm;
 }
 BDate::BDate(time_t t)
 {
+    is_null = false;
     tm = *localtime(&t);
 }
 time_t BDate::operator()()
@@ -81,6 +90,31 @@ int BDate::get_day()
 {
     return tm.tm_mday;
 }
+void BDate::set_day (int _day)
+{
+        if ( _day >0 &&
+                ((_day < 32 && (tm.tm_mon == 1 || tm.tm_mon==3 || tm.tm_mon==5 || tm.tm_mon==7 || tm.tm_mon==8 || tm.tm_mon==10 || tm.tm_mon==12)) || _day< 31 ))
+        {
+                tm.tm_mday = _day;
+                (*this)();
+        }
+}
+int BDate::diff_days(BDate bdate)
+{
+        return ((*this)() - bdate())/(60*60*24);
+}
+bool BDate::is_leap_year()
+{
+      return (tm.tm_year % 4 == 0 && tm.tm_year % 100 != 0) || (tm.tm_year % 400 == 0);
+}
+
+int BDate::get_month_days()
+{
+        if ( tm.tm_mon == 2 )
+                if ( is_leap_year() ) return 29; else return 28;
+        else if (tm.tm_mon == 1 || tm.tm_mon==3 || tm.tm_mon==5 || tm.tm_mon==7 || tm.tm_mon==8 || tm.tm_mon==10 || tm.tm_mon==12) return 31;
+        else return 30;
+}
 string BDate::getDateString()
 {
     char buf[255];
@@ -90,4 +124,12 @@ string BDate::getDateString()
     string date_string = buf;
     return date_string;
 }
+void BDate::init_current_date()
+{
+    time_t rawtime;
+    time ( &rawtime );
+    is_null = false;
+    tm = *localtime(&rawtime);
+}
+
 BDate::~BDate () {}
