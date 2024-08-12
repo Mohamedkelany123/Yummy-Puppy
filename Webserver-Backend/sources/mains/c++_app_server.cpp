@@ -4,6 +4,8 @@
 #include "HTTPRequestManager.h"
 #include "ConfigFile.h"
 #include "Logger.h"
+#include "MiddlewareManager.h"
+
 using namespace std;
 int main(int argc, char** argv) {
     ConfigFile * conf = new ConfigFile(argc, argv);
@@ -20,6 +22,8 @@ int main(int argc, char** argv) {
     GarbageCollector * garbageCollector = new GarbageCollector();
     // Instantiate an HTTPServiceManager Factory
     HTTPServiceManager * httpServiceManager = new HTTPServiceManager(conf, Logger::getInstance());
+    MiddlewareManager * middlewareManager = new MiddlewareManager(conf, Logger::getInstance());
+
     // Instantiate an HTTPRequestManager Factory
     HTTPRequestManager * httpRequestManager = new HTTPRequestManager();
     // Create a TCP socket that listens on the localhost loopback address and port 9999
@@ -45,5 +49,6 @@ int main(int argc, char** argv) {
     delete (httpServiceManager); // Delete the HTTPServiceManager
     delete (httpRequestManager); // Delete the HTTPRequestManager
     delete (garbageCollector); // Delete the Garbage Collector
+    delete (middlewareManager);
     return 0;
 }

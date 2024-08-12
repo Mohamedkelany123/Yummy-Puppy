@@ -41,6 +41,7 @@ void HTTPTransaction::process()
         // Invoke the HTTPServiceManager for a service that can serve the request resource
         if ( httpRequest != NULL)
         {
+            
             s  =httpServiceManager->getService(httpRequest->getResource());/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             s->execute(httpRequest,tcpSocket); // Execute the servive
             delete (httpRequest); // delete the httpRequest object

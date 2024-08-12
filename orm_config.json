@@ -6,7 +6,7 @@
             "port": 5432,
             "username": "development",
             "password": "5k6MLFM9CLN3bD1",
-            "dbname": "django_ostaz_16072024_sherif2" 
+            "dbname": "django_ostaz_16072024_sherif2"
         },
         {
             "key": "secondary",
@@ -14,13 +14,12 @@
             "port": 5432,
             "username": "development",
             "password": "5k6MLFM9CLN3bD1",
-            "dbname": "django_ostaz_16072024_sherif" 
+            "dbname": "django_ostaz_16072024_sherif"
         }
     ],
     "factory": {
         "datasource": "main",
-        "directory": "./applications/blnk_closure/factory/db_primitive_orm",
-        "restrict_orms": [
-        ]
+        "directory": "./applications/LOS/factory/db_primitive_orm",
+        "restrict_orms": []
     }
 }
