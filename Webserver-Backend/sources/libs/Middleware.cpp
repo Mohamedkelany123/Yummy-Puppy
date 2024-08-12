@@ -1,11 +1,19 @@
 #include "Middleware.h"
 
-Middleware::Middleware(const HTTPRequest *req, const HTTPResponse *res)
+
+Middleware::Middleware()
 {
-    this->req = req;
-    this->res = res;
+    this->req = NULL;
+    this->res = NULL;
+
+}
+Middleware::Middleware(const HTTPRequest *_req, const HTTPResponse *_res):Middleware()
+{
+    this->req = _req;
+    this->res = _res;
+}
+Middleware::~Middleware()
+{
 }
 
-void Middleware::execute()
-{
-}
+

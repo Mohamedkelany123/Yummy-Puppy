@@ -6,6 +6,7 @@
 #include "Middleware.h"
 
 typedef HTTPService * create_object_routine();
+typedef Middleware * create_middleware_routine();
 class SharedObjectsManager{
     protected:
         map <string,HTTPService *> gobj; // A vector to store the cloner objects

@@ -21,3 +21,11 @@ MiddlewareManager::MiddlewareManager(ConfigFile * conf, Logger* logger){
         continue;
     }
 }
+
+MiddlewareManager::~MiddlewareManager()
+{
+    delete (sharedObjectPtr);
+    for ( auto m: this->middlewares)
+        delete (m.second);
+
+}

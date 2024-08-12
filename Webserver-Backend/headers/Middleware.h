@@ -7,17 +7,16 @@
 
 class  Middleware
 {
-    private:
-    const HTTPRequest* req;
-    const HTTPResponse* res;
+    protected:
+        const HTTPRequest* req;
+        const HTTPResponse* res;
     public:
-        Middleware(const HTTPRequest* req, const HTTPResponse* res);
+        Middleware();
+        Middleware(const HTTPRequest* _req, const HTTPResponse* _res);
         virtual bool pre() = 0;
         virtual bool post()=0;
-        void execute();
+        virtual Middleware * clone() =0;
         virtual ~Middleware();
-
-
 };
 
 

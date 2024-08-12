@@ -51,11 +51,11 @@
         
         if ( dso ){ // If dso is not NULL then loaded successfully
          
-            create_object_routine * my_func = (create_object_routine *) dlsym (dso,"create_object"); // Loading external function from DSO
+            create_middleware_routine * my_func = (create_middleware_routine *) dlsym (dso,"create_object"); // Loading external function from DSO
 
             if ( my_func ){ // If function loaded successfully
              
-                gobj[name] = my_func();    // Store function in gobj vector
+                middles[name] = my_func();    // Store function in gobj vector
                 dsos[name] = dso;          // Store DSO handler into dsos vectors
                 obj  = middles[name];         // Fetch the external function into obj to be returned
             } // Cannot load the external function from the DSO
