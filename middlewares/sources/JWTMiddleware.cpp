@@ -12,10 +12,12 @@ JWTMiddleware::JWTMiddleware(const HTTPRequest* _req, const HTTPResponse* _res):
 }
 bool JWTMiddleware::pre()
 {
+    cout << "This is JWTMiddleware::pre()" << endl;
     return true;
 }
 bool JWTMiddleware::post()
 {
+    cout << "This is JWTMiddleware::post()" << endl;
     return true;
 
 }

@@ -2,7 +2,7 @@
 #include "HTTPNotAcceptableExceptionHandler.h"
 #define WEB_CACHE_ROOT  "./www"
 // Constructor:  building up the factory map
-HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger)
+HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,MiddlewareManager * _middlewareManager)
 {
     sharedObjectPtr = new SharedObjectsManager();
     for (auto& el : conf->data.items()) {
@@ -12,11 +12,19 @@ HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger)
         try{
         string so_path = el.value()["so_path"];
         string http_path = el.value()["http_path"];
+        auto middlewares = el.value()["middlewares"];
+
+        vector<string> endpoint_middlewares;
+        for (auto& el : middlewares.items()) {
+            cout << el.key() << ": " << el.value() << endl;
+            endpoint_middlewares.push_back(el.value());
+        }
         cout << "SO_Path: " << so_path << endl;
         cout << "HTTP_Path: " << http_path << endl;
         cout << "KEY: "<< el.key() << endl;
 //        services [el.key()] = sharedObjectPtr->load(so_path);
         services [http_path] = sharedObjectPtr->load(so_path);
+        _middlewareManager->assignEndpoint(http_path,endpoint_middlewares);
         }catch(exception e){
             LOG_ERRORS(e.what());
         }

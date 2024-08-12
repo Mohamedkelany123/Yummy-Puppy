@@ -4,11 +4,12 @@
 #include "HTTPMethodNotAllowedExceptionHandler.h"
 
 // Constructor: initailizing data members and calling the Thread Base class constructor
-HTTPTransaction::HTTPTransaction (TCPSocket * p_tcpSocket,HTTPServiceManager * p_httpServiceManager,HTTPRequestManager * p_httpRequestManager)
+HTTPTransaction::HTTPTransaction (TCPSocket * p_tcpSocket,HTTPServiceManager * p_httpServiceManager,HTTPRequestManager * p_httpRequestManager,MiddlewareManager * _middlewareManager)
 {   
     httpServiceManager = p_httpServiceManager;
     tcpSocket = p_tcpSocket;
     httpRequestManager = p_httpRequestManager;
+    middlewareManager = _middlewareManager;
 };
 // Instantiate the HTTPRequest object based on the method type of the request
 HTTPRequest * HTTPTransaction::fetchHTTPRequest ()
@@ -41,9 +42,8 @@ void HTTPTransaction::process()
         // Invoke the HTTPServiceManager for a service that can serve the request resource
         if ( httpRequest != NULL)
         {
-            
-            s  =httpServiceManager->getService(httpRequest->getResource());/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            s->execute(httpRequest,tcpSocket); // Execute the servive
+            s =httpServiceManager->getService(httpRequest->getResource());/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            s->execute(httpRequest,tcpSocket,middlewareManager->getEndpointMiddlewares(httpRequest->getResource())); // Execute the servive
             delete (httpRequest); // delete the httpRequest object
 	        delete(s);
         }

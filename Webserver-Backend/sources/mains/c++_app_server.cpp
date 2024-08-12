@@ -21,8 +21,9 @@ int main(int argc, char** argv) {
     // Instantiate a garbage collector object
     GarbageCollector * garbageCollector = new GarbageCollector();
     // Instantiate an HTTPServiceManager Factory
-    HTTPServiceManager * httpServiceManager = new HTTPServiceManager(conf, Logger::getInstance());
     MiddlewareManager * middlewareManager = new MiddlewareManager(conf, Logger::getInstance());
+
+    HTTPServiceManager * httpServiceManager = new HTTPServiceManager(conf, Logger::getInstance(),middlewareManager);
 
     // Instantiate an HTTPRequestManager Factory
     HTTPRequestManager * httpRequestManager = new HTTPRequestManager();
@@ -38,7 +39,7 @@ int main(int argc, char** argv) {
         if ( tcpSocket ==NULL) break; // if returns a NULL break the loop and exist
         garbageCollector->cleanup(); // Apply garbage collection cleanup
         // Instantiate a new HTTPTransaction Object and pass the TCPSocket pointer and different factories to it
-        HTTPTransaction * httpTransaction = new HTTPTransaction(tcpSocket,httpServiceManager,httpRequestManager);
+        HTTPTransaction * httpTransaction = new HTTPTransaction(tcpSocket,httpServiceManager,httpRequestManager,middlewareManager);
         // Add the HTTPTransaction just created to the garbage collector for clean up
         std::thread * t = new std::thread (HTTPTransaction::startHTTPTransaction,httpTransaction); // Start the connection thread to communicate with the client
         httpTransaction->setThread(t);
