@@ -3,6 +3,7 @@
 
 #include <PSQLAbstractORM.h>
 #include <PSQLController.h>
+#include <AbstractException.h>
 
 enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin,isnull,isnotnull };
 enum math_operator { mod, plus };
@@ -225,6 +226,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         string join_string = "";
         vector <PSQLAbstractORM *> * orm_objects;
         map <string,PSQLAbstractORM *> orm_objects_map;
+        vector <AbstractException *> exceptions;
         void unlock_orms (map <string,PSQLAbstractORM *> *  orms);
         void adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list);
         static void process_internal_aggregate(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms_list,int partition_number,mutex * shared_lock,void * extras)> f);
@@ -243,6 +245,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // bool execute();
         bool setDistinct (vector<pair<string,string>> _distinct_map);
         bool setAggregates (map<string, pair<string, int>> _aggregate_map);
+        long get_result_count ();
         ~PSQLJoinQueryIterator();
 };
 
