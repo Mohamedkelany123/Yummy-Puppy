@@ -1,8 +1,8 @@
 
 #include "HTTPResponseHeader.h"
 // Constructor that sets data members using initialization list. status, status_code, and protocol are used to set up the first line of the header
-HTTPResponseHeader::HTTPResponseHeader(TCPSocket * p_tcpSocket,string p_status,int p_status_code,string p_protocol):
-tcpSocket(p_tcpSocket),status(p_status),status_code(p_status_code),protocol(p_protocol)
+HTTPResponseHeader::HTTPResponseHeader(string p_status,int p_status_code,string p_protocol):
+status(p_status),status_code(p_status_code),protocol(p_protocol)
 {
     
 }
@@ -12,8 +12,10 @@ void HTTPResponseHeader::setHeader(string p_key,string p_value)
     header[p_key]=p_value; // add to the header map
 }
 
+
+
 // Build up the HTTP header from the header map and write it on the socket back to the client
-void HTTPResponseHeader::respond ()
+void HTTPResponseHeader::respond (TCPSocket * tcpSocket)
 {
     // Compose the first line in the header
     string header_string = protocol;
@@ -33,6 +35,18 @@ void HTTPResponseHeader::respond ()
     header_string += "\r\n"; // Empty line as end of header indicator
     // Write header to client over tcpSocket
     tcpSocket->writeToSocket(header_string.c_str(),header_string.length());
+}
+void HTTPResponseHeader::setStatus(string p_status)
+{
+    status = p_status;
+}
+void HTTPResponseHeader::setStatusCode(int p_status_code)
+{
+    status_code = p_status_code;
+}
+void HTTPResponseHeader::setProtocol(string p_protocol)
+{
+    protocol = p_protocol;
 }
 // Destructor
 HTTPResponseHeader::~HTTPResponseHeader(){}

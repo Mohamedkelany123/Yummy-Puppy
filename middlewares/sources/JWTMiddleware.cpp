@@ -1,40 +1,28 @@
 #include <JWTMiddleware.h>
 
-
-JWTMiddleware::JWTMiddleware():Middleware()
+JWTMiddleware::JWTMiddleware() : Middleware("JWT")
 {
-
 }
-
-JWTMiddleware::JWTMiddleware(const HTTPRequest* _req, const HTTPResponse* _res):Middleware(_req,_res)
+bool JWTMiddleware::run(HTTPRequest *_req, HTTPResponse *_res)
 {
-
-}
-bool JWTMiddleware::pre()
-{
-    cout << "This is JWTMiddleware::pre()" << endl;
+    if (_req != nullptr)
+    {
+        string str = _req->getHeaderValue("Accept");
+        cout << _req->getHeaderValue("Authorization") << endl;
+    }
+    cout << "This is JWTMiddleware::run()" << endl;
     return true;
 }
-bool JWTMiddleware::post()
+Middleware *JWTMiddleware::clone()
 {
-    cout << "This is JWTMiddleware::post()" << endl;
-    return true;
-
-}
-Middleware * JWTMiddleware::clone()
-{
-    return (Middleware *) new JWTMiddleware();
+    return (Middleware *)new JWTMiddleware();
 }
 
 JWTMiddleware::~JWTMiddleware()
 {
-
 }
-
 
 extern "C" Middleware *create_object() // extern "c" not garbling function names
 {
-
-    return new JWTMiddleware ();
-
+    return new JWTMiddleware();
 }

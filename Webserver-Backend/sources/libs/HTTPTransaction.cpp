@@ -36,28 +36,29 @@ void HTTPTransaction::process()
 {
     HTTPService * s;/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     HTTPRequest * httpRequest; // Define a pointer to an HTTPRequest object
-    try{ // try the following code block and look for exceptions
-        // Fetch the httpRequest object needed to service this request based on the method type
+    HTTPResponse * httpResponse = new HTTPResponse(tcpSocket);
+    try{ 
         httpRequest= fetchHTTPRequest (); 
         // Invoke the HTTPServiceManager for a service that can serve the request resource
         if ( httpRequest != NULL)
         {
             s =httpServiceManager->getService(httpRequest->getResource());/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            s->execute(httpRequest,tcpSocket,middlewareManager->getEndpointMiddlewares(httpRequest->getResource())); // Execute the servive
+            s->execute(httpRequest,httpResponse,middlewareManager); // Execute the servive
             delete (httpRequest); // delete the httpRequest object
-	        delete(s);
+            delete(httpResponse); // delete the httpResponse object
+            delete(s);
         }
         tcpSocket->shutDown(); // Shutdown the TCP socket
     }
     catch (HTTPNotAcceptableExceptionHandler httpNotAcceptableExceptionHandler )
     { //An exception occurred indicating that the service requested is not accepted 
-        httpNotAcceptableExceptionHandler.handle(tcpSocket); // handle exception
+        httpNotAcceptableExceptionHandler.handle(httpResponse); // handle exception
         delete (httpRequest); // delete the httpRequest object
         tcpSocket->shutDown(); // Shutdown the TCP socket
     }
     catch (HTTPMethodNotAllowedExceptionHandler httpMethodNotAllowedExceptionHandler )
     { //An exception occurred indicating that the requested resource cannot be found or accessed
-        httpMethodNotAllowedExceptionHandler.handle(tcpSocket);// handle exception
+        httpMethodNotAllowedExceptionHandler.handle(httpResponse);// handle exception
         tcpSocket->shutDown(); // Shutdown the TCP socket
     }
     //This is where we catch any exception related to the HTTPBlnkService, we know for sure that any exception will be handled there because

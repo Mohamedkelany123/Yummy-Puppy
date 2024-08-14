@@ -9,7 +9,7 @@ class HTTPNotFoundExceptionHandler: public HTTPExceptionHandler
     public:
         HTTPNotFoundExceptionHandler(); // Constructor
         //The Exception handler method        
-        virtual void handle (TCPSocket * p_tcpSocket) ;
+        virtual void handle (HTTPResponse* response) ;
         ~HTTPNotFoundExceptionHandler(); // Destructor
 };
 

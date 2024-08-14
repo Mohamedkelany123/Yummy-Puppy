@@ -3,19 +3,17 @@
 // Constructor
 HTTPNotFoundExceptionHandler::HTTPNotFoundExceptionHandler(){}
 // Handling the resource not found exception: HTTP status code 404
-void HTTPNotFoundExceptionHandler::handle (TCPSocket * p_tcpSocket)
+void HTTPNotFoundExceptionHandler::handle (HTTPResponse* response)
 {
-    // String to hold response body
-    string response = "<H1>404: File Not Found</H1>";
-    // Instantiate an HTTPResponseHeader object and set its header attributes    
-    HTTPResponseHeader * httpResponseHeader = new HTTPResponseHeader(p_tcpSocket,"Not Found",404,"HTTP/1.1");
-    httpResponseHeader->setHeader("Content-Type","text/html");
-    httpResponseHeader->setHeader("Content-Length",to_string(response.length()));
-    // Respond to client by sending the response header on the p_tcpSocket
-    httpResponseHeader->respond();
-    // Write the body string to the client via p_tcpSockey    
-    p_tcpSocket->writeToSocket(response.c_str(),response.length());
-    delete (httpResponseHeader); // Destruct the HTTPResponseHeader object
+    json reply;
+    reply["error"] = "Not Found";
+    reply["status_code"] = 404;
+    response->getHeader()->setStatus("Not Found");
+    response->getHeader()->setStatusCode(404);
+    response->getHeader()->setProtocol("HTTP/1.1");
+    response->setHeaderValue("Content-Type", "application/json");
+    response->setBody(reply);
+    response->write();
 
 }
 // Destructor
