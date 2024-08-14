@@ -66,19 +66,17 @@ void HTTPTransaction::process()
             delete (httpResponse);                                    // delete the httpResponse object
             delete (s);
         }
-        tcpSocket->shutDown(); // Shutdown the TCP socket
     }
     catch (HTTPNotAcceptableExceptionHandler httpNotAcceptableExceptionHandler)
     {                                                           // An exception occurred indicating that the service requested is not accepted
         httpNotAcceptableExceptionHandler.handle(httpResponse); // handle exception
         delete (httpRequest);                                   // delete the httpRequest object
-        tcpSocket->shutDown();                                  // Shutdown the TCP socket
     }
     catch (HTTPMethodNotAllowedExceptionHandler httpMethodNotAllowedExceptionHandler)
     {                                                              // An exception occurred indicating that the requested resource cannot be found or accessed
         httpMethodNotAllowedExceptionHandler.handle(httpResponse); // handle exception
-        tcpSocket->shutDown();                                     // Shutdown the TCP socket
     }
+    tcpSocket->shutDown();                                     // Shutdown the TCP socket
     // This is where we catch any exception related to the HTTPBlnkService, we know for sure that any exception will be handled there because
     // the statement s->execute is the one that caused an HTTPBlnkService to be initialized in the first place, s and httpRequest are deleted to make
     // sure that the garbage collection is done in a right way, we know that s and httpRequest are not NULL because s->execute must have been called in the
