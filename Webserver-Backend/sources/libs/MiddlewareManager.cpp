@@ -6,22 +6,22 @@ inline bool ends_with(std::string const &value, std::string const &ending)
         return false;
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
+/**
+ * @brief Constructor for the MiddlewareManager class.
+ *
+ * This constructor initializes the MiddlewareManager object with a given ConfigFile and Logger.
+ * It loads the middleware shared objects from the configuration file and stores them in a map.
+ *
+ * @param conf A pointer to the ConfigFile object containing the middleware configuration.
+ * @param logger A pointer to the Logger object for logging errors and messages.
+ *
+ * @note The constructor assumes that the ConfigFile contains a "server_config" section with a "middlewares"
+ * subsection, where each middleware is specified with a unique name and a "DSO" (Dynamic Shared Object) path.
+ *
+ * @see ConfigFile, Logger, SharedObjectsManager
+ */
 MiddlewareManager::MiddlewareManager(ConfigFile *conf, Logger *logger)
 {
-    /**
-     * @brief Constructor for the MiddlewareManager class.
-     *
-     * This constructor initializes the MiddlewareManager object with a given ConfigFile and Logger.
-     * It loads the middleware shared objects from the configuration file and stores them in a map.
-     *
-     * @param conf A pointer to the ConfigFile object containing the middleware configuration.
-     * @param logger A pointer to the Logger object for logging errors and messages.
-     *
-     * @note The constructor assumes that the ConfigFile contains a "server_config" section with a "middlewares"
-     * subsection, where each middleware is specified with a unique name and a "DSO" (Dynamic Shared Object) path.
-     *
-     * @see ConfigFile, Logger, SharedObjectsManager
-     */
     this->logger = logger;
     sharedObjectPtr = new SharedObjectsManager<Middleware>();
     for (auto &el : conf->data.items())
@@ -59,23 +59,23 @@ void MiddlewareManager::assignEndpointPostMiddlewares(string name, vector<string
     }
 }
 
+/**
+ * @brief Executes a list of middleware objects.
+ *
+ * This function takes a vector of Middleware pointers, clones each middleware, and runs them sequentially.
+ * If any middleware fails to execute (returns false), an error message is logged, the cloned middleware objects are deleted,
+ * and the function returns false. If all middlewares execute successfully, the cloned middleware objects are deleted,
+ * and the function returns true.
+ *
+ * @param middlewaresList A vector of Middleware pointers to be executed.
+ * @return True if all middlewares were successfully executed, false otherwise.
+ *
+ * @note The function assumes ownership of the middleware objects and will delete them using the 'delete' operator.
+ *
+ * @see Middleware, deleteEndpointMiddleware
+ */
 bool MiddlewareManager::runMiddlewares(vector<Middleware *> middlewaresList, HTTPRequest *req, HTTPResponse *res)
 {
-    /**
-     * @brief Executes a list of middleware objects.
-     *
-     * This function takes a vector of Middleware pointers, clones each middleware, and runs them sequentially.
-     * If any middleware fails to execute (returns false), an error message is logged, the cloned middleware objects are deleted,
-     * and the function returns false. If all middlewares execute successfully, the cloned middleware objects are deleted,
-     * and the function returns true.
-     *
-     * @param middlewaresList A vector of Middleware pointers to be executed.
-     * @return True if all middlewares were successfully executed, false otherwise.
-     *
-     * @note The function assumes ownership of the middleware objects and will delete them using the 'delete' operator.
-     *
-     * @see Middleware, deleteEndpointMiddleware
-     */
     vector<Middleware *> localMiddlewares;
     for (int i = 0; i < middlewaresList.size(); i++)
         localMiddlewares.push_back((middlewaresList[i])->clone());
@@ -92,60 +92,60 @@ bool MiddlewareManager::runMiddlewares(vector<Middleware *> middlewaresList, HTT
     return true;
 }
 
+/**
+ * @brief Deletes the middleware objects from the given vector.
+ *
+ * This function iterates through the provided vector of Middleware pointers and deletes each object.
+ * It is used to clean up dynamically allocated middleware objects after they have been executed.
+ *
+ * @param localMiddlewares A vector of Middleware pointers to be deleted.
+ *
+ * @note The function assumes ownership of the middleware objects and will delete them using the 'delete' operator.
+ *
+ * @see Middleware
+ */
 void MiddlewareManager::deleteEndpointMiddleware(vector<Middleware *> localMiddlewares)
 {
-    /**
-     * @brief Deletes the middleware objects from the given vector.
-     *
-     * This function iterates through the provided vector of Middleware pointers and deletes each object.
-     * It is used to clean up dynamically allocated middleware objects after they have been executed.
-     *
-     * @param localMiddlewares A vector of Middleware pointers to be deleted.
-     *
-     * @note The function assumes ownership of the middleware objects and will delete them using the 'delete' operator.
-     *
-     * @see Middleware
-     */
     for (int i = 0; i < localMiddlewares.size(); i++)
         delete (localMiddlewares[i]);
 }
 
+/**
+ * @brief Runs the pre-middlewares for a specific endpoint.
+ *
+ * This function retrieves the pre-middlewares associated with the given endpoint name from the
+ * `endpointsPreMiddlewares` map and calls the `runMiddlewares` function to execute them.
+ *
+ * @param endpointName The name of the endpoint for which to run the pre-middlewares.
+ * @return True if all pre-middlewares were successfully executed, false otherwise.
+ *
+ * @note The pre-middlewares are stored in the `endpointsPreMiddlewares` map, which is a map of endpoint names
+ * to vectors of Middleware pointers.
+ *
+ * @see runMiddlewares
+ */
 bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
-    /**
-     * @brief Runs the pre-middlewares for a specific endpoint.
-     *
-     * This function retrieves the pre-middlewares associated with the given endpoint name from the
-     * `endpointsPreMiddlewares` map and calls the `runMiddlewares` function to execute them.
-     *
-     * @param endpointName The name of the endpoint for which to run the pre-middlewares.
-     * @return True if all pre-middlewares were successfully executed, false otherwise.
-     *
-     * @note The pre-middlewares are stored in the `endpointsPreMiddlewares` map, which is a map of endpoint names
-     * to vectors of Middleware pointers.
-     *
-     * @see runMiddlewares
-     */
     vector<Middleware *> preMiddlewares = endpointsPreMiddlewares[endpointName];
     return runMiddlewares(preMiddlewares, req, res);
 }
 
+/**
+ * @brief Runs the post-middlewares for a specific endpoint.
+ *
+ * This function retrieves the post-middlewares associated with the given endpoint name from the
+ * `endpointsPostMiddlewares` map and calls the `runMiddlewares` function to execute them.
+ *
+ * @param endpointName The name of the endpoint for which to run the post-middlewares.
+ * @return True if all post-middlewares were successfully executed, false otherwise.
+ *
+ * @note The post-middlewares are stored in the `endpointsPostMiddlewares` map, which is a map of endpoint names
+ * to vectors of Middleware pointers.
+ *
+ * @see runMiddlewares
+ */
 bool MiddlewareManager::runEndpointPostMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
-    /**
-     * @brief Runs the post-middlewares for a specific endpoint.
-     *
-     * This function retrieves the post-middlewares associated with the given endpoint name from the
-     * `endpointsPostMiddlewares` map and calls the `runMiddlewares` function to execute them.
-     *
-     * @param endpointName The name of the endpoint for which to run the post-middlewares.
-     * @return True if all post-middlewares were successfully executed, false otherwise.
-     *
-     * @note The post-middlewares are stored in the `endpointsPostMiddlewares` map, which is a map of endpoint names
-     * to vectors of Middleware pointers.
-     *
-     * @see runMiddlewares
-     */
     vector<Middleware *> postMiddlewares = endpointsPostMiddlewares[endpointName];
     return runMiddlewares(postMiddlewares, req, res);
 }

@@ -34,17 +34,17 @@ class EndpointService : public HTTPService
         {
             lambda = _lambda;
         }
+        /**
+         * Executes the HTTP request and response handling for the endpoint service.
+         *
+         * @param p_httpRequest Pointer to the HTTP request object.
+         * @param p_httpResponse Pointer to the HTTP response object.
+         * @param middlewareManager Pointer to the middleware manager object. Optional, defaults to NULL.
+         *
+         * @return True if the request is successfully processed and the response is written, false otherwise.
+         */ 
         bool execute(HTTPRequest *p_httpRequest, HTTPResponse *p_httpResponse, MiddlewareManager *middlewareManager = NULL)
         {
-            /**
-             * Executes the HTTP request and response handling for the endpoint service.
-             *
-             * @param p_httpRequest Pointer to the HTTP request object.
-             * @param p_httpResponse Pointer to the HTTP response object.
-             * @param middlewareManager Pointer to the middleware manager object. Optional, defaults to NULL.
-             *
-             * @return True if the request is successfully processed and the response is written, false otherwise.
-             */
             string data = p_httpRequest->getBody();
             middlewareManager->runEndpointPreMiddleware(p_httpRequest->getResource(), p_httpRequest, p_httpResponse);
             string reply = endpoint_entry(data, lambda);
