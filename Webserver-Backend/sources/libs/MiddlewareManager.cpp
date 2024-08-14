@@ -19,6 +19,8 @@ inline bool ends_with(std::string const &value, std::string const &ending)
  * subsection, where each middleware is specified with a unique name and a "DSO" (Dynamic Shared Object) path.
  *
  * @see ConfigFile, Logger, SharedObjectsManager
+ * @author Ramy
+ * @date 14-Aug-2024
  */
 MiddlewareManager::MiddlewareManager(ConfigFile *conf, Logger *logger)
 {
@@ -73,6 +75,8 @@ void MiddlewareManager::assignEndpointPostMiddlewares(string name, vector<string
  * @note The function assumes ownership of the middleware objects and will delete them using the 'delete' operator.
  *
  * @see Middleware, deleteEndpointMiddleware
+ * @author Ramy
+ * @date 14-Aug-2024
  */
 bool MiddlewareManager::runMiddlewares(vector<Middleware *> middlewaresList, HTTPRequest *req, HTTPResponse *res)
 {
@@ -103,6 +107,8 @@ bool MiddlewareManager::runMiddlewares(vector<Middleware *> middlewaresList, HTT
  * @note The function assumes ownership of the middleware objects and will delete them using the 'delete' operator.
  *
  * @see Middleware
+ * @author Ramy
+ * @date 14-Aug-2024
  */
 void MiddlewareManager::deleteEndpointMiddleware(vector<Middleware *> localMiddlewares)
 {
@@ -123,6 +129,8 @@ void MiddlewareManager::deleteEndpointMiddleware(vector<Middleware *> localMiddl
  * to vectors of Middleware pointers.
  *
  * @see runMiddlewares
+ * @author Ramy
+ * @date 14-Aug-2024
  */
 bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
@@ -143,6 +151,8 @@ bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPReques
  * to vectors of Middleware pointers.
  *
  * @see runMiddlewares
+ * @author Ramy
+ * @date 14-Aug-2024
  */
 bool MiddlewareManager::runEndpointPostMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {

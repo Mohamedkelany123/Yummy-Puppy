@@ -42,6 +42,9 @@ class EndpointService : public HTTPService
          * @param middlewareManager Pointer to the middleware manager object. Optional, defaults to NULL.
          *
          * @return True if the request is successfully processed and the response is written, false otherwise.
+         * 
+         * @authors Kmsobh, Ramy
+         * @date 14-Aug-2024
          */ 
         bool execute(HTTPRequest *p_httpRequest, HTTPResponse *p_httpResponse, MiddlewareManager *middlewareManager = NULL)
         {
