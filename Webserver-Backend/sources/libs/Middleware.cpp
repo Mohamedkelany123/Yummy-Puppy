@@ -1,19 +1,28 @@
 #include "Middleware.h"
 
-
 Middleware::Middleware()
 {
-    this->req = NULL;
-    this->res = NULL;
-
 }
-Middleware::Middleware(const HTTPRequest *_req, const HTTPResponse *_res):Middleware()
+Middleware::Middleware(const string _middlewareName) : Middleware()
 {
-    this->req = _req;
-    this->res = _res;
+    this->middlewareName = _middlewareName;
 }
+
+string Middleware::getName()
+{
+    return this->middlewareName;
+}
+
+void Middleware::setParams(json _params)
+{
+    params = _params;
+}
+
+json Middleware::getParams()
+{
+    return params;
+}
+
 Middleware::~Middleware()
 {
 }
-
-

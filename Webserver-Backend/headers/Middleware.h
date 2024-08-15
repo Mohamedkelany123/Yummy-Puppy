@@ -8,14 +8,16 @@
 class  Middleware
 {
     protected:
-        const HTTPRequest* req;
-        const HTTPResponse* res;
+        string middlewareName;
+        json params;
     public:
         Middleware();
-        Middleware(const HTTPRequest* _req, const HTTPResponse* _res);
-        virtual bool pre() = 0;
-        virtual bool post()=0;
+        Middleware(const string _middlewarename);
+        virtual bool run(HTTPRequest* _req, HTTPResponse* _res)=0;
         virtual Middleware * clone() =0;
+        string getName();
+        void setParams(json _params);
+        json getParams();
         virtual ~Middleware();
 };
 

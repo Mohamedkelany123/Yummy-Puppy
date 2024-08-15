@@ -4,27 +4,36 @@
 // Constructor:  building up the factory map
 HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,MiddlewareManager * _middlewareManager)
 {
-    sharedObjectPtr = new SharedObjectsManager();
+    sharedObjectPtr = new SharedObjectsManager<HTTPService>();
     for (auto& el : conf->data.items()) {
         if(el.key() == "server_config")
             continue;
         std::cout << el.key() << " : ";
         try{
-        string so_path = el.value()["so_path"];
-        string http_path = el.value()["http_path"];
-        auto middlewares = el.value()["middlewares"];
+            string so_path = el.value()["so_path"];
+            string http_path = el.value()["http_path"];
+            auto middlewares = el.value()["middlewares"];
+            auto preMiddlewares = el.value()["middlewares"]["preMiddlewares"];
+            auto postMiddlewares = el.value()["middlewares"]["postMiddlewares"];
 
-        vector<string> endpoint_middlewares;
-        for (auto& el : middlewares.items()) {
-            cout << el.key() << ": " << el.value() << endl;
-            endpoint_middlewares.push_back(el.value());
-        }
-        cout << "SO_Path: " << so_path << endl;
-        cout << "HTTP_Path: " << http_path << endl;
-        cout << "KEY: "<< el.key() << endl;
-//        services [el.key()] = sharedObjectPtr->load(so_path);
-        services [http_path] = sharedObjectPtr->load(so_path);
-        _middlewareManager->assignEndpoint(http_path,endpoint_middlewares);
+            vector<string> endpointPreMiddlewares;
+            for (auto& el : preMiddlewares.items()) {
+                cout << el.key() << ": " << el.value() << endl;
+                endpointPreMiddlewares.push_back(el.value());
+            }
+
+            vector<string> endpointPostMiddlewares;
+            for (auto& el : postMiddlewares.items()) {
+                cout << el.key() << ": " << el.value() << endl;
+                endpointPostMiddlewares.push_back(el.value());
+            }
+            cout << "SO_Path: " << so_path << endl;
+            cout << "HTTP_Path: " << http_path << endl;
+            cout << "KEY: "<< el.key() << endl;
+    //        services [el.key()] = sharedObjectPtr->load(so_path);
+            services [http_path] = sharedObjectPtr->load(so_path);
+            _middlewareManager->assignEndpointPreMiddlewares(http_path, endpointPreMiddlewares);
+            _middlewareManager->assignEndpointPostMiddlewares(http_path, endpointPostMiddlewares);
         }catch(exception e){
             LOG_ERRORS(e.what());
         }

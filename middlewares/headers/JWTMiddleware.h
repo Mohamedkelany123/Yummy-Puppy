@@ -10,9 +10,7 @@ class  JWTMiddleware: public Middleware
 
     public:
         JWTMiddleware ();
-        JWTMiddleware(const HTTPRequest* _req, const HTTPResponse* _res);
-        virtual bool pre();
-        virtual bool post();
+        virtual bool run(HTTPRequest* _req, HTTPResponse* _res);
         virtual Middleware * clone();
         virtual ~JWTMiddleware();
 };
