@@ -37,6 +37,7 @@ MiddlewareManager::MiddlewareManager(ConfigFile *conf, Logger *logger)
                 {
                     std::cout << el1.key() << ":" << el1.value()["DSO"] << "\n";
                     this->middlewares[el1.key()] = sharedObjectPtr->load(el1.value()["DSO"]);
+                    this->middlewares[el1.key()]->setParams(el1.value()); 
                     break;
                 }
             }
