@@ -96,6 +96,7 @@ PSQLAbstractQueryIterator(_data_source_name,"")
     conditions= "";
     pre_conditions = "";
     orm_objects = new vector <PSQLAbstractORM *> ();
+    exceptions = new ExceptionStack();
     for ( int i =0 ; i  < tables.size() ; i ++)
     {
         if ( column_names != "") column_names += ",";
@@ -193,6 +194,7 @@ PSQLAbstractQueryIterator(_data_source_name,"")
     pre_conditions = "";
     orm_objects = new vector <PSQLAbstractORM *> ();
     std::set<string> tables_set;  
+    exceptions = new ExceptionStack();
     for ( int i =0 ; i  < tables.size() ; i ++)
     {
         if ( tables_set.find(tables[i]->getTableName()) == tables_set.end())
@@ -414,14 +416,14 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
     catch (AbstractException * e)
     {
         shared_lock->lock();
-        me->exceptions.push_back(e);
+        me->exceptions->push_back(e);
         shared_lock->unlock();
     }
 }
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
 {
-        exceptions.clear();
+        exceptions->clear();
         time_t start = time (NULL);
         cout << "Executing PSQL Query on the remote server" << endl;
         if (this->execute() && this->psqlQuery->getRowCount() > 0)
@@ -458,14 +460,10 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
             time_t time_snapshot2 = time (NULL);
             cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
             cout << "cache counter: " << psqlController.getCacheCounter() << endl;
-            cout << "exceptions.size(): " << exceptions.size() << endl;
-            if (exceptions.size()>0)
+            // cout << "exceptions.size(): " << exceptions.size() << endl;
+            if (exceptions->size()>0)
             {
-                AbstractException * e  = exceptions[0];
-                for ( int  i = 1 ; i < exceptions.size() ; i ++)
-                    delete (exceptions[i]);
-                exceptions.clear();
-                throw e;
+                throw exceptions;
             }
         }
 }
@@ -633,6 +631,7 @@ PSQLJoinQueryIterator::~PSQLJoinQueryIterator()
     for (auto orm_object: *orm_objects) 
         delete (orm_object);
     delete (orm_objects);
+    if (exceptions->size() == 0 ) delete (exceptions);
 
 }
 

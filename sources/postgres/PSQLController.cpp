@@ -64,6 +64,8 @@ void PSQLController::ORMCommit(string name,long id)
 }
 void PSQLController::ORMFlush()
 {
+    for (auto cache : psqlORMCaches)
+        cache.second->flush();
 
 }
 void PSQLController::ORMFlush(string name)
@@ -72,7 +74,6 @@ void PSQLController::ORMFlush(string name)
 }
 void PSQLController::ORMFlush(string name,long id)
 {
-
 }
 
 int PSQLController::getDataSourceConnectionCount(string data_source_name)

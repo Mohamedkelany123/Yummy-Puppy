@@ -63,12 +63,23 @@ void generate(const ConfigReader& conf) {
         tables = psqlConnection->getTableNames();
     }
 
+
+    vector<string> views = psqlConnection->getViewNames();
+
+
     string orm_folder = conf.GetValue("factory", "directory");
     PSQLPrimitiveORMGenerator * psqlPrimitiveORMGenerator = new PSQLPrimitiveORMGenerator(datasource_key, orm_folder);
     for ( int i = 0 ; i  < tables.size() ; i ++)
     {
-        cout << "Generating " << tables[i] << endl;
+        cout << "Generating Table " << tables[i] << endl;
         psqlPrimitiveORMGenerator->generate(tables[i],std::to_string(i),tables);
+    }
+
+
+    for ( int i = tables.size() ; i  < views.size() ; i ++)
+    {
+        cout << "Generating View " << views[i] << endl;
+        psqlPrimitiveORMGenerator->generate(views[i],std::to_string(i),views,true);
     }
 
     psqlController.releaseConnection(datasource_key, psqlConnection);
