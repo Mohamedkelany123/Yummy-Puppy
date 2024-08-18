@@ -165,8 +165,5 @@ void PSQLConnection::rollbackTransaction()
 PSQLConnection::~PSQLConnection()
 {
     if (psql_connection != NULL)
-    {
-        cout << "PSQLConnection::~PSQLConnection()" << endl;
         PQfinish(psql_connection);
-    }   
 }
