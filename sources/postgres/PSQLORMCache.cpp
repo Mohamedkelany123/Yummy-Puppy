@@ -7,9 +7,9 @@ bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex
     int counter =0;
     int return_flag = true;
 
-    cout << "Started commit internal for " << t_index 
-        << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
-        << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
+    // cout << "Started commit internal for " << t_index 
+    //     << " || inserts = " << (t_index < me->insert_thread_cache.size() ? me->insert_thread_cache[t_index].size() : 0) 
+    //     << " || updates = " <<  (t_index < me->update_thread_cache.size() ? me->update_thread_cache[t_index].size() : 0) << endl;
 
     if (me->insert_thread_cache.size() > t_index)
     {
@@ -382,11 +382,11 @@ void PSQLORMCache::clear_cache(bool clean_updates){
     // cout << "starting cache clear" << endl;
     for (auto orm_cache: insert_cache)
     {
-        int counter = 0 ;
+        // int counter = 0 ;
         for (auto orm_cache_item:orm_cache.second) 
         {
             // cout << "deleting insert cache #" << counter << endl;
-            counter ++;
+            // counter ++;
             delete (orm_cache_item);
         }
         insert_cache[orm_cache.first].clear();
@@ -403,11 +403,11 @@ void PSQLORMCache::clear_cache(bool clean_updates){
         // int counter = 0 ;
         for (auto orm_cache: update_cache)
             for (auto orm_cache_item:orm_cache.second) 
-            // {
-            //     cout << "deleting update cache #" << counter << endl;
-            //     counter++;
-                    delete (orm_cache_item.second);
-            // }
+            {
+                // cout << "deleting update cache #" << counter << endl;
+                // counter++;
+                delete orm_cache_item.second;
+            }
 
         for (auto orm_cache: update_cache)
             orm_cache.second.clear();

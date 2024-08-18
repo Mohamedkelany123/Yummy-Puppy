@@ -98,9 +98,14 @@ bool PSQLConnection::executeUpdateQuery(string psql_query)
         cout << "Query ERROR: " << psql_query << endl;
         cout << PQresultErrorMessage(pgresult) << endl
                 << "----------------------------\n";
+        PQclear (pgresult);
         return false;
     }
-    else return true;
+    else
+    {
+        PQclear (pgresult);
+        return true;
+    }
 }
 
 long PSQLConnection::executeInsertQuery(string psql_query)
@@ -113,6 +118,7 @@ long PSQLConnection::executeInsertQuery(string psql_query)
         cout << "Query ERROR: " << psql_query << endl;
         cout << PQresultErrorMessage(pgresult) << endl
                 << "----------------------------\n";
+        PQclear (pgresult);
         return -1;
     }
     else 
@@ -123,6 +129,7 @@ long PSQLConnection::executeInsertQuery(string psql_query)
         //     int result_count = PQntuples(pgresult);
         // }
         string s = PQgetvalue(pgresult, 0, 0);
+        PQclear (pgresult);
         // cout << s << endl;
         // printf ("%lu\n",atol(s.c_str()));
         return atol(s.c_str());
@@ -142,17 +149,22 @@ vector<string> PSQLConnection::getViewNames()
 
 void PSQLConnection::startTransaction ()
 {
-    PQexec(psql_connection,"SET AUTOCOMMIT OFF");
-    PQexec(psql_connection,"BEGIN");
-    PQexec(psql_connection, "SET CONSTRAINTS ALL IMMEDIATE");
+    PGresult * r =PQexec(psql_connection,"SET AUTOCOMMIT OFF");
+    PQclear(r);
+    r = PQexec(psql_connection,"BEGIN");
+    PQclear(r);
+    r = PQexec(psql_connection, "SET CONSTRAINTS ALL IMMEDIATE");
+    PQclear(r);
 }
 void PSQLConnection::commitTransaction()
 {
-    PQexec(psql_connection,"COMMIT");
+    PGresult * r =PQexec(psql_connection,"COMMIT");
+    PQclear(r);
 }
 void PSQLConnection::rollbackTransaction()
 {
-    PQexec(psql_connection,"ROLLBACK");
+    PGresult * r =PQexec(psql_connection,"ROLLBACK");
+    PQclear(r);
 }
 
 PSQLConnection::~PSQLConnection()

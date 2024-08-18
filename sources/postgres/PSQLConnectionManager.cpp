@@ -58,6 +58,6 @@ int PSQLConnectionManager::getConnectionCount (string data_source_name)
 PSQLConnectionManager::~PSQLConnectionManager()
 {
     for (auto data_source: data_sources) 
-    delete (data_source.second);
+        delete (data_source.second);
  
 }

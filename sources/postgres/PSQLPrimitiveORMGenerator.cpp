@@ -878,10 +878,10 @@ void PSQLPrimitiveORMGenerator::compile(string table_name)
 
 
 void PSQLPrimitiveORMGenerator::createFoldersIfNotExist(const string& path) {
-    fs::path dirPath(path);
+    std::filesystem::path dirPath(path);
 
-    if (!fs::exists(dirPath)) {
-        if (fs::create_directories(dirPath)) {
+    if (!std::filesystem::exists(dirPath)) {
+        if (std::filesystem::create_directories(dirPath)) {
             cout << "Successfully created directories: " << path << endl;
         } else {
             cerr << "Failed to create directories: " << path << endl;

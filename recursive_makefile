@@ -2,14 +2,14 @@ SUBDIRS := $(wildcard */.)
 MAKE_DIR_TEMP=$(shell find ./*/ -maxdepth 1 -iname "Makefile" )
 MAKE_DIR=$(subst /Makefile,.,$(MAKE_DIR_TEMP))
 RULE_NAME=all
-
+EXCLUDE_DIRS := poco 
 
 
 
 make_target_cpp: 
 	@for a in $$(ls); do \
 		if [ -d $$a ]; then \
-			if [ "$$a" != "poco" ]; then \
+			if ! echo "$(EXCLUDE_DIRS)" | tr ' ' '\n' | grep -qx $$a; then \
 				if [ -f $$a/Makefile ]; then \
 					echo "Make target CPP processing folder $$a"; \
 					if ! $(MAKE) -C $$a -f Makefile make_target_cpp ; then \
@@ -25,7 +25,7 @@ make_target_cpp:
 target: make_target_cpp
 	@for a in $$(ls); do \
 		if [ -d $$a ]; then \
-			if [ "$$a" != "poco" ]; then \
+			if ! echo "$(EXCLUDE_DIRS)" | tr ' ' '\n' | grep -qx $$a; then \
 				if [ -f $$a/Makefile ]; then \
 					echo "Make target processing folder $$a"; \
 					if ! $(MAKE) -C $$a -f Makefile target; then \
