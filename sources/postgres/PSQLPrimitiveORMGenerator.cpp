@@ -831,7 +831,6 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, v
     map<string, vector<string>> results  = psqlQuery->getResultAsString();
     generateFieldsMap(class_name,table_index,results);
     get_primary_key(table_name,is_views);
-    cout << "primary_key: " << primary_key << endl;
     if (primary_key != "" )
     {
         generateDecl_Setters_Getters(class_name,results);

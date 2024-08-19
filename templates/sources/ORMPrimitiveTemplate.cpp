@@ -90,7 +90,7 @@ void %s::process(int partitions_count,std::function<void(%s * orm,int partition_
 
         time_t time_snapshot2 = time (NULL);
         cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
-        cout << "cache counter: " << psqlController.getCacheCounter() << endl;
+        cout << "cache counter: " << psqlController.getCacheCounter(data_source_name) << endl;
 
     }
 }

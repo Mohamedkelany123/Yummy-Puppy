@@ -459,7 +459,7 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
             }
             time_t time_snapshot2 = time (NULL);
             cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
-            cout << "cache counter: " << psqlController.getCacheCounter() << endl;
+            cout << "cache counter: " << psqlController.getCacheCounter(data_source_name) << endl;
             // cout << "exceptions.size(): " << exceptions.size() << endl;
             if (exceptions->size()>0)
             {
