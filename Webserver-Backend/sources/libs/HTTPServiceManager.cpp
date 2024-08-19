@@ -12,6 +12,10 @@ HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,Middlew
         try{
             string so_path = el.value()["so_path"];
             string http_path = el.value()["http_path"];
+            vector<string> parameters = getURLParams(http_path);
+            http_path = getRegexURL(http_path);
+            servicesParameters[http_path] = parameters;
+
             auto middlewares = el.value()["middlewares"];
             auto preMiddlewares = el.value()["middlewares"]["preMiddlewares"];
             auto postMiddlewares = el.value()["middlewares"]["postMiddlewares"];
@@ -54,6 +58,29 @@ HTTPService * HTTPServiceManager::getService (string p_resource)
         else return services[base_name]->clone(); // else clone service based on base file name
     }
     else return services[ext]->clone(); // clone service based on extension
+}
+vector<string> HTTPServiceManager::getURLParams(string URLPath)
+{
+        vector<string> parameters;
+        std::string::size_type start = 0;
+        while ((start = URLPath.find('<', start)) != std::string::npos) {
+            // Loop to find all possible end positions for the substring
+            auto end = start;
+            if ((end = URLPath.find('>', end + 1)) != std::string::npos) {
+                parameters.push_back(URLPath.substr(start+1, end - start-1));
+            }
+            start = end; 
+        }
+
+    return parameters;
+}
+string HTTPServiceManager::getRegexURL(string URLPath)
+{       
+    std::string::size_type start, end;
+    while ((start = URLPath.find('<')) != std::string::npos && (end = URLPath.find('>', start)) != std::string::npos) {
+        URLPath.replace(start, end - start + 1, "*");
+    }
+    return URLPath;
 }
 // Destructor
 HTTPServiceManager::~HTTPServiceManager()

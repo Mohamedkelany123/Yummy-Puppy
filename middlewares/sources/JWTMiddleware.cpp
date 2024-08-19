@@ -1,11 +1,12 @@
 #include <JWTMiddleware.h>
 #include <ostream>
-#include <PSQLConnection.h>
-#include <PSQLQuery.h>
+
 
 JWTMiddleware::JWTMiddleware() : Middleware("JWT")
 {
 }
+
+
 bool JWTMiddleware::run(HTTPRequest *_req, HTTPResponse *_res)
 {
     if (_req != nullptr)
@@ -74,6 +75,64 @@ bool JWTMiddleware::run(HTTPRequest *_req, HTTPResponse *_res)
 Middleware *JWTMiddleware::clone()
 {
     return (Middleware *)new JWTMiddleware();
+}
+
+void JWTMiddleware::connectDatabase()
+{
+    string hostname = getParamValue("hostname");
+    int port  = getParamValue("port");
+    string username = getParamValue("username");
+    string password = getParamValue("password");
+    string database = getParamValue("database");
+    connection = new PSQLConnection(hostname,port,database,username,password);
+}
+
+PSQLConnection * JWTMiddleware::getDatabaseConnection()
+{
+    if (!connection->isAlive())
+        cout << "Database connection is not alive" << endl;
+    return connection;
+}
+
+
+bool JWTMiddleware::verifyToken(string authToken)
+{
+
+    try {
+        std::string tokenString = "your.jwt.token.here";
+        std::string secretKey = "your-secret-key";
+
+        // Parse the JWT token
+        Poco::JWT::Token token;
+        Poco::JWT::Token::parse(tokenString, token);
+
+        // Create a Signer (for HS256 in this case)
+        Poco::JWT::Signer::Ptr pSigner = Poco::JWT::SignerFactory::createSigner(Poco::JWT::SignerFactory::HS256, secretKey);
+
+        // Create a JWTValidator
+        Poco::JWT::JWTValidator validator;
+
+        // Verify the token using the Signer
+        if (validator.verify(pSigner, token)) {
+            std::cout << "JWT is valid!" << std::endl;
+        } else {
+            std::cout << "JWT is invalid!" << std::endl;
+        }
+    }
+    catch (Poco::Exception& exc) {
+        std::cerr << "Error: " << exc.displayText() << std::endl;
+    }
+
+
+
+    string authTable = getParamValue("auth_table");
+    string usernameIDField = getParamValue("username_id_field");   
+
+    return false;
+}
+
+void JWTMiddleware::injectUserData()
+{
 }
 
 JWTMiddleware::~JWTMiddleware()

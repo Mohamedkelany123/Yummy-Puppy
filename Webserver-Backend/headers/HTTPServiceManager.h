@@ -10,10 +10,14 @@ class HTTPServiceManager // A class for managing services and acting as a simple
 {
     private:
         std::map <string,HTTPService *> services; // A map that relate service identifier to corresponding pointers to HTTPService cloners
+        map<string,vector<string>> servicesParameters;
         SharedObjectsManager<HTTPService> * sharedObjectPtr;
     public:
         HTTPServiceManager(ConfigFile * conf, Logger* logger,MiddlewareManager * _middlewareManager); // Constructor
         HTTPService * getService (string p_resource);
+        vector<string> getURLParams(string URLPath);
+        string getRegexURL(string URLPath);
+
         ~HTTPServiceManager(); // Destructor
 };
 

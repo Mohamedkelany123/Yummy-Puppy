@@ -23,6 +23,12 @@ json Middleware::getParams()
     return params;
 }
 
+json Middleware::getParamValue(string _key)
+{
+    if(!params.contains(_key)) return NULL;
+    return params[_key];
+}
+
 Middleware::~Middleware()
 {
 }

@@ -18,6 +18,7 @@ class  Middleware
         string getName();
         void setParams(json _params);
         json getParams();
+        json getParamValue(string _key);
         virtual ~Middleware();
 };
 
