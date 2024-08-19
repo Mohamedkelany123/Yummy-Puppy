@@ -611,9 +611,9 @@ void PSQLPrimitiveORMGenerator::generateAddToCache(string class_name)
 void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name,bool is_view)
 {
     extra_methods_def += "\t\tbool isUpdated ();\n";
+    extra_methods += "\t\tbool "+class_name+"::isUpdated (){\n";
     if ( ! is_view)
     {
-        extra_methods += "\t\tbool "+class_name+"::isUpdated (){\n";
         extra_methods += "\t\t\tcommitUpdateReferences();\n";
         extra_methods += "\t\t\tresolveReferences();\n";
         extra_methods += "\t\t\treturn update_flag.any();\n";
@@ -810,7 +810,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
         } 
         extra_methods += "\t\t\tinserted = true;\n ";
         extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
-    } else extra_methods += "\t\t return true;}\n";
+    } else extra_methods += "\t\t return true;\n";
     extra_methods += "\t\t}\n";
 }
 
@@ -829,9 +829,9 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, v
     extra_methods_def = "";
 
     map<string, vector<string>> results  = psqlQuery->getResultAsString();
-    get_primary_key(table_name,is_views);
     generateFieldsMap(class_name,table_index,results);
-
+    get_primary_key(table_name,is_views);
+    cout << "primary_key: " << primary_key << endl;
     if (primary_key != "" )
     {
         generateDecl_Setters_Getters(class_name,results);

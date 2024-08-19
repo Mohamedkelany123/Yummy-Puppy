@@ -9,7 +9,10 @@ void PSQLConnection::load_table_names()
         if (psqlQuery->getResultField(1) == "table")
             this->table_names.push_back(psqlQuery->getResultField(0));
         else if (psqlQuery->getResultField(1) == "view")
+        {
+            cout << "View Name: " << psqlQuery->getResultField(0) << endl;
             this->view_names.push_back(psqlQuery->getResultField(0));
+        }
     } 
     delete (psqlQuery);
 }

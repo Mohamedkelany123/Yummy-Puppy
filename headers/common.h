@@ -72,6 +72,13 @@ using json = nlohmann::json;
         }
 
 
+#define STARTPOSTENDPOINT(I,O) return new EndpointService <I,O>( \
+            [] (string http_body,I * inputSerializer,O * outputSerializer) {
+
+
+#define ENDPOSTENDPOINT });
+
+
 #define ROUND(x) (round(x*100) / 100)
 
 enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY, CUSTOMER_WALLET, PREPAID_TRANSACTION };
