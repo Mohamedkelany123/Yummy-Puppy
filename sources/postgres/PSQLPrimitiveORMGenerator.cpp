@@ -182,8 +182,13 @@ PSQLPrimitiveORMGenerator::PSQLPrimitiveORMGenerator(string p_datasource, string
     cpp_file = (char *) calloc (MAX_SOURCE_FILE_SIZE,sizeof(char));
     fetch_templates();
 }
-void PSQLPrimitiveORMGenerator::get_primary_key(string table_name){
+void PSQLPrimitiveORMGenerator::get_primary_key(string table_name,bool is_view){
     primary_key = "";
+    if (is_view)
+    {   
+        if (view_serial_flag ) primary_key = "view_serial";
+        return;
+    }
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery(R""""(SELECT 
         pg_attribute.attname, 
         format_type(pg_attribute.atttypid, pg_attribute.atttypmod) 
@@ -297,7 +302,7 @@ void PSQLPrimitiveORMGenerator::generateFromString (string class_name,string tab
     extra_methods += "\n\t\t}\n";
 }
 
-void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string table_name,map<string, vector<string>> columns_definition)
+void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string table_name,map<string, vector<string>> columns_definition,bool is_view)
 {
     extra_methods_def += "\t\tvoid assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false);\n";
     extra_methods += "\t\tvoid "+class_name+"::assignResults (AbstractDBQuery * psqlQuery,bool _read_only){\n";
@@ -314,11 +319,13 @@ void PSQLPrimitiveORMGenerator::generateAssignResults (string class_name,string 
         }
     }
     extra_methods += "\t\t\tloaded=true;\n";
-    extra_methods += "\t\t\tinserted=true;\n";
-    extra_methods += "\t\t\tif (!_read_only) {\n";
-    extra_methods += "\t\t\t\taddToCache();\n";
-    extra_methods += "\t\t\t\tcached=true;\n";
-    extra_methods += "\t\t\t}\n";
+    if ( !is_view) {
+        extra_methods += "\t\t\tinserted=true;\n";
+        extra_methods += "\t\t\tif (!_read_only) {\n";
+        extra_methods += "\t\t\t\taddToCache();\n";
+        extra_methods += "\t\t\t\tcached=true;\n";
+        extra_methods += "\t\t\t}\n";
+    }   
     extra_methods += "\t\t}\n";
 }
 
@@ -329,10 +336,11 @@ void PSQLPrimitiveORMGenerator::generateFieldsMap (string class_name,string tabl
     extra_methods_def += "\t\tmap<string,string> generateFieldsMap ();\n";
     extra_methods += "\t\tmap<string,string> "+class_name+"::generateFieldsMap (){\n";
     extra_methods += "\t\t\tmap <string,string> fields_map;\n";
-
+    view_serial_flag=false;
     for (size_t   i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
     {
         string db_field_name = columns_definition["column_name"][i];
+        if (db_field_name == "view_serial") view_serial_flag=true;
         string orm_field_name = "orm_"+columns_definition["column_name"][i];
         bool string_flag = false;
         for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
@@ -600,13 +608,17 @@ void PSQLPrimitiveORMGenerator::generateAddToCache(string class_name)
     extra_methods += "\t\t}\n";
 
 }
-void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name)
+void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name,bool is_view)
 {
     extra_methods_def += "\t\tbool isUpdated ();\n";
     extra_methods += "\t\tbool "+class_name+"::isUpdated (){\n";
-    extra_methods += "\t\t\tcommitUpdateReferences();\n";
-    extra_methods += "\t\t\tresolveReferences();\n";
-    extra_methods += "\t\t\treturn update_flag.any();\n";
+    if ( ! is_view)
+    {
+        extra_methods += "\t\t\tcommitUpdateReferences();\n";
+        extra_methods += "\t\t\tresolveReferences();\n";
+        extra_methods += "\t\t\treturn update_flag.any();\n";
+    }
+    else extra_methods += "\t\t\treturn false;\n";
     extra_methods += "\t\t}\n";
 }
 
@@ -657,11 +669,13 @@ void PSQLPrimitiveORMGenerator::generateResolveReferences(string class_name,stri
     extra_methods += "\t\t}\n";
 }
 
-void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string table_name,map<string, vector<string>> columns_definition)
+void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string table_name,map<string, vector<string>> columns_definition,bool is_view)
 {
 
     extra_methods_def += "\t\tbool update (PSQLConnection * _psqlConnection=NULL);\n";
     extra_methods += "\t\tbool "+class_name+"::update (PSQLConnection * _psqlConnection){\n";
+    if (!is_view)
+    {
     extra_methods += "\t\t\tcommitUpdateReferences(_psqlConnection);\n";
     extra_methods += "\t\t\tresolveReferences();\n";
     extra_methods += "\t\t\tstring update_string = \"\";\n";
@@ -715,88 +729,92 @@ void PSQLPrimitiveORMGenerator::generateUpdateQuery(string class_name,string tab
 
 
     extra_methods += "\t\t\treturn return_flag;\n";
+    }
+    else extra_methods += "\t\t\treturn true;\n";
     extra_methods += "\t\t}\n";
 }
 
 
-void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string table_name,map<string, vector<string>> columns_definition)
+void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string table_name,map<string, vector<string>> columns_definition,bool is_view)
 {
 
     extra_methods_def += "\t\tlong insert (PSQLConnection * _psqlConnection=NULL);\n";
     extra_methods += "\t\tlong "+class_name+"::insert (PSQLConnection * _psqlConnection){\n";
-
-    extra_methods += "\t\t\t if (inserted) return orm_"+primary_key+";\n";
-
-    extra_methods += "\t\t\tcommitAddReferences(_psqlConnection);\n";
-    extra_methods += "\t\t\tresolveReferences();\n";
-    // extra_methods += "\t\t\tstring insert_string = \"\";\n";
-    string columns_string = "";
-    string values_string = "";
-    for (size_t   i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+    if (!is_view)
     {
-        string db_field_name = columns_definition["column_name"][i];
-        string orm_field_name = "orm_"+columns_definition["column_name"][i];
-        bool string_flag = false;
-        for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
-            if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
+        extra_methods += "\t\t\t if (inserted) return orm_"+primary_key+";\n";
 
-        bool json_flag = false;
-        for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
-            if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
-        
-        bool ts_flag = false;
-        if ( columns_definition["udt_name"][i] == "timestamptz") ts_flag=true;
-
-        if ( db_field_name != primary_key)
+        extra_methods += "\t\t\tcommitAddReferences(_psqlConnection);\n";
+        extra_methods += "\t\t\tresolveReferences();\n";
+        // extra_methods += "\t\t\tstring insert_string = \"\";\n";
+        string columns_string = "";
+        string values_string = "";
+        for (size_t   i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
         {
-            if ( columns_string != "") columns_string+= ",";
-            if ( values_string != "") values_string+= "+string(\",\")+";
+            string db_field_name = columns_definition["column_name"][i];
+            string orm_field_name = "orm_"+columns_definition["column_name"][i];
+            bool string_flag = false;
+            for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
+                if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
 
-            values_string+= "((insert_default_values.find(\""+db_field_name+"\") != insert_default_values.end())? ";
+            bool json_flag = false;
+            for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
+                if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
+            
+            bool ts_flag = false;
+            if ( columns_definition["udt_name"][i] == "timestamptz") ts_flag=true;
 
-            values_string+="((insert_default_values[\""+db_field_name+"\"].second)?insert_default_values[\""+db_field_name+"\"].first:string(\"'\")+insert_default_values[\""+db_field_name+"\"].first+string(\"'\"))";
-
-            values_string+= ":";
-
-
-            columns_string += db_field_name;
-
-            if (ts_flag )
+            if ( db_field_name != primary_key)
             {
-                if(columns_definition["is_nullable"][i] == "NO") values_string += "(("+orm_field_name+" == \"\") ? \"now()\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
-                else values_string += "(("+orm_field_name+" == \"\") ? \"null\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
-            }
-            else{
-                values_string += "((update_flag.test("+std::to_string(i)+") && ! null_flag.test("+std::to_string(i)+"))?";
-                if (string_flag )
-                    values_string += "string(\"'\")+"+orm_field_name+"+string(\"'\")";
-                else if (json_flag )
-                    values_string += "string(\"'\")+"+orm_field_name+".dump()+string(\"'\")";
-                else values_string += "string(\"'\")+std::to_string("+orm_field_name+")+string(\"'\")";
-                values_string += ":\"null\")";
-            }
-            values_string += ")";
-        }
-    }
+                if ( columns_string != "") columns_string+= ",";
+                if ( values_string != "") values_string+= "+string(\",\")+";
 
-    if ( columns_string !="")
-    {
-        extra_methods += "\t\t\tif (field_clear_mask_flag.any()) {inserted = false;return -1;}\n";
-        extra_methods += "\t\t\tstring insert_string = \"insert into "+table_name+" ("+columns_string+") values (\"+"+values_string+"+\") returning id\";\n";
-        extra_methods += "\t\t\tPSQLConnection * psqlConnection = _psqlConnection;\n";
-        extra_methods += "\t\t\tif (psqlConnection == NULL )\n";
-        extra_methods += "\t\t\t\tpsqlConnection = psqlController.getPSQLConnection(data_source_name);\n";
-        extra_methods += "\t\t\torm_"+primary_key+"=psqlConnection->executeInsertQuery(insert_string);\n";
-        extra_methods += "\t\t\tif (_psqlConnection == NULL )\n";
-        extra_methods += "\t\t\t\tpsqlController.releaseConnection(data_source_name,psqlConnection);\n";
-        extra_methods += "\t\t\tupdate_flag.reset();\n";
-    } 
-    extra_methods += "\t\t\tinserted = true;\n ";
-    extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
+                values_string+= "((insert_default_values.find(\""+db_field_name+"\") != insert_default_values.end())? ";
+
+                values_string+="((insert_default_values[\""+db_field_name+"\"].second)?insert_default_values[\""+db_field_name+"\"].first:string(\"'\")+insert_default_values[\""+db_field_name+"\"].first+string(\"'\"))";
+
+                values_string+= ":";
+
+
+                columns_string += db_field_name;
+
+                if (ts_flag )
+                {
+                    if(columns_definition["is_nullable"][i] == "NO") values_string += "(("+orm_field_name+" == \"\") ? \"now()\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
+                    else values_string += "(("+orm_field_name+" == \"\") ? \"null\" :string(\"'\")+"+orm_field_name+"+string(\"'\"))";
+                }
+                else{
+                    values_string += "((update_flag.test("+std::to_string(i)+") && ! null_flag.test("+std::to_string(i)+"))?";
+                    if (string_flag )
+                        values_string += "string(\"'\")+"+orm_field_name+"+string(\"'\")";
+                    else if (json_flag )
+                        values_string += "string(\"'\")+"+orm_field_name+".dump()+string(\"'\")";
+                    else values_string += "string(\"'\")+std::to_string("+orm_field_name+")+string(\"'\")";
+                    values_string += ":\"null\")";
+                }
+                values_string += ")";
+            }
+        }
+
+        if ( columns_string !="")
+        {
+            extra_methods += "\t\t\tif (field_clear_mask_flag.any()) {inserted = false;return -1;}\n";
+            extra_methods += "\t\t\tstring insert_string = \"insert into "+table_name+" ("+columns_string+") values (\"+"+values_string+"+\") returning id\";\n";
+            extra_methods += "\t\t\tPSQLConnection * psqlConnection = _psqlConnection;\n";
+            extra_methods += "\t\t\tif (psqlConnection == NULL )\n";
+            extra_methods += "\t\t\t\tpsqlConnection = psqlController.getPSQLConnection(data_source_name);\n";
+            extra_methods += "\t\t\torm_"+primary_key+"=psqlConnection->executeInsertQuery(insert_string);\n";
+            extra_methods += "\t\t\tif (_psqlConnection == NULL )\n";
+            extra_methods += "\t\t\t\tpsqlController.releaseConnection(data_source_name,psqlConnection);\n";
+            extra_methods += "\t\t\tupdate_flag.reset();\n";
+        } 
+        extra_methods += "\t\t\tinserted = true;\n ";
+        extra_methods += "\t\t\treturn orm_"+primary_key+";\n";
+    } else extra_methods += "\t\t return true;\n";
     extra_methods += "\t\t}\n";
 }
 
-void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, vector<string> &tables_to_generate)
+void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, vector<string> &tables_to_generate, bool is_views)
 {
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery("select table_name,column_name,data_type,numeric_precision,numeric_precision_radix,numeric_scale,is_nullable,is_generated,identity_generation,is_identity,column_default,identity_increment,udt_name from information_schema.COLUMNS where table_name='"+table_name+"'");
     string class_name = table_name+"_primitive_orm";
@@ -811,25 +829,25 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, v
     extra_methods_def = "";
 
     map<string, vector<string>> results  = psqlQuery->getResultAsString();
-    get_primary_key(table_name);
+    generateFieldsMap(class_name,table_index,results);
+    get_primary_key(table_name,is_views);
     if (primary_key != "" )
     {
-        generateFieldsMap(class_name,table_index,results);
         generateDecl_Setters_Getters(class_name,results);
         generateFromString(class_name,table_name,table_index,results);
-        generateAssignResults(class_name,table_index,results);
+        generateAssignResults(class_name,table_index,results,is_views);
         generateAssignmentOperator(class_name,table_index,results);
         generateGetIdentifier(class_name);
         generateCloner(class_name);
         generateExternDSOEntryPoint(class_name,table_name);
         generateConstructorAndDestructor(class_name,table_name,table_index,results,tables_to_generate);
-        generateUpdateQuery(class_name,table_name,results);
-        generateInsertQuery(class_name,table_name,results);
+        generateUpdateQuery(class_name,table_name,results,is_views);
+        generateInsertQuery(class_name,table_name,results,is_views);
         generateSerializer(class_name,table_name,results);
         generateDeserializer(class_name,table_name,results);
         generateEqualToOperator(class_name,table_name,results);
         generateAddToCache(class_name);
-        generateIsUpdated(class_name);
+        generateIsUpdated(class_name,is_views);
         generateResolveReferences(class_name,table_name,results);
         generateStaticFetch(class_name);
         snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,

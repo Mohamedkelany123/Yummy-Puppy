@@ -3,15 +3,16 @@
 
 #include "SharedObjectsManager.h"
 #include "ConfigFile.h"
+#include "MiddlewareManager.h"
+#include "HTTPService.h"
 
 class HTTPServiceManager // A class for managing services and acting as a simple object factory
 {
     private:
         std::map <string,HTTPService *> services; // A map that relate service identifier to corresponding pointers to HTTPService cloners
-        SharedObjectsManager * sharedObjectPtr;
+        SharedObjectsManager<HTTPService> * sharedObjectPtr;
     public:
-        HTTPServiceManager(ConfigFile * conf, Logger* logger); // Constructor
-        // Return a service whose type depends on the requested resource.
+        HTTPServiceManager(ConfigFile * conf, Logger* logger,MiddlewareManager * _middlewareManager); // Constructor
         HTTPService * getService (string p_resource);
         ~HTTPServiceManager(); // Destructor
 };

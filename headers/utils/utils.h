@@ -22,7 +22,7 @@ using namespace std;
 #define TIME_ZONE_OFFEST 3
 #define DL_SAVING        0
 
-
+#define SQLITE_OMIT_LOCALTIME 1
 
 class BDate
 {
@@ -32,7 +32,8 @@ class BDate
         bool is_null;
     public:
         void set_date (string date_string="");
-        BDate(string date_string="");
+        BDate();
+        BDate(string date_string);
         BDate (struct tm & _tm);
         BDate(time_t t);
         time_t operator () ();
@@ -45,7 +46,13 @@ class BDate
         void inc_days (int days=1);
         void dec_days (int days=1);
         int get_day();
+        void set_day(int _day);
+        int get_max_month_date();
+        int diff_days(BDate bdate);
+        int get_month_days();
+        bool is_leap_year();
         string getDateString();
+        void init_current_date();
         ~BDate ();
 };
 

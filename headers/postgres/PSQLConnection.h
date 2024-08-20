@@ -9,6 +9,7 @@ class PSQLConnection : public AbstractDBConnection
 private:
     PGconn *psql_connection;
     vector<string> table_names;
+    vector<string> view_names;
     map <string,string> column_types;
     bool connect();
     void load_table_names();
@@ -29,6 +30,7 @@ public:
     bool executeUpdateQuery(string psql_query);
     long executeInsertQuery(string psql_query);
     vector<string> getTableNames();
+    vector<string> getViewNames();
     void startTransaction ();
     void commitTransaction();
     void rollbackTransaction();

@@ -34,7 +34,7 @@ ConfigFile::ConfigFile(int argc, char ** argv){
             loglevel = data["server_config"]["loglevel"]; 
             logtype = data["server_config"]["logtype"];
             daemon = data["server_config"]["daemon"];
-            New_ml_ConfigFile = data["AdvancedBlnkML"]["New_BlnkML_ConfigFile"];
+//            New_ml_ConfigFile = data["AdvancedBlnkML"]["New_BlnkML_ConfigFile"];
         }
 }
 

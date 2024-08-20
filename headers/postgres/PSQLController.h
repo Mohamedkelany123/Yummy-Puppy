@@ -35,7 +35,7 @@ class PSQLController
         void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
         map <string,pair<string,bool>> getUpdateDefaultValues();
         map <string,pair<string,bool>> getInsertDefaultValues();
-        int getCacheCounter ();
+        int getCacheCounter (string _data_source_name);
         void clear();
         ~PSQLController();
 };

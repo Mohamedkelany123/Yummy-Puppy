@@ -522,7 +522,18 @@ void PSQLORMCache::commit(string data_source_name, string name,long id)
 }
 void PSQLORMCache::flush()
 {
-
+    lock_guard<mutex> guard(lock);
+    for (auto orm_cache: update_cache)
+        for (auto orm_cache_item:orm_cache.second) 
+            delete (orm_cache_item.second);
+    for (auto orm_cache: insert_cache)
+        for (auto orm_cache_item:orm_cache.second) 
+                delete (orm_cache_item);
+    update_cache.clear();
+    insert_cache.clear();
+    update_thread_cache.clear();
+    insert_thread_cache.clear();
+    
 }
 void PSQLORMCache::flush(string name)
 {
