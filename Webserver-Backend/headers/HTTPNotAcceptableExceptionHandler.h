@@ -12,7 +12,7 @@ class HTTPNotAcceptableExceptionHandler: public HTTPExceptionHandler
         HTTPNotAcceptableExceptionHandler();
         HTTPNotAcceptableExceptionHandler(int except_no_param); // Constructor
         //The Exception handler method
-        virtual void handle (TCPSocket * p_tcpSocket) ;
+        virtual void handle (HTTPResponse* response) ;
         ~HTTPNotAcceptableExceptionHandler(); // Destructor
 };
 

@@ -64,6 +64,8 @@ void PSQLController::ORMCommit(string name,long id)
 }
 void PSQLController::ORMFlush()
 {
+    for (auto cache : psqlORMCaches)
+        cache.second->flush();
 
 }
 void PSQLController::ORMFlush(string name)
@@ -72,7 +74,6 @@ void PSQLController::ORMFlush(string name)
 }
 void PSQLController::ORMFlush(string name,long id)
 {
-
 }
 
 int PSQLController::getDataSourceConnectionCount(string data_source_name)
@@ -133,9 +134,9 @@ PSQLController::~PSQLController()
     }
     delete (psqlConnectionManager);
 }
-int PSQLController::getCacheCounter ()
+int PSQLController::getCacheCounter (string _data_source_name)
 {
-    return psqlORMCaches["main"]->cache_counter;
+    return psqlORMCaches[_data_source_name]->cache_counter;
 }
 
 void PSQLController::clear() {

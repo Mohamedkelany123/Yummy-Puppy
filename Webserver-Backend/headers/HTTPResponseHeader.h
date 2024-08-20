@@ -11,12 +11,14 @@ class HTTPResponseHeader // A class represening an HTTP response header
         string status; // Respose header status string
         int status_code; // Response header status code
         string protocol; // HTTP protocol user
-        TCPSocket * tcpSocket; // A pointer to the TCPsocket object of the current connections
     public:
         // Constructor seeting up the differen data members 
-        HTTPResponseHeader(TCPSocket * p_tcpSocket,string p_status,int p_status_code,string p_protocol);
+        HTTPResponseHeader(string p_status,int p_status_code,string p_protocol);
         void setHeader(string p_key,string p_value); // Setting a header tuple
-        void respond (); // responding to the client with the header over the tcpSocket
+        void respond (TCPSocket * p_tcpSocket); // responding to the client with the header over the tcpSocket
+        void setStatus(string p_status);
+        void setStatusCode(int p_status_code);
+        void setProtocol(string p_protocol);
         ~HTTPResponseHeader(); // Destructor
 };
 

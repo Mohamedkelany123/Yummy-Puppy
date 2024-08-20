@@ -44,6 +44,41 @@ using json = nlohmann::json;
 #define ORML_SIZE(O) (O->size())
 
 
+#define   SERIALIZER_TEMPLATE     void serialize (string str) { \
+            std::stringstream json_string (str); \
+            json_string >> ThorsAnvil::Serialize::jsonImporter((*this)); \
+        }
+
+#define   DESERIALIZER_TEMPLATE     string deserialize () { \
+            std::ostringstream ss; \
+            ss << ThorsAnvil::Serialize::jsonExporter((*this)); \
+            return ss.str(); \
+        }
+
+
+#define   SERIALIZER_TEMPLATE_H     void serialize (string str);
+
+#define   DESERIALIZER_TEMPLATE_H     string deserialize ();
+
+#define   SERIALIZER_TEMPLATE_CPP(T)    void T::serialize (string str) { \
+            std::stringstream json_string (str); \
+            json_string >> ThorsAnvil::Serialize::jsonImporter((*this)); \
+        }
+
+#define   DESERIALIZER_TEMPLATE_CPP(T)     string T::deserialize () { \
+            std::ostringstream ss; \
+            ss << ThorsAnvil::Serialize::jsonExporter((*this)); \
+            return ss.str(); \
+        }
+
+
+#define STARTPOSTENDPOINT(I,O) return new EndpointService <I,O>( \
+            [] (string http_body,I * inputSerializer,O * outputSerializer) {
+
+
+#define ENDPOSTENDPOINT });
+
+
 #define ROUND(x) (round(x*100) / 100)
 
 enum closure_status { START,UNDUE_TO_DUE, DUE_TO_OVERDUE, UPDATE_LOAN_STATUS, MARGINALIZE_INCOME_STEP1,LONG_TO_SHORT_TERM,LAST_ACCRUED_DAY, CUSTOMER_WALLET, PREPAID_TRANSACTION };

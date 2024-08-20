@@ -3,6 +3,7 @@
 
 #include <PSQLAbstractORM.h>
 #include <PSQLController.h>
+#include <AbstractException.h>
 
 enum unary_operator { eq, gt, lt, gte,lte,ne,nand, in,nin,isnull,isnotnull };
 enum math_operator { mod, plus_operator };
@@ -14,7 +15,10 @@ class Expression{
     private:
     public:
         Expression(){}
+        Expression(Expression & expression){}
         virtual string const generate () const = 0  ;
+        virtual Expression * clone ()=0;
+        virtual void operator = (Expression * expression)=0;
         virtual ~Expression(){}
 };
 
@@ -25,6 +29,33 @@ class LogicalOperator : public Expression {
 
     public:
         LogicalOperator(): Expression() {}
+        LogicalOperator(string _op): Expression() {}
+        virtual void copy (Expression * expression)
+        {
+            LogicalOperator * logicalOperator = (LogicalOperator *) expression;
+            this->op = logicalOperator->op;
+            for ( int i = 0 ; i  < logicalOperator->expressions.size(); i++)
+            {
+                Expression * e = logicalOperator->expressions[i]->clone();
+                *e = logicalOperator->expressions[i];
+                expressions.push_back(e);
+            }
+        }
+
+        virtual void operator = (Expression * expression)
+        {
+            copy (expression);
+        }
+        LogicalOperator(vector <Expression *> _expressions,string _op){
+                expressions.clear();
+                op = _op;
+                for ( int i = 0 ; i < _expressions.size(); i ++)
+                {
+                    Expression * e = _expressions[i]->clone();
+                    (*e) = _expressions[i];
+                    expressions.push_back(e);
+                }
+        }
         LogicalOperator(string _op,Expression * expression, ...): Expression() {
             op = _op;
             expressions.push_back(expression);
@@ -48,6 +79,9 @@ class LogicalOperator : public Expression {
             if (exp != "") exp += ")";
             return exp;
         }
+        virtual Expression * clone (){
+            return (Expression *) new LogicalOperator();
+        }
         virtual ~LogicalOperator()
         {
             for (Expression * e:expressions)
@@ -58,16 +92,36 @@ class LogicalOperator : public Expression {
 class OROperator : public LogicalOperator {
     private:
     public:
+        OROperator():LogicalOperator("OR"){}
+        OROperator(vector <Expression *> _expressions) : LogicalOperator(_expressions,"OR"){}
+
         template<typename ... Args>
         OROperator(Expression * e,Args&& ... args) : LogicalOperator("OR",e,std::forward<Args>(args) ...,NULL){}
+        virtual Expression * clone (){
+            return (Expression *) new OROperator();
+        }
+
+        virtual void operator = (Expression * expression)
+        {
+            copy(expression);
+        }
         virtual ~OROperator(){}
 };
 
 class ANDOperator : public LogicalOperator {
     private:
     public:
+        ANDOperator():LogicalOperator("AND"){}
+        ANDOperator(vector <Expression *> _expressions) : LogicalOperator(_expressions,"AND"){}
         template<typename ... Args>
         ANDOperator(Expression * e,Args&& ... args) : LogicalOperator("AND",e,std::forward<Args>(args) ...,NULL){}
+        virtual Expression * clone (){
+            return (Expression *) new ANDOperator();
+        }
+        virtual void operator = (Expression * expression)
+        {
+            copy(expression);
+        }
         virtual ~ANDOperator() {}
 };
 
@@ -104,6 +158,13 @@ class UnaryOperator : public Expression {
             value = _value;
             value_is_field_name = _value_is_field_name;
         }
+        UnaryOperator (UnaryOperator & unaryOperator):Expression(unaryOperator)
+        {
+            name = unaryOperator.name;
+            op = unaryOperator.op;
+            value = unaryOperator.value;
+            value_is_field_name = unaryOperator.value_is_field_name;
+        }
         string const generate() const
         {
             if ( value_is_field_name)
@@ -135,6 +196,21 @@ class UnaryOperator : public Expression {
                 else return "";
             }
         }
+        virtual Expression * clone (){
+            return (Expression *) new UnaryOperator();
+        }
+        virtual void operator = (UnaryOperator * unaryOperator)
+        {
+            name = unaryOperator->name;
+            op = unaryOperator->op;
+            value = unaryOperator->value;
+            value_is_field_name = unaryOperator->value_is_field_name;        }
+
+        virtual void operator = (Expression * expression)
+        {
+            (*this) = (UnaryOperator *) expression;
+        }
+
         virtual ~UnaryOperator(){}
 };
 
@@ -186,6 +262,24 @@ class BinaryOperator : public Expression {
             else if ( op1 == math_operator::plus_operator ) return UnaryOperator(name + " + " + value1,op2,value2, value_is_field_name).generate();
             else return "";
         }
+        virtual Expression * clone (){
+            return (Expression *) new BinaryOperator();
+        }
+        virtual void operator = (BinaryOperator * binaryOperator)
+        {
+            name = binaryOperator->name;
+            op1 = binaryOperator->op1;
+            value1 = binaryOperator->value1;
+            op2 = binaryOperator->op2;
+            value2 = binaryOperator->value2;
+            value_is_field_name = binaryOperator->value_is_field_name;
+        }
+
+        virtual void operator = (Expression * expression)
+        {
+            (*this) = (BinaryOperator *) expression;
+        }
+
         virtual ~BinaryOperator(){}
 };
 class PSQLAbstractQueryIterator {
@@ -225,6 +319,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         string join_string = "";
         vector <PSQLAbstractORM *> * orm_objects;
         map <string,PSQLAbstractORM *> orm_objects_map;
+        ExceptionStack * exceptions;
         void unlock_orms (map <string,PSQLAbstractORM *> *  orms);
         void adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list);
         static void process_internal_aggregate(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms_list,int partition_number,mutex * shared_lock,void * extras)> f);
@@ -243,6 +338,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // bool execute();
         bool setDistinct (vector<pair<string,string>> _distinct_map);
         bool setAggregates (map<string, pair<string, int>> _aggregate_map);
+        long get_result_count ();
         ~PSQLJoinQueryIterator();
 };
 

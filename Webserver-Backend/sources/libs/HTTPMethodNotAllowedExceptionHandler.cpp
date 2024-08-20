@@ -1,23 +1,24 @@
 #include "HTTPMethodNotAllowedExceptionHandler.h"
-#include "HTTPResponseHeader.h"
+#include "HTTPResponse.h"
 // Constructor
 HTTPMethodNotAllowedExceptionHandler::HTTPMethodNotAllowedExceptionHandler(){}
 
 // Handling the unallowed request exception: HTTP status code 405
-void HTTPMethodNotAllowedExceptionHandler::handle (TCPSocket * p_tcpSocket)
+void HTTPMethodNotAllowedExceptionHandler::handle (HTTPResponse* response)
 {
     // String to hold response body
-    string response = "<H1>405: Method Not Allowed</H1>";
-    // Instantiate an HTTPResponseHeader object and set its header attributes    
-    HTTPResponseHeader * httpResponseHeader = new HTTPResponseHeader(p_tcpSocket,"Method Not Allowed",405,"HTTP/1.1");
-    httpResponseHeader->setHeader("Content-Type","text/html");
-    httpResponseHeader->setHeader("Content-Length",to_string(response.length()));
-    // Respond to client by sending the response header on the p_tcpSocket
-    httpResponseHeader->respond();
+    json reply;
+    reply["error"] = "Method Not Allowed";
+    reply["status_code"] = 405;
+    // Instantiate an HTTPResponseHeader object and set its header attributes   
+    response->getHeader()->setStatus("Method Not Allowed");
+    response->getHeader()->setStatusCode(405);
+    response->getHeader()->setProtocol("HTTP/1.1");
+    response->setHeaderValue("Content-Type", "application/json");
+    response->setBody(reply);
+    response->write();
     // Write the body string to the client via p_tcpSockey    
-    p_tcpSocket->writeToSocket(response.c_str(),response.length());
-    delete (httpResponseHeader); // Destruct the HTTPResponseHeader object
-
+    
 }
 // Destructor
 HTTPMethodNotAllowedExceptionHandler::~HTTPMethodNotAllowedExceptionHandler(){}

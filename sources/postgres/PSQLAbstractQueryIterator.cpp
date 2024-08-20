@@ -96,6 +96,7 @@ PSQLAbstractQueryIterator(_data_source_name,"")
     conditions= "";
     pre_conditions = "";
     orm_objects = new vector <PSQLAbstractORM *> ();
+    exceptions = new ExceptionStack();
     for ( int i =0 ; i  < tables.size() ; i ++)
     {
         if ( column_names != "") column_names += ",";
@@ -193,6 +194,7 @@ PSQLAbstractQueryIterator(_data_source_name,"")
     pre_conditions = "";
     orm_objects = new vector <PSQLAbstractORM *> ();
     std::set<string> tables_set;  
+    exceptions = new ExceptionStack();
     for ( int i =0 ; i  < tables.size() ; i ++)
     {
         if ( tables_set.find(tables[i]->getTableName()) == tables_set.end())
@@ -374,6 +376,8 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
 
 void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f)
 {
+    try{
+
         auto begin = std::chrono::high_resolution_clock::now();
 
         PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras,partition_number);
@@ -408,47 +412,60 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
         printf("THREADTIME  Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
+    }
+    catch (AbstractException * e)
+    {
+        shared_lock->lock();
+        me->exceptions->push_back(e);
+        shared_lock->unlock();
+    }
 }
 
 void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
 {
-    time_t start = time (NULL);
-    cout << "Executing PSQL Query on the remote server" << endl;
-    if (this->execute() && this->psqlQuery->getRowCount() > 0)
-    {
-        time_t time_snapshot1 = time (NULL);
-
-        cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
-        cout << "Starting multi-threading execution" << endl;
-
-        vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
-        for ( int i  = 0 ; i < p->size() ; i ++)
-             (*p)[i]->dump();
-
-        vector <thread *> threads;
-        mutex shared_lock;
-        for ( int i  = 0 ; i < p->size() ; i ++)
+        exceptions->clear();
+        time_t start = time (NULL);
+        cout << "Executing PSQL Query on the remote server" << endl;
+        if (this->execute() && this->psqlQuery->getRowCount() > 0)
         {
-            // cout << "----------------------In for LOOP-----------------------:"<< data_source_name << (*p)[i]<< &shared_lock<< endl;
-            thread * t = NULL;
-            /* if (aggregate_flag)
-                t = new thread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
-            else  */ t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
-            threads.push_back(t);
-        }
-        // cout << "After Threads Creation" << endl;
+            time_t time_snapshot1 = time (NULL);
 
-        for ( int i  = 0 ; i < p->size() ; i ++)
-        {
-                thread * t = threads[i];
-                t->join();
-                delete (t);
-                delete((*p)[i]);
+            cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
+            cout << "Starting multi-threading execution" << endl;
+
+            vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
+            for ( int i  = 0 ; i < p->size() ; i ++)
+                (*p)[i]->dump();
+
+            vector <thread *> threads;
+            mutex shared_lock;
+            for ( int i  = 0 ; i < p->size() ; i ++)
+            {
+                // cout << "----------------------In for LOOP-----------------------:"<< data_source_name << (*p)[i]<< &shared_lock<< endl;
+                thread * t = NULL;
+                /* if (aggregate_flag)
+                    t = new thread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+                else  */ t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+                threads.push_back(t);
+            }
+            // cout << "After Threads Creation" << endl;
+
+            for ( int i  = 0 ; i < p->size() ; i ++)
+            {
+                    thread * t = threads[i];
+                    t->join();
+                    delete (t);
+                    delete((*p)[i]);
+            }
+            time_t time_snapshot2 = time (NULL);
+            cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
+            cout << "cache counter: " << psqlController.getCacheCounter(data_source_name) << endl;
+            // cout << "exceptions.size(): " << exceptions.size() << endl;
+            if (exceptions->size()>0)
+            {
+                throw exceptions;
+            }
         }
-        time_t time_snapshot2 = time (NULL);
-        cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
-        cout << "cache counter: " << psqlController.getCacheCounter() << endl;
-    }
 }
 
 void PSQLJoinQueryIterator::process_sequential(std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras){
@@ -603,11 +620,19 @@ bool PSQLJoinQueryIterator::setAggregates (map<string, pair<string, int>> _aggre
     else return false;
 }
 
+long PSQLJoinQueryIterator::get_result_count ()
+{
+    if (psqlQuery != NULL) return psqlQuery->getRowCount();
+    else return 0;
+}
+
+
 PSQLJoinQueryIterator::~PSQLJoinQueryIterator()
 {
     for (auto orm_object: *orm_objects) 
         delete (orm_object);
     delete (orm_objects);
+    if (exceptions->size() == 0 ) delete (exceptions);
 
 }
 

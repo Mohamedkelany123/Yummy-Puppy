@@ -3,59 +3,65 @@
 #include <PSQLAbstractQueryIterator.h>
 #include <HTTPService.h>
 #include <HTTPResponseHeader.h>
+#include <Poco/JWT/JWT.h>
+#include <Poco/JWT/Token.h>
+#include <Poco/JWT/Signer.h>
 
+using namespace Poco::JWT;
 
-template <class I,class O>
-class EndpointService : public HTTPService {
+template <class I, class O>
+class EndpointService : public HTTPService
+{
 
     private:
-        std::function<void(string http_body,I * inputSerializer,O * outputSerializer)> lambda;
-        string endpoint_entry(string http_body,std::function<void(string http_body,I * inputSerializer,O * outputSerializer)> f) {
+        std::function<void(string http_body, I *inputSerializer, O *outputSerializer)> lambda;
+        string endpoint_entry(string http_body, std::function<void(string http_body, I *inputSerializer, O *outputSerializer)> f)
+        {
 
-                I * inputSerializer  = new I(); 
-                O * outputSerializer  = new O(); 
+            I *inputSerializer = new I();
+            O *outputSerializer = new O();
 
-                inputSerializer->serialize(http_body);
-                f (http_body,inputSerializer,outputSerializer);
-                string str_return = outputSerializer->deserialize();
-                delete (inputSerializer);
-                delete (outputSerializer);
-                return str_return;
+            inputSerializer->serialize(http_body);
+            f(http_body, inputSerializer, outputSerializer);
+            string str_return = outputSerializer->deserialize();
+            delete (inputSerializer);
+            delete (outputSerializer);
+            return str_return;
         }
 
     public:
-
-        EndpointService(std::function<void(string http_body,I * inputSerializer,O * outputSerializer)> _lambda):HTTPService() 
+        EndpointService(std::function<void(string http_body, I *inputSerializer, O *outputSerializer)> _lambda) : HTTPService()
         {
-            lambda= _lambda;
+            lambda = _lambda;
         }
-        bool execute(HTTPRequest * p_httpRequest,TCPSocket * p_tcpSocket)
+        /**
+         * Executes the HTTP request and response handling for the endpoint service.
+         *
+         * @param p_httpRequest Pointer to the HTTP request object.
+         * @param p_httpResponse Pointer to the HTTP response object.
+         * @param middlewareManager Pointer to the middleware manager object. Optional, defaults to NULL.
+         *
+         * @return True if the request is successfully processed and the response is written, false otherwise.
+         * 
+         * @authors Kmsobh, Ramy
+         * @date 14-Aug-2024
+         */ 
+        bool execute(HTTPRequest *p_httpRequest, HTTPResponse *p_httpResponse, MiddlewareManager *middlewareManager = NULL)
         {
-            string data = p_httpRequest->getBody(); // get the HTTPRequest body data
-
-
-            string reply = endpoint_entry(data,lambda);
-
-            // string reply = "{\"msg\":\"Hello all\"}";
-            HTTPResponseHeader * httpResponseHeader = new HTTPResponseHeader(p_tcpSocket,"OK",200,"HTTP/1.1");
-            httpResponseHeader->setHeader("Content-Type","application/json");//application/json is important to have here to be able to send arabic numerals/characters
-            httpResponseHeader->setHeader("Connection","close"); 
-            httpResponseHeader->setHeader("charset","utf-8");
-            httpResponseHeader->setHeader("Content-Length",to_string(reply.length()));
-            httpResponseHeader->respond(); // Write back the response to the client through the TCPSocket
-            
-            // Write back the file to the client through the TCPSocket
-            p_tcpSocket->writeToSocket(reply.c_str(),reply.length());
-            delete (httpResponseHeader); // Delete the HTTP Response
-            return true; // return true
+            string data = p_httpRequest->getBody();
+            middlewareManager->runEndpointPreMiddleware(p_httpRequest->getResource(), p_httpRequest, p_httpResponse);
+            string reply = endpoint_entry(data, lambda);
+            p_httpResponse->setBody(json::parse(reply));
+            middlewareManager->runEndpointPostMiddleware(p_httpRequest->getResource(), p_httpRequest, p_httpResponse);
+            p_httpResponse->write();
+            return true;
         }
-        // A pure virtual method that should be implemented by all descendants to clone and create new object        
-        HTTPService * clone ()
+        // A pure virtual method that should be implemented by all descendants to clone and create new object
+        HTTPService *clone()
         {
-                return new EndpointService<I,O>(lambda);
+            return new EndpointService<I, O>(lambda);
         }
-         ~EndpointService()
+        ~EndpointService()
         {
-
         }
 };

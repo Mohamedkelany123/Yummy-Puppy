@@ -10,7 +10,7 @@ class HTTPMethodNotAllowedExceptionHandler: public HTTPExceptionHandler
     public:
         HTTPMethodNotAllowedExceptionHandler(); // Constructor
         //The Exception handler method        
-        virtual void handle (TCPSocket * p_tcpSocket) ;
+        virtual void handle (HTTPResponse * response) ;
         ~HTTPMethodNotAllowedExceptionHandler(); // Destructor
 };
 

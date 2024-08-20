@@ -16,7 +16,9 @@ string PSQLText::get_native_type(int index)
     else if ( index == 4 ) return "date";
     else if ( index == 5 ) return "timestamptz";
     else if ( index == 6 ) return "int4range";
-    else if (index == 7) return "_int4";
+    else if ( index == 7) return "_int4";
+    else if ( index == 8 ) return "timestamp";
+    else if ( index == 9 ) return "inet";
     else return "";
 }
 
