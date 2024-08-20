@@ -55,7 +55,7 @@ bool PSQLAbstractQueryIterator::execute()
         sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions +" order by "+orderby_string;
     
-    // cout << sql << endl;
+    cout << sql << endl;
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;
@@ -499,7 +499,6 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
     cout << "Executing PSQL Query on the remote server" << endl;
     if (this->execute() && this->psqlQuery->getRowCount() > 0)
     {
-        cout << "Row Count-> " << this->psqlQuery->getRowCount() << endl;
         time_t time_snapshot1 = time (NULL);
 
         cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
@@ -543,7 +542,9 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
 
         cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
     }
-    cout << "Row Count-> " << this->psqlQuery->getRowCount() << endl;
+    time_t time_snapshot1 = time (NULL);
+    cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
+
     
 }
 bool PSQLJoinQueryIterator::setDistinct (vector<pair<string,string>> distinct_map)
