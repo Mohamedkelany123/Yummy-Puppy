@@ -134,9 +134,9 @@ PSQLController::~PSQLController()
     }
     delete (psqlConnectionManager);
 }
-int PSQLController::getCacheCounter ()
+int PSQLController::getCacheCounter (string _data_source_name)
 {
-    return psqlORMCaches["main"]->cache_counter;
+    return psqlORMCaches[_data_source_name]->cache_counter;
 }
 
 void PSQLController::clear() {
