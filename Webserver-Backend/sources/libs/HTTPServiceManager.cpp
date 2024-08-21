@@ -1,5 +1,7 @@
 #include "HTTPServiceManager.h"
 #include "HTTPNotAcceptableExceptionHandler.h"
+#include <regex>
+
 #define WEB_CACHE_ROOT  "./www"
 // Constructor:  building up the factory map
 HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,MiddlewareManager * _middlewareManager)
@@ -12,8 +14,8 @@ HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,Middlew
         try{
             string so_path = el.value()["so_path"];
             string http_path = el.value()["http_path"];
-            vector<string> parameters = getURLParams(http_path);
-            http_path = getRegexURL(http_path);
+            vector<string> parameters = URLService::getURLParams(http_path);
+            http_path = URLService::getRegexURL(http_path);
             servicesParameters[http_path] = parameters;
 
             auto middlewares = el.value()["middlewares"];
@@ -38,6 +40,7 @@ HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,Middlew
             services [http_path] = sharedObjectPtr->load(so_path);
             _middlewareManager->assignEndpointPreMiddlewares(http_path, endpointPreMiddlewares);
             _middlewareManager->assignEndpointPostMiddlewares(http_path, endpointPostMiddlewares);
+            regexURLs.push_back(http_path);
         }catch(exception e){
             LOG_ERRORS(e.what());
         }
@@ -49,38 +52,32 @@ HTTPService * HTTPServiceManager::getService (string p_resource)
     // extract extentions
     cout << "p_resource: " << p_resource << endl;
     string ext = p_resource;//.substr(p_resource.find_last_of(".") + 1);
-    if ( services[ext]==NULL)  // if not found
-    {
-        // Extract file base noame
-        string base_name = p_resource.substr(p_resource.find_last_of("/") + 1);
-        // If not found also throw and exception
-        if ( services[base_name]==NULL) throw (HTTPNotAcceptableExceptionHandler());
-        else return services[base_name]->clone(); // else clone service based on base file name
+    pair<string, HTTPService *>  service = URLService::searchRegexMapWithKey(p_resource, &services);
+    if(service.second == nullptr){
+        throw (HTTPNotAcceptableExceptionHandler());
     }
-    else return services[ext]->clone(); // clone service based on extension
+    else return service.second->clone(); // clone service based on extension
 }
-vector<string> HTTPServiceManager::getURLParams(string URLPath)
-{
-        vector<string> parameters;
-        std::string::size_type start = 0;
-        while ((start = URLPath.find('<', start)) != std::string::npos) {
-            // Loop to find all possible end positions for the substring
-            auto end = start;
-            if ((end = URLPath.find('>', end + 1)) != std::string::npos) {
-                parameters.push_back(URLPath.substr(start+1, end - start-1));
-            }
-            start = end; 
-        }
 
-    return parameters;
-}
-string HTTPServiceManager::getRegexURL(string URLPath)
-{       
-    std::string::size_type start, end;
-    while ((start = URLPath.find('<')) != std::string::npos && (end = URLPath.find('>', start)) != std::string::npos) {
-        URLPath.replace(start, end - start + 1, "*");
+map<string, string> HTTPServiceManager::extractURLParams(string _url)
+{
+    pair<string, vector<string>> parameters = URLService::searchRegexMapWithKey(_url, &servicesParameters);
+    if(parameters.second.size() == 0) return map<string, string>();
+    string regexURL = parameters.first;
+
+    vector<string> _urlSplit = URLService::splitURL(_url);
+    vector<string> regexURLSplit = URLService::splitURL(regexURL);
+    map<string, string> parametersValues;
+
+    int asteriskCount = 0;
+
+    for (int i = 0; i < regexURLSplit.size(); i++){
+        if(regexURLSplit[i] == "*"){
+            parametersValues[parameters.second[asteriskCount]] = _urlSplit[i];
+            asteriskCount++;
+        }
     }
-    return URLPath;
+    return parametersValues;
 }
 // Destructor
 HTTPServiceManager::~HTTPServiceManager()

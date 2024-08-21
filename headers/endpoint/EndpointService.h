@@ -15,14 +15,14 @@ class EndpointService : public HTTPService
 
     private:
         std::function<void(string http_body, I *inputSerializer, O *outputSerializer)> lambda;
-        string endpoint_entry(string http_body, std::function<void(string http_body, I *inputSerializer, O *outputSerializer)> f)
+        string endpoint_entry(HTTPRequest * HTTPRequest, std::function<void(string http_body, I *inputSerializer, O *outputSerializer)> f)
         {
 
             I *inputSerializer = new I();
             O *outputSerializer = new O();
 
             inputSerializer->serialize(http_body);
-            f(http_body, inputSerializer, outputSerializer);
+            f(HTTPRequest, inputSerializer, outputSerializer);
             string str_return = outputSerializer->deserialize();
             delete (inputSerializer);
             delete (outputSerializer);

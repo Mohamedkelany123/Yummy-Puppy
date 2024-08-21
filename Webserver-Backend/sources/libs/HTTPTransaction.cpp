@@ -61,6 +61,9 @@ void HTTPTransaction::process()
         if (httpRequest != NULL)
         {
             s = httpServiceManager->getService(httpRequest->getResource());
+            map<string, string> URLParamters = httpServiceManager->extractURLParams(httpRequest->getResource());
+            httpRequest->addContext("url_params", URLParamters);
+            // vector<string> parameters = httpRequestManager->getParameters(httpRequest->getResource());
             s->execute(httpRequest, httpResponse, middlewareManager); // Execute the service
             delete (httpRequest);                                     // delete the httpRequest object
             delete (httpResponse);                                    // delete the httpResponse object

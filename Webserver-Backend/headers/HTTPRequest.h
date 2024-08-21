@@ -23,9 +23,8 @@ public:
     // A pure virtual method that should be implemented by all descendants to clone and create new object
     string getHeaderValue(string header_item_name);
     string getMethod() { return method; }
-    map<string, map<string, string>> getContext();
+    map<string, map<string, string>> * getContext();
     void addContext(string _key, map<string, string> _values);
-    void addURLParamsToContext();
     virtual HTTPRequest *clone(TCPSocket *p_tcpSocket) = 0;
     virtual ~HTTPRequest(); // Destructor
 };

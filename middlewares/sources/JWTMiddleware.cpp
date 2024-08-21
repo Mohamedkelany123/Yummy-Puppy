@@ -4,6 +4,7 @@
 
 JWTMiddleware::JWTMiddleware() : Middleware("JWT")
 {
+    connectDatabase();
 }
 
 

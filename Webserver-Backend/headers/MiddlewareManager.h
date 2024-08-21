@@ -5,6 +5,7 @@
 #include "Middleware.h"
 #include "Logger.h"
 #include "SharedObjectsManager.h"
+#include "URLService.h"
 
 class MiddlewareManager{
     private:

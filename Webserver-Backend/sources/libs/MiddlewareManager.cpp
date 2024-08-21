@@ -135,7 +135,9 @@ void MiddlewareManager::deleteEndpointMiddleware(vector<Middleware *> localMiddl
  */
 bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
-    vector<Middleware *> preMiddlewares = endpointsPreMiddlewares[endpointName];
+    // vector<Middleware *> preMiddlewares = endpointsPreMiddlewares[endpointName];
+    vector<Middleware *> preMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPreMiddlewares);
+
     return runMiddlewares(preMiddlewares, req, res);
 }
 
@@ -157,7 +159,7 @@ bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPReques
  */
 bool MiddlewareManager::runEndpointPostMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
-    vector<Middleware *> postMiddlewares = endpointsPostMiddlewares[endpointName];
+    vector<Middleware *> postMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPostMiddlewares);;
     return runMiddlewares(postMiddlewares, req, res);
 }
 
