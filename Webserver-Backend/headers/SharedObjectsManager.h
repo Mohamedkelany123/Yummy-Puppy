@@ -15,7 +15,7 @@ class SharedObjectsManager{
 
     public:
         SharedObjectsManager(){} 
-	    T * load(string name ){ // Load object form DSO
+	    T * load(string name, string funcName="create_object" ){ // Load object form DSO
             T * obj  = gobj[name]; // Fetch object based on name
             if ( obj != NULL ) return obj;  // If found return it
             // Else load the DSO and fetch the object through external launcher function
@@ -24,7 +24,7 @@ class SharedObjectsManager{
                 
                 if ( dso ){ // If dso is not NULL then loaded successfully
                 
-                    create_object_routine<T> my_func = (create_object_routine<T> ) dlsym (dso,"create_object"); // Loading external function from DSO
+                    create_object_routine<T> my_func = (create_object_routine<T> ) dlsym (dso,funcName.c_str()); // Loading external function from DSO
 
                     if ( my_func ){ // If function loaded successfully
                     
