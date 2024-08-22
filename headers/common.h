@@ -73,7 +73,7 @@ using json = nlohmann::json;
 
 
 #define STARTPOSTENDPOINT(I,O) return new EndpointService <I,O>( \
-            [] (string http_body,I * inputSerializer,O * outputSerializer) {
+            [] (HTTPRequest * p_httpRequest,I * inputSerializer,O * outputSerializer) {
 
 
 #define ENDPOSTENDPOINT });

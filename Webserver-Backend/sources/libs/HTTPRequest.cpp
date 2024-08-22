@@ -83,6 +83,16 @@ string HTTPRequest::getHeaderValue(string header_item_name)
     return header[header_item_name];
 }
 
+map<string, map<string, string>> *HTTPRequest::getContext()
+{
+    return &context;
+}
+
+void HTTPRequest::addContext(string _key, map<string, string> _values)
+{
+    context[_key] = _values;
+}
+
 // A selector returning a reference to the body of the request
 string & HTTPRequest::getBody()
 {
