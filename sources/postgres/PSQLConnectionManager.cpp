@@ -31,7 +31,7 @@ PSQLConnection * PSQLConnectionManager::getPSQLConnection(string data_source_nam
 {
     std::lock_guard<std::mutex> guard(lock);
     if (data_sources.find(data_source_name) != data_sources.end()) 
-        return  data_sources[data_source_name]->getPSQLConnection();
+        return  data_sources[data_source_name]->getResource();
     else 
     {
         cout << "Cannot find data source: " <<  data_source_name << endl;
@@ -43,7 +43,7 @@ bool PSQLConnectionManager::releaseConnection (string data_source_name,PSQLConne
     std::lock_guard<std::mutex> guard(lock);
     if (data_sources.find(data_source_name) != data_sources.end())
     {
-        data_sources[data_source_name]->releaseConnection(psqlConnection);
+        data_sources[data_source_name]->releaseResource(psqlConnection);
         return true;
     }
     else
@@ -52,7 +52,7 @@ bool PSQLConnectionManager::releaseConnection (string data_source_name,PSQLConne
 
 int PSQLConnectionManager::getConnectionCount (string data_source_name)
 {
-    return data_sources[data_source_name]->getConnectionCount();
+    return data_sources[data_source_name]->getTotalResourceCount();
 }
 
 PSQLConnectionManager::~PSQLConnectionManager()
