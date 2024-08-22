@@ -14,15 +14,15 @@ class EndpointService : public HTTPService
 {
 
     private:
-        std::function<void(string http_body, I *inputSerializer, O *outputSerializer)> lambda;
-        string endpoint_entry(HTTPRequest * HTTPRequest, std::function<void(string http_body, I *inputSerializer, O *outputSerializer)> f)
+        std::function<void(HTTPRequest * p_httpRequest, I *inputSerializer, O *outputSerializer)> lambda;
+        string endpoint_entry(HTTPRequest * p_httpRequest, std::function<void(HTTPRequest * p_httpRequest, I *inputSerializer, O *outputSerializer)> f)
         {
-
+            string http_body = p_httpRequest->getBody();
             I *inputSerializer = new I();
             O *outputSerializer = new O();
 
             inputSerializer->serialize(http_body);
-            f(HTTPRequest, inputSerializer, outputSerializer);
+            f(p_httpRequest, inputSerializer, outputSerializer);
             string str_return = outputSerializer->deserialize();
             delete (inputSerializer);
             delete (outputSerializer);
@@ -30,7 +30,7 @@ class EndpointService : public HTTPService
         }
 
     public:
-        EndpointService(std::function<void(string http_body, I *inputSerializer, O *outputSerializer)> _lambda) : HTTPService()
+        EndpointService(std::function<void(HTTPRequest * p_httpRequest, I *inputSerializer, O *outputSerializer)> _lambda) : HTTPService()
         {
             lambda = _lambda;
         }
@@ -48,9 +48,8 @@ class EndpointService : public HTTPService
          */ 
         bool execute(HTTPRequest *p_httpRequest, HTTPResponse *p_httpResponse, MiddlewareManager *middlewareManager = NULL)
         {
-            string data = p_httpRequest->getBody();
             middlewareManager->runEndpointPreMiddleware(p_httpRequest->getResource(), p_httpRequest, p_httpResponse);
-            string reply = endpoint_entry(data, lambda);
+            string reply = endpoint_entry(p_httpRequest, lambda);
             p_httpResponse->setBody(json::parse(reply));
             middlewareManager->runEndpointPostMiddleware(p_httpRequest->getResource(), p_httpRequest, p_httpResponse);
             p_httpResponse->write();

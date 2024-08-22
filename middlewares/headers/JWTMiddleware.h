@@ -23,9 +23,11 @@ class  JWTMiddleware: public Middleware
         virtual bool run(HTTPRequest* _req, HTTPResponse* _res);
         virtual Middleware * clone();
         void connectDatabase();
+        void init(json initData);
         PSQLConnection * getDatabaseConnection();
-        bool verifyToken(string authToken);
-        void injectUserData();
+        pair<string, bool> verifyToken(string authToken);
+        bool verifyUser(string userID);
+        void injectUserData(HTTPRequest* _req, map<string, string> userID);
         virtual ~JWTMiddleware();
 };
 

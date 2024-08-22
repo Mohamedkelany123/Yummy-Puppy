@@ -12,7 +12,7 @@ class HTTPServiceManager // A class for managing services and acting as a simple
 {
     private:
         std::map <string,HTTPService *> services; // A map that relate service identifier to corresponding pointers to HTTPService cloners
-        map<string,vector<string>> servicesParameters;
+        map<string,vector<string> *> servicesParameters;
         SharedObjectsManager<HTTPService> * sharedObjectPtr;
         vector<string> regexURLs;
     public:

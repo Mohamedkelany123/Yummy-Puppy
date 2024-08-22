@@ -37,7 +37,8 @@ MiddlewareManager::MiddlewareManager(ConfigFile *conf, Logger *logger)
                 {
                     std::cout << el1.key() << ":" << el1.value()["DSO"] << "\n";
                     this->middlewares[el1.key()] = sharedObjectPtr->load(el1.value()["DSO"]);
-                    this->middlewares[el1.key()]->setParams(el1.value()); 
+                    cout << "Params Data: " << el1.value() << endl;
+                    this->middlewares[el1.key()]->init(el1.value()); 
                     break;
                 }
             }
@@ -48,17 +49,19 @@ MiddlewareManager::MiddlewareManager(ConfigFile *conf, Logger *logger)
 
 void MiddlewareManager::assignEndpointPreMiddlewares(string name, vector<string> middleware_list)
 {
+    if(endpointsPreMiddlewares[name] == NULL) endpointsPreMiddlewares[name] = new vector<Middleware *>();
     for (int i = 0; i < middleware_list.size(); i++)
     {
-        endpointsPreMiddlewares[name].push_back(middlewares[middleware_list[i]]);
+        endpointsPreMiddlewares[name]->push_back(middlewares[middleware_list[i]]);
     }
 }
 
 void MiddlewareManager::assignEndpointPostMiddlewares(string name, vector<string> middleware_list)
 {
+    if(endpointsPostMiddlewares[name] == NULL) endpointsPostMiddlewares[name] = new vector<Middleware *>();
     for (int i = 0; i < middleware_list.size(); i++)
     {
-        endpointsPostMiddlewares[name].push_back(middlewares[middleware_list[i]]);
+        endpointsPostMiddlewares[name]->push_back(middlewares[middleware_list[i]]);
     }
 }
 
@@ -136,9 +139,10 @@ void MiddlewareManager::deleteEndpointMiddleware(vector<Middleware *> localMiddl
 bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
     // vector<Middleware *> preMiddlewares = endpointsPreMiddlewares[endpointName];
-    vector<Middleware *> preMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPreMiddlewares);
+    pair<string, vector<Middleware *> *> preMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPreMiddlewares);
+    if(preMiddlewares.second == NULL) return false;
 
-    return runMiddlewares(preMiddlewares, req, res);
+    return runMiddlewares(*preMiddlewares.second, req, res);
 }
 
 /**
@@ -159,8 +163,10 @@ bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPReques
  */
 bool MiddlewareManager::runEndpointPostMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
-    vector<Middleware *> postMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPostMiddlewares);;
-    return runMiddlewares(postMiddlewares, req, res);
+    pair<string, vector<Middleware *> *> postMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPostMiddlewares);
+    if(postMiddlewares.second == NULL) return false;
+
+    return runMiddlewares(*postMiddlewares.second, req, res);
 }
 
 MiddlewareManager::~MiddlewareManager()
@@ -168,4 +174,8 @@ MiddlewareManager::~MiddlewareManager()
     delete (sharedObjectPtr);
     for (auto m : this->middlewares)
         delete (m.second);
+    for(auto m : this->endpointsPreMiddlewares)
+        delete(m.second);
+    for(auto m : this->endpointsPostMiddlewares)
+        delete(m.second);
 }

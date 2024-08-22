@@ -8,6 +8,10 @@ Middleware::Middleware(const string _middlewareName) : Middleware()
     this->middlewareName = _middlewareName;
 }
 
+void Middleware::init(json initData)
+{
+}
+
 string Middleware::getName()
 {
     return this->middlewareName;

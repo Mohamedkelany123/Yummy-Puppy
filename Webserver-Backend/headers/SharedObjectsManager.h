@@ -24,7 +24,7 @@ class SharedObjectsManager{
                 
                 if ( dso ){ // If dso is not NULL then loaded successfully
                 
-                    create_object_routine<T> my_func = (create_object_routine<T> ) dlsym (dso,funcName); // Loading external function from DSO
+                    create_object_routine<T> my_func = (create_object_routine<T> ) dlsym (dso,funcName.c_str()); // Loading external function from DSO
 
                     if ( my_func ){ // If function loaded successfully
                     

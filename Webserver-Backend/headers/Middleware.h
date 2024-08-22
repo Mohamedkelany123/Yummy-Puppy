@@ -15,6 +15,7 @@ class  Middleware
         Middleware(const string _middlewarename);
         virtual bool run(HTTPRequest* _req, HTTPResponse* _res)=0;
         virtual Middleware * clone() =0;
+        virtual void init(json initData);
         string getName();
         void setParams(json _params);
         json getParams();

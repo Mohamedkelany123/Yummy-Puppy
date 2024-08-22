@@ -10,8 +10,8 @@
 class MiddlewareManager{
     private:
         std::map <string,Middleware *> middlewares;
-        std::map <string,vector<Middleware *>> endpointsPreMiddlewares;
-        std::map <string,vector<Middleware *>> endpointsPostMiddlewares;
+        std::map <string,vector<Middleware *> *> endpointsPreMiddlewares;
+        std::map <string,vector<Middleware *> *> endpointsPostMiddlewares;
         SharedObjectsManager<Middleware> * sharedObjectPtr;
         Logger * logger;
     public:

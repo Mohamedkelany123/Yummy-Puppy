@@ -1,6 +1,7 @@
 #ifndef _URLSERVICE_H_
 #define _URLSERVICE_H_
 #include <common_ws.h>
+#include <regex>
 
 class URLService
 {
@@ -29,21 +30,23 @@ class URLService
     }
 
     template<class T>
-    static pair<string, T> searchRegexMapWithKey(const string searchkey, map<string, T> const * regexMap){
-        if ( regexMap[searchkey]==NULL)  // if not found
+    static pair<string, T *> searchRegexMapWithKey(string searchkey, map<string, T *> * regexMap){
+        if (regexMap == NULL) return {"", NULL};
+        if ( regexMap->operator[](searchkey)==NULL)  // if not found
         {
             // Extract file base noame
-            for (auto entry : regexMap){
+            for (auto entry : *regexMap){
                 if (entry.first.find("*")!= std::string::npos){
                     if (std::regex_match(searchkey, std::regex(entry.first))) {
-                        return {entry.first, services[entry.first]}; // else clone service based on base file name
+                        // return pair<string, T>(entry.first, regexMap->at(entry.first)); // else clone service based on base file name
+                        return entry;
                     }
                 }
             }
             // TODO Make sure this is a valid return T() might cause segmentation fault if T cannot be initaillized 
-            return {searchkey, T()};
+            return {searchkey, NULL};
         }
-        else return {searchkey, regexMap[searchkey]}; // else clone service based on base file name
+        else return {searchkey, regexMap->operator[](searchkey)}; // else clone service based on base file name
     }
 
     static vector<string> splitURL(string URL, char splitKey='/'){

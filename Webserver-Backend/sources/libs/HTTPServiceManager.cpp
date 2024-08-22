@@ -16,7 +16,7 @@ HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,Middlew
             string http_path = el.value()["http_path"];
             vector<string> parameters = URLService::getURLParams(http_path);
             http_path = URLService::getRegexURL(http_path);
-            servicesParameters[http_path] = parameters;
+            servicesParameters[http_path] = &parameters;
 
             auto middlewares = el.value()["middlewares"];
             auto preMiddlewares = el.value()["middlewares"]["preMiddlewares"];
@@ -61,8 +61,8 @@ HTTPService * HTTPServiceManager::getService (string p_resource)
 
 map<string, string> HTTPServiceManager::extractURLParams(string _url)
 {
-    pair<string, vector<string>> parameters = URLService::searchRegexMapWithKey(_url, &servicesParameters);
-    if(parameters.second.size() == 0) return map<string, string>();
+    pair<string, vector<string> *> parameters = URLService::searchRegexMapWithKey(_url, &servicesParameters);
+    if(parameters.second->size() == 0) return map<string, string>();
     string regexURL = parameters.first;
 
     vector<string> _urlSplit = URLService::splitURL(_url);
@@ -73,7 +73,7 @@ map<string, string> HTTPServiceManager::extractURLParams(string _url)
 
     for (int i = 0; i < regexURLSplit.size(); i++){
         if(regexURLSplit[i] == "*"){
-            parametersValues[parameters.second[asteriskCount]] = _urlSplit[i];
+            parametersValues[parameters.second->operator[](asteriskCount)] = _urlSplit[i];
             asteriskCount++;
         }
     }
@@ -88,4 +88,6 @@ HTTPServiceManager::~HTTPServiceManager()
         delete(httpService);
         return true;
    });
+   for(auto m : this->servicesParameters)
+        delete(m.second);
 }
