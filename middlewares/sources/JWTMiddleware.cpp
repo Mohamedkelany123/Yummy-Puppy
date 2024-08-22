@@ -13,6 +13,31 @@ bool JWTMiddleware::run(HTTPRequest *_req, HTTPResponse *_res)
         string str = _req->getHeaderValue("Accept");
         string jwt = _req->getHeaderValue("Authorization");
         cout << jwt << endl;
+        pair<string, bool> tokenSuccess = verifyToken(jwt);
+        cout << "tokenSuccess.first: " << tokenSuccess.first << endl;
+        bool isVerified = verifyUser(tokenSuccess.first);
+        if(isVerified == true){
+            injectUserData(_req, {{"userID", tokenSuccess.first}});
+            return true;
+        }
+        return false;
+
+        cout << "IS Successful: " << tokenSuccess.second << endl;
+    }
+    else 
+    {
+
+    }
+
+    cout << "This is JWTMiddleware::run()" << endl;
+    return true;
+}
+Middleware *JWTMiddleware::clone()
+{
+    Middleware * jwtMiddleware =  new JWTMiddleware();
+    jwtMiddleware->init(this->getParams());
+    return jwtMiddleware;
+}
 
         if ( strncasecmp(jwt.c_str(),"Bearer",strlen("Bearer")) ==0 )
         {
@@ -56,10 +81,43 @@ bool JWTMiddleware::run(HTTPRequest *_req, HTTPResponse *_res)
             cout << "username: " << psqlQuery->getValue("username") << endl;;
             cout << "phone_number: " << psqlQuery->getValue("phone_number") << endl;;
         }
-        else
-        {
-            cout << "Error cannot find authentication user" << endl;;
-        }
+
+        string jwt(tokenString);
+
+        Signer signer(secretKey);
+        Token token = signer.verify(jwt);
+
+        string userID =  token.payload().get("user_id");
+
+        // bool isVerified = verifyUser(userID);
+
+        // if(isVerified == true){
+            return {userID, true};
+        // }
+        // cout << "Cannot verify Token, User ID Might be invalid" << endl;
+        // return {"", false};
+    }
+    catch (Poco::Exception& exc) {
+        std::cerr << "Error: " << exc.displayText() << std::endl;
+        return {"", false};
+    }
+
+  
+
+    // return false;
+}
+
+bool JWTMiddleware::verifyUser(string userID){
+    json connectionData = getParamValue("auth_db");
+    string authTable = connectionData["table"];
+    string usernameIDField = connectionData["username_id_field"]; 
+
+    string query = "select * from "+authTable+" where "+usernameIDField+" = "+userID;
+    PSQLQuery * psqlQuery= new PSQLQuery(connection,query);
+    if ( psqlQuery->hasResults() && psqlQuery->fetchNextRow())
+    {
+        cout << "username: " << psqlQuery->getValue("username") << endl;
+        cout << "phone_number: " << psqlQuery->getValue("phone_number") << endl;
         delete (psqlQuery);
         delete (psqlConnection);
     }
