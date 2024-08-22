@@ -14,12 +14,30 @@ bool JWTMiddleware::run(HTTPRequest *_req, HTTPResponse *_res)
         string jwt = _req->getHeaderValue("Authorization");
         cout << jwt << endl;
         pair<string, bool> tokenSuccess = verifyToken(jwt);
+        cout << "tokenSuccess.first: " << tokenSuccess.first << endl;
         bool isVerified = verifyUser(tokenSuccess.first);
         if(isVerified == true){
             injectUserData(_req, {{"userID", tokenSuccess.first}});
             return true;
         }
         return false;
+
+        cout << "IS Successful: " << tokenSuccess.second << endl;
+    }
+    else 
+    {
+
+    }
+
+    cout << "This is JWTMiddleware::run()" << endl;
+    return true;
+}
+Middleware *JWTMiddleware::clone()
+{
+    Middleware * jwtMiddleware =  new JWTMiddleware();
+    jwtMiddleware->init(this->getParams());
+    return jwtMiddleware;
+}
 
         cout << "IS Successful: " << tokenSuccess.second << endl;
     }
@@ -85,13 +103,13 @@ pair<string, bool> JWTMiddleware::verifyToken(string authToken)
 
         string userID =  token.payload().get("user_id");
 
-        bool isVerified = verifyUser(userID);
+        // bool isVerified = verifyUser(userID);
 
-        if(isVerified == true){
+        // if(isVerified == true){
             return {userID, true};
-        }
-        cout << "Cannot verify Token, User ID Might be invalid" << endl;
-        return {"", false};
+        // }
+        // cout << "Cannot verify Token, User ID Might be invalid" << endl;
+        // return {"", false};
     }
     catch (Poco::Exception& exc) {
         std::cerr << "Error: " << exc.displayText() << std::endl;

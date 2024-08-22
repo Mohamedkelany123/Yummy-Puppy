@@ -39,6 +39,7 @@ MiddlewareManager::MiddlewareManager(ConfigFile *conf, Logger *logger)
                     this->middlewares[el1.key()] = sharedObjectPtr->load(el1.value()["DSO"]);
                     cout << "Params Data: " << el1.value() << endl;
                     this->middlewares[el1.key()]->init(el1.value()); 
+                    this->middleWareResourceManager[el1.key()] = new MiddleWareResourceManager (this->middlewares[el1.key()]);
                     break;
                 }
             }
@@ -49,19 +50,21 @@ MiddlewareManager::MiddlewareManager(ConfigFile *conf, Logger *logger)
 
 void MiddlewareManager::assignEndpointPreMiddlewares(string name, vector<string> middleware_list)
 {
-    if(endpointsPreMiddlewares[name] == NULL) endpointsPreMiddlewares[name] = new vector<Middleware *>();
+    if(endpointsPreMiddlewares[name] == NULL) endpointsPreMiddlewares[name] = new vector<MiddleWareResourceManager *>();
     for (int i = 0; i < middleware_list.size(); i++)
     {
-        endpointsPreMiddlewares[name]->push_back(middlewares[middleware_list[i]]);
+        cout << ">>>>>pushing back :" << middleware_list[i] << endl;
+        printf ("%p\n",middleWareResourceManager[middleware_list[i]]); 
+        endpointsPreMiddlewares[name]->push_back(middleWareResourceManager[middleware_list[i]]);
     }
 }
 
 void MiddlewareManager::assignEndpointPostMiddlewares(string name, vector<string> middleware_list)
 {
-    if(endpointsPostMiddlewares[name] == NULL) endpointsPostMiddlewares[name] = new vector<Middleware *>();
+    if(endpointsPostMiddlewares[name] == NULL) endpointsPostMiddlewares[name] = new vector<MiddleWareResourceManager *>();
     for (int i = 0; i < middleware_list.size(); i++)
     {
-        endpointsPostMiddlewares[name]->push_back(middlewares[middleware_list[i]]);
+        endpointsPostMiddlewares[name]->push_back(middleWareResourceManager[middleware_list[i]]);
     }
 }
 
@@ -82,21 +85,22 @@ void MiddlewareManager::assignEndpointPostMiddlewares(string name, vector<string
  * @author Ramy
  * @date 14-Aug-2024
  */
-bool MiddlewareManager::runMiddlewares(vector<Middleware *> middlewaresList, HTTPRequest *req, HTTPResponse *res)
+bool MiddlewareManager::runMiddlewares(vector<MiddleWareResourceManager *> middlewareManagersList, HTTPRequest *req, HTTPResponse *res)
 {
     vector<Middleware *> localMiddlewares;
-    for (int i = 0; i < middlewaresList.size(); i++)
-        localMiddlewares.push_back((middlewaresList[i])->clone());
+    cout << ">>>>>>>>>>>>>>>>>>>>>>Getting the resource:" << middlewareManagersList.size() <<  endl;
+    for (int i = 0; i < middlewareManagersList.size(); i++)
+        localMiddlewares.push_back((middlewareManagersList[i])->getResource());
 
     for (int i = 0; i < localMiddlewares.size(); i++)
         if (!localMiddlewares[i]->run(req, res))
         {
             string errorMsg = "Error running pre-middleware: " + localMiddlewares[i]->getName();
             logger->error(errorMsg);
-            deleteEndpointMiddleware(localMiddlewares);
+            deleteEndpointMiddleware(middlewareManagersList,localMiddlewares);
             return false;
         }
-    deleteEndpointMiddleware(localMiddlewares);
+    deleteEndpointMiddleware(middlewareManagersList,localMiddlewares);
     return true;
 }
 
@@ -114,10 +118,10 @@ bool MiddlewareManager::runMiddlewares(vector<Middleware *> middlewaresList, HTT
  * @author Ramy
  * @date 14-Aug-2024
  */
-void MiddlewareManager::deleteEndpointMiddleware(vector<Middleware *> localMiddlewares)
+void MiddlewareManager::deleteEndpointMiddleware(vector<MiddleWareResourceManager *> middlewareManagersList, vector<Middleware *> localMiddlewares)
 {
     for (int i = 0; i < localMiddlewares.size(); i++)
-        delete (localMiddlewares[i]);
+        middlewareManagersList[i]->releaseResource(localMiddlewares[i]);
 }
 
 /**
@@ -139,9 +143,14 @@ void MiddlewareManager::deleteEndpointMiddleware(vector<Middleware *> localMiddl
 bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
     // vector<Middleware *> preMiddlewares = endpointsPreMiddlewares[endpointName];
-    pair<string, vector<Middleware *> *> preMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPreMiddlewares);
-    if(preMiddlewares.second == NULL) return false;
+    cout << ">>>>>>>>>>> finding preMiddlewares" << endl;
 
+    pair<string, vector<MiddleWareResourceManager *> *> preMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPreMiddlewares);
+    if(preMiddlewares.second == NULL) 
+    {
+        cout << ">>>>>>>>>>> cannot find preMiddlewares" << endl;
+        return false;
+    }
     return runMiddlewares(*preMiddlewares.second, req, res);
 }
 
@@ -163,7 +172,7 @@ bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPReques
  */
 bool MiddlewareManager::runEndpointPostMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
-    pair<string, vector<Middleware *> *> postMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPostMiddlewares);
+    pair<string, vector<MiddleWareResourceManager *> *> postMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPostMiddlewares);
     if(postMiddlewares.second == NULL) return false;
 
     return runMiddlewares(*postMiddlewares.second, req, res);
@@ -177,5 +186,7 @@ MiddlewareManager::~MiddlewareManager()
     for(auto m : this->endpointsPreMiddlewares)
         delete(m.second);
     for(auto m : this->endpointsPostMiddlewares)
+        delete(m.second);
+    for(auto m: this->middleWareResourceManager)
         delete(m.second);
 }
