@@ -39,23 +39,6 @@ Middleware *JWTMiddleware::clone()
     return jwtMiddleware;
 }
 
-        cout << "IS Successful: " << tokenSuccess.second << endl;
-    }
-    else 
-    {
-
-    }
-
-    cout << "This is JWTMiddleware::run()" << endl;
-    return true;
-}
-Middleware *JWTMiddleware::clone()
-{
-    Middleware * jwtMiddleware =  new JWTMiddleware();
-    jwtMiddleware->init(this->getParams());
-    return jwtMiddleware;
-}
-
 void JWTMiddleware::connectDatabase()
 {
     json connectionData = getParamValue("auth_db"); 
