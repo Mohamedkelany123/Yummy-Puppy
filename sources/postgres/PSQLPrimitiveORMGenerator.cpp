@@ -850,19 +850,26 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, v
         generateIsUpdated(class_name,is_views);
         generateResolveReferences(class_name,table_name,results);
         generateStaticFetch(class_name);
+        // snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,
+        // class_name_upper.c_str(),class_name_upper.c_str(),includes.c_str(),
+        // class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),
+        // query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),
+        // query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str());
         snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,
         class_name_upper.c_str(),class_name_upper.c_str(),includes.c_str(),
         class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),
-        query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),
-        query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str());
-        snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,include_file.c_str(),(setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str()
-        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),table_name.c_str(),class_name.c_str(),class_name.c_str()
-        ,class_name.c_str(),query_iterator_class_name.c_str()
-        ,class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str()
-        ,class_name.c_str(),query_iterator_class_name.c_str()
-        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str()
-        ,query_iterator_class_name.c_str(),class_name.c_str()
-        ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str());
+        query_iterator_class_name.c_str(),class_name.c_str(),
+        query_iterator_class_name.c_str(),class_name.c_str(),table_name.c_str(),query_iterator_class_name.c_str());
+
+        snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,include_file.c_str(),(setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str());
+        // snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,include_file.c_str(),(setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str()
+        // ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),table_name.c_str(),class_name.c_str(),class_name.c_str()
+        // ,class_name.c_str(),query_iterator_class_name.c_str()
+        // ,class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str()
+        // ,class_name.c_str(),query_iterator_class_name.c_str()
+        // ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str()
+        // ,query_iterator_class_name.c_str(),class_name.c_str()
+        // ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),query_iterator_class_name.c_str());
         write_headers_and_sources(class_name);
     }
     delete (psqlQuery);
