@@ -40,7 +40,7 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
         {
             return NULL;
         }
-        T * next (bool _read_only)
+        T * next (bool _read_only = false)
         {
             if (psqlQuery->fetchNextRow())
             {
@@ -105,6 +105,8 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
         int getRowCount(){
             return this->psqlQuery->getRowCount();
         }
+
+        void process(int partitions_count, void * extra_params){}
 
         ~PSQLAbstractORMIterator ()
         {

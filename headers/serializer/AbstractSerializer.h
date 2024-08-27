@@ -2,9 +2,7 @@
 #define ABSTRACTSERIALIZER_H
 
 #include <common.h>
-#include <ThorSerialize/Traits.h>
-#include <ThorSerialize/SerUtil.h>
-#include <ThorSerialize/JsonThor.h>
+
 
 class AbstractSerializer
 {
