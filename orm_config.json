@@ -2,11 +2,11 @@
     "datasources": [
         {
             "key": "main",
-            "ip": "192.168.65.216",
+            "ip": "192.168.1.51",
             "port": 5432,
-            "username": "development",
-            "password": "5k6MLFM9CLN3bD1",
-            "dbname": "django_ostaz_12082024_abdallahg"
+            "username": "postgres",
+            "password": "postgres",
+            "dbname": "c_plus_plus"
         },
         {
             "key": "secondary",
@@ -19,7 +19,7 @@
     ],
     "factory": {
         "datasource": "main",
-        "directory": "./applications/LOS/factory/db_primitive_orm",
+        "directory": "./applications/blnk_closure/factory/db_primitive_orm",
         "restrict_orms": []
     }
 }

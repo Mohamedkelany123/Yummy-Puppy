@@ -40,7 +40,7 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
         {
             return NULL;
         }
-        T * next (bool _read_only)
+        T * next (bool _read_only = false)
         {
             if (psqlQuery->fetchNextRow())
             {
