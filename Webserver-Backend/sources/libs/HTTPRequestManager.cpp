@@ -5,6 +5,8 @@ HTTPRequestManager::HTTPRequestManager()
 {
     methods ["GET"] = new HTTPGETRequest(NULL); // Instantiating HTTPGETRequest cloner
     methods ["POST"] = new HTTPPOSTRequest(NULL); // Instantiating HTTPPOSTRequest cloner
+    methods ["OPTIONS"] = new HTTPOPTIONSRequest(NULL); // Instantiating HTTPPOSTRequest cloner
+
 }
 // Return a service whose type is based on the method. If the methodis not supported an exception is thrown
 HTTPRequest * HTTPRequestManager::getService (TCPSocket * p_tcpSocket,string p_method)
