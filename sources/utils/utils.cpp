@@ -6,19 +6,21 @@ void BDate::set_date (string date_string)
     if (date_string != "")
     {
         date_string += " 00:00:00";
-        strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S",&tm);    
-        tm.tm_hour +=TIME_ZONE_OFFEST;
+        strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S %Z",&tm);    
+        // tm.tm_hour +=TIME_ZONE_OFFEST;
         //local time zone and daylight saving time settings
         tm.tm_isdst = DL_SAVING;
+
     }
     else
     {
         is_null = true;
-        date_string = "1970-01-01 00:00:00";
-        strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S",&tm);    
-        tm.tm_hour +=TIME_ZONE_OFFEST;
+        date_string = "1970-01-01 00:00:00 UTC";
+        strptime(date_string.c_str(), "%Y-%m-%d %H:%M:%S %Z",&tm);    
+        // tm.tm_hour +=TIME_ZONE_OFFEST;
         //local time zone and daylight saving time settings
         tm.tm_isdst = DL_SAVING;
+
     }
 }
 BDate::BDate()
@@ -44,8 +46,39 @@ BDate::BDate(time_t t)
 }
 time_t BDate::operator()()
 {
-    return mktime(&tm);
+    setenv("TZ", "", 1);
+    tzset();
+    time_t t = mktime(&tm);
+    return t;
 }
+
+bool BDate::operator > (BDate & bdate)
+{
+    return ((*this) () > bdate());
+}
+bool BDate::operator < (BDate & bdate)
+{
+    return ((*this) () < bdate());
+}
+bool BDate::operator >= (BDate & bdate)
+{
+    return ((*this) () >= bdate());
+
+}
+bool BDate::operator <= (BDate & bdate)
+{
+    return ((*this) () <= bdate());
+
+}
+bool BDate::operator == (BDate & bdate)
+{
+    return ((*this) () == bdate());
+}
+bool BDate::operator != (BDate & bdate)
+{
+    return ((*this) () != bdate());
+}
+
 void BDate::inc_month ()
 {
     tm.tm_mon ++;
@@ -124,12 +157,35 @@ string BDate::getDateString()
     string date_string = buf;
     return date_string;
 }
+string BDate::getFullDateString()
+{
+    char buf[255];
+    memset ( buf,0,255);
+    if ( !is_null)
+        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+    string date_string = buf;
+    return date_string;
+}
+
+void BDate::printTM()
+{
+    printf ("Year: %d\n",tm.tm_year);
+    printf ("Month: %d\n",tm.tm_mon);
+    printf ("day: %d\n",tm.tm_mday);
+    printf ("Hr: %d\n",tm.tm_hour);
+    printf ("min: %d\n",tm.tm_min);
+    printf ("sec: %d\n",tm.tm_sec);
+    printf ("tm_isdst: %d\n",tm.tm_isdst);
+
+}
+
 void BDate::init_current_date()
 {
     time_t rawtime;
     time ( &rawtime );
     is_null = false;
     tm = *localtime(&rawtime);
+    tm.tm_hour +=TIME_ZONE_OFFEST;
 }
 
 string BDate::getFullateString()

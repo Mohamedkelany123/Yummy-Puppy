@@ -106,6 +106,8 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
             return this->psqlQuery->getRowCount();
         }
 
+        void process(int partitions_count, void * extra_params){}
+
         ~PSQLAbstractORMIterator ()
         {
             

@@ -18,6 +18,8 @@ using namespace std;
 //     #define TIME_ZONE_OFFEST 2
 //     #define DL_SAVING        -1
 // #endif
+//#define BDATE_TIME_ZONE "EEST"
+#define BDATE_TIME_ZONE "UTC"
 
 #define TIME_ZONE_OFFEST 3
 #define DL_SAVING        0
@@ -37,6 +39,12 @@ class BDate
         BDate (struct tm & _tm);
         BDate(time_t t);
         time_t operator () ();
+        bool operator > (BDate & bdate);
+        bool operator < (BDate & bdate);
+        bool operator >= (BDate & bdate);
+        bool operator <= (BDate & bdate);
+        bool operator == (BDate & bdate);
+        bool operator != (BDate & bdate);
         void inc_month ();
         void dec_month ();
         void inc_months (int months=1);
@@ -52,9 +60,9 @@ class BDate
         int get_month_days();
         bool is_leap_year();
         string getDateString();
-        string getFullateString();
-        void printTM();
+        string getFullDateString();
         void init_current_date();
+        void printTM();
         ~BDate ();
 };
 
