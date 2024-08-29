@@ -188,7 +188,7 @@ void BDate::init_current_date()
     tm.tm_hour +=TIME_ZONE_OFFEST;
 }
 
-string BDate::getFullateString()
+string BDate::getFullDateString()
 {
     char buf[255];
     memset ( buf,0,255);
