@@ -306,6 +306,7 @@ class PSQLAbstractQueryIterator {
         void setOrderBy(string _orderby_string);
         void setDistinctString(string _distinct_string);
         void addExtraFromField (string field, string field_name);
+        virtual void process(int, void *) = 0;
         virtual ~PSQLAbstractQueryIterator();
 };
 
