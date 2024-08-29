@@ -188,4 +188,27 @@ void BDate::init_current_date()
     tm.tm_hour +=TIME_ZONE_OFFEST;
 }
 
+string BDate::getFullateString()
+{
+    char buf[255];
+    memset ( buf,0,255);
+    if ( !is_null)
+        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+    string date_string = buf;
+    return date_string;
+}
+
+void BDate::printTM()
+{
+    printf ("Year: %d\n",tm.tm_year);
+    printf ("Month: %d\n",tm.tm_mon);
+    printf ("day: %d\n",tm.tm_mday);
+    printf ("Hr: %d\n",tm.tm_hour);
+    printf ("min: %d\n",tm.tm_min);
+    printf ("sec: %d\n",tm.tm_sec);
+    printf ("tm_isdst: %d\n",tm.tm_isdst);
+
+}
+
+
 BDate::~BDate () {}

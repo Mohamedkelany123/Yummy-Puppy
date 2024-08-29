@@ -2,11 +2,6 @@
 
 PSQLDataSource::PSQLDataSource(string _hostname,int _port,string _database,string _username,string _password):ResourceManager <PSQLConnection>([](ResourceManager <PSQLConnection> * me)->PSQLConnection* {
     PSQLDataSource * mee = (PSQLDataSource *)me;
-    cout << mee->hostname << endl;
-    cout << mee->port << endl;
-    cout << mee->database << endl;
-    cout << mee->username << endl;
-    cout << mee->password << endl;
     return new PSQLConnection (mee->hostname,mee->port,mee->database,mee->username,mee->password);
 })
 {

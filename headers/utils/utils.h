@@ -24,7 +24,7 @@ using namespace std;
 #define TIME_ZONE_OFFEST 3
 #define DL_SAVING        0
 
-#define SQLITE_OMIT_LOCALTIME 1
+// #define SQLITE_OMIT_LOCALTIME 1
 
 class BDate
 {
