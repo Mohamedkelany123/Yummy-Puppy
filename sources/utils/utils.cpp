@@ -44,6 +44,10 @@ BDate::BDate(time_t t)
 }
 time_t BDate::operator()()
 {
+    tm.tm_hour = 0;
+    tm.tm_min = 0;
+    tm.tm_sec = 0;
+
     return mktime(&tm);
 }
 void BDate::inc_month ()
