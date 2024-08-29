@@ -25,7 +25,6 @@ class ResourceManager
             T * resource  =  NULL;
             if (available_resources.empty())
             {
-                cout << "No resource available, creating one ..." << endl;
                 resource  =  lambda(this);
                 if ( resource != NULL)
                     reserved_resources[(uint64_t)resource] = resource;
@@ -36,7 +35,6 @@ class ResourceManager
                 reserved_resources[victim->first] = victim->second;
                 resource = victim->second;
                 available_resources.erase(victim->first); // erase will fuck up the victim on mac, logically it should not :)
-                cout << "Found one in the pool "<< endl;
             }
             return resource;
         }
@@ -65,7 +63,6 @@ class ResourceManager
         }
         virtual ~ResourceManager()
         {
-            cout << "Destructing resouces" << endl;
             std::lock_guard<std::mutex> guard(lock);
             for (auto available_resource: available_resources) 
                 delete (available_resource.second);
