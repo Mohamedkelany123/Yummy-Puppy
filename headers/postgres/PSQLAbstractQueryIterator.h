@@ -337,6 +337,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // void setNativeSQL(string _sql);
         // void filter ( Expression const & e);
         // bool execute();
+        virtual void process(int, void *);
         bool setDistinct (vector<pair<string,string>> _distinct_map);
         bool setAggregates (map<string, pair<string, int>> _aggregate_map);
         long get_result_count ();
