@@ -306,7 +306,7 @@ class PSQLAbstractQueryIterator {
         void setOrderBy(string _orderby_string);
         void setDistinctString(string _distinct_string);
         void addExtraFromField (string field, string field_name);
-        virtual void process(int, void *) = 0;
+        virtual void process(int partitions_count, void * ptr) = 0;
         virtual ~PSQLAbstractQueryIterator();
 };
 
@@ -337,11 +337,11 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // void setNativeSQL(string _sql);
         // void filter ( Expression const & e);
         // bool execute();
-        virtual void process(int, void *);
+        virtual void process(int partitions_count, void * extra_params);
         bool setDistinct (vector<pair<string,string>> _distinct_map);
         bool setAggregates (map<string, pair<string, int>> _aggregate_map);
         long get_result_count ();
-        ~PSQLJoinQueryIterator();
+        virtual ~PSQLJoinQueryIterator();
 };
 
 

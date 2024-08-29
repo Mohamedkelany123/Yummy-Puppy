@@ -72,12 +72,6 @@ void PSQLAbstractQueryIterator::setOrderBy(string _orderby_string)
     orderby_string= _orderby_string;
 }
 
-void PSQLAbstractQueryIterator::process(int, void *)
-{
-
-}
-
-
 void PSQLAbstractQueryIterator::setDistinctString(string _distinct_string)
 {
     distinct= _distinct_string;
@@ -570,6 +564,11 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
 
     
 }
+void PSQLJoinQueryIterator::process(int partitions_count, void * extra_params)
+{
+
+}
+
 bool PSQLJoinQueryIterator::setDistinct (vector<pair<string,string>> distinct_map)
 {
     int count = 0;
