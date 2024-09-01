@@ -82,41 +82,49 @@ bool BDate::operator != (BDate & bdate)
 void BDate::inc_month ()
 {
     tm.tm_mon ++;
+    mktime(&tm);
     (*this)();
 }
 void BDate::dec_month ()
 {
     tm.tm_mon --;
+    mktime(&tm);
     (*this)();
 }
 void BDate::inc_months (int months)
 {
     tm.tm_mon+= months;
+    mktime(&tm);
     (*this)();
 }
 void BDate::dec_months (int months)
 {
     tm.tm_mon-= months;
+    mktime(&tm);
     (*this)();
 }
 void BDate::dec_day ()
 {
     tm.tm_mday --;
+    mktime(&tm);
     (*this)();
 }
 void BDate::inc_day ()
 {
     tm.tm_mday ++;
+    mktime(&tm);
     (*this)();
 }
 void BDate::inc_days (int days)
 {
     tm.tm_mday+= days;
+    mktime(&tm);
     (*this)();
 }
 void BDate::dec_days (int days)
 {
     tm.tm_mday-= days;
+    mktime(&tm);
     (*this)();
 }
 int BDate::get_day()
@@ -129,6 +137,7 @@ void BDate::set_day (int _day)
                 ((_day < 32 && (tm.tm_mon == 1 || tm.tm_mon==3 || tm.tm_mon==5 || tm.tm_mon==7 || tm.tm_mon==8 || tm.tm_mon==10 || tm.tm_mon==12)) || _day< 31 ))
         {
                 tm.tm_mday = _day;
+                mktime(&tm);
                 (*this)();
         }
 }
