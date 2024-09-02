@@ -46,8 +46,8 @@ BDate::BDate(time_t t)
 }
 time_t BDate::operator()()
 {
-    setenv("TZ", "", 1);
-    tzset();
+    // setenv("TZ", "", 1);
+    // tzset();
     time_t t = mktime(&tm);
     return t;
 }
@@ -82,43 +82,43 @@ bool BDate::operator != (BDate & bdate)
 void BDate::inc_month ()
 {
     tm.tm_mon ++;
-    mktime(&tm);
+    // mktime(&tm);
     (*this)();
 }
 void BDate::dec_month ()
 {
     tm.tm_mon --;
-    mktime(&tm);
+    // mktime(&tm);
     (*this)();
 }
 void BDate::inc_months (int months)
 {
     tm.tm_mon+= months;
-    mktime(&tm);
+    // mktime(&tm);
     (*this)();
 }
 void BDate::dec_months (int months)
 {
     tm.tm_mon-= months;
-    mktime(&tm);
+    // mktime(&tm);
     (*this)();
 }
 void BDate::dec_day ()
 {
     tm.tm_mday --;
-    mktime(&tm);
+    // mktime(&tm);
     (*this)();
 }
 void BDate::inc_day ()
 {
     tm.tm_mday ++;
-    mktime(&tm);
+    // mktime(&tm);
     (*this)();
 }
 void BDate::inc_days (int days)
 {
     tm.tm_mday+= days;
-    mktime(&tm);
+    // mktime(&tm);
     (*this)();
 }
 void BDate::dec_days (int days)
