@@ -53,6 +53,12 @@ class EndpointService : public HTTPService
             p_httpResponse->setBody(json::parse(reply));
             middlewareManager->runEndpointPostMiddleware(p_httpRequest->getResource(), p_httpRequest, p_httpResponse);
             p_httpResponse->write();
+            
+            HTTPResponseHeader* httpResponseHeader = new HTTPResponseHeader(p_tcpSocket, "OK", 200, "HTTP/1.1");
+            httpResponseHeader->setHeader("Access-Control-Allow-Origin", "*");
+            httpResponseHeader->setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            httpResponseHeader->setHeader("Access-Control-Allow-Headers", "Content-Type");
+
             return true;
         }
         // A pure virtual method that should be implemented by all descendants to clone and create new object
