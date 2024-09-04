@@ -2,6 +2,7 @@
 #include "HTTPGETRequest.h"
 #include "HTTPNotAcceptableExceptionHandler.h"
 #include "HTTPMethodNotAllowedExceptionHandler.h"
+#include <HTTPOPTIONSResponse.h>
 
 // Constructor: initailizing data members and calling the Thread Base class constructor
 HTTPTransaction::HTTPTransaction(TCPSocket *p_tcpSocket, HTTPServiceManager *p_httpServiceManager, HTTPRequestManager *p_httpRequestManager, MiddlewareManager *_middlewareManager)
@@ -64,9 +65,14 @@ void HTTPTransaction::process()
             map<string, string> URLParamters = httpServiceManager->extractURLParams(httpRequest->getResource());
             httpRequest->addContext("url_params", URLParamters);
             // vector<string> parameters = httpRequestManager->getParameters(httpRequest->getResource());
-            s->execute(httpRequest, httpResponse, middlewareManager); // Execute the service
-            delete (httpRequest);                                     // delete the httpRequest object
+            if(httpRequest->getMethod() == "OPTIONS"){
+                HTTPOPTIONSResponse *httpOPTIONSResponse = new HTTPOPTIONSResponse(tcpSocket);
+                httpOPTIONSResponse->write();
+                delete(httpOPTIONSResponse);
+            }else
+                s->execute(httpRequest, httpResponse, middlewareManager); // Execute the service
             delete (httpResponse);                                    // delete the httpResponse object
+            delete (httpRequest);                                     // delete the httpRequest object
             delete (s);
         }
     }
