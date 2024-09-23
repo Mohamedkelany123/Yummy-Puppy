@@ -3,16 +3,18 @@
 #include <PSQLConnectionManager.h>
 #include <PSQLORMCache.h>
 
+
 class PSQLController
 {
-    private:
+    protected:
         PSQLConnectionManager * psqlConnectionManager;
-        map <string, PSQLORMCache *> psqlORMCaches;
-        map <string,pair<string,bool>> insert_default_values;
-        map <string,pair<string,bool>> update_default_values;
-
+        map <string, PSQLORMCache *> * psqlORMCaches;
+        map <string,pair<string,bool>> * insert_default_values;
+        map <string,pair<string,bool>> * update_default_values;
         string checkDefaultDatasource(string data_source_name);
+        bool checkInitialization ();
     public:
+        void initializeFromMater(PSQLController * psqlControllerMaster)=0;
         PSQLController();
         bool addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password);
         PSQLConnection * getPSQLConnection(string data_source_name);
@@ -37,10 +39,31 @@ class PSQLController
         map <string,pair<string,bool>> getInsertDefaultValues();
         int getCacheCounter (string _data_source_name);
         void clear();
-        ~PSQLController();
+        virtual ~PSQLController();
 };
 
-extern "C" PSQLController psqlController;
+class PSQLControllerMaster: public PSQLController{
+    private:
+    public:
+        PSQLControllerMaster();
+        void initializeFromMater(PSQLController * psqlControllerMaster);
+        ~PSQLControllerMaster();
+};
+
+
+class PSQLControllerSlave: public PSQLController{
+    private:
+    public:
+        PSQLControllerSlave();
+        void initializeFromMaster(PSQLController * psqlControllerMaster);
+        ~PSQLControllerSlave();
+};
+
+#ifdef SHARED_LIBRARY_FLAG
+extern "C" PSQLControllerSlave psqlController; 
+#else
+extern "C" PSQLControllerMaster psqlController;
+#endif
 // PSQLController psqlController;
 
 #endif

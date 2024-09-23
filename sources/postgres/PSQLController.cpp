@@ -1,9 +1,18 @@
 #include <PSQLController.h>
 
+bool PSQLController::checkInitialization ()
+{
+
+}
+
+
 PSQLController::PSQLController()
 {
-    psqlConnectionManager = new PSQLConnectionManager();
-    printf ("PSQL Controller Initialized\n");
+        this->psqlConnectionManager=NULL;
+        this->psqlORMCaches=NULL;
+        this->insert_default_values=NULL;
+        this->update_default_values=NULL;
+
 }
 bool PSQLController::addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password)
 {
@@ -127,13 +136,6 @@ map <string,pair<string,bool>> PSQLController::getInsertDefaultValues()
 
 }
 
-PSQLController::~PSQLController()
-{
-    for (auto cache : psqlORMCaches){
-        delete (cache.second);
-    }
-    delete (psqlConnectionManager);
-}
 int PSQLController::getCacheCounter (string _data_source_name)
 {
     return psqlORMCaches[_data_source_name]->cache_counter;
@@ -147,4 +149,60 @@ void PSQLController::clear() {
     psqlConnectionManager = new PSQLConnectionManager();
 } 
 
-PSQLController psqlController;
+PSQLController::~PSQLController()
+{
+}
+
+ //************************************************
+
+PSQLControllerMaster::PSQLControllerMaster()
+{
+    psqlConnectionManager = new PSQLConnectionManager();
+    psqlORMCaches = new map <string, PSQLORMCache *>();
+    insert_default_values = new map <string,pair<string,bool>>();
+    update_default_values = new map <string,pair<string,bool>>();
+    printf ("PSQL Controller Initialized\n");
+}
+void PSQLControllerMaster::initializeFromMater(PSQLController * psqlControllerMaster)
+{
+    return;
+}
+PSQLControllerMaster:~PSQLControllerMaster()
+{
+    for (auto cache : *psqlORMCaches){
+        delete (cache.second);
+    }
+    delete (psqlORMCaches);
+    delete (psqlConnectionManager);
+    delete (insert_default_values);
+    delete (update_default_values);
+}
+
+ //************************************************
+
+
+PSQLControllerSlave::PSQLControllerSlave():PSQLController()§
+{
+
+}
+void PSQLControllerSlave::initializeFromMaster(PSQLController * psqlControllerMaster)
+{
+        this->psqlConnectionManager=psqlControllerMaster->psqlConnectionManager;
+        this->psqlORMCaches=psqlControllerMaster->psqlORMCaches;
+        this->insert_default_values=psqlControllerMaste->insert_default_values;
+        this->update_default_values=psqlControllerMaster->update_default_values;
+}
+PSQLControllerSlave::~PSQLControllerSlave()
+{
+
+}
+
+
+#ifdef SHARED_LIBRARY_FLAG
+PSQLControllerSlave psqlController; 
+#else
+PSQLControllerMaster psqlController;
+#endif
+
+
+

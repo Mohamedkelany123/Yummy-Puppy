@@ -41,7 +41,7 @@ target: build_tree_dso $(DSOS)
 OBJS = $(patsubst $(CUR_DIR)/%.cpp, $(OBJ_DIR)/%.cpp.dso, $(SRC))
 
 $(OBJ_DIR)/%.cpp.dso: $(CUR_DIR)/%.cpp $(ALL_H)
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
+	$(GCC) $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) -DSHARED_LIBRARY_FLAG $< -o $@
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
 
