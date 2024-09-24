@@ -11,7 +11,7 @@ SRC = $(wildcard $(CUR_DIR)/*.cpp)
 
 BINS = $(patsubst $(CUR_DIR)/%.cpp, $(BIN_DIR)/%, $(SRC))
 
-ALL_OBJECTS = $(shell find $(HOME_PATH) ! -path "*/applications/*" ! -path "*/poco/*" -name "*.cpp.o")
+ALL_OBJECTS = $(shell find $(HOME_PATH) ! -path "*/applications/*" ! -path "*/poco/*" ! -name "PSQLControllerSlave.cpp.o" -name "*.cpp.o")
 
 IS_SUBMODULE := $(shell git rev-parse --show-superproject-working-tree)
 ifneq ($(strip $(IS_SUBMODULE)),)

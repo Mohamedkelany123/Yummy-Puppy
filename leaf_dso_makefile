@@ -20,11 +20,8 @@ ifneq ($(strip $(IS_SUBMODULE)),)
 endif
 
 #Need To generate slave .o from framework
-# $(DSO_DIR)/%.so: $(OBJ_DIR)/%.cpp.dso $(ALL_CPP)
-# 	$(GCC) -shared -std=c++17 $(LIBS) $(ALL_OBJECTS) $(SOURCES)/postgres/PSQLControllerSlave.cpp.o -fPIC $(INCLUDES) $(LEDGERINCLUDES) $< -o $@ $(LINKER_FLAGS)
-
 $(DSO_DIR)/%.so: $(OBJ_DIR)/%.cpp.dso $(ALL_CPP)
-	$(GCC) -shared -std=c++17 $(LIBS) $(ALL_OBJECTS) $(SOURCES)/postgres/PSQLController.cpp -D SHARED_LIBRARY_FLAG -fPIC $(INCLUDES) $(LEDGERINCLUDES) $< -o $@ $(LINKER_FLAGS)
+	$(GCC) -shared -std=c++17 $(LIBS) $(ALL_OBJECTS) $< -o $@ $(LINKER_FLAGS)
 
 
 $(DSO_DIR):
