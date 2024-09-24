@@ -12,9 +12,10 @@ class PSQLController
         map <string,pair<string,bool>> * insert_default_values;
         map <string,pair<string,bool>> * update_default_values;
         string checkDefaultDatasource(string data_source_name);
-        bool checkInitialization ();
+        bool checkInitialization();
+
     public:
-        void initializeFromMater(PSQLController * psqlControllerMaster)=0;
+        virtual void initialize(PSQLController * psqlControllerMaster)=0;
         PSQLController();
         bool addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password);
         PSQLConnection * getPSQLConnection(string data_source_name);
@@ -35,10 +36,11 @@ class PSQLController
         void unlock_all_current_thread_orms();
         void unlock_current_thread_orms(string data_source_name = "");
         void addDefault(string name,string value, bool is_insert = true, bool is_func=false);
-        map <string,pair<string,bool>> getUpdateDefaultValues();
-        map <string,pair<string,bool>> getInsertDefaultValues();
+        map <string,pair<string,bool>> * getUpdateDefaultValues();
+        map <string,pair<string,bool>> * getInsertDefaultValues();
         int getCacheCounter (string _data_source_name);
-        void clear();
+        PSQLConnectionManager * get_psqlConnectionManager();
+        map <string, PSQLORMCache *> * get_psqlORMCaches();
         virtual ~PSQLController();
 };
 
@@ -46,7 +48,7 @@ class PSQLControllerMaster: public PSQLController{
     private:
     public:
         PSQLControllerMaster();
-        void initializeFromMater(PSQLController * psqlControllerMaster);
+        void initialize(PSQLController * psqlControllerMaster);
         ~PSQLControllerMaster();
 };
 
@@ -55,15 +57,15 @@ class PSQLControllerSlave: public PSQLController{
     private:
     public:
         PSQLControllerSlave();
-        void initializeFromMaster(PSQLController * psqlControllerMaster);
+        void initialize(PSQLController * psqlControllerMaster);
         ~PSQLControllerSlave();
 };
+
 
 #ifdef SHARED_LIBRARY_FLAG
 extern "C" PSQLControllerSlave psqlController; 
 #else
 extern "C" PSQLControllerMaster psqlController;
 #endif
-// PSQLController psqlController;
 
 #endif

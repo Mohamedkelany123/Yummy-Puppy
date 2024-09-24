@@ -70,8 +70,8 @@ PSQLAbstractORM::PSQLAbstractORM (string _data_source_name, string _table_name,s
     //     for (auto value: result.second) 
     //         std::cout << "\t\t" << value << std::endl;
     // }
-    insert_default_values = psqlController.getInsertDefaultValues();
-    update_default_values = psqlController.getUpdateDefaultValues();
+    insert_default_values = *(psqlController.getInsertDefaultValues());
+    update_default_values = *(psqlController.getUpdateDefaultValues());
     data_source_name = _data_source_name;
     enforced_partition_number=_enforced_partition_number;
     field_clear_mask= _field_clear_mask;
