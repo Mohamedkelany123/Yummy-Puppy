@@ -2,7 +2,10 @@
 #include "HTTPGETRequest.h"
 #include "HTTPNotAcceptableExceptionHandler.h"
 #include "HTTPMethodNotAllowedExceptionHandler.h"
+#include "HTTPBadRequestExceptionHandler.h"
 #include <HTTPOPTIONSResponse.h>
+#include <AbstractException.h>
+
 
 // Constructor: initailizing data members and calling the Thread Base class constructor
 HTTPTransaction::HTTPTransaction(TCPSocket *p_tcpSocket, HTTPServiceManager *p_httpServiceManager, HTTPRequestManager *p_httpRequestManager, MiddlewareManager *_middlewareManager)
@@ -75,6 +78,13 @@ void HTTPTransaction::process()
             delete (httpRequest);                                     // delete the httpRequest object
             delete (s);
         }
+    }
+    catch (BadRequest e)
+    {       
+        HTTPBadRequestExceptionHandler httpBadRequestExceptionHandler;  
+        httpBadRequestExceptionHandler.setErrorMessage(e.getMessege());
+        httpBadRequestExceptionHandler.handle(httpResponse); // handle exception
+        delete (httpRequest); // delete the httpRequest object
     }
     catch (HTTPNotAcceptableExceptionHandler httpNotAcceptableExceptionHandler)
     {                                                           // An exception occurred indicating that the service requested is not accepted
