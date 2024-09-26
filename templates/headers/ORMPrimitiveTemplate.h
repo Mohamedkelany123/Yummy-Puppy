@@ -7,6 +7,8 @@
 
 %s
 
+%s
+
 class %s : public PSQLAbstractORM
 {
     private:
