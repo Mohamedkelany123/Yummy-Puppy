@@ -18,6 +18,9 @@ class EndpointService : public HTTPService
         string endpoint_entry(HTTPRequest * p_httpRequest, std::function<void(HTTPRequest * p_httpRequest, I *inputSerializer, O *outputSerializer)> f)
         {
             string http_body = p_httpRequest->getBody();
+            cout << p_httpRequest->getHeaderValue("Content-Type")<< endl;
+            printf ("%s\n",p_httpRequest->getBinaryBody());
+
             I *inputSerializer = new I();
             O *outputSerializer = new O();
 

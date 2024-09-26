@@ -19,7 +19,12 @@ void HTTPPOSTRequest::readAndParse(string initial_header)
         char buffer[1024]; // temporary buffer for reading
         memset ( buffer,0,1024); // Initialize buffer to zeros
         // read from socket and leave one character empty to identify the end of the string
-        tcpSocket->readFromSocket(buffer,1023); 
+        int just_read = tcpSocket->readFromSocket(buffer,1023); 
+        if ( binary_body == NULL)  binary_body = (char *) calloc (binary_size+just_read+10,sizeof(char));
+        else binary_body = (char *) realloc (binary_body,(binary_size+just_read+10*(sizeof(char))));
+        memcpy(binary_body+binary_size,buffer,just_read);
+        binary_size += just_read;
+
         // Append buffer to body
         body +=buffer;
     }

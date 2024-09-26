@@ -34,6 +34,7 @@ void HTTPRequest::addToHeaderMap(string header_item)
 HTTPRequest::HTTPRequest(TCPSocket * p_tcpSocket)
 {
     tcpSocket = p_tcpSocket; // Set tcpSocket data member
+    binary_body = NULL;
 }
 
 // Read the header from the socket and parse it. 
@@ -43,9 +44,19 @@ void HTTPRequest::readAndParse(string initial_header)
     char buffer[1024];// A buffer to read data in
     memset (buffer,0,1024); // Initialize buffer
     string http_stream=initial_header; // copy initial header into HTTP stream
+    if ( binary_body != NULL) 
+    {
+        free(binary_body);
+        binary_body = NULL;
+    }
+    binary_size=0;
     for ( ;http_stream.find("\r\n\r\n") ==std::string::npos; )
     { // keep on reading as long as we cannot find the "\r\n\r\n" of the header
-        tcpSocket->readFromSocket(buffer,1023);
+        int just_read = tcpSocket->readFromSocket(buffer,1023);
+        if ( binary_body == NULL)  binary_body = (char *) calloc (binary_size+just_read+10,sizeof(char));
+        else binary_body = (char *) realloc (binary_body,(binary_size+just_read+10*(sizeof(char))));
+        memcpy(binary_body+binary_size,buffer,just_read);
+        binary_size += just_read;
         http_stream +=buffer; // Append what you have got from the socket
         memset (buffer,0,1024); // Reinitialize the read buffer
     }
@@ -98,5 +109,18 @@ string & HTTPRequest::getBody()
 {
     return body;
 }
+
+char * HTTPRequest::getBinaryBody()
+{
+    return binary_body;
+}
+long HTTPRequest::getBinaryBodySize()
+{
+    return binary_size;
+}
+
 // Destructor
-HTTPRequest::~HTTPRequest(){}
+HTTPRequest::~HTTPRequest()
+{
+    if (binary_body != NULL ) free (binary_body);
+}
