@@ -19,7 +19,7 @@ protected:
     void addToHeaderMap(string header_item);     // Parse and add a header item to the header map
 public:
     HTTPRequest(TCPSocket *p_tcpSocket);              // Constructor
-    virtual void readAndParse(string initial_header); // Read header from socket and parse it
+    virtual void readAndParse(string initial_header, long sz); // Read header from socket and parse it
     string getResource();                             // Selector: return the resource data member.
     string &getBody();                                // Selector: return the request body
     char * getBinaryBody();

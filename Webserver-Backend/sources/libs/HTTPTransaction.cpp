@@ -30,7 +30,7 @@ HTTPRequest *HTTPTransaction::fetchHTTPRequest()
     HTTPRequest *httpRequest = httpRequestManager->getService(tcpSocket, method);
     // if an object is returned then execute the readAndParse method else an exception will be thrown
     if (httpRequest != NULL)
-        httpRequest->readAndParse(buffer);
+        httpRequest->readAndParse(buffer,read);
     return httpRequest; // return the httpRequest object
 }
 
@@ -62,6 +62,9 @@ void HTTPTransaction::process()
         {
             s = httpServiceManager->getService(httpRequest->getResource());
             map<string, string> URLParamters = httpServiceManager->extractURLParams(httpRequest->getResource());
+            cout << "URLParamters.size(): " << URLParamters.size() << endl;
+            for (auto x: URLParamters )
+                cout << x.first << ": " << x.second << endl;
             httpRequest->addContext("url_params", URLParamters);
             // vector<string> parameters = httpRequestManager->getParameters(httpRequest->getResource());
             s->execute(httpRequest, httpResponse, middlewareManager); // Execute the service

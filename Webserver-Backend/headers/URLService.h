@@ -6,14 +6,14 @@
 class URLService
 {
     public:
-    static vector<string> getURLParams(string URLPath) {
-            vector<string> parameters;
+    static vector<string> * getURLParams(string URLPath) {
+            vector<string> * parameters = new vector<string>();
             std::string::size_type start = 0;
             while ((start = URLPath.find('<', start)) != std::string::npos) {
                 // Loop to find all possible end positions for the substring
                 auto end = start;
                 if ((end = URLPath.find('>', end + 1)) != std::string::npos) {
-                    parameters.push_back(URLPath.substr(start+1, end - start-1));
+                    parameters->push_back(URLPath.substr(start+1, end - start-1));
                 }
                 start = end; 
             }
@@ -37,6 +37,9 @@ class URLService
             // Extract file base noame
             for (auto entry : *regexMap){
                 if (entry.first.find("*")!= std::string::npos){
+                    cout << "searchkey: " << searchkey<< endl;
+                    cout << "entry.first: " << entry.first<< endl;
+                    
                     if (std::regex_match(searchkey, std::regex(entry.first))) {
                         // return pair<string, T>(entry.first, regexMap->at(entry.first)); // else clone service based on base file name
                         return entry;
