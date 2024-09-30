@@ -62,5 +62,24 @@ class ExceptionStack:public AbstractException
             }
 };   
 
+class BadRequest : public exception {
+private:
+    string message;
+
+public:
+
+    BadRequest(const char* msg)
+        : message(msg)
+    {
+    }
+
+    const char* what() const throw()
+    {
+        return message.c_str();
+    }
+    string getMessege(){
+        return message;
+    }
+};
 
 #endif

@@ -18,6 +18,7 @@ class PSQLController
         virtual void initialize(PSQLController * psqlControllerMaster)=0;
         PSQLController();
         bool addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password);
+        bool isDataSource(string data_source_name);
         PSQLConnection * getPSQLConnection(string data_source_name);
         bool releaseConnection (string data_source_name,PSQLConnection * psqlConnection);
         PSQLAbstractORM * addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM, string data_source_name = "");

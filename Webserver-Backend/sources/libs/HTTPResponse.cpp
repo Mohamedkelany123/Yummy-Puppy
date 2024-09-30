@@ -6,6 +6,10 @@ HTTPResponse::HTTPResponse(TCPSocket * _tcpSocket)
     HTTPResponseHeader * _httpResponseHeader = new HTTPResponseHeader("OK",200,"HTTP/1.1");
     _httpResponseHeader->setHeader("Content-Type","application/json");
     _httpResponseHeader->setHeader("charset","utf-8");
+    _httpResponseHeader->setHeader("Access-Control-Allow-Origin", "*");
+    _httpResponseHeader->setHeader("Access-Control-Allow-Methods", "*");
+    _httpResponseHeader->setHeader("Access-control-allow-credentials", "true");
+    _httpResponseHeader->setHeader("Access-Control-Allow-Headers", "Content-Type");
     httpResponseHeader = _httpResponseHeader;
     tcpSocket = _tcpSocket;
 }
