@@ -11,7 +11,7 @@ SRC = $(wildcard $(CUR_DIR)/*.cpp)
 DSO_DIR=$(subst sources,dso,$(CUR_DIR))
 DSOS = $(patsubst $(CUR_DIR)/%.cpp, $(DSO_DIR)/%.so, $(SRC))
 
-ALL_OBJECTS = $(shell find $(HOME_PATH) ! -path "*/applications/*" ! -path "*/poco/*" -name "*.cpp.o")
+ALL_OBJECTS = $(shell find $(HOME_PATH) ! -path "*/applications/*" ! -path "*/poco/*" ! -name "PSQLController.cpp.o" -name "*.cpp.o")
 
 IS_SUBMODULE := $(shell git rev-parse --show-superproject-working-tree)
 ifneq ($(strip $(IS_SUBMODULE)),)
@@ -19,9 +19,10 @@ ifneq ($(strip $(IS_SUBMODULE)),)
 	ALL_OBJECTS += $(shell find $(SUBMODULE_PATH) -name "*.cpp.o" )
 endif
 
-
+#Need To generate slave .o from framework
 $(DSO_DIR)/%.so: $(OBJ_DIR)/%.cpp.dso $(ALL_CPP)
 	$(GCC) -shared -std=c++17 $(LIBS) $(ALL_OBJECTS) $< -o $@ $(LINKER_FLAGS)
+
 
 $(DSO_DIR):
 	@mkdir -p $(DSO_DIR)
@@ -41,7 +42,7 @@ target: build_tree_dso $(DSOS)
 OBJS = $(patsubst $(CUR_DIR)/%.cpp, $(OBJ_DIR)/%.cpp.dso, $(SRC))
 
 $(OBJ_DIR)/%.cpp.dso: $(CUR_DIR)/%.cpp $(ALL_H)
-	$(GCC) $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
+	$(GCC) $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) -D SHARED_LIBRARY_FLAG $< -o $@
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
 

@@ -104,8 +104,9 @@
         "__assert": "cpp",
         "*.tpp": "cpp",
         "__memory": "cpp",
-        "*.source": "cpp"
+        "*.source": "cpp",
+        "csignal": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++",
-    "cmake.sourceDirectory": "/home/abdallah/blnk/ORM-C_plus_plus/magic-enum"
+    "cmake.sourceDirectory": "/Users/kmsobh/blnk/orm_c++/poco/DNSSD"
 }

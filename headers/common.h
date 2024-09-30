@@ -65,14 +65,12 @@ using json = nlohmann::json;
         void set_errors(vector<ResponseError> _errors){errors = _errors;};
 
 #define   SERIALIZER_TEMPLATE_H     void serialize (string str);
-
 #define   DESERIALIZER_TEMPLATE_H     string deserialize ();
 
 #define   SERIALIZER_TEMPLATE_CPP(T)    void T::serialize (string str) { \
             std::stringstream json_string (str); \
             json_string >> ThorsAnvil::Serialize::jsonImporter((*this)); \
         }
-
 #define   DESERIALIZER_TEMPLATE_CPP(T)     string T::deserialize () { \
             std::ostringstream ss; \
             ss << ThorsAnvil::Serialize::jsonExporter((*this)); \
@@ -80,9 +78,11 @@ using json = nlohmann::json;
         }
 
 
-#define STARTPOSTENDPOINT(I,O) return new EndpointService <I,O>( \
+#define STARTPOSTENDPOINT(I,O) return new EndpointPOSTService <I,O>( \
             [] (HTTPRequest * p_httpRequest,I * inputSerializer,O * outputSerializer) {
 
+#define STARTGETENDPOINT(O) return new EndpointGETService <O>( \
+            [] (HTTPRequest * p_httpRequest,O * outputSerializer) {
 
 #define ENDPOSTENDPOINT });
 

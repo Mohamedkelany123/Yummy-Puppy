@@ -12,6 +12,7 @@ class AbstractSerializer
     private:
     public:
         AbstractSerializer(){}
+        virtual void serialize_binary (char * binary_buffer,long binary_size){}
         virtual void serialize (string ss) = 0;
         virtual string deserialize () = 0;
         virtual ~AbstractSerializer(){}

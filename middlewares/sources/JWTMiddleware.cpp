@@ -1,4 +1,5 @@
 #include <JWTMiddleware.h>
+#include <PSQLController.h>
 // #include <ostream>
 
 
@@ -135,7 +136,8 @@ JWTMiddleware::~JWTMiddleware()
 {
 }
 
-extern "C" Middleware *create_object() // extern "c" not garbling function names
+extern "C" Middleware *create_object(PSQLControllerMaster * psqlControllerMaster) // extern "c" not garbling function names
 {
+    psqlController.initialize(psqlControllerMaster);
     return new JWTMiddleware();
 }

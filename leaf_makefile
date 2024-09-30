@@ -9,8 +9,13 @@ OBJ_DIR=$(subst sources,objects,$(CUR_DIR))
 SRC = $(wildcard $(CUR_DIR)/*.cpp)
 OBJS = $(patsubst $(CUR_DIR)/%.cpp, $(OBJ_DIR)/%.cpp.o, $(SRC))
 
+$(OBJ_DIR)/PSQLController.cpp.o: $(CUR_DIR)/PSQLController.cpp $(ALL_H)
+	$(GCC) -D SKIP_ENTRY_POINT $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
+	$(GCC) -D SHARED_LIBRARY_FLAG -D SKIP_ENTRY_POINT $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $(OBJ_DIR)/PSQLControllerSlave.cpp.o
+
 $(OBJ_DIR)/%.cpp.o: $(CUR_DIR)/%.cpp $(ALL_H)
 	$(GCC) -D SKIP_ENTRY_POINT $(GCC_FLAGS) $(INCLUDES) $(LEDGERINCLUDES) $< -o $@
+
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
 

@@ -14,9 +14,9 @@ HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,Middlew
         try{
             string so_path = el.value()["so_path"];
             string http_path = el.value()["http_path"];
-            vector<string> parameters = URLService::getURLParams(http_path);
+            vector<string> * parameters = URLService::getURLParams(http_path);
             http_path = URLService::getRegexURL(http_path);
-            servicesParameters[http_path] = &parameters;
+            servicesParameters[http_path] = parameters;
 
             auto middlewares = el.value()["middlewares"];
             auto preMiddlewares = el.value()["middlewares"]["preMiddlewares"];
@@ -61,7 +61,11 @@ HTTPService * HTTPServiceManager::getService (string p_resource)
 
 map<string, string> HTTPServiceManager::extractURLParams(string _url)
 {
+    for (auto x: servicesParameters)
+        cout << "xxxx: " << x.first << endl;
     pair<string, vector<string> *> parameters = URLService::searchRegexMapWithKey(_url, &servicesParameters);
+    cout << "parameters.first: " << parameters.first << endl;
+    cout << "parameters.second->size(): " << parameters.second->size() << endl;
     if(parameters.second->size() == 0) return map<string, string>();
     string regexURL = parameters.first;
 
@@ -72,7 +76,9 @@ map<string, string> HTTPServiceManager::extractURLParams(string _url)
     int asteriskCount = 0;
 
     for (int i = 0; i < regexURLSplit.size(); i++){
-        if(regexURLSplit[i] == "*"){
+        cout << "regexURLSplit[i]: " << regexURLSplit[i] << endl;
+        cout << "_urlSplit[i]: " << _urlSplit[i] << endl;
+        if(regexURLSplit[i] == ".*"){
             parametersValues[parameters.second->operator[](asteriskCount)] = _urlSplit[i];
             asteriskCount++;
         }
