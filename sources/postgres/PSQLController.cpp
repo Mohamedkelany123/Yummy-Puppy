@@ -24,6 +24,11 @@ bool PSQLController::addDataSource(string data_source_name,string _hostname,int 
     (*psqlORMCaches)[data_source_name] = new PSQLORMCache();
     return psqlConnectionManager->addDataSource(data_source_name,_hostname,_port,_database,_username,_password);
 }
+bool PSQLController::isDataSource(string data_source_name)
+{
+    return psqlConnectionManager->isDataSource(data_source_name);
+}  
+
 string PSQLController::checkDefaultDatasource(string data_source_name){
     if(!checkInitialization())
         return "";
