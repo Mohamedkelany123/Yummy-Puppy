@@ -84,6 +84,11 @@ using json = nlohmann::json;
 #define STARTGETENDPOINT(O) return new EndpointGETService <O>( \
             [] (HTTPRequest * p_httpRequest,O * outputSerializer) {
 
+#define INITENDPOINT psqlController.initialize(psqlControllerMaster);
+#define DATASOURCE_GUARD (DS) if (!psqlController.isDatasource(DS)) {\
+                    }
+
+
 #define ENDPOSTENDPOINT });
 
 

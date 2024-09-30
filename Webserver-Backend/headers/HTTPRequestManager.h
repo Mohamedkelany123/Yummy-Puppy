@@ -2,6 +2,8 @@
 #define HTTPREQUESTMANAGER_H
 #include "HTTPGETRequest.h"
 #include "HTTPPOSTRequest.h"
+#include "HTTPOPTIONSRequest.h"
+
 
 class HTTPRequestManager // A class factory for managing different request type objects
 {

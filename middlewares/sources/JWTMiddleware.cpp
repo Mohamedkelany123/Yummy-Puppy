@@ -14,11 +14,11 @@ bool JWTMiddleware::run(HTTPRequest *_req, HTTPResponse *_res)
         string str = _req->getHeaderValue("Accept");
         string jwt = _req->getHeaderValue("Authorization");
         cout << jwt << endl;
-        pair<string, bool> tokenSuccess = verifyToken(jwt);
+        pair<string *, bool> tokenSuccess = verifyToken(jwt);
         cout << "tokenSuccess.first: " << tokenSuccess.first << endl;
-        bool isVerified = verifyUser(tokenSuccess.first);
+        bool isVerified = verifyUser((tokenSuccess.first == nullptr) ? "" : *tokenSuccess.first);
         if(isVerified == true){
-            injectUserData(_req, {{"userID", tokenSuccess.first}});
+            injectUserData(_req, {{"userID", (tokenSuccess.first == nullptr) ? "" : *tokenSuccess.first}});
             return true;
         }
         return false;
@@ -65,7 +65,7 @@ PSQLConnection * JWTMiddleware::getDatabaseConnection()
 }
 
 
-pair<string, bool> JWTMiddleware::verifyToken(string authToken)
+pair<string *, bool> JWTMiddleware::verifyToken(string authToken)
 {
 
     try {
@@ -77,7 +77,7 @@ pair<string, bool> JWTMiddleware::verifyToken(string authToken)
             const char * s = authToken.c_str() + strlen("Bearer")+1;
             tokenString = s;
         }else{
-            return {"", false};
+            return {nullptr, false};
         }
 
         string jwt(tokenString);
@@ -85,7 +85,7 @@ pair<string, bool> JWTMiddleware::verifyToken(string authToken)
         Signer signer(secretKey);
         Token token = signer.verify(jwt);
 
-        string userID =  token.payload().get("user_id");
+        string * userID =  token.payload().get("user_id");
 
         // bool isVerified = verifyUser(userID);
 
@@ -97,7 +97,7 @@ pair<string, bool> JWTMiddleware::verifyToken(string authToken)
     }
     catch (Poco::Exception& exc) {
         std::cerr << "Error: " << exc.displayText() << std::endl;
-        return {"", false};
+        return {nullptr, false};
     }
 
   
