@@ -60,7 +60,12 @@ using json = nlohmann::json;
         string message;\
         vector <ResponseError> errors;
 
-#define  SERIALIZER_RESPONSE_SETTERS void set_status_code(int _status_code){status_code = _status_code;};\
+#define  SERIALIZER_RESPONSE_SETTERS_H void set_status_code(int _status_code);\
+        void set_message(string _message);\
+        void set_errors(vector<ResponseError> _errors);
+
+
+#define  SERIALIZER_RESPONSE_SETTERS_CPP void set_status_code(int _status_code){status_code = _status_code;};\
         void set_message(string _message){message = _message;};\
         void set_errors(vector<ResponseError> _errors){errors = _errors;};
 
