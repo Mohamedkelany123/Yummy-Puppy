@@ -93,6 +93,7 @@ using json = nlohmann::json;
 #define DATASOURCE_GUARD (DS) if (!psqlController.isDatasource(DS)) {\
                     }
 
+#define ENDGETENDPOINT });
 
 #define ENDPOSTENDPOINT });
 
