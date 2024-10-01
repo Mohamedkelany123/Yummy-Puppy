@@ -87,7 +87,6 @@ pair<string *, bool> JWTMiddleware::verifyToken(string authToken)
 
         string userID =  token.payload().get("user_id");
         string * userIDPtr = new string(userID);
-
         // bool isVerified = verifyUser(userID);
 
         // if(isVerified == true){

@@ -26,7 +26,7 @@ bool PSQLController::addDataSource(string data_source_name,string _hostname,int 
 }
 bool PSQLController::isDataSource(string data_source_name)
 {
-    return psqlConnectionManager->isDataSource(data_source_name);
+    // return psqlConnectionManager->isDataSource(data_source_name);
 }  
 
 string PSQLController::checkDefaultDatasource(string data_source_name){
