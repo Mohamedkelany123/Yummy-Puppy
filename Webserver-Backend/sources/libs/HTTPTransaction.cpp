@@ -38,16 +38,21 @@ HTTPRequest *HTTPTransaction::fetchHTTPRequest()
     return httpRequest; // return the httpRequest object
 }
 
+
 /**
- * @brief Processes the HTTP transaction.
+ * @brief Processes the HTTP transaction by fetching the request, executing the corresponding service, and handling exceptions.
  *
- * This function fetches an HTTP request, executes the corresponding HTTP service, and handles exceptions.
- * It initializes an HTTP request, response, and service object. It then attempts to fetch the HTTP request,
- * execute the service, and handle any exceptions that may occur.
+ * This function performs the following tasks:
+ * 1. Fetches the HTTP request using the fetchHTTPRequest method.
+ * 2. Determines the appropriate HTTP service based on the requested resource using the HTTPServiceManager.
+ * 3. Extracts URL parameters from the requested resource and adds them to the HTTP request context.
+ * 4. If the request method is "OPTIONS", it responds with an HTTP OPTIONS response.
+ * 5. Executes the determined HTTP service with the HTTP request, response, and middleware manager.
+ * 6. Catches and handles exceptions related to bad requests, unacceptable services, and method not allowed.
+ * 7. Shuts down the TCP socket after processing the request.
  *
- * @note The function deletes the HTTP request, response, and service objects after processing.
- * @note The function also shuts down the TCP socket after processing.
- *
+ * @note This function assumes that the HTTPServiceManager, httpRequestManager, and middlewareManager are properly initialized.
+ * @note The function deletes the HTTP response, request, and service objects after processing to ensure proper memory management.
  * @return void
  * @authors Kmsobh, Ramy
  * @date 14-Aug-2024
@@ -65,12 +70,8 @@ void HTTPTransaction::process()
         if (httpRequest != NULL)
         {
             s = httpServiceManager->getService(httpRequest->getResource());
-            map<string, string> URLParamters = httpServiceManager->extractURLParams(httpRequest->getResource());
-            cout << "URLParamters.size(): " << URLParamters.size() << endl;
-            for (auto x: URLParamters )
-                cout << x.first << ": " << x.second << endl;
-            httpRequest->addContext("url_params", URLParamters);
-            // vector<string> parameters = httpRequestManager->getParameters(httpRequest->getResource());
+            map<string, string> * URLParamters = httpServiceManager->extractURLParams(httpRequest->getResource());
+            httpRequest->addContext("url_params", *URLParamters);
             if(httpRequest->getMethod() == "OPTIONS"){
                 HTTPOPTIONSResponse *httpOPTIONSResponse = new HTTPOPTIONSResponse(tcpSocket);
                 httpOPTIONSResponse->write();

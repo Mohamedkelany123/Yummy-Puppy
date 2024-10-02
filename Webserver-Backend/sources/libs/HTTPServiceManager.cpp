@@ -2,19 +2,35 @@
 #include "HTTPNotAcceptableExceptionHandler.h"
 #include <regex>
 
-#define WEB_CACHE_ROOT  "./www"
+#define WEB_CACHE_ROOT "./www"
 // Constructor:  building up the factory map
-HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,MiddlewareManager * _middlewareManager)
+/**
+ * @brief Constructor for HTTPServiceManager class.
+ *
+ * This constructor initializes the HTTPServiceManager object by building up the factory map
+ * using the provided configuration, logger, and middleware manager. It iterates through
+ * the configuration items, loads the corresponding HTTPService from shared objects, and
+ * assigns pre- and post-middlewares to each endpoint.
+ *
+ * @param conf Pointer to the ConfigFile object containing the server configuration.
+ * @param logger Pointer to the Logger object for logging errors.
+ * @param _middlewareManager Pointer to the MiddlewareManager object for managing middlewares.
+ * @author Ramy
+ * @date 14-Aug-2024
+ */
+HTTPServiceManager::HTTPServiceManager(ConfigFile *conf, Logger *logger, MiddlewareManager *_middlewareManager)
 {
     sharedObjectPtr = new SharedObjectsManager<HTTPService>();
-    for (auto& el : conf->data.items()) {
-        if(el.key() == "server_config")
+    for (auto &el : conf->data.items())
+    {
+        if (el.key() == "server_config")
             continue;
         std::cout << el.key() << " : ";
-        try{
+        try
+        {
             string so_path = el.value()["so_path"];
             string http_path = el.value()["http_path"];
-            vector<string> * parameters = URLService::getURLParams(http_path);
+            vector<string> *parameters = URLService::getURLParams(http_path);
             http_path = URLService::getRegexURL(http_path);
             servicesParameters[http_path] = parameters;
 
@@ -23,63 +39,90 @@ HTTPServiceManager::HTTPServiceManager(ConfigFile * conf, Logger* logger,Middlew
             auto postMiddlewares = el.value()["middlewares"]["postMiddlewares"];
 
             vector<string> endpointPreMiddlewares;
-            for (auto& el : preMiddlewares.items()) {
+            for (auto &el : preMiddlewares.items())
+            {
                 cout << el.key() << ": " << el.value() << endl;
                 endpointPreMiddlewares.push_back(el.value());
             }
 
             vector<string> endpointPostMiddlewares;
-            for (auto& el : postMiddlewares.items()) {
+            for (auto &el : postMiddlewares.items())
+            {
                 cout << el.key() << ": " << el.value() << endl;
                 endpointPostMiddlewares.push_back(el.value());
             }
-            cout << "SO_Path: " << so_path << endl;
-            cout << "HTTP_Path: " << http_path << endl;
-            cout << "KEY: "<< el.key() << endl;
-    //        services [el.key()] = sharedObjectPtr->load(so_path);
-            services [http_path] = sharedObjectPtr->load(so_path);
+            services[http_path] = sharedObjectPtr->load(so_path);
             _middlewareManager->assignEndpointPreMiddlewares(http_path, endpointPreMiddlewares);
             _middlewareManager->assignEndpointPostMiddlewares(http_path, endpointPostMiddlewares);
             regexURLs.push_back(http_path);
-        }catch(exception e){
+        }
+        catch (exception e)
+        {
             LOG_ERRORS(e.what());
         }
     }
 }
 // Compare the file extention to the map key first and if not found compare the whole file name
-HTTPService * HTTPServiceManager::getService (string p_resource)
+/**
+ * @brief Retrieves the appropriate HTTPService based on the given resource.
+ *
+ * This function searches for the appropriate HTTPService based on the given resource
+ * by comparing the resource with the regular expressions stored in the services map.
+ * If a match is found, the corresponding HTTPService is cloned and returned. If no
+ * match is found, an HTTPNotAcceptableExceptionHandler is thrown.
+ *
+ * @param p_resource The resource for which the HTTPService needs to be retrieved.
+ * @return A pointer to the cloned HTTPService if a match is found, otherwise nullptr.
+ * @throws HTTPNotAcceptableExceptionHandler If no match is found for the given resource.
+ * @author Ramy
+ * @date 14-Aug-2024
+ */
+HTTPService *HTTPServiceManager::getService(string p_resource)
 {
-    // extract extentions
-    cout << "p_resource: " << p_resource << endl;
-    string ext = p_resource;//.substr(p_resource.find_last_of(".") + 1);
-    pair<string, HTTPService *>  service = URLService::searchRegexMapWithKey(p_resource, &services);
-    if(service.second == nullptr){
-        throw (HTTPNotAcceptableExceptionHandler());
+    string ext = p_resource; //.substr(p_resource.find_last_of(".") + 1);
+    pair<string, HTTPService *> service = URLService::searchRegexMapWithKey(p_resource, &services);
+    if (service.second == nullptr)
+    {
+        throw(HTTPNotAcceptableExceptionHandler());
     }
-    else return service.second->clone(); // clone service based on extension
+    else
+        return service.second->clone(); // clone service based on extension
 }
 
-map<string, string> HTTPServiceManager::extractURLParams(string _url)
+/**
+ * @brief Extracts URL parameters from the given URL based on the stored regular expressions.
+ *
+ * This function searches for the appropriate regular expression in the servicesParameters map
+ * that matches the given URL. It then extracts the parameters from the URL and returns them
+ * as a map of parameter names to their corresponding values.
+ *
+ * @param _url The URL from which to extract the parameters.
+ * @return A pointer to a map containing the extracted parameter names and their values.
+ *         If no parameters are found, an empty map is returned.
+ *
+ * @author Ramy
+ * @date 14-Aug-2024
+ */
+map<string, string> *HTTPServiceManager::extractURLParams(string _url)
 {
-    for (auto x: servicesParameters)
-        cout << "xxxx: " << x.first << endl;
     pair<string, vector<string> *> parameters = URLService::searchRegexMapWithKey(_url, &servicesParameters);
-    cout << "parameters.first: " << parameters.first << endl;
-    cout << "parameters.second->size(): " << parameters.second->size() << endl;
-    if(parameters.second->size() == 0) return map<string, string>();
+    map<string, string> *parametersValues = new map<string, string>();
+    if (parameters.second->size() == 0)
+        return parametersValues;
     string regexURL = parameters.first;
 
     vector<string> _urlSplit = URLService::splitURL(_url);
     vector<string> regexURLSplit = URLService::splitURL(regexURL);
-    map<string, string> parametersValues;
 
     int asteriskCount = 0;
 
-    for (int i = 0; i < regexURLSplit.size(); i++){
-        cout << "regexURLSplit[i]: " << regexURLSplit[i] << endl;
-        cout << "_urlSplit[i]: " << _urlSplit[i] << endl;
-        if(regexURLSplit[i] == ".*"){
-            parametersValues[parameters.second->operator[](asteriskCount)] = _urlSplit[i];
+    for (int i = 0; i < regexURLSplit.size(); i++)
+    {
+        if (regexURLSplit[i] == ".*")
+        {
+            string parameterKey = URLService::splitURL(parameters.second->operator[](asteriskCount), ':')[1];
+            ;
+            (*parametersValues)[parameterKey] = _urlSplit[i];
             asteriskCount++;
         }
     }
@@ -89,11 +132,11 @@ map<string, string> HTTPServiceManager::extractURLParams(string _url)
 HTTPServiceManager::~HTTPServiceManager()
 {
     // A for_each iterator based loop with lambda function to deallocate all the cloner objects
-    for_each (services.begin(),services.end(),[](const std::pair<string,HTTPService *>& it) -> bool {
+    for_each(services.begin(), services.end(), [](const std::pair<string, HTTPService *> &it) -> bool
+             {
         HTTPService * httpService = std::get<1>(it);
         delete(httpService);
-        return true;
-   });
-   for(auto m : this->servicesParameters)
-        delete(m.second);
+        return true; });
+    for (auto m : this->servicesParameters)
+        delete (m.second);
 }

@@ -20,7 +20,7 @@ class HTTPServiceManager // A class for managing services and acting as a simple
         HTTPService * getService (string p_resource);
         vector<string> getURLParams(string URLPath);
         vector<string> getServiceParams(string _key);
-        map<string, string> extractURLParams(string _url);
+        map<string, string> * extractURLParams(string _url);
         string getRegexURL(string URLPath);
 
         ~HTTPServiceManager(); // Destructor

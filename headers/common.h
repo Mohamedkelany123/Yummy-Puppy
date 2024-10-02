@@ -56,6 +56,19 @@ using json = nlohmann::json;
         }
 
 
+#define  SERIALIZER_RESPONSE int status_code;\
+        string message;\
+        vector <ResponseError> errors;
+
+#define  SERIALIZER_RESPONSE_SETTERS_H void set_status_code(int _status_code);\
+        void set_message(string _message);\
+        void set_errors(vector<ResponseError> _errors);
+
+
+#define  SERIALIZER_RESPONSE_SETTERS_CPP(T) void T::set_status_code(int _status_code){status_code = _status_code;};\
+        void T::set_message(string _message){message = _message;};\
+        void T::set_errors(vector<ResponseError> _errors){errors = _errors;};
+
 #define   SERIALIZER_TEMPLATE_H     void serialize (string str);
 #define   DESERIALIZER_TEMPLATE_H     string deserialize ();
 
@@ -80,6 +93,7 @@ using json = nlohmann::json;
 #define DATASOURCE_GUARD(DS) if (!psqlController.isDataSource(DS)) {\
                     }
 
+#define ENDGETENDPOINT });
 
 #define ENDPOSTENDPOINT });
 
