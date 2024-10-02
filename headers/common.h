@@ -106,6 +106,7 @@ using json = nlohmann::json;
                 cout << "ISDATASOURCE:" << !psqlController.isDataSource(DS) << endl;\
                 }
 
+#define ENDGETENDPOINT });
 
 #define ENDPOSTENDPOINT });
 

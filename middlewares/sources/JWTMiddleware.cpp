@@ -86,12 +86,12 @@ pair<string *, bool> JWTMiddleware::verifyToken(string authToken)
         Token token = signer.verify(jwt);
 
         string userID =  token.payload().get("user_id");
-
         string * userIDPtr = new string(userID);
         // bool isVerified = verifyUser(userID);
 
         // if(isVerified == true){
             return {userIDPtr, true};
+        // }
         // cout << "Cannot verify Token, User ID Might be invalid" << endl;
         // return {"", false};
     }
