@@ -90,7 +90,7 @@ using json = nlohmann::json;
             [] (HTTPRequest * p_httpRequest,O * outputSerializer) {
 
 #define INITENDPOINT psqlController.initialize(psqlControllerMaster);
-#define DATASOURCE_GUARD (DS) if (!psqlController.isDatasource(DS)) {\
+#define DATASOURCE_GUARD(DS) if (!psqlController.isDataSource(DS)) {\
                     }
 
 #define ENDGETENDPOINT });
