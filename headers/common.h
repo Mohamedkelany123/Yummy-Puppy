@@ -89,9 +89,22 @@ using json = nlohmann::json;
 #define STARTGETENDPOINT(O) return new EndpointGETService <O>( \
             [] (HTTPRequest * p_httpRequest,O * outputSerializer) {
 
-#define INITENDPOINT psqlController.initialize(psqlControllerMaster);
+#define INITENDPOINT psqlController.initialize(psqlControllerMaster);\
+                bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");\
+                if (connect){\
+                        cout << "Connected to DATABASE"  << endl;\
+                }\
+                else{\
+                        cout << "FAILED TO CONNECT TO DB "<< endl;\
+                }\
+                psqlController.addDefault("created_at","now()",true,true);\
+                psqlController.addDefault("updated_at","now()",true,true);\
+                psqlController.addDefault("updated_at","now()",false,true);
+
+
 #define DATASOURCE_GUARD(DS) if (!psqlController.isDataSource(DS)) {\
-                    }
+                cout << "ISDATASOURCE:" << !psqlController.isDataSource(DS) << endl;\
+                }
 
 #define ENDGETENDPOINT });
 
