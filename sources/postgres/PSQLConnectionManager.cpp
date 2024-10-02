@@ -15,6 +15,11 @@ bool PSQLConnectionManager::addDataSource(string data_source_name,string _hostna
         return true;
     }
 }
+bool PSQLConnectionManager::isDataSource(string data_source_name)
+{
+    return (data_sources.find(data_source_name) != data_sources.end());
+}
+
 bool PSQLConnectionManager::setDefaultDatasource(string _default_data_source){
     
     if (data_sources.find(_default_data_source) == data_sources.end())
