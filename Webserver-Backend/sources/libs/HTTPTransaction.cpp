@@ -34,7 +34,7 @@ HTTPRequest *HTTPTransaction::fetchHTTPRequest()
     HTTPRequest *httpRequest = httpRequestManager->getService(tcpSocket, method);
     // if an object is returned then execute the readAndParse method else an exception will be thrown
     if (httpRequest != NULL)
-        httpRequest->readAndParse(buffer,read);
+        httpRequest->readAndParse(buffer,read,buffer);
     return httpRequest; // return the httpRequest object
 }
 

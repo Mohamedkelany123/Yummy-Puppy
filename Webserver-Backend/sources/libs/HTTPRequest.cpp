@@ -35,28 +35,39 @@ HTTPRequest::HTTPRequest(TCPSocket * p_tcpSocket)
 {
     tcpSocket = p_tcpSocket; // Set tcpSocket data member
     binary_body = NULL;
+    header_size = 0;
+    binary_size = 0;
 }
 
 // Read the header from the socket and parse it. 
 // Notice that a descendant class is instantiated based on the type of the method HTTPTransaction and hence some data were read from the socket and this is passed in initial_header
-void HTTPRequest::readAndParse(string initial_header, long sz)
+void HTTPRequest::readAndParse(string initial_header, long sz,char * binary_buffer)
 {
     char buffer[1024];// A buffer to read data in
     memset (buffer,0,1024); // Initialize buffer
     string http_stream=initial_header; // copy initial header into HTTP stream
+    binary_size=sz;
+
     if ( binary_body != NULL) 
     {
         free(binary_body);
         binary_body = NULL;
     }
-    binary_size=sz;
+    binary_body = (char *) calloc (binary_size+10,sizeof(char));
+    memcpy(binary_body,binary_buffer,binary_size);
     for ( ;http_stream.find("\r\n\r\n") ==std::string::npos; )
     { // keep on reading as long as we cannot find the "\r\n\r\n" of the header
         int just_read = tcpSocket->readFromSocket(buffer,1023);
-        binary_size += just_read;
         http_stream +=buffer; // Append what you have got from the socket
+        if ( binary_body == NULL)  binary_body = (char *) calloc (binary_size+10,sizeof(char));
+        else binary_body = (char *) realloc (binary_body,(binary_size+just_read+10*(sizeof(char))));
+        memcpy(binary_body+binary_size,buffer,just_read);
+        binary_size += just_read;
         memset (buffer,0,1024); // Reinitialize the read buffer
     }
+    char * header_ptr = strstr(binary_body,"\r\n\r\n");
+    if ( header_ptr != NULL)
+        header_size = header_ptr-binary_body;
 
     stringstream iss(http_stream); // stringstream for parsing the header
     // Get method, URI, and protocol from the first line
@@ -79,19 +90,6 @@ void HTTPRequest::readAndParse(string initial_header, long sz)
     // extract any data, that have been read from the socket, after the header and store it in body    
     getline(iss,line,'\0'); 
     body = line;
-
-    if ( http_stream.find("\r\n\r\n") !=std::string::npos && strstr(getHeaderValue("Content-Type").c_str(),"multipart")!= NULL)
-    {
-        const char * end_of_header = strstr (http_stream.c_str(),"\r\n\r\n");
-        end_of_header += 4;
-        binary_size  = http_stream.c_str()+binary_size - end_of_header;
-
-        if ( binary_body == NULL)  binary_body = (char *) calloc (binary_size+10,sizeof(char));
-        else binary_body = (char *) realloc (binary_body,(binary_size+10*(sizeof(char))));
-        memcpy(binary_body,end_of_header,binary_size);
-    }
-
-
 }
 // Selector returning the resource URI of the header
 string HTTPRequest::getResource ()

@@ -9,7 +9,7 @@ class HTTPPOSTRequest : public HTTPRequest
 //        void readAndParseBody(); // Parse and add a header item to the header map
     public:
         HTTPPOSTRequest(TCPSocket * p_tcpSocket); // Constructor
-        virtual void readAndParse(string initial_header, long sz); // Read header from socket and parse it
+        virtual void readAndParse(string initial_header, long sz,char * binary_buffer=NULL); // Read header from socket and parse it
         virtual HTTPRequest * clone (TCPSocket * p_tcpSocket); // Clone and create new object 
         ~HTTPPOSTRequest(); // Destructor
 };

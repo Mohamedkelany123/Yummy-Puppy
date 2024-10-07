@@ -90,16 +90,20 @@ using json = nlohmann::json;
             [] (HTTPRequest * p_httpRequest,O * outputSerializer) {
 
 #define INITENDPOINT psqlController.initialize(psqlControllerMaster);\
-                bool connect = psqlController.addDataSource("main","192.168.1.51",5432,"c_plus_plus","postgres","postgres");\
+                psqlController.addDefault("created_at","now()",true,true);\
+                psqlController.addDefault("updated_at","now()",true,true);\
+                psqlController.addDefault("updated_at","now()",false,true);
+
+
+/*
+                bool connect = psqlController.addDataSource("main","127.0.0.1",5432,"django_ostaz_08072024","postgres","postgres");\
                 if (connect){\
                         cout << "Connected to DATABASE"  << endl;\
                 }\
                 else{\
                         cout << "FAILED TO CONNECT TO DB "<< endl;\
                 }\
-                psqlController.addDefault("created_at","now()",true,true);\
-                psqlController.addDefault("updated_at","now()",true,true);\
-                psqlController.addDefault("updated_at","now()",false,true);
+*/
 
 
 #define DATASOURCE_GUARD(DS) if (!psqlController.isDataSource(DS)) {\

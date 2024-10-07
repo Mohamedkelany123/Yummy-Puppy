@@ -15,11 +15,12 @@ protected:
     string body;                                 // A string representing the request body; for simplification we will consider only ASCII bodies.
     char * binary_body;
     long binary_size;
+    long header_size;
     map<string, map<string, string>> context;
     void addToHeaderMap(string header_item);     // Parse and add a header item to the header map
 public:
     HTTPRequest(TCPSocket *p_tcpSocket);              // Constructor
-    virtual void readAndParse(string initial_header, long sz); // Read header from socket and parse it
+    virtual void readAndParse(string initial_header, long sz,char * binary_buffer=NULL); // Read header from socket and parse it
     string getResource();                             // Selector: return the resource data member.
     string &getBody();                                // Selector: return the request body
     char * getBinaryBody();

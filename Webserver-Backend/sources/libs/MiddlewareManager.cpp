@@ -31,17 +31,24 @@ MiddlewareManager::MiddlewareManager(ConfigFile *conf, Logger *logger)
         if (el.key() == "server_config")
         {
             auto middlewaresPaths = el.value()["middlewares"];
-            for (auto &el : middlewaresPaths.items())
+            cout << "middlewaresPaths.size():" << middlewaresPaths.size() << endl;
+            for (auto &el : middlewaresPaths)
             {
-                for (auto &el1 : el.value().items())
-                {
-                    std::cout << el1.key() << ":" << el1.value()["DSO"] << "\n";
-                    this->middlewares[el1.key()] = sharedObjectPtr->load(el1.value()["DSO"]);
-                    cout << "Params Data: " << el1.value() << endl;
-                    this->middlewares[el1.key()]->init(el1.value()); 
-                    this->middleWareResourceManager[el1.key()] = new MiddleWareResourceManager (this->middlewares[el1.key()]);
-                    break;
-                }
+                std::cout << el["name"] << ":" << el["DSO"] << "\n";
+                this->middlewares[el["name"]] = sharedObjectPtr->load(el["DSO"]);
+                    cout << "Params Data: " << el.dump() << endl;
+                this->middlewares[el["name"]]->init(el); 
+                this->middleWareResourceManager[el["name"]] = new MiddleWareResourceManager (this->middlewares[el["name"]]);
+
+//                 for (auto &el1 : el.value().items())
+//                 {
+//                     std::cout << el1.value()["name"] << ":" << el1.value()["DSO"] << "\n";
+// //                    this->middlewares[el1.key()] = sharedObjectPtr->load(el1.value()["DSO"]);
+//                     cout << "Params Data: " << el1.value() << endl;
+//                     // this->middlewares[el1.key()]->init(el1.value()); 
+//                     // this->middleWareResourceManager[el1.key()] = new MiddleWareResourceManager (this->middlewares[el1.key()]);
+//                     // break;
+//                 }
             }
         }
         continue;
