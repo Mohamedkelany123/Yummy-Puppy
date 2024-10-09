@@ -84,10 +84,10 @@ using json = nlohmann::json;
 
 
 #define STARTPOSTENDPOINT(I,O) return new EndpointPOSTService <I,O>( \
-            [] (HTTPRequest * p_httpRequest,I * inputSerializer,O * outputSerializer) {
+            [=] (HTTPRequest * p_httpRequest,I * inputSerializer,O * outputSerializer) {
 
 #define STARTGETENDPOINT(O) return new EndpointGETService <O>( \
-            [] (HTTPRequest * p_httpRequest,O * outputSerializer) {
+            [=] (HTTPRequest * p_httpRequest,O * outputSerializer) {
 
 #define INITENDPOINT psqlController.initialize(psqlControllerMaster);\
                 psqlController.addDefault("created_at","now()",true,true);\
