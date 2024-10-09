@@ -330,7 +330,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<pair<string,string>,pair<string,string>>,JOIN_TYPE>> const & join_fields);
 
         map <string,PSQLAbstractORM *> * next (bool read_only=false);
-        void process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL);
+        void process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL,string test_data_file = "");
         void process_sequential(std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL);
         void process_aggregate(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL);
         void process_aggregate_sequential(std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL);
@@ -338,6 +338,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // void filter ( Expression const & e);
         // bool execute();
         virtual void process(int partitions_count, void * extra_params);
+        virtual void serialize_results (string file_name);
         bool setDistinct (vector<pair<string,string>> _distinct_map);
         bool setAggregates (map<string, pair<string, int>> _aggregate_map);
         long get_result_count ();
