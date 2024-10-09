@@ -111,20 +111,42 @@ map<string, string> *HTTPServiceManager::extractURLParams(string _url)
         return parametersValues;
     string regexURL = parameters.first;
 
-    vector<string> _urlSplit = URLService::splitURL(_url);
-    vector<string> regexURLSplit = URLService::splitURL(regexURL);
+    vector<string> * _urlSplit = URLService::splitURL(_url);
+    vector<string> * regexURLSplit = URLService::splitURL(regexURL);
 
     int asteriskCount = 0;
 
-    for (int i = 0; i < regexURLSplit.size(); i++)
+    for (int i = 0; i < regexURLSplit->size(); i++)
     {
-        if (regexURLSplit[i] == ".*")
+        if ((*regexURLSplit)[i] == ".*")
         {
-            string parameterKey = URLService::splitURL(parameters.second->operator[](asteriskCount), ':')[1];
+            string parameterKey = (*URLService::splitURL(parameters.second->operator[](asteriskCount), ':'))[1];
             ;
-            (*parametersValues)[parameterKey] = _urlSplit[i];
+            (*parametersValues)[parameterKey] = (*_urlSplit)[i];
             asteriskCount++;
         }
+    }
+    return parametersValues;
+}
+
+
+map<string, string> *HTTPServiceManager::extractURLQueryParams(string _url)
+{
+    vector<string> * _urlSplit = URLService::splitURL(_url, '?');
+    map<string, string> *parametersValues = new map<string, string>();
+    if (_urlSplit->size() != 2)
+        return parametersValues;
+    if ((*_urlSplit)[1].empty())
+        return parametersValues;
+    vector<string> * _queryParamsSplit = URLService::splitURL((*_urlSplit)[1], '&');
+    int asteriskCount = 0;
+
+    for (int i = 0; i < (*_queryParamsSplit).size(); i++)
+    {
+        vector<string> * _keyValuePair = URLService::splitURL((*_queryParamsSplit)[i], '=');
+        if (_keyValuePair->size()!= 2)
+            return parametersValues;
+        (*parametersValues)[(*_keyValuePair)[0]] = (*_keyValuePair)[1];
     }
     return parametersValues;
 }
