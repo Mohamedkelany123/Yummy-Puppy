@@ -130,24 +130,49 @@ map<string, string> *HTTPServiceManager::extractURLParams(string _url)
 }
 
 
+/**
+ * @brief Extracts query parameters from the given URL.
+ *
+ * This function takes a URL as input, splits it at the '?' character to separate the
+ * query parameters from the rest of the URL, and then further splits the query parameters
+ * at the '&' character to separate individual key-value pairs. The function then stores
+ * these key-value pairs in a map and returns a pointer to the map.
+ *
+ * @param _url The URL from which to extract the query parameters.
+ * @return A pointer to a map containing the extracted query parameter names and their values.
+ *         If no query parameters are found, an empty map is returned.
+ *
+ * @author Ramy
+ * @date 9-Oct-2024
+ */
 map<string, string> *HTTPServiceManager::extractURLQueryParams(string _url)
 {
     vector<string> * _urlSplit = URLService::splitURL(_url, '?');
     map<string, string> *parametersValues = new map<string, string>();
+
+    // If the URL does not contain a '?', return an empty map
     if (_urlSplit->size() != 2)
         return parametersValues;
+
+    // If the URL does not contain any query parameters, return an empty map
     if ((*_urlSplit)[1].empty())
         return parametersValues;
+
     vector<string> * _queryParamsSplit = URLService::splitURL((*_urlSplit)[1], '&');
     int asteriskCount = 0;
 
+    // Iterate through the query parameters and store them in the map
     for (int i = 0; i < (*_queryParamsSplit).size(); i++)
     {
         vector<string> * _keyValuePair = URLService::splitURL((*_queryParamsSplit)[i], '=');
+
+        // If a key-value pair does not contain an '=', return an empty map
         if (_keyValuePair->size()!= 2)
             return parametersValues;
+
         (*parametersValues)[(*_keyValuePair)[0]] = (*_keyValuePair)[1];
     }
+
     return parametersValues;
 }
 // Destructor
