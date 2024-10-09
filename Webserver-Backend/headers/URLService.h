@@ -105,15 +105,15 @@ public:
      * @author Ramy
      * @date 14-Aug-2024
      */
-    static vector<string> splitURL(string URL, char splitKey = '/')
+    static vector<string> * splitURL(string URL, char splitKey = '/')
     {
-        vector<std::string> result;
+        vector<string> * result = new vector<string>();
         stringstream ss(URL);
         string item;
 
         while (getline(ss, item, splitKey))
         {
-            result.push_back(item);
+            (*result).push_back(item);
         }
         return result;
     }
