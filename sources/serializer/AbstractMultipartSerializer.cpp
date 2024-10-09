@@ -58,11 +58,23 @@ bool MultipartField::writeToAFileWithFileName()
     {
         string filename = "/Users/kmsobh/"+getAttribute("filename");
         FILE* ff = fopen (filename.c_str(),"wb");
+        if (ff == NULL) return false;
         fwrite(value,value_size,1,ff);
         fclose (ff);
         return true;
     }
     else return false;
+}
+
+bool MultipartField::writeToAFile(string _file_name)
+{
+
+    FILE* ff = fopen (_file_name.c_str(),"wb");
+    fwrite(value,value_size,1,ff);
+    if (ff == NULL) return false;
+    fclose (ff);
+    return true;
+
 }
 
 MultipartField::~MultipartField()
@@ -91,7 +103,6 @@ void AbstractMultipartSerializer::serialize_binary (char * binary_buffer,long bi
             ptr[0] = 0;
             ptr[1] = 0;
             ptr += 2;
-            // printf (">>>>>> %.80s\n", ptr);
             tokens.push_back(ptr);
             for ( ;strncmp (ptr,tokens[0],strlen(tokens[0])) != 0 && binary_buffer+binary_size-ptr >0; )
                 ptr++;
@@ -115,15 +126,6 @@ void AbstractMultipartSerializer::serialize_binary (char * binary_buffer,long bi
             if ( ptr4 != NULL ) next_delim.push_back(ptr4);
             
             sort(next_delim.begin(),next_delim.end());
-            // for ( int  i = 0 ; i < next_delim.size() ; i ++)
-            //     printf ("Next_Delim[%d] = %p\n",i,next_delim[i]);
-            // if ( ptr1 == NULL && ptr2 == NULL && ptr3 == NULL && ptr4 == NULL) break;
-
-            // if ( ptr1 < ptr2 || ptr2 == NULL )
-            // {
-            //     ptr = ptr1;
-            // }
-            // else ptr = ptr2;
 
             if ( next_delim.size() == 0) break;
             ptr = next_delim[0];
@@ -141,40 +143,32 @@ void AbstractMultipartSerializer::serialize_binary (char * binary_buffer,long bi
         }
     }
 
-    // cout << "# of tokens: " << tokens.size() << endl;
-    // for ( int  i = 0 ; i < tokens.size() ; i ++) {
-    //     printf ("[%p]  [%d] %.80s [%lu]\n",tokens[i], i,tokens[i],tokens_size[i]);
-    // }
-
-
-    // cout << "# of tokens: " << tokens.size() << endl;
     for ( int  i = 0 ; i < tokens.size() ; i ++) {
-        printf ("[%p]  [%d] %.80s [%lu]\n",tokens[i], i,tokens[i],tokens_size[i]);  
         if (strncmp (tokens[i],tokens[0],strlen(tokens[0])) == 0 )
         {
-            // cout << "skipping token" << endl;
             continue;
         }
         else  if (i+1 < tokens.size() && strncmp (tokens[i+1],tokens[0],strlen(tokens[0])) == 0 )
         {
-            // cout << "Found a value" << endl;
             multipartFields[multipartFields.size()-1].setValue(tokens[i],tokens_size[i]);
         }
         else 
         {
-            // cout << "This is an attribute" << endl;
             if ( i> 0 && strcmp (tokens[i-1],tokens[0]) == 0 )
                 multipartFields.push_back(MultipartField());
             multipartFields[multipartFields.size()-1].addAttribute(tokens[i],tokens[i+1]);
             i++;
-        }        
+        }
     }
+    for ( int i = 0 ; i < multipartFields.size() ; i ++)
+        multipartFieldIndex[multipartFields[i].getAttribute("name")] = & multipartFields[i];
 
-    // for (int i = 0 ; i < multipartFields.size() ; i ++)
-    // {
-    //     cout << multipartFields[i].getAttribute("name") << "   " << multipartFields[i].getValueSize() << endl;
-    //     multipartFields[i].writeToAFileWithFileName();
-    // }
+}
+MultipartField * AbstractMultipartSerializer::getMultipartField(string _name)
+{
+    if (multipartFieldIndex.find(_name) != multipartFieldIndex.end())
+        return multipartFieldIndex[_name];
+    else return NULL;    
 }
 void AbstractMultipartSerializer::serialize (string ss)
 {
