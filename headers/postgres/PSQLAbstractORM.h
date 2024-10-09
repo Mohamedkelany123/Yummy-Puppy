@@ -137,14 +137,16 @@ template <class T>
 class ORMVector : public vector<T *>
 {
         private:
+            bool read_only;
         public:
-            ORMVector(){}
+            ORMVector(bool _read_only= false){read_only=_read_only;}
             void operator += (T * orm) {
                     this->push_back (orm);
             }
             ~ORMVector(){
-                    for ( size_t i = 0 ;i < this->size() ; i++ )
-                            delete ((*this)[i]);
+                if (!read_only)return;
+                for ( size_t i = 0 ;i < this->size() ; i++ )
+                        delete ((*this)[i]);
             }
 
 };
