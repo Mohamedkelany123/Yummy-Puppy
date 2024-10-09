@@ -79,6 +79,9 @@ HTTPServiceManager::HTTPServiceManager(ConfigFile *conf, Logger *logger, Middlew
  */
 HTTPService *HTTPServiceManager::getService(string p_resource)
 {
+    vector<string> * urlWithoutQueryParamsSplit = URLService::splitURL(p_resource, '?');
+    if(urlWithoutQueryParamsSplit->size() == 2)
+        p_resource = (*urlWithoutQueryParamsSplit)[0];
     string ext = p_resource; //.substr(p_resource.find_last_of(".") + 1);
     pair<string, HTTPService *> service = URLService::searchRegexMapWithKey(p_resource, &services);
     if (service.second == nullptr)
@@ -105,6 +108,9 @@ HTTPService *HTTPServiceManager::getService(string p_resource)
  */
 map<string, string> *HTTPServiceManager::extractURLParams(string _url)
 {
+    vector<string> * urlWithoutQueryParamsSplit = URLService::splitURL(_url, '?');
+    if(urlWithoutQueryParamsSplit->size() == 2)
+        _url = (*urlWithoutQueryParamsSplit)[0];
     pair<string, vector<string> *> parameters = URLService::searchRegexMapWithKey(_url, &servicesParameters);
     map<string, string> *parametersValues = new map<string, string>();
     if (parameters.second->size() == 0)
