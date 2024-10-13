@@ -339,6 +339,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         // bool execute();
         virtual void process(int partitions_count, void * extra_params);
         virtual void serialize_results (string file_name);
+        virtual void serialize_aggregate_results (string file_name);
         bool setDistinct (vector<pair<string,string>> _distinct_map);
         bool setAggregates (map<string, pair<string, int>> _aggregate_map);
         long get_result_count ();
