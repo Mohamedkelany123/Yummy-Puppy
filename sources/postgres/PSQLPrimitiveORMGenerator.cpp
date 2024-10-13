@@ -627,7 +627,7 @@ void PSQLPrimitiveORMGenerator::generateStaticFetch(string class_name)
 {
     extra_methods_def += "\t\tstatic shared_ptr<ORMVector <"+class_name+">> fetch(string _data_source_name, const Expression & e, bool _read_only = true);\n";
 	extra_methods +="\t\tshared_ptr<ORMVector <"+class_name+">> "+class_name+"::fetch(string _data_source_name, const Expression & e, bool _read_only){\n";
-    extra_methods +="\t\t\tshared_ptr<ORMVector <"+class_name+">> ormVector = make_shared<ORMVector<"+class_name+">>();\n";
+    extra_methods +="\t\t\tshared_ptr<ORMVector <"+class_name+">> ormVector = make_shared<ORMVector<"+class_name+">>(_read_only);\n";
     // extra_methods +="\t\t\tbool _read_only = true;\n";
     extra_methods +="\t\t\t"+class_name+"_iterator * i = new "+class_name+"_iterator(_data_source_name);\n";
     extra_methods +="\t\t\ti->filter (e);\n";
@@ -635,7 +635,7 @@ void PSQLPrimitiveORMGenerator::generateStaticFetch(string class_name)
     extra_methods +="\t\t\t"+class_name+" * orm = NULL;\n";
     extra_methods +="\t\t\tdo {\n";
     extra_methods +="\t\t\t\torm = i->next(_read_only);\n";
-    extra_methods +="\t\t\t\tif (orm!= NULL) ormVector->push_back(orm);\n";
+    extra_methods +="\t\t\t\tif (orm!= NULL) *ormVector+=orm;\n";
     extra_methods +="\t\t\t} while (orm != NULL);\n";
     extra_methods +="\t\t\tdelete(i);\n";
     extra_methods +="\t\t\treturn ormVector;\n";

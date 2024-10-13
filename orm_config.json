@@ -1,6 +1,14 @@
 {
     "datasources": [
         {
+            "key": "local",
+            "ip": "127.0.0.1",
+            "port": 5432,
+            "username": "postgres",
+            "password": "postgres",
+            "dbname": "django_ostaz_08072024"
+        },
+        {
             "key": "main",
             "ip": "192.168.1.51",
             "port": 5432,
@@ -9,7 +17,7 @@
             "dbname": "c_plus_plus"
         },
         {
-            "key": "secondary",
+            "key": "local",
             "ip": "192.168.65.216",
             "port": 5432,
             "username": "development",
