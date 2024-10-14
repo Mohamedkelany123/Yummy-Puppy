@@ -27,6 +27,7 @@
 - **Functions**
     - All functions-other than the constructor-should be **camelCase**, ex: getCustomerLoans(){}
     - Any function that gets something from the DB should start with get+what it gets+ how it gets it, ex: getCustomerByPhoneNumber(string _phone_number){}
+    - Simple getters or setters shoud be placed as inline functions in the header files for quicker compilation, ex: void setId(int _id){ id = _id}
 - **Classes & Objects**
     - **PascalCase** should be used for any **class** name, ex: class BlnkCustomer{}
     - **camelCase** should be used for any **object** name, ex: BlnkCustomer blnkCustomer();
@@ -41,7 +42,7 @@
 - Each **Application** needs to have a **namespace**
 
 # General Guidelines:
-- Break down complex functions to smaller modular and reusable functions.
+- Break down complex functions to smaller modular and reusable single purpose functions.
 - Always search for previously created functions that do the same as the function you're going to create to avoid redundancy.
     - If a function exists with similar functionality but has extra functionalities related to it, break the reusable part down and use it across both functions. 
 - Never throw an exception in an endpoint and not catch it, as this can lead to security hazards and inconsistent responses.
