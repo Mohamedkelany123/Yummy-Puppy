@@ -650,6 +650,15 @@ void PSQLJoinQueryIterator::serialize_results (string file_name)
 
 void PSQLJoinQueryIterator::serialize_aggregate_results (string file_name)
 {
+
+    // // {Res: [[{{},{},{}}, {{},{},{}}], [{{},{},{}}, {{},{},{}}]]}
+    //     if (aggregate == "")
+    //                aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
+    //             // if ( orms!= NULL) delete(orms);
+    //             if (aggregate == psqlJoinQueryPartitionIterator.exploreNextAggregate()
+    //         PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras,partition_number);
+
+
         if (this->execute() && this->psqlQuery->getRowCount() > 0)
         {
             string json_string  = "{\"RESULTS\":[\n";
@@ -660,7 +669,7 @@ void PSQLJoinQueryIterator::serialize_aggregate_results (string file_name)
                 if (orm_map == NULL) break;
                 if ( counter1 > 0 )
                     json_string += ",";
-                json_string += "{\n";
+                json_string += "[\n";
                 int count = 0;
                 for (auto o : *orm_map)
                 {
