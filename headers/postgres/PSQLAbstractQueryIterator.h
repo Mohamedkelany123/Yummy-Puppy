@@ -340,9 +340,11 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         virtual void process(int partitions_count, void * extra_params);
         virtual void serialize_results (string file_name);
         virtual void serialize_aggregate_results (string file_name);
+
         bool setDistinct (vector<pair<string,string>> _distinct_map);
         bool setAggregates (map<string, pair<string, int>> _aggregate_map);
         long get_result_count ();
+        string exploreNextAggregate ();
         virtual ~PSQLJoinQueryIterator();
 };
 
@@ -388,6 +390,7 @@ class PSQLJoinQueryPartitionIterator {
     public:
         PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects, map <string,string> _extras,int _partition_number);
         void reverse();
+
         string exploreNextAggregate ();
         map <string,PSQLAbstractORM *> * next ();
         ~PSQLJoinQueryPartitionIterator ();
