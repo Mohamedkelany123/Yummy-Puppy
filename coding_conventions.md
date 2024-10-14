@@ -25,7 +25,6 @@
     - Start with an **_**  for **parameters** in any method, ex: _customer_name 
     - Start with a **m_**  for **Class Data members**, ex: m_customer_name 
 - **Functions**
-    - **Constructors** should take the exact format of the class name, ex: BlnkCustomer::BlnkCustomer(){}
     - All functions-other than the constructor-should be **camelCase**, ex: getCustomerLoans(){}
     - Any function that gets something from the DB should start with get+what it gets+ how it gets it, ex: getCustomerByPhoneNumber(string _phone_number){}
 - **Classes & Objects**
