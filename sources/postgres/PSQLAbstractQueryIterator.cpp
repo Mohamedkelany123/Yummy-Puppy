@@ -648,59 +648,61 @@ void PSQLJoinQueryIterator::serialize_results (string file_name)
 }
 
 
-void PSQLJoinQueryIterator::serialize_aggregate_results (string file_name)
-{
+// void PSQLJoinQueryIterator::serialize_aggregate_results (string file_name)
+// {
 
-    // // {Res: [[{{},{},{}}, {{},{},{}}], [{{},{},{}}, {{},{},{}}]]}
-    //     if (aggregate == "")
-    //                aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
-    //             // if ( orms!= NULL) delete(orms);
-    //             if (aggregate == psqlJoinQueryPartitionIterator.exploreNextAggregate()
-    //         PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras,partition_number);
+//     // // {Res: [[{{},{},{}}, {{},{},{}}], [{{},{},{}}, {{},{},{}}]]}
+//     //     if (aggregate == "")
+//     //                aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
+//     //             // if ( orms!= NULL) delete(orms);
+//     //             if (aggregate == psqlJoinQueryPartitionIterator.exploreNextAggregate()
+//     //         PSQLJoinQueryPartitionIterator psqlJoinQueryPartitionIterator (psqlQueryPartition,me->orm_objects,me->extras,partition_number);
 
 
-        if (this->execute() && this->psqlQuery->getRowCount() > 0)
-        {
-            string json_string  = "{\"RESULTS\":[\n";
-            int counter1=0;
-            for (;;)
-            {
-                map<string, PSQLAbstractORM *> * orm_map = next(true);
-                if (orm_map == NULL) break;
-                if ( counter1 > 0 )
-                    json_string += ",";
-                json_string += "[\n";
-                int count = 0;
-                for (auto o : *orm_map)
-                {
-                    if (count >  0 ) json_string += ",";
-                    json_string += o.second->serialize();
-                    count ++;
-                }
-                std::replace( json_string.begin(), json_string.end(), '\n', ' ');
-                json_string += "}";
-                counter1++;
-            }
-            json_string +="]}";
-            json  j = json::parse(json_string);
-            cout << endl << endl << endl;
-            // cout << j["RESULTS"].dump() << endl;
-            for (auto jj: j["RESULTS"])
-            {
-                for (auto jjj: jj)
-                {
-                    cout << jjj.dump(3,'\t') << endl;
-                    cout << "___________________________________________" << endl;
-                }
-            }
-            json_string = j.dump(1,'\t');
-            FILE * f = fopen (file_name.c_str(),"wb");
-            fwrite (json_string.c_str(),json_string.length(),1,f);
-            fclose (f);
+//         if (this->execute() && this->psqlQuery->getRowCount() > 0)
+//         {
+//             string json_string  = "{\"RESULTS\":[\n";
+//             int counter1=0;
+//             string aggregate = "";
+//             for (;;)
+//             {
+                
+//                 map<string, PSQLAbstractORM *> * orm_map = next(true);
+//                 if (orm_map == NULL) break;
+//                 if ( counter1 > 0 )
+//                     json_string += ",";
+//                 json_string += "[\n";
+//                 int count = 0;
+//                 for (auto o : *orm_map)
+//                 {
+//                     if (count >  0 ) json_string += ",";
+//                     json_string += o.second->serialize();
+//                     count ++;
+//                 }
+//                 std::replace( json_string.begin(), json_string.end(), '\n', ' ');
+//                 json_string += "}";
+//                 counter1++;
+//             }
+//             json_string +="]}";
+//             json  j = json::parse(json_string);
+//             cout << endl << endl << endl;
+//             // cout << j["RESULTS"].dump() << endl;
+//             for (auto jj: j["RESULTS"])
+//             {
+//                 for (auto jjj: jj)
+//                 {
+//                     cout << jjj.dump(3,'\t') << endl;
+//                     cout << "___________________________________________" << endl;
+//                 }
+//             }
+//             json_string = j.dump(1,'\t');
+//             FILE * f = fopen (file_name.c_str(),"wb");
+//             fwrite (json_string.c_str(),json_string.length(),1,f);
+//             fclose (f);
 
-        //    cout << json_string << endl;
-        }
-}
+//         //    cout << json_string << endl;
+//         }
+// }
 
 bool PSQLJoinQueryIterator::setDistinct (vector<pair<string,string>> distinct_map)
 {
