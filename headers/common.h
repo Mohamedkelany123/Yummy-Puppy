@@ -60,14 +60,14 @@ using json = nlohmann::json;
         string message;\
         vector <ResponseError> errors;
 
-#define  SERIALIZER_RESPONSE_SETTERS_H void set_status_code(int _status_code);\
-        void set_message(string _message);\
-        void set_errors(vector<ResponseError> _errors);
+#define  SERIALIZER_RESPONSE_SETTERS_H inline void set_status_code(int _status_code){status_code = _status_code;}\
+        inline void set_message(string _message){message = _message;}\
+        inline void set_errors(vector<ResponseError> _errors){errors = _errors;}
 
 
-#define  SERIALIZER_RESPONSE_SETTERS_CPP(T) void T::set_status_code(int _status_code){status_code = _status_code;};\
-        void T::set_message(string _message){message = _message;};\
-        void T::set_errors(vector<ResponseError> _errors){errors = _errors;};
+// #define  SERIALIZER_RESPONSE_SETTERS_CPP(T) void T::set_status_code(int _status_code){status_code = _status_code;};\
+//         void T::set_message(string _message){message = _message;};\
+//         void T::set_errors(vector<ResponseError> _errors){errors = _errors;};
 
 #define   SERIALIZER_TEMPLATE_H     void serialize (string str);
 #define   DESERIALIZER_TEMPLATE_H     string deserialize ();
@@ -131,6 +131,8 @@ enum onboardingCommissionLedgerStamp { NOT_STAMPED , STAMPED, NO_COMMISSION };
 enum PartialSettlementRequestStatus { PENDING , APPROVED, REJECTED, PARTIALSETTLED, EXPIRED, CANCELLED2 };
 
 enum blnk_buckets { NONE, CURRENT, BUCKET1, BUCKET2, BUCKET3, BUCKET4, SETTLED, WRITEOFF, SETTLED_PAID_OFF, BUCKET5,BUCKET6,BUCKET7,CANCELLED, CANCELLED_PARTIAL_REFUND,PARTIAL_SETTLED_CHARGE_OFF,SETTLED_CHARGE_OFF };
+
+enum StatusCode {OK = 200,BADREQUEST = 400};
 
 // #define TIME_ZONE_OFFEST 2
 

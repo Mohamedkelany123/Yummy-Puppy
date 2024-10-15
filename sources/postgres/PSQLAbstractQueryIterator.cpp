@@ -421,8 +421,42 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
     }
 }
 
-void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
+void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras,string test_data_file)
 {
+        if ( test_data_file  !="")
+        {
+                cout << "This should run from testdata ...  aborting!!!" << endl;
+                FILE * ff = fopen(test_data_file.c_str(),"rb");
+                fseek (ff,0,2);
+                long file_size  = ftell (ff);
+                fseek (ff,0,0);
+                char * buffer = (char *) calloc (file_size+1,sizeof(char));
+                fread(buffer,file_size,1,ff);
+                fclose(ff);
+                json  j = json::parse(buffer);
+                cout << endl << endl << endl;
+                // cout << j["RESULTS"].dump() << endl;
+                mutex shared_lock;
+                for (auto jj: j["RESULTS"])
+                {
+                    map <string,PSQLAbstractORM *> * orms  = new map <string,PSQLAbstractORM *>();
+                    for (auto orm_object: *orm_objects) 
+                    {
+                            PSQLAbstractORM * orm = orm_object->clone();
+                            orm->deSerialize(jj[orm_object->getORMName()]);
+                            (*orms)[orm_object->getTableName()] = orm;
+                            // cout << jj[orm_object->getORMName()].dump(3,'\t') << endl;
+                            // cout << "___________________________________________" << endl;
+                    }
+                    f(orms,partition_number,&shared_lock,extras);
+                    delete (orms);
+                }
+
+                free (buffer);
+                return;
+        }
+
+
         exceptions->clear();
         time_t start = time (NULL);
         cout << "Executing PSQL Query on the remote server" << endl;
@@ -567,6 +601,50 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
 void PSQLJoinQueryIterator::process(int partitions_count, void * extra_params)
 {
 
+}
+void PSQLJoinQueryIterator::serialize_results (string file_name)
+{
+        if (this->execute() && this->psqlQuery->getRowCount() > 0)
+        {
+            string json_string  = "{\"RESULTS\":[\n";
+            int counter1=0;
+            for (;;)
+            {
+                map<string, PSQLAbstractORM *> * orm_map = next(true);
+                if (orm_map == NULL) break;
+                if ( counter1 > 0 )
+                    json_string += ",";
+                json_string += "{\n";
+                int count = 0;
+                for (auto o : *orm_map)
+                {
+                    if (count >  0 ) json_string += ",";
+                    json_string += o.second->serialize();
+                    count ++;
+                }
+                std::replace( json_string.begin(), json_string.end(), '\n', ' ');
+                json_string += "}";
+                counter1++;
+            }
+            json_string +="]}";
+            json  j = json::parse(json_string);
+            cout << endl << endl << endl;
+            // cout << j["RESULTS"].dump() << endl;
+            for (auto jj: j["RESULTS"])
+            {
+                for (auto jjj: jj)
+                {
+                    cout << jjj.dump(3,'\t') << endl;
+                    cout << "___________________________________________" << endl;
+                }
+            }
+            json_string = j.dump(1,'\t');
+            FILE * f = fopen (file_name.c_str(),"wb");
+            fwrite (json_string.c_str(),json_string.length(),1,f);
+            fclose (f);
+
+        //    cout << json_string << endl;
+        }
 }
 
 bool PSQLJoinQueryIterator::setDistinct (vector<pair<string,string>> distinct_map)
