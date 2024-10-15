@@ -60,9 +60,9 @@ using json = nlohmann::json;
         string message;\
         vector <ResponseError> errors;
 
-#define  SERIALIZER_RESPONSE_SETTERS_H inline void set_status_code(int _status_code){status_code = _status_code;}\
-        inline void set_message(string _message){message = _message;}\
-        inline void set_errors(vector<ResponseError> _errors){errors = _errors;}
+#define  SERIALIZER_RESPONSE_SETTERS_H inline void setStatusCode(int _status_code){status_code = _status_code;}\
+        inline void setMessage(string _message){message = _message;}\
+        inline void setErrors(vector<ResponseError> _errors){errors = _errors;}
 
 
 // #define  SERIALIZER_RESPONSE_SETTERS_CPP(T) void T::set_status_code(int _status_code){status_code = _status_code;};\
