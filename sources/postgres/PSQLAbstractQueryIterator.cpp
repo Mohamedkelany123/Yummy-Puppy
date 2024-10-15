@@ -677,8 +677,8 @@ void PSQLJoinQueryIterator::serialize_aggregate_results (string file_name)
                 int count = 0;
                 for (auto o : *orm_map)
                 {
-                    json_string += "{";
-                    if (count >  0 ) json_string += "},";
+                    // json_string += "{";
+                    if (count >  0 ) json_string += ",";
                     json_string += o.second->serialize();
                     count ++;
                 }
