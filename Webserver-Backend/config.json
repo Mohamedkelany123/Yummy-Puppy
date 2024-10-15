@@ -4,19 +4,19 @@
         "port_number" : "8080",
         "listen queue": "100000",
         "post_max_size" : "100000000",
-        "logfile" : "/home/kmsobh/blnk/kelany/ledger/ORM-C_plus_plus/Webserver-Backend/LogFile.log",
+        "logfile" : "/home/omneya/blnk/kelany/ledger/ORM-C_plus_plus/Webserver-Backend/LogFile.log",
         "loglevel" : "LOG_LEVEL_DEBUG",
         "logtype" : "CONSOLE",
         "daemon": false
         },
         "AdvancedBlnkML": {
             "http_path": "/testing",
-            "so_path" : "/home/kmsobh/blnk/orm_c++/applications/tally_dashboard_services/endpoints/dso/first.so",
-	        "New_BlnkML_ConfigFile" : "/home/kmsobh/blnk/orm_c++/Webserver-Backend/conf/ml-config.json"
+            "so_path" : "/home/omneya/blnk/orm_c++/applications/tally_dashboard_services/endpoints/dso/first.so",
+	        "New_BlnkML_ConfigFile" : "/home/omneya/blnk/orm_c++/Webserver-Backend/conf/ml-config.json"
         },
         "tetsing_tally": {
             "http_path": "/testing2",
-            "so_path" : "/home/kmsobh/blnk/orm_c++/applications/tally_dashboard_services/endpoints/dso/first.so",
-	        "New_BlnkML_ConfigFile" : "/home/kmsobh/blnk/orm_c++/Webserver-Backend/conf/ml-config.json"
+            "so_path" : "/home/omneya/blnk/orm_c++/applications/tally_dashboard_services/endpoints/dso/first.so",
+	        "New_BlnkML_ConfigFile" : "/home/omneya/blnk/orm_c++/Webserver-Backend/conf/ml-config.json"
         }
 }
