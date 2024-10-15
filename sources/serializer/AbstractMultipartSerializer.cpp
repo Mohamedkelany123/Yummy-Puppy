@@ -56,7 +56,7 @@ bool MultipartField::writeToAFileWithFileName()
 {
     if ( getAttribute("filename") != "" )
     {
-        string filename = "/Users/kmsobh/"+getAttribute("filename");
+        string filename = "/home/kmsobh/"+getAttribute("filename");
         FILE* ff = fopen (filename.c_str(),"wb");
         if (ff == NULL) return false;
         fwrite(value,value_size,1,ff);
