@@ -1,5 +1,8 @@
 #include <PSQLAbstractQueryIterator.h>
 #include <PSQLController.h>
+#include <FileReader.h>
+#include <FileWriter.h>
+
 
 PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,string _table_name, int _partition_number)
 {
@@ -311,6 +314,39 @@ void PSQLJoinQueryIterator::adjust_orms_list (vector<map <string,PSQLAbstractORM
     }
 
 }
+
+void PSQLJoinQueryIterator::process_from_serialized_orms(string _file_name,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
+{
+        cout << "This should run from testdata ...  aborting!!!" << endl;
+        // FILE * ff = fopen(test_data_file.c_str(),"rb");
+        // fseek (ff,0,2);
+        // long file_size  = ftell (ff);
+        // fseek (ff,0,0);
+        // char * buffer = (char *) calloc (file_size+1,sizeof(char));
+        // fread(buffer,file_size,1,ff);
+        // fclose(ff);
+        FileReader * fileReader = new FileReader (_file_name);
+        string buffer = fileReader->readFile();
+        delete (fileReader);
+        if (buffer.empty()) return;
+        json  j = json::parse(buffer);
+        mutex shared_lock;
+        for (auto jj: j["RESULTS"])
+        {
+            map <string,PSQLAbstractORM *> * orms  = new map <string,PSQLAbstractORM *>();
+            for (auto orm_object: *orm_objects) 
+            {
+                    PSQLAbstractORM * orm = orm_object->clone();
+                    orm->deSerialize(jj[orm_object->getORMName()]);
+                    (*orms)[orm_object->getTableName()] = orm;
+            }
+            f(orms,partition_number,&shared_lock,extras);
+            delete (orms);
+        }
+}
+
+
+
 void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(vector<map <string,PSQLAbstractORM *> * > * orms_list,int partition_number,mutex * shared_lock,void * extras)> f)
 {
         auto begin = std::chrono::high_resolution_clock::now();
@@ -425,34 +461,7 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
 {
         if ( test_data_file  !="")
         {
-                cout << "This should run from testdata ...  aborting!!!" << endl;
-                FILE * ff = fopen(test_data_file.c_str(),"rb");
-                fseek (ff,0,2);
-                long file_size  = ftell (ff);
-                fseek (ff,0,0);
-                char * buffer = (char *) calloc (file_size+1,sizeof(char));
-                fread(buffer,file_size,1,ff);
-                fclose(ff);
-                json  j = json::parse(buffer);
-                cout << endl << endl << endl;
-                // cout << j["RESULTS"].dump() << endl;
-                mutex shared_lock;
-                for (auto jj: j["RESULTS"])
-                {
-                    map <string,PSQLAbstractORM *> * orms  = new map <string,PSQLAbstractORM *>();
-                    for (auto orm_object: *orm_objects) 
-                    {
-                            PSQLAbstractORM * orm = orm_object->clone();
-                            orm->deSerialize(jj[orm_object->getORMName()]);
-                            (*orms)[orm_object->getTableName()] = orm;
-                            // cout << jj[orm_object->getORMName()].dump(3,'\t') << endl;
-                            // cout << "___________________________________________" << endl;
-                    }
-                    f(orms,partition_number,&shared_lock,extras);
-                    delete (orms);
-                }
-
-                free (buffer);
+                process_from_serialized_orms(test_data_file,f,extras);
                 return;
         }
 
@@ -616,32 +625,38 @@ void PSQLJoinQueryIterator::serialize_results (string file_name)
                     json_string += ",";
                 json_string += "{\n";
                 int count = 0;
+                string temp= "";
                 for (auto o : *orm_map)
                 {
-                    if (count >  0 ) json_string += ",";
-                    json_string += o.second->serialize();
+                    if (count >  0 ) temp += ",";
+                    temp += o.second->serialize();
                     count ++;
                 }
-                std::replace( json_string.begin(), json_string.end(), '\n', ' ');
+                std::replace( temp.begin(), temp.end(), '\n', ' ');
+                json_string += temp;
                 json_string += "}";
                 counter1++;
             }
             json_string +="]}";
-            json  j = json::parse(json_string);
-            cout << endl << endl << endl;
-            // cout << j["RESULTS"].dump() << endl;
-            for (auto jj: j["RESULTS"])
-            {
-                for (auto jjj: jj)
-                {
-                    cout << jjj.dump(3,'\t') << endl;
-                    cout << "___________________________________________" << endl;
-                }
-            }
-            json_string = j.dump(1,'\t');
-            FILE * f = fopen (file_name.c_str(),"wb");
-            fwrite (json_string.c_str(),json_string.length(),1,f);
-            fclose (f);
+            FileWriter * fileWriter  = new FileWriter(file_name);
+            fileWriter->writeFile(json_string);
+            delete (fileWriter);
+
+            // json  j = json::parse(json_string);
+            // cout << endl << endl << endl;
+            // // cout << j["RESULTS"].dump() << endl;
+            // for (auto jj: j["RESULTS"])
+            // {
+            //     for (auto jjj: jj)
+            //     {
+            //         cout << jjj.dump(3,'\t') << endl;
+            //         cout << "___________________________________________" << endl;
+            //     }
+            // }
+            // json_string = j.dump(1,'\t');
+            // FILE * f = fopen (file_name.c_str(),"wb");
+            // fwrite (json_string.c_str(),json_string.length(),1,f);
+            // fclose (f);
 
         //    cout << json_string << endl;
         }

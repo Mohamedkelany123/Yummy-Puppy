@@ -321,6 +321,7 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         vector <PSQLAbstractORM *> * orm_objects;
         map <string,PSQLAbstractORM *> orm_objects_map;
         ExceptionStack * exceptions;
+        void process_from_serialized_orms(string _file_name,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras);
         void unlock_orms (map <string,PSQLAbstractORM *> *  orms);
         void adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list);
         static void process_internal_aggregate(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms_list,int partition_number,mutex * shared_lock,void * extras)> f);

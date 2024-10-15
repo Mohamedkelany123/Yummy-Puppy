@@ -2,7 +2,8 @@
 #define PSQLABSTRACTORM_H
 
 #include <PSQLConnection.h>
-
+#include <FileReader.h>
+#include <FileWriter.h>
 
 
 class PSQLAbstractORM 
@@ -141,12 +142,52 @@ class ORMVector : public vector<T *>
         public:
             ORMVector(bool _read_only= false){read_only=_read_only;}
             void operator += (T * orm) {
-                    this->push_back (orm);
+                this->push_back (orm);
+            }
+            void serialize(string _file_name)
+            {
+                if (this->size() > 0)
+                {
+                    string json_string  = "{\"RESULTS\":[\n";
+                    int counter1=0;
+                    for ( size_t i = 0 ;i < this->size() ; i++ )
+                    {
+                        if ( counter1 > 0 )
+                            json_string += ",";
+                        json_string += "{\n";
+                        string temp = (*this)[i]->serialize();
+                        std::replace( temp.begin(), temp.end(), '\n', ' ');
+                        std::replace( temp.begin(), temp.end(), '\r', ' ');
+                        json_string += temp;
+                        json_string += "}\n";
+
+                        counter1++;
+                    }
+                    json_string +="]}";
+                    FileWriter * fileWriter  = new FileWriter(_file_name);
+                    fileWriter->writeFile(json_string);
+                    delete (fileWriter);
+                }
+            }
+            void deserialize (string _file_name)
+            {
+                FileReader * fileReader = new FileReader (_file_name);
+                string buffer = fileReader->readFile();
+                delete (fileReader);
+                if (buffer.empty()) return;
+                json  json_results = json::parse(buffer);
+                this->clear();
+                for (auto json_row: json_results["RESULTS"])
+                {
+                    T * orm = new T("");
+                    orm->deSerialize(json_row[orm->getORMName()]);
+                    (*this)+=orm;
+                }
             }
             ~ORMVector(){
                 if (!read_only)return;
                 for ( size_t i = 0 ;i < this->size() ; i++ )
-                        delete ((*this)[i]);
+                    delete ((*this)[i]);
             }
 
 };
