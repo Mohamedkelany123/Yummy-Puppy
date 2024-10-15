@@ -17,17 +17,19 @@
             "dbname": "c_plus_plus"
         },
         {
-            "key": "local",
+            "key": "main2",
             "ip": "192.168.65.216",
             "port": 5432,
             "username": "development",
             "password": "5k6MLFM9CLN3bD1",
-            "dbname": "django_ostaz_16072024_sherif"
+            "dbname": "django_ostaz_28082024_sherif"
         }
     ],
     "factory": {
-        "datasource": "main",
-        "directory": "./applications/blnk_closure/factory/db_primitive_orm",
-        "restrict_orms": []
+        "datasource": "main2",
+        "directory": "./factory/db_primitive_orm",
+        "restrict_orms": [
+            "loan_app_loan"
+        ]
     }
 }
