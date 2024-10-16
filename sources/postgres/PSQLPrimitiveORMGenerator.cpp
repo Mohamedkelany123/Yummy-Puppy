@@ -625,10 +625,11 @@ void PSQLPrimitiveORMGenerator::generateIsUpdated(string class_name,bool is_view
 
 void PSQLPrimitiveORMGenerator::generateStaticFetch(string class_name)
 {
-    extra_methods_def += "\t\tstatic shared_ptr<ORMVector <"+class_name+">> fetch(string _data_source_name, const Expression & e, bool _read_only = true);\n";
-	extra_methods +="\t\tshared_ptr<ORMVector <"+class_name+">> "+class_name+"::fetch(string _data_source_name, const Expression & e, bool _read_only){\n";
+    extra_methods_def += "\t\tstatic shared_ptr<ORMVector <"+class_name+">> fetch(string _data_source_name, const Expression & e, bool _read_only = true,string test_data_file=\"\");\n";
+	extra_methods +="\t\tshared_ptr<ORMVector <"+class_name+">> "+class_name+"::fetch(string _data_source_name, const Expression & e, bool _read_only,string test_data_file){\n";
     extra_methods +="\t\t\tshared_ptr<ORMVector <"+class_name+">> ormVector = make_shared<ORMVector<"+class_name+">>(_read_only);\n";
     // extra_methods +="\t\t\tbool _read_only = true;\n";
+    extra_methods +="\t\t\tif (test_data_file != \"\") { ormVector->serialize(test_data_file); return ormVector;}\n";
     extra_methods +="\t\t\t"+class_name+"_iterator * i = new "+class_name+"_iterator(_data_source_name);\n";
     extra_methods +="\t\t\ti->filter (e);\n";
     extra_methods +="\t\t\ti->execute();\n";
