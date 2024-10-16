@@ -1,6 +1,6 @@
 # Coding Conventions:
 
-
+Each application parent directory should contain a git workflow file
 # Directory Structure
 - **Common**
 - **Factory**
