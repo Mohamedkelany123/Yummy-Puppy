@@ -3,7 +3,7 @@
 
 FileReader::FileReader(string _file_name)
 {
-    f = fopen (_file_name.c_str(),"rt");
+    f = fopen (_file_name.c_str(),"rb");
     if ( f != NULL )
     {
         fseek (f,0,2);

@@ -3,7 +3,7 @@
 
 FileWriter::FileWriter(string _file_name)
 {
-    f = fopen (_file_name.c_str(),"wt");
+    f = fopen (_file_name.c_str(),"wb");
 }
 bool FileWriter::writeFile (string _file_content)
 {

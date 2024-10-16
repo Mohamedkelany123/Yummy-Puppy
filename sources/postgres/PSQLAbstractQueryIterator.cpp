@@ -343,20 +343,20 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
                 }
                 else
                 {
-                for (auto map_ptr : *orms_list) { 
-                    json_string += ",";
-                    int count = 0; 
-                    for (auto& pair : *map_ptr) { 
+                    for (auto map_ptr : *orms_list) { 
+                        json_string += ",";
+                        int count = 0; 
+                        for (auto& pair : *map_ptr) { 
 
-                        if (count > 0) json_string += ",";
-                        else json_string += "{";
-                        json_string += pair.second->serialize();
-                        count ++;
-                        std::cout << "Key: " << pair.first << ", Value: " << pair.second->serialize() << std::endl;
+                            if (count > 0) json_string += ",";
+                            else json_string += "{";
+                            json_string += pair.second->serialize();
+                            count ++;
+                            std::cout << "Key: " << pair.first << ", Value: " << pair.second->serialize() << std::endl;
+                        }
+                        json_string += "}";
                     }
-                    json_string += "}";
-                }
-                json_string += "]";
+                    json_string += "]";
 
                     shared_lock->lock();
                     for (auto o : *orms_list)
@@ -380,14 +380,7 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
         delete (fileWriter);
         delete (orms_list);
 
-        // shared_lock->lock();
-        // cout << "Exiting process_internal" << endl;
-        // me->unlock_orms(orms);
-        // cout << "Start freeing relative resources" << endl;
         psqlController.unlock_current_thread_orms(data_source_name);
-        // cout << "After psqlController.unlock_current_thread_orms()" << endl;
-
-        // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
@@ -398,13 +391,6 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
 void PSQLJoinQueryIterator::process_from_serialized_orms(string _file_name,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
 {
         cout << "This should run from testdata ...  aborting!!!" << endl;
-        // FILE * ff = fopen(test_data_file.c_str(),"rb");
-        // fseek (ff,0,2);
-        // long file_size  = ftell (ff);
-        // fseek (ff,0,0);
-        // char * buffer = (char *) calloc (file_size+1,sizeof(char));
-        // fread(buffer,file_size,1,ff);
-        // fclose(ff);
         FileReader * fileReader = new FileReader (_file_name);
         string buffer = fileReader->readFile();
         delete (fileReader);
@@ -423,6 +409,32 @@ void PSQLJoinQueryIterator::process_from_serialized_orms(string _file_name,std::
             f(orms,partition_number,&shared_lock,extras);
             delete (orms);
         }
+}
+
+void PSQLJoinQueryIterator::process_aggregate_from_serialized_orms(string _file_name,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
+{
+        vector<map <string,PSQLAbstractORM *> *> *  orms_list = NULL;
+        orms_list = new vector<map <string,PSQLAbstractORM *> *> ();
+        FileReader * fileReader = new FileReader (_file_name);
+        string buffer = fileReader->readFile();
+        delete (fileReader);
+        if (buffer.empty()) return;
+        json  j = json::parse(buffer);
+        mutex shared_lock;
+
+        for (auto jj: j["RESULTS"])
+        {
+            for (;;)
+            {
+                // build orm_list
+
+                f(orms_list,partition_number,&shared_lock,extras);
+
+                orms_list->clear();
+            }
+        }
+        delete (orms_list);
+
 }
 
 
@@ -529,14 +541,18 @@ void  PSQLJoinQueryIterator::process_internal(string data_source_name, PSQLJoinQ
     }
 }
 
-void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras,string test_data_file)
+void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras,string test_data_file,bool serialize)
 {
-        if ( test_data_file  !="")
+        if ( test_data_file  !="" && !serialize)
         {
                 process_from_serialized_orms(test_data_file,f,extras);
                 return;
         }
-
+        else if (test_data_file  !="" && serialize)
+        {
+            serialize_results(test_data_file);
+            return;
+        }
 
         exceptions->clear();
         time_t start = time (NULL);
@@ -625,24 +641,29 @@ void PSQLJoinQueryIterator::process_aggregate_sequential(std::function<void(vect
 }
 
 
-void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras,string test_data_file)
+void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras,string test_data_file, bool serialize)
 {
     time_t start = time (NULL);
     mutex shared_lock;
-
-    if (test_data_file != "")
-    {
-        if (this->execute() && this->psqlQuery->getRowCount() > 0)
-    {
-        vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(1);
-        process_internal_aggregate_serialize (data_source_name,this,(*p)[0],0,&shared_lock,extras, test_data_file);
-        delete((*p)[0]);
-        return ;
-    }
-    }
-
     cout << "Executing PSQL Query on the remote server" << endl;
-    if (this->execute() && this->psqlQuery->getRowCount() > 0)
+
+    if (!(this->execute() && this->psqlQuery->getRowCount() > 0)) return;
+
+    if ( test_data_file  !="" && !serialize)
+    {
+            process_aggregate_from_serialized_orms(test_data_file,f,extras);
+            return;
+    }
+    else if (test_data_file  !="" && serialize)
+    {
+        {
+            vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(1);
+            process_internal_aggregate_serialize (data_source_name,this,(*p)[0],0,&shared_lock,extras, test_data_file);
+            delete((*p)[0]);
+        }
+        return;
+    }
+    else 
     {
         time_t time_snapshot1 = time (NULL);
 
