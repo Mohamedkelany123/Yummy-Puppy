@@ -27,7 +27,7 @@ Each application parent directory should contain a git workflow file
 - **Functions**
     - All functions-other than the constructor-should be **camelCase**, ex: getCustomerLoans(){}
     - Any function that gets something from the DB should start with get+what it gets+ how it gets it, ex: getCustomerByPhoneNumber(string _phone_number){}
-    - Simple getters or setters shoud be placed as inline functions in the header files for quicker compilation, ex: void setId(int _id){ id = _id}
+    - Simple getters or setters shoud be placed as inline functions in the header files for better performance, ex: void setId(int _id){ id = _id}
 - **Classes & Objects**
     - **PascalCase** should be used for any **class** name, ex: class BlnkCustomer{}
     - **camelCase** should be used for any **object** name, ex: BlnkCustomer blnkCustomer();
