@@ -89,11 +89,14 @@ using json = nlohmann::json;
 #define STARTGETENDPOINT(O) return new EndpointGETService <O>( \
             [=] (HTTPRequest * p_httpRequest,O * outputSerializer) {
 
-#define INITENDPOINT psqlController.initialize(_psqlControllerMaster);\
+#define INITENDPOINT extern "C" HTTPService *create_object(PSQLControllerMaster * _psqlControllerMaster)\
+        {\
+                psqlController.initialize(_psqlControllerMaster);\
                 psqlController.addDefault("created_at","now()",true,true);\
                 psqlController.addDefault("updated_at","now()",true,true);\
                 psqlController.addDefault("updated_at","now()",false,true);
 
+#define ENDENDPOINT }
 
 /*
                 bool connect = psqlController.addDataSource("main","127.0.0.1",5432,"django_ostaz_08072024","postgres","postgres");\
