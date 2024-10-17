@@ -10,15 +10,20 @@ list(REMOVE_DUPLICATES HEADER_DIRS)
 
 # Create library of source files
 file(GLOB SOURCES "sources/**/*.cpp")
-add_library(lib_web ${SOURCES})
-target_include_directories(lib_web PUBLIC ${HEADER_DIRS})
-target_link_libraries(lib_web PUBLIC lib_framework pq)
-
+add_library(webserver SHARED ${SOURCES})
+target_link_libraries(webserver PUBLIC framework pq)
+target_include_directories(webserver PUBLIC 
+    "$<BUILD_INTERFACE:${HEADER_DIRS}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+set_target_properties(webserver PROPERTIES 
+    PUBLIC_HEADER "${HEADER_FILES}"
+)
 
 # Loop over every main file and create executable
 file(GLOB MAINS "mains/*.cpp")
 foreach(MAIN ${MAINS})
     get_filename_component(FILENAME ${MAIN} NAME_WE)
     add_executable(${FILENAME} ${MAIN})
-    target_link_libraries(${FILENAME} PRIVATE lib_web)
+    target_link_libraries(${FILENAME} PRIVATE webserver)
 endforeach()

@@ -15,3 +15,16 @@ endif()
 
 add_subdirectory(framework)
 add_subdirectory(Webserver-Backend)
+
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH "/usr/local/lib")
+
+include(GNUInstallDirs)
+install(TARGETS framework
+    ARCHIVE
+    PUBLIC_HEADER
+)
+install(TARGETS webserver
+    ARCHIVE
+    PUBLIC_HEADER
+)
