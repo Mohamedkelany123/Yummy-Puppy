@@ -725,8 +725,8 @@ void PSQLJoinQueryIterator::serialize_results (string file_name)
             for (;;)
             {
                 map<string, PSQLAbstractORM *> * orm_map = next(true);
-                cout << "SIZEEEEEEEEEE" << orm_map->size() << endl;
                 if (orm_map == NULL) break;
+                // cout << "SIZEEEEEEEEEE" << orm_map->size() << endl;
                 if ( counter1 > 0 )
                     json_string += ",";
                 json_string += "{\n";
