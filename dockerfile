@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     g++ \
     git \
     vim \
+    iputils-ping \
+    net-tools  \
     libboost-all-dev \
     libpq-dev 
 
@@ -20,6 +22,3 @@ WORKDIR /app
 
 # Copy your source files into the container at /app
 COPY . .
-
-# Keep the container running to allow terminal access
-CMD ["tail", "-f", "/dev/null"]

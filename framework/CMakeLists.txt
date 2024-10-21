@@ -10,11 +10,11 @@ list(REMOVE_DUPLICATES HEADER_DIRS)
 # list(APPEND HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../ThorsSerializer)
 
 # Create library of source files
-file(GLOB SOURCES "sources/**/*.cpp")
+file(GLOB_RECURSE SOURCES "sources/*.cpp")
 add_library(framework SHARED ${SOURCES})
 target_include_directories(framework PUBLIC 
     "$<BUILD_INTERFACE:${HEADER_DIRS}>"
-    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework>"
 )
 set_target_properties(framework PROPERTIES 
     PUBLIC_HEADER "${HEADER_FILES}"

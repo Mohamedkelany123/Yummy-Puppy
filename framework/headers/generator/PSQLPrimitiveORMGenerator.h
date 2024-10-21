@@ -9,16 +9,24 @@
 #include <PSQLText.h>
 #include <PSQLJson.h>
 #include <PSQLNumeric.h>
+#include <TemplateHandler.h>
 
-#define TEMPLATE_H_FILENAME "./templates/headers/ORMPrimitiveTemplate.h"
-#define TEMPLATE_CPP_FILENAME "./templates/sources/ORMPrimitiveTemplate.cpp"
 #define H_FOLDER "/headers"
 #define CPP_FOLDER "/sources"
 
 #define MAX_SOURCE_FILE_SIZE 5*1024*1024
+
+struct TemplateFiles {
+    string h_name;
+    string cpp_name;
+    string cmake_name;
+};
+
 class PSQLPrimitiveORMGenerator
 {
     private:
+        TemplateFiles template_files;
+
         string orm_folder;
         string datasource;
 
@@ -39,6 +47,7 @@ class PSQLPrimitiveORMGenerator
         bool view_serial_flag;
         char * template_h;
         char * template_cpp;
+        char * template_cmake;
         char * h_file;
         char * cpp_file;
         PSQLConnection * psqlConnection;
@@ -67,8 +76,9 @@ class PSQLPrimitiveORMGenerator
 
         static void createFoldersIfNotExist(const string& path);
     public:
-        PSQLPrimitiveORMGenerator(string datasource, string p_orm_folder);
+        PSQLPrimitiveORMGenerator(string datasource, string p_orm_folder, TemplateFiles p_template_files);
         void generate(string table_name,string table_index, vector<string> & tablesToGenerate,string _namespace, bool is_views=false);
+        bool generateCMake(string _namespace);
         void compile(string table_name);
         ~PSQLPrimitiveORMGenerator();
 };

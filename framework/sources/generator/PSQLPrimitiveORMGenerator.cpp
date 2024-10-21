@@ -105,7 +105,7 @@ void PSQLPrimitiveORMGenerator::generateEqualToOperator(string class_name,string
 
 void PSQLPrimitiveORMGenerator::fetch_templates()
 {
-    FILE * f = fopen (TEMPLATE_H_FILENAME,"rt");
+    FILE * f = fopen (template_files.h_name.c_str(),"rt");
     if ( f != NULL )
     {
         fseek (f,0,2);
@@ -114,8 +114,12 @@ void PSQLPrimitiveORMGenerator::fetch_templates()
         template_h  = (char *) calloc (filesize+1,sizeof(char));
         fread(template_h,1,filesize,f);
         fclose(f);
+    } else {
+        cerr << "Template H file: " << template_files.h_name << " does not exist.\n";
+        exit(-1);
     }
-    f = fopen (TEMPLATE_CPP_FILENAME,"rt");
+
+    f = fopen (template_files.cpp_name.c_str(),"rt");
     if ( f != NULL )
     {
         fseek (f,0,2);
@@ -124,8 +128,10 @@ void PSQLPrimitiveORMGenerator::fetch_templates()
         template_cpp  = (char *) calloc (filesize+1,sizeof(char));
         fread(template_cpp,1,filesize,f);
         fclose(f);
+    } else {
+        cerr << "Template CPP file: " << template_files.cpp_name << " does not exist.\n";
+        exit(-1);
     }
-
 }
 
 void PSQLPrimitiveORMGenerator::write_headers_and_sources(string class_name)
@@ -153,10 +159,12 @@ void PSQLPrimitiveORMGenerator::write_headers_and_sources(string class_name)
 }
 
 
-PSQLPrimitiveORMGenerator::PSQLPrimitiveORMGenerator(string p_datasource, string p_orm_folder)
+PSQLPrimitiveORMGenerator::PSQLPrimitiveORMGenerator(string p_datasource, string p_orm_folder, TemplateFiles p_templateFiles)
 {
     this->orm_folder = p_orm_folder;
     this->datasource = p_datasource;
+
+    this->template_files = p_templateFiles;
 
     PSQLPrimitiveORMGenerator::createFoldersIfNotExist(orm_folder+H_FOLDER);
     PSQLPrimitiveORMGenerator::createFoldersIfNotExist(orm_folder+CPP_FOLDER);
@@ -856,12 +864,12 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, v
         // query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),
         // query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str());
         snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,
-        class_name_upper.c_str(),class_name_upper.c_str(), ("class "+class_name+";").c_str() ,includes.c_str(),
+        class_name_upper.c_str(),class_name_upper.c_str(), _namespace.c_str(), ("class "+class_name+";").c_str() ,includes.c_str(),
         class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),
         query_iterator_class_name.c_str(),class_name.c_str(),
         query_iterator_class_name.c_str(),class_name.c_str(),table_name.c_str(),query_iterator_class_name.c_str());
 
-        snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,include_file.c_str(),(setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str());
+        snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,include_file.c_str(),_namespace.c_str(), (setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str());
         // snprintf (cpp_file,MAX_SOURCE_FILE_SIZE,template_cpp,include_file.c_str(),(setters+getters+extra_methods+constructor_destructor+extern_entry_point).c_str()
         // ,query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),table_name.c_str(),class_name.c_str(),class_name.c_str()
         // ,class_name.c_str(),query_iterator_class_name.c_str()
@@ -874,6 +882,20 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, v
     }
     delete (psqlQuery);
 }
+
+bool PSQLPrimitiveORMGenerator::generateCMake(string _namespace){
+    unordered_map<string, string> placeholders = {
+        {"namespace", _namespace}
+    };
+    
+    string cmake_template_fmt = TemplateHandler::fetchTemplate(template_files.cmake_name);
+    string cmake_template_data = TemplateHandler::replacePlaceholders(cmake_template_fmt, placeholders);
+    
+    string cmake_file_name = this->orm_folder + "/" + "CMakeLists.txt";
+    return TemplateHandler::generateFile(cmake_file_name, cmake_template_data);
+}
+ 
+
 void PSQLPrimitiveORMGenerator::compile(string table_name)
 {
     string class_name = table_name+"_primitive_orm";

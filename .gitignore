@@ -10,8 +10,7 @@ test/*
 **/*.oo
 
 
-factory/db_primitive_orm/headers/
-factory/db_primitive_orm/sources/*.cpp
+factory
 
 
 **/*.pyc

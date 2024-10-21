@@ -9,8 +9,8 @@ endforeach()
 list(REMOVE_DUPLICATES HEADER_DIRS)
 
 # Create library of source files
-file(GLOB SOURCES "sources/**/*.cpp")
-add_library(webserver SHARED ${SOURCES})
+file(GLOB_RECURSE SOURCES "sources/*.cpp")
+add_library(webserver ${SOURCES})
 target_link_libraries(webserver PUBLIC framework pq)
 target_include_directories(webserver PUBLIC 
     "$<BUILD_INTERFACE:${HEADER_DIRS}>"

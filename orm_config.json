@@ -27,10 +27,14 @@
     ],
     "factory": {
         "datasource": "main2",
+        "namespace":"ostaz",
         "directory": "./factory/db_primitive_orm",
         "restrict_orms": [
             "loan_app_loan"
         ],
-        "namespace":"los"
+        "templates": {
+            "local": true,
+            "directory": "./framework/templates"
+        }
     }
 }

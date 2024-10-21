@@ -16,15 +16,16 @@ endif()
 add_subdirectory(framework)
 add_subdirectory(Webserver-Backend)
 
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "/usr/local/lib")
+# set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+# set(CMAKE_INSTALL_RPATH "/usr/local/lib")
 
 include(GNUInstallDirs)
+install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework\")")
 install(TARGETS framework
     ARCHIVE
     PUBLIC_HEADER
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework
 )
-install(TARGETS webserver
-    ARCHIVE
-    PUBLIC_HEADER
-)
+if (UNIX)
+    install(CODE "execute_process(COMMAND ldconfig)")
+endif()
