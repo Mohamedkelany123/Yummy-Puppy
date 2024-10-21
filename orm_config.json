@@ -30,6 +30,7 @@
         "directory": "./factory/db_primitive_orm",
         "restrict_orms": [
             "loan_app_loan"
-        ]
+        ],
+        "namespace":"los"
     }
 }

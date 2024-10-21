@@ -814,7 +814,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
     extra_methods += "\t\t}\n";
 }
 
-void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, vector<string> &tables_to_generate, bool is_views)
+void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, vector<string> &tables_to_generate,string _namespace, bool is_views)
 {
     AbstractDBQuery *psqlQuery = psqlConnection->executeQuery("select table_name,column_name,data_type,numeric_precision,numeric_precision_radix,numeric_scale,is_nullable,is_generated,identity_generation,is_identity,column_default,identity_increment,udt_name from information_schema.COLUMNS where table_name='"+table_name+"'");
     string class_name = table_name+"_primitive_orm";

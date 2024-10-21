@@ -47,7 +47,7 @@ int main (int argc, char ** argv)
 void generate(const ConfigReader& conf) {
     
     string datasource_key = conf.GetValue("factory", "datasource");
-
+    string namespace_name = conf.GetValue("factory", "namespace");
     for (auto datasource : conf.GetValue("datasources")) {
         if ((string)datasource["key"] == datasource_key) {
             psqlController.addDataSource(datasource["key"],datasource["ip"],datasource["port"],datasource["dbname"],datasource["username"],datasource["password"]);
@@ -72,7 +72,7 @@ void generate(const ConfigReader& conf) {
     for ( int i = 0 ; i  < tables.size() ; i ++)
     {
         cout << "Generating Table " << tables[i] << endl;
-        psqlPrimitiveORMGenerator->generate(tables[i],std::to_string(i),tables);
+        psqlPrimitiveORMGenerator->generate(tables[i],std::to_string(i),tables,namespace_name);
     }
 
     int counter = tables.size();

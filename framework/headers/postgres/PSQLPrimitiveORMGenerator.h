@@ -68,7 +68,7 @@ class PSQLPrimitiveORMGenerator
         static void createFoldersIfNotExist(const string& path);
     public:
         PSQLPrimitiveORMGenerator(string datasource, string p_orm_folder);
-        void generate(string table_name,string table_index, vector<string> & tablesToGenerate, bool is_views=false);
+        void generate(string table_name,string table_index, vector<string> & tablesToGenerate,string _namespace, bool is_views=false);
         void compile(string table_name);
         ~PSQLPrimitiveORMGenerator();
 };
