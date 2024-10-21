@@ -4,7 +4,7 @@
 #include <FileWriter.h>
 
 
-PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,string _table_name, int _partition_number)
+PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,string _table_name, int _partition_number, string _test_data_folder)
 {
     data_source_name = _data_source_name;
     table_name = _table_name;
@@ -17,6 +17,9 @@ PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,st
     sql = "";
     psqlQuery= NULL;
     partition_number = _partition_number;
+    m_test_data_folder = _test_data_folder;
+    m_parsed_json_results = json::object();
+    m_parsed_json_index = 0;
 
 }
 void PSQLAbstractQueryIterator::setNativeSQL(string _sql)
@@ -38,6 +41,12 @@ void PSQLAbstractQueryIterator::filter (const Expression & e,bool print_sql)
 }
 bool PSQLAbstractQueryIterator::execute()
 {
+    if(m_test_data_folder != "")
+    {
+        this->parseFile(m_test_data_folder);
+        return true;
+    }
+
     if (psqlConnection == NULL ) return false;
     
     string extra_from;
@@ -92,8 +101,8 @@ PSQLAbstractQueryIterator::~PSQLAbstractQueryIterator()
 }
 
 
-PSQLJoinQueryIterator::PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields):
-PSQLAbstractQueryIterator(_data_source_name,"")
+PSQLJoinQueryIterator::PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields, string _test_data_folder):
+PSQLAbstractQueryIterator(_data_source_name,"",-1, _test_data_folder)
 {
     aggregate_flag = false;
     conditions= "";
@@ -187,8 +196,8 @@ order by loan_app_installment.id asc
 
 
 */
-PSQLJoinQueryIterator::PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<pair<string,string>,pair<string,string>>,JOIN_TYPE>> const & join_fields) :
-PSQLAbstractQueryIterator(_data_source_name,"")
+PSQLJoinQueryIterator::PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<pair<string,string>,pair<string,string>>,JOIN_TYPE>> const & join_fields, string _test_data_folder) :
+PSQLAbstractQueryIterator(_data_source_name,"",-1,_test_data_folder)
 {
     aggregate_flag = false;
     string other_join_string="";
@@ -259,8 +268,33 @@ PSQLAbstractQueryIterator(_data_source_name,"")
 }
 
 
+map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::testDataJsonNext(){
+    if (m_parsed_json_results.empty()) {
+        cout << "NO RESULTS FOUND FOR PATH: " << m_test_data_folder << endl;
+        return nullptr;
+    }
+    if (m_parsed_json_index >= m_parsed_json_results["RESULTS"].size())
+    {
+        cout << "END OF JSON FILE REACHED" << endl;
+        return nullptr;
+    }
+    map <string,PSQLAbstractORM *> * orms  = new map <string,PSQLAbstractORM *>();
+    for (auto orm_object: *orm_objects) 
+    {
+            PSQLAbstractORM * orm = orm_object->clone();
+            orm->deSerialize(m_parsed_json_results["RESULTS"][m_parsed_json_index][orm_object->getORMName()], true);
+            (*orms)[orm_object->getTableName()] = orm;
+    }
+    m_parsed_json_index ++;
+    // TODO: handle the deletion of the orms
+    return orms;
+}
+
 map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next (bool read_only)
 {
+    if(m_test_data_folder != "") 
+        return testDataJsonNext();
+
     if (psqlQuery->fetchNextRow())
     {
         map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
@@ -289,7 +323,7 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next (bool read_only)
 
         return results;
     }
-    else return NULL;
+    else    return NULL;
 }
 
 void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
@@ -388,22 +422,29 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
 }
 
 
+bool PSQLAbstractQueryIterator::parseFile(string _file_name)
+{
+    FileReader * fileReader = new FileReader (_file_name);
+    string buffer = fileReader->readFile();
+    delete (fileReader);
+    if (buffer.empty()) return false;
+    m_parsed_json_results = json::parse(buffer);
+    
+    return true;
+}
+
 void PSQLJoinQueryIterator::process_from_serialized_orms(string _file_name,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
 {
-        cout << "This should run from testdata ...  aborting!!!" << endl;
-        FileReader * fileReader = new FileReader (_file_name);
-        string buffer = fileReader->readFile();
-        delete (fileReader);
-        if (buffer.empty()) return;
-        json  j = json::parse(buffer);
+        this->parseFile(_file_name);
+        if (m_parsed_json_results.empty()) return;
         mutex shared_lock;
-        for (auto jj: j["RESULTS"])
+        for (auto jj: m_parsed_json_results["RESULTS"])
         {
             map <string,PSQLAbstractORM *> * orms  = new map <string,PSQLAbstractORM *>();
             for (auto orm_object: *orm_objects) 
             {
                     PSQLAbstractORM * orm = orm_object->clone();
-                    orm->deSerialize(jj[orm_object->getORMName()]);
+                    orm->deSerialize(jj[orm_object->getORMName()], true);
                     (*orms)[orm_object->getTableName()] = orm;
             }
             f(orms,partition_number,&shared_lock,extras);
@@ -937,6 +978,7 @@ string PSQLJoinQueryPartitionIterator::exploreNextAggregate ()
 
 map <string,PSQLAbstractORM *> * PSQLJoinQueryPartitionIterator::next ()
 {
+    
     if (psqlQuery->fetchNextRow())
     {
         map <string,PSQLAbstractORM *> * results  = new map <string,PSQLAbstractORM *>();
