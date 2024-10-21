@@ -180,7 +180,7 @@ class ORMVector : public vector<T *>
                 for (auto json_row: json_results["RESULTS"])
                 {
                     T * orm = new T("");
-                    orm->deSerialize(json_row[orm->getORMName()]);
+                    orm->deSerialize(json_row[orm->getORMName()], true);
                     (*this)+=orm;
                 }
             }
