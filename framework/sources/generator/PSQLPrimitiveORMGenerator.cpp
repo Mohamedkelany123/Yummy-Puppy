@@ -864,7 +864,7 @@ void PSQLPrimitiveORMGenerator::generate(string table_name,string table_index, v
         // query_iterator_class_name.c_str(),query_iterator_class_name.c_str(),class_name.c_str(),
         // query_iterator_class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),class_name.c_str(),query_iterator_class_name.c_str());
         snprintf (h_file,MAX_SOURCE_FILE_SIZE,template_h,
-        class_name_upper.c_str(),class_name_upper.c_str(), _namespace.c_str(), ("class "+class_name+";").c_str() ,includes.c_str(),
+        class_name_upper.c_str(),class_name_upper.c_str(), _namespace.c_str(), ("class "+class_name+";").c_str() ,includes.c_str(), _namespace.c_str(),
         class_name.c_str(),"",declaration.c_str(),(setters_def+getters_def+extra_methods_def+constructor_destructor_def).c_str(),
         query_iterator_class_name.c_str(),class_name.c_str(),
         query_iterator_class_name.c_str(),class_name.c_str(),table_name.c_str(),query_iterator_class_name.c_str());

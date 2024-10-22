@@ -7,9 +7,11 @@
 
 namespace %s {
 	%s
+}
 
-	%s
+%s
 
+namespace %s {
 	class %s : public PSQLAbstractORM
 	{
 		private:

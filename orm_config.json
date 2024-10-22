@@ -30,7 +30,9 @@
         "namespace":"ostaz",
         "directory": "./factory/db_primitive_orm",
         "restrict_orms": [
-            "loan_app_loan"
+            "loan_app_loan",
+            "loan_app_installment",
+            "new_lms_installmentextension"
         ],
         "templates": {
             "local": true,
