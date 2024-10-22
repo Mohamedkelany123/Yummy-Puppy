@@ -25,7 +25,7 @@ class %s : public PSQLAbstractORMIterator <%s>
 	private:
 
 	public:
-		%s(string _data_source_name, int _partition_number=-1): PSQLAbstractORMIterator <%s> (_data_source_name,"%s", _partition_number)
+		%s(string _data_source_name, int _partition_number=-1, string _test_data_folder="" ): PSQLAbstractORMIterator <%s> (_data_source_name,"%s", _partition_number, _test_data_folder)
 		{
 
 		}
