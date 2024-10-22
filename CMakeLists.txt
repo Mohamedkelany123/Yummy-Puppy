@@ -19,6 +19,7 @@ endif()
 add_subdirectory(external_deps)
 add_subdirectory(framework)
 add_subdirectory(Webserver-Backend)
+add_subdirectory(middlewares)
 
 
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework\")")
