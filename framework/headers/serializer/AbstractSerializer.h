@@ -3,9 +3,9 @@
 
 #include <common.h>
 
-// #include <ThorSerialize/Traits.h>
-// #include <ThorSerialize/SerUtil.h>
-// #include <ThorSerialize/JsonThor.h>
+#include <ThorSerialize/Traits.h>
+#include <ThorSerialize/SerUtil.h>
+#include <ThorSerialize/JsonThor.h>
 
 class AbstractSerializer
 {

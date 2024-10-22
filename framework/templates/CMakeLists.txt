@@ -24,6 +24,7 @@ endforeach()
 list(REMOVE_DUPLICATES HEADER_DIRS)
 
 list(APPEND HEADER_DIRS /usr/local/include/blnk/framework)
+list(APPEND HEADER_DIRS /usr/local/include/blnk/framework/ThorsSerializer)
 
 
 # Create library of source files
@@ -35,6 +36,7 @@ target_include_directories(factory%namespace% PUBLIC
     "$<BUILD_INTERFACE:${HEADER_DIRS}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/factory%namespace%>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework/ThorsSerializer>"
 )
 set_target_properties(factory%namespace% PROPERTIES 
     PUBLIC_HEADER "${HEADER_FILES}"

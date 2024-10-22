@@ -7,7 +7,9 @@ foreach(HEADER_FILE ${HEADER_FILES})
 endforeach()
 list(REMOVE_DUPLICATES HEADER_DIRS)
 
-# list(APPEND HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../ThorsSerializer)
+
+list(APPEND HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../external_deps)
+list(APPEND HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../external_deps/ThorsSerializer)
 
 # Create library of source files
 file(GLOB_RECURSE SOURCES "sources/*.cpp")
@@ -15,6 +17,7 @@ add_library(framework SHARED ${SOURCES})
 target_include_directories(framework PUBLIC 
     "$<BUILD_INTERFACE:${HEADER_DIRS}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework/ThorsSerializer>"
 )
 set_target_properties(framework PROPERTIES 
     PUBLIC_HEADER "${HEADER_FILES}"
@@ -25,5 +28,6 @@ file(GLOB MAINS "mains/*.cpp")
 foreach(MAIN ${MAINS})
     get_filename_component(FILENAME ${MAIN} NAME_WE)
     add_executable(${FILENAME} ${MAIN})
-    target_link_libraries(${FILENAME} PRIVATE framework pq)
+    target_link_libraries(${FILENAME} PUBLIC framework pq)
+    install(TARGETS ${FILENAME} RUNTIME)
 endforeach()
