@@ -28,8 +28,26 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
                 } while (orm != NULL);
                 psqlController.unlock_current_thread_orms(data_source_name);
         }
+        T * testDataJsonNext(){
+            if (m_parsed_json_results.empty()) {
+                cout << "NO RESULTS FOUND FOR PATH: " << m_test_data_folder << endl;
+                return nullptr;
+            }
+            if (m_parsed_json_index >= m_parsed_json_results["RESULTS"].size())
+            {
+                cout << "END OF JSON FILE REACHED" << endl;
+                return nullptr;
+            }
+
+            T * orm = new T("");
+            orm->deSerialize(m_parsed_json_results["RESULTS"][m_parsed_json_index][orm->getORMName()], true);
+
+            m_parsed_json_index ++;
+            // TODO: handle the deletion of the orms
+            return orm;
+        }
     public:
-        PSQLAbstractORMIterator(string _data_source_name,string orm_table_name, int _partition_number):PSQLAbstractQueryIterator(_data_source_name,orm_table_name, _partition_number){
+        PSQLAbstractORMIterator(string _data_source_name,string orm_table_name, int _partition_number , string _test_data_folder=""):PSQLAbstractQueryIterator(_data_source_name,orm_table_name, _partition_number, _test_data_folder){
             T * orm = new T(_data_source_name);
             from_string =orm->getFromString();
             orderby_string = orm->getIdentifierName() + " asc";
@@ -42,6 +60,9 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
         }
         T * next (bool _read_only = false)
         {
+            if(m_test_data_folder != "") 
+                return testDataJsonNext();
+
             if (psqlQuery->fetchNextRow())
             {
                 T * obj = NULL;
