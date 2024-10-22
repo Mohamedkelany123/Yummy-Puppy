@@ -69,8 +69,68 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
             return NULL;
         }
 
-        void process(int partitions_count,std::function<void(T * orm,int partition_number,mutex * shared_lock,void * extras)> f, void * extra_params)
+
+        void process_from_serialized_orms(string _file_name,std::function<void(T * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
         {
+            this->parseFile(_file_name);
+            if (m_parsed_json_results.empty()) return;
+            mutex shared_lock;
+            for (auto jj: m_parsed_json_results["RESULTS"])
+            {
+                T * orm = new T("");
+                orm->deSerialize(jj[orm->getORMName()], true);
+                f(orm,partition_number,&shared_lock,extras);
+                delete (orm);
+            }
+        }
+
+        void serialize_results (string file_name)
+        {
+            if (this->execute() && this->psqlQuery->getRowCount() > 0)
+            {
+                string json_string  = "{\"RESULTS\":[\n";
+                int counter1=0;
+                for (;;)
+                {
+                    T * orm = next(true);
+                    if (orm == NULL) break;
+                    if ( counter1 > 0 )
+                        json_string += ",";
+                    json_string += "{\n";
+                    string temp= "";
+             
+                    temp += orm->serialize();
+             
+                    std::replace( temp.begin(), temp.end(), '\n', ' ');
+                    json_string += temp;
+                    json_string += "}";
+                    counter1++;
+                }
+                json_string +="]}";
+                FileWriter * fileWriter  = new FileWriter(file_name);
+                fileWriter->writeFile(json_string);
+                delete (fileWriter);
+            }
+        }
+
+
+        void process(int partitions_count,std::function<void(T * orm,int partition_number,mutex * shared_lock,void * extras)> f, void * extra_params,string test_data_file="",bool serialize=false)
+        {
+
+            if ( test_data_file  !="" && !serialize)
+            {
+                process_from_serialized_orms(test_data_file,f,extra_params);
+                return;
+            }
+            else if (test_data_file  !="" && serialize)
+            {
+                serialize_results(test_data_file);
+                return;
+            }
+            //TODO: Implement exception stack
+            // exceptions->clear();
+
+
             time_t start = time (NULL);
             cout << "Executing PSQL Query on the remote server" << endl;
             if (this->execute() && ((PSQLQuery *)this->psqlQuery)->getRowCount() > 0)
@@ -98,7 +158,6 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
                 time_t time_snapshot2 = time (NULL);
                 cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
                 cout << "cache counter: " << psqlController.getCacheCounter(data_source_name) << endl;
-
             }
         }
 
@@ -110,7 +169,6 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
 
         ~PSQLAbstractORMIterator ()
         {
-            
         }
 };
 #endif

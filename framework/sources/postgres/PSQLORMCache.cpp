@@ -548,7 +548,8 @@ void PSQLORMCache::unlock_current_thread_orms()
     lock_guard<mutex> guard(lock);
     for (auto orm_cache: update_cache)
         for (auto orm_cache_item:orm_cache.second) 
-            orm_cache_item.second->unlock_me(true);
+            if (orm_cache_item.second != nullptr) orm_cache_item.second->unlock_me(true);
+            
 }
 
 PSQLORMCache::~PSQLORMCache()

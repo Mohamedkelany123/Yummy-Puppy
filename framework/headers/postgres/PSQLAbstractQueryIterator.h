@@ -297,8 +297,14 @@ class PSQLAbstractQueryIterator {
         string distinct;
         map <string,string> extras;
         int partition_number;
+        string m_test_data_folder;
+        json m_parsed_json_results;
+        int m_parsed_json_index;
+        bool parseFile(string _file_name);
+
+
     public:
-        PSQLAbstractQueryIterator(string _data_source_name,string _table_name, int _partition_number=-1);
+        PSQLAbstractQueryIterator(string _data_source_name,string _table_name, int _partition_number=-1, string _test_data_folder="");
         void setNativeSQL(string _sql);
         void filter ( Expression const & e,bool print_sql=false);
         bool execute();
@@ -321,27 +327,36 @@ class PSQLJoinQueryIterator: public PSQLAbstractQueryIterator {
         vector <PSQLAbstractORM *> * orm_objects;
         map <string,PSQLAbstractORM *> orm_objects_map;
         ExceptionStack * exceptions;
+        void process_from_serialized_orms(string _file_name,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras);
+        void process_aggregate_from_serialized_orms(string _file_name,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras);
         void unlock_orms (map <string,PSQLAbstractORM *> *  orms);
         void adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list);
         static void process_internal_aggregate(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms_list,int partition_number,mutex * shared_lock,void * extras)> f);
+        static void process_internal_aggregate_serialize(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras, string test_data_file = "");
         static void process_internal(string data_source_name, PSQLJoinQueryIterator * me,PSQLQueryPartition * psqlQueryPartition,int partition_number,mutex * shared_lock,void * extras,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f);
+        map <string,PSQLAbstractORM *> * testDataJsonNext();
     public:
-        PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields);
-        PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<pair<string,string>,pair<string,string>>,JOIN_TYPE>> const & join_fields);
+        PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<string,string>,pair<string,string>>> const & join_fields, string _test_data_folder="");
+        PSQLJoinQueryIterator(string _data_source_name,vector <PSQLAbstractORM *> const & tables,vector <pair<pair<pair<string,string>,pair<string,string>>,JOIN_TYPE>> const & join_fields, string _test_data_folder="");
 
         map <string,PSQLAbstractORM *> * next (bool read_only=false);
-        void process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL,string test_data_file = "");
+        void process(int partitions_count,std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL,string test_data_file = "",bool serialize=false);
         void process_sequential(std::function<void(map <string,PSQLAbstractORM *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL);
-        void process_aggregate(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL);
+        // void process_aggregate(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL,string test_data_file = "");
+        void process_aggregate(int partitions_count,std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras,string test_data_file = "" ,bool serialize=false);
+
         void process_aggregate_sequential(std::function<void(vector<map <string,PSQLAbstractORM *> *> * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras=NULL);
         // void setNativeSQL(string _sql);
         // void filter ( Expression const & e);
         // bool execute();
         virtual void process(int partitions_count, void * extra_params);
         virtual void serialize_results (string file_name);
+        virtual void serialize_aggregate_results (string file_name);
+
         bool setDistinct (vector<pair<string,string>> _distinct_map);
         bool setAggregates (map<string, pair<string, int>> _aggregate_map);
         long get_result_count ();
+        string exploreNextAggregate ();
         virtual ~PSQLJoinQueryIterator();
 };
 
@@ -387,6 +402,7 @@ class PSQLJoinQueryPartitionIterator {
     public:
         PSQLJoinQueryPartitionIterator (AbstractDBQuery * _psqlQuery,vector <PSQLAbstractORM *> * _orm_objects, map <string,string> _extras,int _partition_number);
         void reverse();
+
         string exploreNextAggregate ();
         map <string,PSQLAbstractORM *> * next ();
         ~PSQLJoinQueryPartitionIterator ();
