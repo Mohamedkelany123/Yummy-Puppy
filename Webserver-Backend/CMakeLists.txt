@@ -20,6 +20,16 @@ set_target_properties(webserver PROPERTIES
     PUBLIC_HEADER "${HEADER_FILES}"
 )
 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH "/usr/local/lib")
+install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_INCLUDEDIR}/blnk/webserver\")")
+install(TARGETS webserver
+    ARCHIVE
+    PUBLIC_HEADER
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/blnk/webserver
+)
+
+
 # Loop over every main file and create executable
 file(GLOB MAINS "mains/*.cpp")
 foreach(MAIN ${MAINS})

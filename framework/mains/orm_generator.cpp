@@ -10,7 +10,7 @@
 #define TEMPLATE_FILENAME "ORMPrimitiveTemplate"
 #define TEMPLATE_CMAKE "CMakeLists.txt"
 
-#define SYS_TEMPLATE_FOLDER "/var/lib/blnk/generator"
+#define SYS_TEMPLATE_FOLDER "/var/lib/blnk/templates"
 
 #define TEMPLATE_H_FOLDER_EXT "/headers/"
 #define TEMPLATE_CPP_FOLDER_EXT "/sources/"

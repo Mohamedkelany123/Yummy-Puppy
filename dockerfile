@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     git \
     vim \
+    curl \
     iputils-ping \
     net-tools  \
     libboost-all-dev \
@@ -26,5 +27,5 @@ COPY . .
 
 RUN cmake . -B build && cmake --build build -j12 && cmake --install build
 RUN orm_generator generate orm_config.json
-# RUN cd factory/db_primitive_orm && rm -rf build && cmake . -B build && cmake --build build -j12 && cmake --install build
-# RUN cd /app/applications/LOS && rm -rf build && cmake . -B build && cmake --build build -j12
+RUN cd factory/db_primitive_orm && rm -rf build && cmake . -B build && cmake --build build -j12 && cmake --install build
+# RUN cd /app/applications/LOS && rm -rf build && cmake . -B build && cmake --build build -j10

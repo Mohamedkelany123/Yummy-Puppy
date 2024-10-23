@@ -23,6 +23,13 @@ set_target_properties(framework PROPERTIES
     PUBLIC_HEADER "${HEADER_FILES}"
 )
 
+install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework\")")
+install(TARGETS framework
+    ARCHIVE
+    PUBLIC_HEADER
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework
+)
+
 # Loop over every main file and create executable
 file(GLOB MAINS "mains/*.cpp")
 foreach(MAIN ${MAINS})
@@ -31,3 +38,5 @@ foreach(MAIN ${MAINS})
     target_link_libraries(${FILENAME} PUBLIC framework pq)
     install(TARGETS ${FILENAME} RUNTIME)
 endforeach()
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/templates DESTINATION /var/lib/blnk)
