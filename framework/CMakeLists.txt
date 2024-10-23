@@ -24,11 +24,47 @@ set_target_properties(framework PROPERTIES
 )
 
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework\")")
+
+
 install(TARGETS framework
+    EXPORT frameworkTargets
     ARCHIVE
     PUBLIC_HEADER
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework
 )
+
+install (EXPORT frameworkTargets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/framework
+)
+
+#setting variables that will be used in Config.cmake.in
+set(LIB_NAME "framework")
+set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
+set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR}/blnk/framework)
+set(TARGET_EXPORT_FILE "${CMAKE_INSTALL_LIBDIR}/cmake/framework/frameworkTargets.cmake")
+
+# Create the Config file for find_package to work
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/frameworkConfigVersion.cmake"
+    VERSION 1.0.0
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/frameworkConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/frameworkConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/framework
+    PATH_VARS LIB_INSTALL_DIR INCLUDE_INSTALL_DIR TARGET_EXPORT_FILE
+)
+
+# Install the config and version files
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/frameworkConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/frameworkConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/framework)
+
 
 # Loop over every main file and create executable
 file(GLOB MAINS "mains/*.cpp")
