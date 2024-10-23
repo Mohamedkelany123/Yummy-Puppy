@@ -89,6 +89,9 @@ void generate(const ConfigReader& conf) {
             << "\tIf local in config is set to false, then there is a problem with framework installation.\n"
             << "Please check the path, framework installation, or update the configuration.\n";
         exit(-1);
+    } else {
+        cout << "Getting template headers from: " << templateFiles.h_name << endl;
+        cout << "Getting template sources from: " << templateFiles.cpp_name << endl;
     }
     
     string orm_folder = conf.GetValue("factory", "directory");
