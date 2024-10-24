@@ -8,6 +8,9 @@ foreach(HEADER_FILE ${HEADER_FILES})
 endforeach()
 list(REMOVE_DUPLICATES HEADER_DIRS)
 
+include(${PROJECT_SOURCE_DIR}/functions.cmake)
+
+
 # Loop over every main file and create executable
 file(GLOB MIDDLEWARES "sources/*.cpp")
 foreach(MIDDLEWARE ${MIDDLEWARES})
@@ -21,9 +24,6 @@ foreach(MIDDLEWARE ${MIDDLEWARES})
     set_target_properties(${FILENAME} PROPERTIES 
         PUBLIC_HEADER "${HEADER_FILES}"
     )
-    install(TARGETS ${FILENAME}
-        ARCHIVE
-        PUBLIC_HEADER
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/blnk/middlewares
-    )
+    install_and_create_config(${FILENAME})
+
 endforeach()
