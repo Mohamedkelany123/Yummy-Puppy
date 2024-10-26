@@ -465,14 +465,23 @@ void PSQLJoinQueryIterator::process_aggregate_from_serialized_orms(string _file_
 
         for (auto jj: j["RESULTS"])
         {
-            for (;;)
+            map <string,PSQLAbstractORM *> * orms  = new map <string,PSQLAbstractORM *>();
+            for (auto& pair : jj) 
             {
-                // build orm_list
+                
+               
+                for (auto orm_object: *orm_objects){
+                    PSQLAbstractORM * orm = orm_object->clone();
+                    orm->deSerialize(pair[orm_object->getORMName()]);
+                    
+                    (*orms)[orm_object->getTableName()] = orm;   
+                }
+                orms_list->push_back(orms);
 
-                f(orms_list,partition_number,&shared_lock,extras);
-
-                orms_list->clear();
+                // orms_list->clear();
             }
+            f(orms_list,partition_number,&shared_lock,extras);
+            // delete(orms);
         }
         delete (orms_list);
 
