@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 include(GNUInstallDirs)
 
-# Find PostgreSQL
+# Find dependencies
 find_package(PostgreSQL REQUIRED)
 if(PostgreSQL_FOUND)
     include_directories(${PostgreSQL_INCLUDE_DIRS})
@@ -14,11 +14,25 @@ else()
     message(FATAL_ERROR "PostgreSQL not found. Install PostgreSQL development libraries.")
 endif()
 
+# Library names
+set(EXTERNAL_DEPS_LIB_NAME "blnkExternalDeps")
+set(FRAMEWORK_LIB_NAME "blnkFramework")
+set(WEBSERVER_LIB_NAME "blnkWebserver")
+set(MIDDLEWARE_PREFIX_LIB_NAME "blnk")
+
 
 add_subdirectory(external_deps)
 add_subdirectory(framework)
 add_subdirectory(Webserver-Backend)
-add_subdirectory(middlewares)
+
+# Check middleware dependencies before compiling middlewares
+find_package(Poco COMPONENTS JWT)
+if (Poco_FOUND)
+    message(STATUS "POCO JWT found. Compiling middlewares.")
+    add_subdirectory(middlewares)
+else()
+    message(WARNING "POCO JWT not found. Skipping middlewares.")
+endif()
 
 
 if (UNIX)

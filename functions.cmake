@@ -95,3 +95,18 @@ function(install_and_create_config LIB_NAME)
         "${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake"
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME})
 endfunction()
+
+
+function(get_header_files_and_dirs PARENT_DIR HEADER_DIRS HEADER_FILES)
+    # Recursively find all header files & add all the directories containing those headers to the include paths
+    file(GLOB_RECURSE LOCAL_HEADER_FILES "${PARENT_DIR}/*.h*")
+    foreach(HEADER_FILE ${LOCAL_HEADER_FILES})
+        get_filename_component(HEADER_DIR ${HEADER_FILE} DIRECTORY)
+        list(APPEND LOCAL_HEADER_DIRS ${HEADER_DIR})
+    endforeach()
+    list(REMOVE_DUPLICATES LOCAL_HEADER_DIRS)
+
+
+    set(HEADER_DIRS ${LOCAL_HEADER_DIRS} PARENT_SCOPE)
+    set(HEADER_FILES ${LOCAL_HEADER_FILES} PARENT_SCOPE)
+endfunction()

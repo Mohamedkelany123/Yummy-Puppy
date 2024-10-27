@@ -28,7 +28,7 @@
     "factory": {
         "datasource": "main2",
         "namespace":"ostaz",
-        "directory": "./factory/db_primitive_orm",
+        "directory": "./factory/ostaz",
         "restrict_orms": [
         ],
         "templates": {

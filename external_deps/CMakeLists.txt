@@ -1,8 +1,6 @@
 # Recursively get all files and directories
 file(GLOB ITEMS_TO_INSTALL "${CMAKE_CURRENT_SOURCE_DIR}/*")
 
-set(EXTERNAL_DEPS_LIB_NAME "exdeps")
-
 # Define variables to hold directories and files to be installed
 set(DIRECTORIES_TO_INSTALL "")
 set(FILES_TO_INSTALL "")

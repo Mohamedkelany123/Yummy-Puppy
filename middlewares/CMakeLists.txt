@@ -1,29 +1,20 @@
-
-
-# Recursively find all header files & add all the directories containing those headers to the include paths
-file(GLOB_RECURSE HEADER_FILES "headers/*.h*")
-foreach(HEADER_FILE ${HEADER_FILES})
-    get_filename_component(HEADER_DIR ${HEADER_FILE} DIRECTORY)
-    list(APPEND HEADER_DIRS ${HEADER_DIR})
-endforeach()
-list(REMOVE_DUPLICATES HEADER_DIRS)
-
 include(${PROJECT_SOURCE_DIR}/functions.cmake)
 
+get_header_files_and_dirs("${CMAKE_CURRENT_SOURCE_DIR}/headers" HEADER_DIRS HEADER_FILES)
 
 # Loop over every main file and create executable
 file(GLOB MIDDLEWARES "sources/*.cpp")
 foreach(MIDDLEWARE ${MIDDLEWARES})
     get_filename_component(FILENAME ${MIDDLEWARE} NAME_WE)
-    add_library(${FILENAME} SHARED ${MIDDLEWARE})
-    target_link_libraries(${FILENAME} PRIVATE webserver)
-    target_include_directories(${FILENAME} PUBLIC 
+    set(LIB_NAME ${MIDDLEWARE_PREFIX_LIB_NAME}${FILENAME})
+    add_library(${LIB_NAME} SHARED ${MIDDLEWARE})
+    target_link_libraries(${LIB_NAME} PRIVATE ${WEBSERVER_LIB_NAME})
+    target_include_directories(${LIB_NAME} PUBLIC 
         "$<BUILD_INTERFACE:${HEADER_DIRS}>"
-        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/webserver>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/${WEBSERVER_LIB_NAME}>"
     )
-    set_target_properties(${FILENAME} PROPERTIES 
+    set_target_properties(${LIB_NAME} PROPERTIES 
         PUBLIC_HEADER "${HEADER_FILES}"
     )
-    install_and_create_config(${FILENAME})
-
+    install_and_create_config(${LIB_NAME})
 endforeach()

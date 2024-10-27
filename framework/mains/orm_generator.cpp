@@ -19,6 +19,7 @@ typedef PSQLAbstractORM * create_object_routine();
 
 void generate(const ConfigReader& conf);
 void clean(const ConfigReader& conf);
+void copyFiles(string source_dir, string dest_sir);
 
 int main (int argc, char ** argv)
 {
@@ -102,6 +103,8 @@ void generate(const ConfigReader& conf) {
         psqlPrimitiveORMGenerator->generate(tables[i],std::to_string(i),tables,namespace_name);
     }
     psqlPrimitiveORMGenerator->generateCMake(namespace_name);
+    copyFiles(template_folder+"/config.cmake.in", orm_folder+"/config.cmake.in");
+    copyFiles(template_folder+"/functions.cmake", orm_folder+"/functions.cmake");
 
     int counter = tables.size();
     for ( int i = 0 ; i  < views.size() ; i ++)
@@ -132,4 +135,14 @@ void clean(const ConfigReader& conf) {
     if (status2 != 0) {
         cout << "Failed to delete sources\n";
     }
+}
+
+void copyFiles(string source, string destination){
+    try {
+        filesystem::copy_file(source, destination, filesystem::copy_options::overwrite_existing);
+        std::cout << "Copied " << source << " to " << destination << " successfully.\n";
+    } catch (filesystem::filesystem_error& e) {
+        std::cerr << "Error copying " << source << " to " << destination << ": " << e.what() << '\n';
+    }
+    return;
 }
