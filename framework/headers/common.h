@@ -32,6 +32,9 @@
 #include <set>
 #include <iterator>
 #include <chrono> 
+#include <codecvt>
+#include <locale>
+
 
 using namespace std;
 using json = nlohmann::json;
@@ -61,7 +64,10 @@ using json = nlohmann::json;
 
 #define  SERIALIZER_RESPONSE_SETTERS_H inline void setStatusCode(int _status_code){status_code = _status_code;}\
         inline void setMessage(string _message){message = _message;}\
-        inline void setErrors(vector<ResponseError> _errors){errors = _errors;}
+        inline void setErrors(vector<ResponseError> _errors){errors = _errors;}\
+        inline int getStatusCode(){return status_code;}\
+        inline string getMessage(){return message;}\
+        inline vector<ResponseError> getErrors(){return errors;}
 
 
 // #define  SERIALIZER_RESPONSE_SETTERS_CPP(T) void T::set_status_code(int _status_code){status_code = _status_code;};\
