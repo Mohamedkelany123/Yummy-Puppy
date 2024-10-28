@@ -8,7 +8,7 @@ foreach(MIDDLEWARE ${MIDDLEWARES})
     get_filename_component(FILENAME ${MIDDLEWARE} NAME_WE)
     set(LIB_NAME ${MIDDLEWARE_PREFIX_LIB_NAME}${FILENAME})
     add_library(${LIB_NAME} SHARED ${MIDDLEWARE})
-    target_link_libraries(${LIB_NAME} PRIVATE ${WEBSERVER_LIB_NAME})
+    target_link_libraries(${LIB_NAME} PRIVATE ${WEBSERVER_LIB_NAME} PocoFoundation PocoJWT)
     target_include_directories(${LIB_NAME} PUBLIC 
         "$<BUILD_INTERFACE:${HEADER_DIRS}>"
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/${WEBSERVER_LIB_NAME}>"
