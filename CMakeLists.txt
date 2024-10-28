@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 include(GNUInstallDirs)
 
 # Find dependencies
-find_package(PostgreSQL REQUIRED)
+find_package(PostgreSQL)
 if(PostgreSQL_FOUND)
     include_directories(${PostgreSQL_INCLUDE_DIRS})
 else()

@@ -16,7 +16,8 @@ RUN apt-get update && apt-get install -y \
     iputils-ping \
     net-tools  \
     libpq-dev \
-    libpoco-dev
+    libpoco-dev \
+    libcurl4-openssl-dev
 
 # Set the working directory inside the container
 WORKDIR /app
