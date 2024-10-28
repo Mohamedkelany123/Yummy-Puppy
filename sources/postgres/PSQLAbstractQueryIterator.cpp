@@ -372,25 +372,35 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
                 {
                     orms = psqlJoinQueryPartitionIterator.next();
                     orms_list->push_back(orms);
-                    if (check > 0) json_string += ",[";
-                    check ++;
+                    
                 }
                 else
                 {
-                    for (auto map_ptr : *orms_list) { 
-                        json_string += ",";
-                        int count = 0; 
-                        for (auto& pair : *map_ptr) { 
+                if (check > 0) json_string += ",[";
+                check ++; 
+                int curly_b_check = 0;
 
-                            if (count > 0) json_string += ",";
-                            else json_string += "{";
-                            json_string += pair.second->serialize();
-                            count ++;
-                            std::cout << "Key: " << pair.first << ", Value: " << pair.second->serialize() << std::endl;
-                        }
-                        json_string += "}";
+                for (auto map_ptr : *orms_list) { 
+                    if (curly_b_check > 0) json_string += ",";
+                    curly_b_check ++;
+                    int count = 0; 
+                    for (auto& pair : *map_ptr) { 
+                        cout << "____________________________________________________" << endl;
+                        cout << pair.second->serialize() << endl;
+                        cout << count << endl;
+                        cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+
+                        if (pair.second->serialize() == "") continue;
+                        
+                        if (count > 0) json_string += ",";
+                        else json_string += "{";
+                        json_string += pair.second->serialize();
+                        count ++;
+                        std::cout << "Key: " << pair.first << ", Value: " << pair.second->serialize() << std::endl;
                     }
-                    json_string += "]";
+                    json_string += "}";
+                }
+                json_string += "]";
 
                     shared_lock->lock();
                     for (auto o : *orms_list)
@@ -408,19 +418,25 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
                 
         } while (aggregate != "");
         json_string += "]}";
-        cout << "JSON STRINGGGGGG" << json_string << endl;
+        // cout << "JSON STRINGGGGGG" << json_string << endl;
         FileWriter * fileWriter  = new FileWriter(file_name);
         fileWriter->writeFile(json_string);
         delete (fileWriter);
         delete (orms_list);
 
+        // shared_lock->lock();
+        // cout << "Exiting process_internal" << endl;
+        // me->unlock_orms(orms);
+        // cout << "Start freeing relative resources" << endl;
         psqlController.unlock_current_thread_orms(data_source_name);
+        // cout << "After psqlController.unlock_current_thread_orms()" << endl;
+
+        // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
 
         printf("THREADTIME  Step-> %.3f seconds.\n", elapsed.count() * 1e-9);
 }
-
 
 bool PSQLAbstractQueryIterator::parseFile(string _file_name)
 {
