@@ -41,7 +41,12 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
 
             T * orm = new T("");
             orm->deSerialize(m_parsed_json_results["RESULTS"][m_parsed_json_index][orm->getORMName()], true);
+            for(auto it = m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"].begin(); it !=  m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"].end(); ++it){
+                orm->setExtra(it.key(),it.value());
+                cout <<"keeeyyyy::::" << it.key()<<endl;
+                cout <<"value::::" << it.value()<<endl;
 
+            }
             m_parsed_json_index ++;
             // TODO: handle the deletion of the orms
             return orm;
@@ -92,17 +97,23 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
 
 
         void process_from_serialized_orms(string _file_name,std::function<void(T * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
-        {
+        {   cout <<"process from serializedddddd::::"<<endl;
             this->parseFile(_file_name);
             if (m_parsed_json_results.empty()) return;
             mutex shared_lock;
             for (auto jj: m_parsed_json_results["RESULTS"])
             {
                 T * orm = new T("");
+                cout <<"Resultssssss" <<endl;
+
                 orm->deSerialize(jj[orm->getORMName()], true);
                 for(auto it = jj["extras"].begin(); it != jj["extras"].end(); ++it){
                     orm->setExtra(it.key(),it.value());
+                    cout <<"keeeyyyy::::" << it.key()<<endl;
+                    cout <<"value::::" << it.value()<<endl;
+
                 }
+
                 f(orm,partition_number,&shared_lock,extras);
                 delete (orm);
             }
