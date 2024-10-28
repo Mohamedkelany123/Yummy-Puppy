@@ -478,10 +478,11 @@ void PSQLJoinQueryIterator::process_aggregate_from_serialized_orms(string _file_
                 }
                 orms_list->push_back(orms);
 
-                // orms_list->clear();
+                
             }
             f(orms_list,partition_number,&shared_lock,extras);
-            // delete(orms);
+            delete(orms);
+            orms_list->clear();
         }
         delete (orms_list);
 
@@ -697,14 +698,16 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
     mutex shared_lock;
     cout << "Executing PSQL Query on the remote server" << endl;
 
-    if (!(this->execute() && this->psqlQuery->getRowCount() > 0)) return;
+    
 
     if ( test_data_file  !="" && !serialize)
     {
             process_aggregate_from_serialized_orms(test_data_file,f,extras);
             return;
     }
-    else if (test_data_file  !="" && serialize)
+    else if ((this->execute() && this->psqlQuery->getRowCount() > 0)) {
+
+     if (test_data_file  !="" && serialize)
     {
         {
             vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(1);
@@ -756,6 +759,7 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
         time_t time_snapshot2 = time (NULL);
 
         cout << "Finished multi-threading execution" <<  " in "  << (time_snapshot2-time_snapshot1) << " seconds .." << endl;
+    }
     }
     time_t time_snapshot1 = time (NULL);
     cout << "Query results " << this->psqlQuery->getRowCount() << " in "  << (time_snapshot1-start)<< " seconds .."<<endl;
