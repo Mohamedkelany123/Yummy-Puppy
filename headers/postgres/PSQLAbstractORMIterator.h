@@ -100,6 +100,9 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
             {
                 T * orm = new T("");
                 orm->deSerialize(jj[orm->getORMName()], true);
+                for(auto it = jj["extras"].begin(); it != jj["extras"].end(); ++it){
+                    orm->setExtra(it.key(),it.value());
+                }
                 f(orm,partition_number,&shared_lock,extras);
                 delete (orm);
             }
@@ -119,7 +122,14 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
                         json_string += ",";
                     json_string += "{\n";
                     string temp= "";
-             
+                    json_string += "\"extras\" : {";
+                    map<string,string> orm_extras = orm->getExtras();
+                    for(auto extra = orm_extras.begin(); extra != orm_extras.end(); ++extra){
+                        json_string += "\"" + extra->first + "\":" + "\"" + extra->second + "\"" ;
+                        if(std::next(extra) != orm_extras.end())
+                            json_string += "\n,";
+                    }
+                    json_string += "},\n";
                     temp += orm->serialize();
              
                     std::replace( temp.begin(), temp.end(), '\n', ' ');

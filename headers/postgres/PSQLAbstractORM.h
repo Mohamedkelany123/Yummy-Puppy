@@ -70,6 +70,7 @@ class PSQLAbstractORM
         string compose_field (string field_name);
         string compose_field_with_index (string field_name);
         void setExtra (string fname, string fvalue);
+        map<string,string> getExtras();
         string getExtra (string fname);
         float getExtraToFloat(string fname);
         int getExtraToInt(string fname);

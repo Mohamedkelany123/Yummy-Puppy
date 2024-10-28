@@ -228,6 +228,10 @@ string PSQLAbstractORM::compose_field (string field_name)
 
 }
 
+map<string,string> PSQLAbstractORM::getExtras(){
+    return extras;
+}
+
 void PSQLAbstractORM::setExtra (string fname, string fvalue)
 {
     extras [fname] = fvalue;
