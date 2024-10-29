@@ -18,7 +18,9 @@ set_target_properties(${FRAMEWORK_LIB_NAME} PROPERTIES
     PUBLIC_HEADER "${HEADER_FILES}"
 )
 
+#compiling as a system library and creating necessary config file to be able to find package from any external project
 install_and_create_config(${FRAMEWORK_LIB_NAME})
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/templates DESTINATION ${TEMPLATE_INSTALL_DIR})
 
 # Loop over every main file and create executable

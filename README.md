@@ -5,6 +5,10 @@ To clone current repo with all submodules:
 git clone --recurse-submodules <CURRENT_REPO_URL>
 ```
 
+## Docs
+- Check [coding convention doc](coding_conventions.md) for coding conventions and styles being used
+- Check [CMake wiki doc](cmake_wiki.md) for CMake guidelines and common CMake use-cases 
+
 ## Compiling framework using CMake
 
 Folders to be compiled & installed: *external_deps, framework, webserver, and middlewares*
@@ -54,13 +58,13 @@ Folders to be compiled & installed: *external_deps, framework, webserver, and mi
     ```
     cmake . -B build
     cmake --build build -j10
-    cmake --install build
+    sudo cmake --install build
     ```
     - For debugging, 
     ```
     cmake -DCMAKE_BUILD_TYPE=Debug . -B build
     cmake --build build -j10
-    cmake --install build
+    sudo cmake --install build
     ```
 
 ## For compiling applications
@@ -82,66 +86,30 @@ Folders to be compiled & installed: *external_deps, framework, webserver, and mi
     ```
 
 
-## Available Applications
+## Applications
 
 > DO NOT USE `git submodule init` and `git submodule update` without specifying which application unless you have access to all applications
 
-### 1. blnk_closure
+### Available applications:
+- [blnk_closure](https://github.com/blnk-ai/blnk_closure)
+- [LOS](https://github.com/blnk-ai/LOS)
+- [tally_dashboard_services](https://github.com/blnk-ai/tally_dashboard_services)
+- [orm_c_plus_plus_misc](https://github.com/blnk-ai/orm_c_plus_plus_misc)
 
-- [Repo Link](https://github.com/blnk-ai/blnk_closure)
-- To clone submodule:
-```
-git submodule init applications/blnk_closure
-git submodule update applications/blnk_closure
-```
-- To remove submodule:
-```
-git submodule deinit applications/blnk_closure
-```
 
-### 2. LOS
-
-- [Repo Link](https://github.com/blnk-ai/LOS)
-- To clone submodule:
+### To clone submodule:
 ```
-git submodule init applications/LOS
-git submodule update applications/LOS
+git submodule init applications/<application_name>
+git submodule update applications/<application_name>
 ```
-- To remove submodule:
+### To remove submodule:
 ```
-git submodule deinit applications/LOS
-```
-
-### 3. tally_dashboard_services
-
-- [Repo Link](https://github.com/blnk-ai/tally_dashboard_services)
-- To clone submodule:
-```
-git submodule init applications/tally_dashboard_services
-git submodule update applications/tally_dashboard_services
-```
-- To remove submodule:
-```
-git submodule deinit applications/tally_dashboard_services
-```
-
-### 4. orm_c_plus_plus_misc
-
-- [Repo Link](https://github.com/blnk-ai/orm_c_plus_plus_misc)
-- To clone submodule:
-```
-git submodule init applications/orm_c_plus_plus_misc
-git submodule update applications/orm_c_plus_plus_misc
-```
-- To remove submodule:
-```
-git submodule deinit applications/orm_c_plus_plus_misc
+git submodule deinit applications/<application_name>
 ```
 
 ### To add new application (submodule):
-
 ```
-git submodule add <REPO_URL> applications/<REPO_NAME>
+git submodule add <REPO_URL> applications/<application_name>
 ```
 
 ---
