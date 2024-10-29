@@ -1,5 +1,5 @@
 # Use an official Ubuntu base image
-FROM ubuntu:22.04
+FROM debian:11
 
 # Set arguments for non-interactive installations
 ARG DEBIAN_FRONTEND=noninteractive
@@ -17,15 +17,34 @@ RUN apt-get update && apt-get install -y \
     net-tools  \
     libpq-dev \
     libpoco-dev \
-    libcurl4-openssl-dev
+    sudo \
+    libcurl4-openssl-dev \
+    # clean up to reduce image size
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory inside the container
-WORKDIR /app
+ARG DEBIAN_FRONTEND=dialog
 
-# Copy your source files into the container at /app
-COPY . .
+RUN useradd -ms /bin/bash dev && \
+    echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-RUN cmake . -B build && cmake --build build -j12 && cmake --install build
-RUN orm_generator generate orm_config.json
-RUN cd factory/ostaz && rm -rf build && cmake . -B build && cmake --build build -j12 && cmake --install build
-# RUN cd /app/applications/LOS && rm -rf build && cmake . -B build && cmake --build build -j10
+# go to user dev
+USER dev
+
+WORKDIR /home/dev
+
+# COPY . /ORM-C_PLUS_PLUS
+
+CMD ["/bin/bash"]
+
+
+
+#TO CREATE THE IMAGE
+#docker build -t <IMAGE_NAME> .
+
+# docker run -it --network host -v $(pwd):/home/dev/ORM-C_PLUS_PLUS <IMAGE_NAME>
+
+
+# RUN cmake . -B build && cmake --build build -j12 && cmake --install build
+# RUN orm_generator generate orm_config.json
+# RUN cd factory/ostaz && rm -rf build && cmake . -B build && cmake --build build -j12 && cmake --install build
+# # RUN cd /app/applications/LOS && rm -rf build && cmake . -B build && cmake --build build -j10
