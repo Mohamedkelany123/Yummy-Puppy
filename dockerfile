@@ -1,14 +1,13 @@
-# Use an official Ubuntu base image
+# Use an official Debian base image
 FROM debian:11
 
 # Set arguments for non-interactive installations
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Install any needed packages (like compilers, debuggers, etc.)
+# Install required packages (excluding cmake)
 RUN apt-get update && apt-get install -y \
     build-essential \
     gdb \
-    cmake \
     g++ \
     git \
     vim \
@@ -18,23 +17,28 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libpoco-dev \
     sudo \
+    libc6-dev \
     libcurl4-openssl-dev \
-    # clean up to reduce image size
     && rm -rf /var/lib/apt/lists/*
 
-ARG DEBIAN_FRONTEND=dialog
+# Download and install CMake manually
+RUN CMAKE_VERSION=3.22.0 \
+    && curl -L https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz -o cmake.tar.gz \
+    && tar -zxvf cmake.tar.gz --strip-components=1 -C /usr/local \
+    && rm cmake.tar.gz
 
+# Set up the user
 RUN useradd -ms /bin/bash dev && \
     echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-# go to user dev
+# Switch to user dev
 USER dev
 
 WORKDIR /home/dev
 
-# COPY . /ORM-C_PLUS_PLUS
-
 CMD ["/bin/bash"]
+
+
 
 
 

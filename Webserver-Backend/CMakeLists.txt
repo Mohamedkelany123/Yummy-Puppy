@@ -6,7 +6,7 @@ get_header_files_and_dirs("${CMAKE_CURRENT_SOURCE_DIR}/headers" HEADER_DIRS HEAD
 file(GLOB_RECURSE SOURCES "sources/*.cpp")
 add_library(${WEBSERVER_LIB_NAME} SHARED ${SOURCES})
 
-target_link_libraries(${WEBSERVER_LIB_NAME} PUBLIC ${FRAMEWORK_LIB_NAME} pq)
+target_link_libraries(${WEBSERVER_LIB_NAME} PUBLIC ${FRAMEWORK_LIB_NAME} pq pthread)
 
 target_include_directories(${WEBSERVER_LIB_NAME} PUBLIC
     "$<BUILD_INTERFACE:${HEADER_DIRS}>"
