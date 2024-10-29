@@ -14,6 +14,11 @@ else()
     message(FATAL_ERROR "PostgreSQL not found. Install PostgreSQL development libraries.")
 endif()
 
+find_package(Threads)
+if(NOT Threads_FOUND)
+    message(FATAL_ERROR "Threads not found. Install pthreads development libraries.")
+endif()
+
 # Library names
 set(EXTERNAL_DEPS_LIB_NAME "blnkExternalDeps")
 set(FRAMEWORK_LIB_NAME "blnkFramework")
