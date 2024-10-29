@@ -2,7 +2,7 @@ function(find_and_include_package PACKAGE_NAME)
     find_package(${PACKAGE_NAME} REQUIRED)
     if(${PACKAGE_NAME}_FOUND)
         foreach(INCLUDE_DIR ${${PACKAGE_NAME}_INCLUDE_DIRS})
-            message(STATUS "${PACKAGE_NAME} INCLUDES = ${INCLUDE_DIR}")
+            message(STATUS "Found ${PACKAGE_NAME} includes: ${INCLUDE_DIR}")
             include_directories(${INCLUDE_DIR})    
         endforeach()
         
@@ -13,8 +13,9 @@ endfunction()
 
 
 function(install_and_create_config LIB_NAME)
-    install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_INCLUDEDIR}/blnk/${LIB_NAME}\")")
+    message(STATUS "To install ${LIB_NAME}")
 
+    install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_INCLUDEDIR}/blnk/${LIB_NAME}\")")
 
     install(TARGETS ${LIB_NAME}
         EXPORT ${LIB_NAME}Targets

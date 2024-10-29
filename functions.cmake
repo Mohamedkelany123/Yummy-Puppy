@@ -1,10 +1,11 @@
 function(install_and_create_config_header_only LIB_NAME DIRECTORIES_TO_INSTALL FILES_TO_INSTALL)
-    message(STATUS "Installing and validating external dependency: ${LIB_NAME}")
-    
+    message(STATUS "To install ${LIB_NAME} headers only")
+
     set(INCLUDE_DIR ${CMAKE_INSTALL_INCLUDEDIR}/blnk/${LIB_NAME})
+    
     # Install directories
     foreach(DIR ${DIRECTORIES_TO_INSTALL})
-        message(STATUS "Installing directory: ${DIR}")
+        message(STATUS "To install ${LIB_NAME} directory: ${DIR}")
         install(DIRECTORY ${DIR}
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/blnk/${LIB_NAME}
         )
@@ -14,14 +15,11 @@ function(install_and_create_config_header_only LIB_NAME DIRECTORIES_TO_INSTALL F
 
     # Install files
     foreach(FILE ${FILES_TO_INSTALL})
-        message(STATUS "Installing file: ${FILE}")
+        message(STATUS "To install ${LIB_NAME} file: ${FILE}")
         install(FILES ${FILE}
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/blnk/${LIB_NAME}
         )
     endforeach()
-
-    # Validation logic will be included in the generated package config
-    message(STATUS "Validation of installed target for: ${LIB_NAME} will be handled by package configuration.")
 
     # Set paths and target export file for the package
     set(CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}Config.cmake")
@@ -53,8 +51,9 @@ endfunction()
 
 
 function(install_and_create_config LIB_NAME)
+    message(STATUS "To install ${LIB_NAME}")
+    
     install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_INCLUDEDIR}/blnk/${LIB_NAME}\")")
-
 
     install(TARGETS ${LIB_NAME}
         EXPORT ${LIB_NAME}Targets

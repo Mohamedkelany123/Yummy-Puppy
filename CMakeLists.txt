@@ -28,10 +28,10 @@ add_subdirectory(Webserver-Backend)
 # Check middleware dependencies before compiling middlewares
 find_package(Poco COMPONENTS Foundation JWT)
 if (Poco_FOUND)
-    message(STATUS "POCO JWT found. Compiling middlewares.")
+    message(STATUS "Found POCO Foundation & JWT. Compiling middlewares.")
     add_subdirectory(middlewares)
 else()
-    message(WARNING "POCO JWT not found. Skipping middlewares.")
+    message(WARNING "POCO Foundation & JWT not found. Skipping middlewares.")
 endif()
 
 
