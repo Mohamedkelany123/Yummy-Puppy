@@ -100,21 +100,17 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
 
 
         void process_from_serialized_orms(string _file_name,std::function<void(T * orms,int partition_number,mutex * shared_lock,void * extras)> f,void * extras)
-        {   cout <<"process from serializedddddd::::"<<endl;
+        {   
             this->parseFile(_file_name);
             if (m_parsed_json_results.empty()) return;
             mutex shared_lock;
             for (auto jj: m_parsed_json_results["RESULTS"])
             {
                 T * orm = new T("");
-                cout <<"Resultssssss" <<endl;
 
                 orm->deSerialize(jj[orm->getORMName()], true);
                 for(auto it = jj["extras"].begin(); it != jj["extras"].end(); ++it){
                     orm->setExtra(it.key(),it.value());
-                    cout <<"keeeyyyy::::" << it.key()<<endl;
-                    cout <<"value::::" << it.value()<<endl;
-
                 }
 
                 f(orm,partition_number,&shared_lock,extras);
