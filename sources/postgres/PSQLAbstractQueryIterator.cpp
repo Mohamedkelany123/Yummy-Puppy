@@ -342,15 +342,11 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::next (bool read_only)
 
 void PSQLJoinQueryIterator::unlock_orms (map <string,PSQLAbstractORM *> *  orms)
 {
-    // cout << "************> " << orms->size() << endl;
-
     for (auto orm_pair: (*orms))
         if (orm_pair.second != NULL)
         {
-            // cout << orm_pair.first << ": " << orm_pair.second->getORMName() << endl;
             orm_pair.second->unlock_me(true);
         }
-    // cout << "************< " << orms->size() << endl;
 }
 void PSQLJoinQueryIterator::adjust_orms_list (vector<map <string,PSQLAbstractORM *> *> * orms_list)
 {
@@ -377,11 +373,8 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
         string json_string  = "{\"RESULTS\":[[\n";
         int check = 0;
         do {
-            // do {
-
                 if (aggregate == "")
                    aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
-                // if ( orms!= NULL) delete(orms);
                 if (aggregate == psqlJoinQueryPartitionIterator.exploreNextAggregate())
                 {
                     orms = psqlJoinQueryPartitionIterator.next();
@@ -399,13 +392,9 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
                     curly_b_check ++;
                     int count = 0; 
                     for (auto& pair : *map_ptr) { 
-                        cout << "____________________________________________________" << endl;
                         cout << pair.second->serialize() << endl;
                         cout << count << endl;
-                        cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
-
                         if (pair.second->serialize() == "") continue;
-                        
                         if (count > 0) json_string += ",";
                         else json_string += "{";
                         json_string += pair.second->serialize();
@@ -427,7 +416,6 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
                     shared_lock->unlock();
                     aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
                     orms_list->clear();
-                    // cout << "AFTER Partition number: " << partition_number << endl;
                 }
                 
         } while (aggregate != "");
@@ -531,11 +519,8 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
         string aggregate = "";
         bool finished = false;
         do {
-            // do {
-
                 if (aggregate == "")
                    aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
-                // if ( orms!= NULL) delete(orms);
                 if (aggregate == psqlJoinQueryPartitionIterator.exploreNextAggregate())
                 {
                     orms = psqlJoinQueryPartitionIterator.next();
@@ -555,17 +540,11 @@ void  PSQLJoinQueryIterator::process_internal_aggregate(string data_source_name,
                     shared_lock->unlock();
                     aggregate =  psqlJoinQueryPartitionIterator.exploreNextAggregate();
                     orms_list->clear();
-                    // cout << "AFTER Partition number: " << partition_number << endl;
                 }
                 
         } while (aggregate != "");
         delete (orms_list);
-        // shared_lock->lock();
-        // cout << "Exiting process_internal" << endl;
-        // me->unlock_orms(orms);
-        // cout << "Start freeing relative resources" << endl;
         psqlController.unlock_current_thread_orms(data_source_name);
-        // cout << "After psqlController.unlock_current_thread_orms()" << endl;
 
         // Stop measuring time and calculate the elapsed time
         auto end = std::chrono::high_resolution_clock::now();
@@ -866,7 +845,6 @@ void PSQLJoinQueryIterator::serialize_aggregate_results(string file_name)
 
     // // {Res: [[{{},{},{}}, {{},{},{}}], [{{},{},{}}, {{},{},{}}]]}
 
-        cout << "HEREEEEEEEE" << file_name << endl;
         if (this->execute() && this->psqlQuery->getRowCount() > 0)
         {
             string json_string  = "{\"RESULTS\":[[\n";
@@ -885,8 +863,6 @@ void PSQLJoinQueryIterator::serialize_aggregate_results(string file_name)
                 
                 if (aggregate != this->exploreNextAggregate())
                 {
-                    cout << "IN IFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << endl;
-
                     if (this->exploreNextAggregate() == "") 
                         json_string += "]";
                     else
@@ -902,37 +878,17 @@ void PSQLJoinQueryIterator::serialize_aggregate_results(string file_name)
                     json_string += o.second->serialize();
                     count ++;
                 }
-                cout << "_____________________END OF LOOP ____________________________" << endl;
                 std::replace( json_string.begin(), json_string.end(), '\n', ' ');
                 json_string += "},";
                 // counter1++;
             }
             json_string +="]}";
-            cout << "JSON STRINGGG" << json_string << endl;
             json  j = json::parse(json_string);
-            cout << "FFFFFF" << j<<endl << endl << endl;
             cout << j["RESULTS"].dump() << endl;
             FileWriter * fileWriter  = new FileWriter(file_name);
             fileWriter->writeFile(json_string);
             delete (fileWriter);
 
-            // json  j = json::parse(json_string);
-            // cout << endl << endl << endl;
-            // // cout << j["RESULTS"].dump() << endl;
-            // for (auto jj: j["RESULTS"])
-            // {
-            //     for (auto jjj: jj)
-            //     {
-            //         cout << jjj.dump(3,'\t') << endl;
-            //         cout << "___________________________________________" << endl;
-            //     }
-            // }
-            // json_string = j.dump(1,'\t');
-            // FILE * f = fopen (file_name.c_str(),"wb");
-            // fwrite (json_string.c_str(),json_string.length(),1,f);
-            // fclose (f);
-
-        //    cout << json_string << endl;
         }
 }
 
