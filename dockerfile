@@ -42,13 +42,17 @@ CMD ["/bin/bash"]
 
 
 
-#TO CREATE THE IMAGE
-#docker build -t <IMAGE_NAME> .
+# Image creation
+# docker build -t <IMAGE_NAME> .
 
+# Container spin up from image
 # docker run -it --network host -v $(pwd):/home/dev/ORM-C_PLUS_PLUS <IMAGE_NAME>
 
 
-# RUN cmake . -B build && cmake --build build -j12 && cmake --install build
-# RUN orm_generator generate orm_config.json
-# RUN cd factory/ostaz && rm -rf build && cmake . -B build && cmake --build build -j12 && cmake --install build
-# # RUN cd /app/applications/LOS && rm -rf build && cmake . -B build && cmake --build build -j10
+# Build commands
+
+# cmake . -B build && cmake --build build -j12 && sudo cmake --install build
+# orm_generator generate orm_config.json
+# cd factory/ostaz && rm -rf build && cmake . -B build && cmake --build build -j12 && sudo cmake --install build
+# cd /home/dev/ORM-C_PLUS_PLUS/applications/LOS && rm -rf build && cmake . -B build && cmake --build build -j10
+# c++_app_server config_docker.json 

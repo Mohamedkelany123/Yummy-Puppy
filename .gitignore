@@ -23,3 +23,4 @@ applications/blnk_closure/lms_closure/bin/*
 applications/blnk_closure/endpoints_test/bin/*
 
 build/
+LogFile.log
