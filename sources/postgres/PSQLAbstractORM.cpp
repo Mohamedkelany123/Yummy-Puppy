@@ -240,8 +240,11 @@ void PSQLAbstractORM::setExtra (string fname, string fvalue)
 string PSQLAbstractORM::getExtra (string fname)
 {
     if (extras.find(fname) != extras.end())
-        return  extras [fname];
-    else return "";
+        return extras[fname];
+    else {
+        cout << "EXTRA FIELD: " << fname << " NOT FOUND" << endl;
+        return "";
+    }
 }
 
 float PSQLAbstractORM::getExtraToFloat(string fname){

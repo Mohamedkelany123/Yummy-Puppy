@@ -41,11 +41,14 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
 
             T * orm = new T("");
             orm->deSerialize(m_parsed_json_results["RESULTS"][m_parsed_json_index][orm->getORMName()], true);
-            for(auto it = m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"].begin(); it !=  m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"].end(); ++it){
-                orm->setExtra(it.key(),it.value());
-                cout <<"keeeyyyy::::" << it.key()<<endl;
-                cout <<"value::::" << it.value()<<endl;
-
+            if (extras.size() > 0)
+            {
+                for (auto e : extras)
+                {
+                    if(m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"].find(e.first)!=m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"].end())
+                        orm->setExtra(e.first,m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"][e.first]);
+                    else cout << "EXTRA FIELD : " << e.first << " does not exist in test data json" << endl;
+                }
             }
             m_parsed_json_index ++;
             // TODO: handle the deletion of the orms

@@ -285,6 +285,20 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::testDataJsonNext(){
             orm->deSerialize(m_parsed_json_results["RESULTS"][m_parsed_json_index][orm_object->getORMName()], true);
             (*orms)[orm_object->getTableName()] = orm;
     }
+    if (extras.size() > 0)
+        {
+            PSQLGeneric_primitive_orm * orm = new PSQLGeneric_primitive_orm("");
+            for (auto e : extras)
+            {
+                if(m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"].find(e.first)!=m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"].end()){
+                    orm->add(e.first,m_parsed_json_results["RESULTS"][m_parsed_json_index]["extras"][e.first]);
+                }else{
+                    cout << "EXTRA FIELD : " << e.first << " does not exist in test data json" << endl;
+                }
+            }
+            (*orms)["PSQLGeneric"] = orm;  
+
+        }
     m_parsed_json_index ++;
     // TODO: handle the deletion of the orms
     return orms;
@@ -767,10 +781,17 @@ void PSQLJoinQueryIterator::serialize_results (string file_name)
             {
                 map<string, PSQLAbstractORM *> * orm_map = next(true);
                 if (orm_map == NULL) break;
-                // cout << "SIZEEEEEEEEEE" << orm_map->size() << endl;
-                if ( counter1 > 0 )
+                if ( counter1 > 0 ){
                     json_string += ",";
+                }
                 json_string += "{\n";
+                json_string += "\"extras\" : {";
+                for(auto extra = this->extras.begin(); extra != this->extras.end(); ++extra){
+                    json_string += "\"" + extra->first + "\":" + "\"" + psqlQuery->getValue(extra->first) + "\"" ;
+                    if(std::next(extra) != this->extras.end())
+                        json_string += "\n,";
+                }
+                json_string += "}\n";                    
                 int count = 0;
                 string temp= "";
                 for (auto o : *orm_map)
