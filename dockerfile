@@ -36,7 +36,8 @@ USER dev
 
 WORKDIR /home/dev
 
-CMD ["/bin/bash"]
+CMD ["bash", "-c", "sudo chown -R dev:dev /path/to/mounted/directory && exec /bin/bash"]
+
 
 
 
