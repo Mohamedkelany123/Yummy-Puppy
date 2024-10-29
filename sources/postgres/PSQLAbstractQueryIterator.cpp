@@ -791,7 +791,7 @@ void PSQLJoinQueryIterator::serialize_results (string file_name)
                     if(std::next(extra) != this->extras.end())
                         json_string += "\n,";
                 }
-                json_string += "}\n";                    
+                json_string += "},\n";                    
                 int count = 0;
                 string temp= "";
                 for (auto o : *orm_map)
