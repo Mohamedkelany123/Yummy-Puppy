@@ -32,7 +32,7 @@ add_subdirectory(framework)
 add_subdirectory(Webserver-Backend)
 
 # Check middleware dependencies before compiling middlewares
-find_package(Poco COMPONENTS Foundation JWT)
+find_package(Poco COMPONENTS Foundation JWT Crypto JSON)
 if (Poco_FOUND)
     message(STATUS "Found POCO Foundation & JWT. Compiling middlewares.")
     add_subdirectory(middlewares)
