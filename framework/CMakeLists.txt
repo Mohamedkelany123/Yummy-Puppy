@@ -14,6 +14,7 @@ target_include_directories(${FRAMEWORK_LIB_NAME} PUBLIC
     "$<BUILD_INTERFACE:${HEADER_DIRS}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blnk/${FRAMEWORK_LIB_NAME}>"
 )
+target_link_libraries(${FRAMEWORK_LIB_NAME} PUBLIC pq)
 set_target_properties(${FRAMEWORK_LIB_NAME} PROPERTIES 
     PUBLIC_HEADER "${HEADER_FILES}"
 )
