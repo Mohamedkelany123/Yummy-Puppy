@@ -11,8 +11,17 @@ include(${PROJECT_SOURCE_DIR}/functions.cmake)
 
 set(LIBRARY_DEPS "blnkFramework")
 
+
 # Find Packages
-set(PACKAGES_DEPS "PostgreSQL" "blnkExternalDeps" ${LIBRARY_DEPS})
+find_package(PostgreSQL)
+if(PostgreSQL_FOUND)
+    include_directories(${PostgreSQL_INCLUDE_DIRS})
+    link_directories(${PostgreSQL_LIBRARY_DIRS})
+else()
+    message(FATAL_ERROR "PostgreSQL not found. Install PostgreSQL development libraries.")
+endif()
+
+set(PACKAGES_DEPS "blnkExternalDeps" ${LIBRARY_DEPS})
 foreach(DEPS ${PACKAGES_DEPS})
     find_and_include_package(${DEPS})
 endforeach()
