@@ -27,8 +27,10 @@ RUN CMAKE_VERSION=3.22.0 \
     && tar -zxvf cmake.tar.gz --strip-components=1 -C /usr/local \
     && rm cmake.tar.gz
 
-# Set up the user
-RUN useradd -ms /bin/bash dev && \
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+RUN useradd -u $USER_ID -g $GROUP_ID -ms /bin/bash dev && \
     echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 # Switch to user dev
@@ -36,10 +38,12 @@ USER dev
 
 WORKDIR /home/dev
 
-CMD ["bash", "-c", "sudo chown -R dev:dev /path/to/mounted/directory && exec /bin/bash"]
+CMD ["/bin/bash"]
 
 
 
+# docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t <IMAGE_NAME> .
+# docker run -it --network host -v $(pwd):/home/dev/ORM-C_PLUS_PLUS <IMAGE_NAME>
 
 
 
