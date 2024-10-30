@@ -17,8 +17,8 @@ set_target_properties(${WEBSERVER_LIB_NAME} PROPERTIES
 )
 
 # TODO: investigate further
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "/usr/local/lib")
+# set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+# set(CMAKE_INSTALL_RPATH "/usr/local/lib")
 
 install_and_create_config(${WEBSERVER_LIB_NAME})
 
