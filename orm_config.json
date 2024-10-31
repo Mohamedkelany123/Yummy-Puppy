@@ -32,7 +32,7 @@
         "restrict_orms": [
         ],
         "templates": {
-            "local": true,
+            "local": false,
             "directory": "./framework/templates"
         }
     }
