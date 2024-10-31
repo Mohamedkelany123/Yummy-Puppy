@@ -70,6 +70,7 @@ class PSQLAbstractORM
         string compose_field (string field_name);
         string compose_field_with_index (string field_name);
         void setExtra (string fname, string fvalue);
+        map<string,string> getExtras();
         string getExtra (string fname);
         float getExtraToFloat(string fname);
         int getExtraToInt(string fname);
@@ -95,15 +96,19 @@ class PSQLGeneric_primitive_orm: public PSQLAbstractORM
             values[name] = value;
         }
         string get (string name){
-            return values[name];
+            if(values.find(name) != values.end()) return values[name];
+            else{
+                cout << "EXTRA FIELD: " << name << " NOT FOUND" << endl;
+                return "";
+            }
         }
         map <string, string> getExtraFieldsMap(){return values;}
-        int toInt (string name) { return atoi(values[name].c_str());}
-        double toDouble(string name) {return atof(values[name].c_str());}
-        float toFloat (string name) { return atof(values[name].c_str());}
-        double toLong (string name) { return atol(values[name].c_str());}
-        bool toBool (string name) { return (values[name] == "t");}
-        json toJson (string name) { return (nlohmann::json::parse(values[name]));}
+        int toInt (string name) { return atoi(get(name).c_str());}
+        double toDouble(string name) {return atof(get(name).c_str());}
+        float toFloat (string name) { return atof(get(name).c_str());}
+        double toLong (string name) { return atol(get(name).c_str());}
+        bool toBool (string name) { return (get(name) == "t");}
+        json toJson (string name) { return (nlohmann::json::parse(get(name)));}
         // double toDouble (name) { return atoll(values[name].c_str());} need to be implemented using strtod
         string getFromString () { return "";}
         void assignResults (AbstractDBQuery * psqlQuery,bool _read_only = false) {}
@@ -180,7 +185,7 @@ class ORMVector : public vector<T *>
                 for (auto json_row: json_results["RESULTS"])
                 {
                     T * orm = new T("");
-                    orm->deSerialize(json_row[orm->getORMName()]);
+                    orm->deSerialize(json_row[orm->getORMName()], true);
                     (*this)+=orm;
                 }
             }
