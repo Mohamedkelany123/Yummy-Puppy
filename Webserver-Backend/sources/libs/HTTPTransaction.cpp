@@ -71,7 +71,9 @@ void HTTPTransaction::process()
         {
             s = httpServiceManager->getService(httpRequest->getResource());
             map<string, string> * URLParamters = httpServiceManager->extractURLParams(httpRequest->getResource());
+            map<string, string> * queryParamters = httpServiceManager->extractURLQueryParams(httpRequest->getResource());
             httpRequest->addContext("url_params", *URLParamters);
+            httpRequest->addContext("query_params", *queryParamters);
             if(httpRequest->getMethod() == "OPTIONS"){
                 HTTPOPTIONSResponse *httpOPTIONSResponse = new HTTPOPTIONSResponse(tcpSocket);
                 httpOPTIONSResponse->write();
