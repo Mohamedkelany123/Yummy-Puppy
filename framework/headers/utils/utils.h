@@ -21,7 +21,7 @@ using namespace std;
 //#define BDATE_TIME_ZONE "EEST"
 #define BDATE_TIME_ZONE "UTC"
 
-#define TIME_ZONE_OFFEST 3
+#define TIME_ZONE_OFFEST 2 
 #define DL_SAVING        0
 
 // #define SQLITE_OMIT_LOCALTIME 1
