@@ -4,6 +4,8 @@
 
 - CMake file should be named: `CMakeLists.txt`
 - The main CMakeLists file should contain `cmake_minimum_required`, `project`, and `set` for any global compilation configuration like `CMAKE_CXX_STANDARD`.
+- To get CMake variables: [CMake documentation](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html)
+- To get CMake modules: [CMake documentation](https://cmake.org/cmake/help/latest/manual/cmake-modules.7.html)
 
 ### Applications
 
