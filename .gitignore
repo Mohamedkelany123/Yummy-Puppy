@@ -10,8 +10,7 @@ test/*
 **/*.oo
 
 
-factory/db_primitive_orm/headers/
-factory/db_primitive_orm/sources/*.cpp
+factory
 
 
 **/*.pyc
@@ -23,3 +22,5 @@ applications/blnk_closure/ledger_closure/bin/*
 applications/blnk_closure/lms_closure/bin/*
 applications/blnk_closure/endpoints_test/bin/*
 
+build/
+LogFile.log
