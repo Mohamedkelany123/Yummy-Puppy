@@ -396,7 +396,18 @@ void  PSQLJoinQueryIterator::process_internal_aggregate_serialize(string data_so
                         cout << count << endl;
                         if (pair.second->serialize() == "") continue;
                         if (count > 0) json_string += ",";
-                        else json_string += "{";
+                        else{ 
+                            json_string += "{";
+                            json_string += "\"extras\" : {";
+                            for(auto extra = me->extras.begin(); extra != me->extras.end(); ++extra){
+                                if(extra->first != "aggregate"){
+                                    json_string += "\"" + extra->first + "\":" + "\"" + psqlQueryPartition->getValue(extra->first) + "\"" ;
+                                    if(std::next(extra) != me->extras.end())
+                                        json_string += "\n,";
+                                }
+                            }
+                            json_string += "},\n";
+                        }
                         json_string += pair.second->serialize();
                         count ++;
                         std::cout << "Key: " << pair.first << ", Value: " << pair.second->serialize() << std::endl;
@@ -459,6 +470,14 @@ void PSQLJoinQueryIterator::process_from_serialized_orms(string _file_name,std::
         for (auto jj: m_parsed_json_results["RESULTS"])
         {
             map <string,PSQLAbstractORM *> * orms  = new map <string,PSQLAbstractORM *>();
+            PSQLGeneric_primitive_orm * gorm = new PSQLGeneric_primitive_orm(data_source_name);
+                if(jj["extras"].size() > 0){
+                    cout << "FOUND EXTRASSSS" << endl;
+                    for (auto e : this->extras){
+                        gorm->add(e.first,jj["extras"][e.first]);
+                    }
+                    (*orms)["PSQLGeneric"] = gorm;
+                }
             for (auto orm_object: *orm_objects) 
             {
                     PSQLAbstractORM * orm = orm_object->clone();
@@ -486,13 +505,20 @@ void PSQLJoinQueryIterator::process_aggregate_from_serialized_orms(string _file_
             map <string,PSQLAbstractORM *> * orms  = new map <string,PSQLAbstractORM *>();
             for (auto& pair : jj) 
             {
-                
-               
+                PSQLGeneric_primitive_orm * gorm = new PSQLGeneric_primitive_orm(data_source_name);
+                if(pair["extras"].size() > 0){
+                    for (auto e : this->extras){
+                        if(e.first != "aggregate"){
+                            gorm->add(e.first,pair["extras"][e.first]);
+                        }  
+                    }
+                    (*orms)["PSQLGeneric"] = gorm;
+                }
                 for (auto orm_object: *orm_objects){
                     PSQLAbstractORM * orm = orm_object->clone();
-                    orm->deSerialize(pair[orm_object->getORMName()]);
+                    orm->deSerialize(pair[orm_object->getORMName()],true);
                     
-                    (*orms)[orm_object->getTableName()] = orm;   
+                    (*orms)[orm_object->getTableName()] = orm;
                 }
                 orms_list->push_back(orms);
 
@@ -605,8 +631,8 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
 {
         if ( test_data_file  !="" && !serialize)
         {
-                process_from_serialized_orms(test_data_file,f,extras);
-                return;
+            process_from_serialized_orms(test_data_file,f,extras);
+            return;
         }
         else if (test_data_file  !="" && serialize)
         {
@@ -799,7 +825,7 @@ void PSQLJoinQueryIterator::serialize_results (string file_name)
                     if(std::next(extra) != this->extras.end())
                         json_string += "\n,";
                 }
-                json_string += "},\n";                    
+                json_string += "}\n";                    
                 int count = 0;
                 string temp= "";
                 for (auto o : *orm_map)
