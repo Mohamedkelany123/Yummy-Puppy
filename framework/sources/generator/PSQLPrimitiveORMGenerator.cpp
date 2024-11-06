@@ -785,7 +785,7 @@ void PSQLPrimitiveORMGenerator::generateInsertQuery(string class_name,string tab
                 values_string+= ":";
 
 
-                columns_string += db_field_name;
+                columns_string += "\\\"" + db_field_name + "\\\"";
 
                 if (ts_flag )
                 {

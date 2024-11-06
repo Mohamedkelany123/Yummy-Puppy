@@ -36,7 +36,7 @@ void PSQLAbstractQueryIterator::filter (const Expression & e,bool print_sql)
         if (orderby_string == "")
             sql = "select "+ distinct +" "+from_string+" from "+ table_name + pre_conditions +conditions ;//+" order by loan_app_loan.id";
         else sql = "select "+ distinct +" "+from_string+" from "+ table_name + pre_conditions + conditions +" order by "+orderby_string;
-        cout << sql << endl;
+        // cout << sql << endl;
     }
 }
 bool PSQLAbstractQueryIterator::execute()
@@ -67,7 +67,7 @@ bool PSQLAbstractQueryIterator::execute()
         sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions +" order by "+orderby_string;
     
-    cout << sql << endl;
+    // cout << sql << endl;
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;
