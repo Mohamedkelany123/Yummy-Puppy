@@ -1,4 +1,7 @@
 #include <utils.h>
+#include <reader.h>
+#include<filesystem>
+#include<Singleton.h>
 
 void BDate::set_date (string date_string)
 {
@@ -25,6 +28,14 @@ void BDate::set_date (string date_string)
 }
 BDate::BDate()
 {
+    ConfigReader conf = ConfigReader("config.json");
+    string platform = conf.GetValue("server_config", "platform");
+    if (platform == "TEST"){
+        string date_string = Singleton::getInstance().getTestDate();
+        is_null = false;
+        set_date(date_string);
+        return;
+    }
     init_current_date();
 }
 
