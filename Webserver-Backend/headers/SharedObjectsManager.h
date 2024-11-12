@@ -6,7 +6,7 @@
 // template<class T>
 // T * create_object_routine();
 
-template <typename T> using create_object_routine = T* (*)(PSQLControllerMaster * psqlControllerMaster);
+template <typename T> using create_object_routine = T* (*)(PSQLControllerMaster * psqlControllerMaster, json _config);
 
 template <typename T> 
 class SharedObjectsManager{
@@ -16,7 +16,7 @@ class SharedObjectsManager{
 
     public:
         SharedObjectsManager(){} 
-	    T * load(string name, string funcName="create_object" ){ // Load object form DSO
+	    T * load(string name, string funcName="create_object", json _config=json()){ // Load object form DSO
             T * obj  = gobj[name]; // Fetch object based on name
             if ( obj != NULL ) return obj;  // If found return it
             // Else load the DSO and fetch the object through external launcher function
@@ -28,7 +28,7 @@ class SharedObjectsManager{
                     create_object_routine<T> my_func = (create_object_routine<T> ) dlsym (dso,funcName.c_str()); // Loading external function from DSO
 
                     if ( my_func ){ // If function loaded successfully
-                        gobj[name] = my_func(&psqlController);    // Store function in gobj vector
+                        gobj[name] = my_func(&psqlController, _config);    // Store function in gobj vector
                         dsos[name] = dso;          // Store DSO handler into dsos vectors
                         obj  = gobj[name];         // Fetch the external function into obj to be returned
                     } // Cannot load the external function from the DSO
