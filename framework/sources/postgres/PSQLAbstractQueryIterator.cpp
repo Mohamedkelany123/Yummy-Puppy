@@ -75,8 +75,9 @@ bool PSQLAbstractQueryIterator::execute()
 
 long PSQLAbstractQueryIterator::getResultCount()
 {
-        if (psqlQuery ==NULL) return 0;
-        else return psqlQuery->getRowCount();
+    if(m_test_data_folder != "") return m_parsed_json_results["RESULTS"].size();
+    if (psqlQuery ==NULL) return 0;
+    else return psqlQuery->getRowCount();
 }
 
 void PSQLAbstractQueryIterator::setOrderBy(string _orderby_string)
@@ -976,6 +977,7 @@ bool PSQLJoinQueryIterator::setAggregates (map<string, pair<string, int>> _aggre
 
 long PSQLJoinQueryIterator::get_result_count ()
 {
+    if(m_test_data_folder != "") return m_parsed_json_results["RESULTS"].size();
     if (psqlQuery != NULL) return psqlQuery->getRowCount();
     else return 0;
 }
