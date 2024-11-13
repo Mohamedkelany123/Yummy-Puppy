@@ -31,6 +31,10 @@ BDate::BDate()
     string platform = conf.GetValue("server_config", "platform");
     if (platform == "TEST"){
         string date_string = TestManager::getInstance().getTestDate();
+        if (date_string == ""){
+            init_current_date();
+            return;
+        }
         is_null = false;
         set_date(date_string);
         return;
