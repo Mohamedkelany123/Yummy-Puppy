@@ -92,7 +92,7 @@ using json = nlohmann::json;
 #define STARTGETENDPOINT(O) return new EndpointGETService <O>( \
             [=] (HTTPRequest * p_httpRequest,O * outputSerializer) {
 
-#define INITENDPOINT extern "C" HTTPService *create_object(PSQLControllerMaster * _psqlControllerMaster)\
+#define INITENDPOINT extern "C" HTTPService *create_object(PSQLControllerMaster * _psqlControllerMaster, json _config)\
         {\
                 psqlController.initialize(_psqlControllerMaster);\
                 psqlController.addDefault("created_at","now()",true,true);\
