@@ -37,6 +37,7 @@ BDate::BDate()
         }
         is_null = false;
         set_date(date_string);
+        TestManager::getInstance().setTestDate("");
         return;
     }
     init_current_date();
