@@ -283,7 +283,8 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::testDataJsonNext(){
     for (auto orm_object: *orm_objects) 
     {
             PSQLAbstractORM * orm = orm_object->clone();
-            orm->deSerialize(m_parsed_json_results["RESULTS"][m_parsed_json_index][orm_object->getORMName()], true);
+            if(!m_parsed_json_results["RESULTS"][m_parsed_json_index][orm_object->getORMName()].empty())
+                orm->deSerialize(m_parsed_json_results["RESULTS"][m_parsed_json_index][orm_object->getORMName()], true);
             (*orms)[orm_object->getTableName()] = orm;
     }
     if (extras.size() > 0)
