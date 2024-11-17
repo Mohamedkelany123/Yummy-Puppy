@@ -26,7 +26,7 @@
         }
     ],
     "factory": {
-        "datasource": "main2",
+        "datasource": "main",
         "namespace":"ostaz",
         "directory": "./factory/ostaz",
         "restrict_orms": [

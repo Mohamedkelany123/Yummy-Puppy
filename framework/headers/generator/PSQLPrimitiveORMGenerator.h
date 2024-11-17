@@ -73,7 +73,7 @@ class PSQLPrimitiveORMGenerator
         void generateEqualToOperator(string class_name,string table_name,map<string, vector<string>> columns_definition);
         void fetch_templates();
         void write_headers_and_sources(string class_name);
-
+        string generateDefaultValueCode(AbstractDatabaseColumn* column, string orm_field_name);
         static void createFoldersIfNotExist(const string& path);
     public:
         PSQLPrimitiveORMGenerator(string datasource, string p_orm_folder, TemplateFiles p_template_files);
