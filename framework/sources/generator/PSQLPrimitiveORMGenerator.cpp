@@ -46,9 +46,11 @@ void PSQLPrimitiveORMGenerator::generateSerializer(string class_name,string tabl
 }
 string PSQLPrimitiveORMGenerator::generateDefaultValueCode(AbstractDatabaseColumn* column, string orm_field_name)
 {
-    if (dynamic_cast<PSQLInt2*>(column) || dynamic_cast<PSQLInt4*>(column) || dynamic_cast<PSQLInt8*>(column) || dynamic_cast<PSQLNumeric*>(column) ) {
+    if (dynamic_cast<PSQLInt2*>(column) || dynamic_cast<PSQLInt4*>(column) || dynamic_cast<PSQLInt8*>(column) ) {
         return ".get<int>() : 0"; 
-    } else if (dynamic_cast<PSQLJson*>(column)) {
+    } else if(dynamic_cast<PSQLNumeric*>(column) ){
+        return ".get<double>() : 0.0";
+    }else if (dynamic_cast<PSQLJson*>(column)) {
         return ".get<nlohmann::json>() : json()";
     } else if (dynamic_cast<PSQLText*>(column)) {
         return ".get<string>() : \"\"";
