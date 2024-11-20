@@ -63,6 +63,7 @@ class BDate
         string getFullDateString();
         void init_current_date();
         void printTM();
+        static int diff_days(BDate date1, BDate date2);
         ~BDate ();
 };
 

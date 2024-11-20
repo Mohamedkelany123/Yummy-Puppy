@@ -202,6 +202,23 @@ void BDate::printTM()
 
 }
 
+int BDate::diff_days(BDate date1, BDate date2)
+{
+    time_t t1 = date1();
+    time_t t2 = date2();
+    
+    if (t1 == -1 || t2 == -1) {
+        std::cerr << "Error: Invalid date encountered." << std::endl;
+        return -1;
+    }
+
+    // Calculate difference in seconds
+    double diff_seconds = difftime(t1, t2);
+    
+    // Convert seconds to days
+    return static_cast<int>(std::abs(diff_seconds / (60 * 60 * 24))); // Absolute value to avoid negative days
+}
+
 void BDate::init_current_date()
 {
     time_t rawtime;
