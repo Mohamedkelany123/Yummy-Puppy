@@ -180,6 +180,19 @@ string BDate::getDateString()
     string date_string = buf;
     return date_string;
 }
+
+string BDate::getArabicDayOfTheWeek()
+{
+    const std::string arabic_weekdays[] = {"الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"};
+    return arabic_weekdays[tm.tm_wday];
+}
+
+string BDate::getDayOfTheWeek()
+{
+    const std::string weekdays[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+    return weekdays[tm.tm_wday];
+}
+
 string BDate::getFullDateString()
 {
     char buf[255];
@@ -200,6 +213,23 @@ void BDate::printTM()
     printf ("sec: %d\n",tm.tm_sec);
     printf ("tm_isdst: %d\n",tm.tm_isdst);
 
+}
+
+int BDate::diff_days(BDate date1, BDate date2)
+{
+    time_t t1 = date1();
+    time_t t2 = date2();
+    
+    if (t1 == -1 || t2 == -1) {
+        std::cerr << "Error: Invalid date encountered." << std::endl;
+        return -1;
+    }
+
+    // Calculate difference in seconds
+    double diff_seconds = difftime(t1, t2);
+    
+    // Convert seconds to days
+    return static_cast<int>(std::abs(diff_seconds / (60 * 60 * 24))); // Absolute value to avoid negative days
 }
 
 void BDate::init_current_date()
