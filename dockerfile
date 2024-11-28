@@ -27,14 +27,15 @@ RUN CMAKE_VERSION=3.22.0 \
     && tar -zxvf cmake.tar.gz --strip-components=1 -C /usr/local \
     && rm cmake.tar.gz
 
+#TODO fix users creation 
 # Set up the user
-RUN useradd -ms /bin/bash dev && \
-    echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+# RUN useradd -ms /bin/bash dev && \
+#     echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-# Switch to user dev
-USER dev
+# # Switch to user dev
+# USER dev
 
-WORKDIR /home/dev
+WORKDIR /app
 
 CMD ["/bin/bash"]
 
@@ -46,7 +47,7 @@ CMD ["/bin/bash"]
 # docker build -t <IMAGE_NAME> .
 
 # Container spin up from image
-# docker run -it --network host -v $(pwd):/home/dev/ORM-C_PLUS_PLUS <IMAGE_NAME>
+# docker run -it --network host -v $(pwd):/app/ORM-C_PLUS_PLUS <IMAGE_NAME>
 
 
 # Build commands
