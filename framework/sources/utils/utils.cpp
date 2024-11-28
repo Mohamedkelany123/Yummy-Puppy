@@ -180,6 +180,19 @@ string BDate::getDateString()
     string date_string = buf;
     return date_string;
 }
+
+string BDate::getArabicDayOfTheWeek()
+{
+    const std::string arabic_weekdays[] = {"الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"};
+    return arabic_weekdays[tm.tm_wday];
+}
+
+string BDate::getDayOfTheWeek()
+{
+    const std::string weekdays[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+    return weekdays[tm.tm_wday];
+}
+
 string BDate::getFullDateString()
 {
     char buf[255];
