@@ -60,6 +60,8 @@ class BDate
         int get_month_days();
         bool is_leap_year();
         string getDateString();
+        string getArabicDayOfTheWeek();
+        string getDayOfTheWeek();
         string getFullDateString();
         void init_current_date();
         void printTM();
