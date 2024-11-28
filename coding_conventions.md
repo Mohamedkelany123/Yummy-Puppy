@@ -20,6 +20,8 @@ Each application parent directory should contain a git workflow file
 - **Files**
     - Any **header File** containing implementation should be saved as **.hpp**
     - Any **header File** that doesnt contain any implementation should be saved as **.h**
+    - Any endpoint file should be of this format "endpoint_name_ep.cpp"
+    - Any test file should be of this format "EndpointName_test.cpp"
 - **Variables**
     - **snake_case** should be used for any **variable's** name, ex: customer_name
     - Start with an **_**  for **parameters** in any method, ex: _customer_name 
