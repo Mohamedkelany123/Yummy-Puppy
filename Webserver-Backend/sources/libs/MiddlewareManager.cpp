@@ -179,7 +179,9 @@ bool MiddlewareManager::runEndpointPreMiddleware(string endpointName, HTTPReques
  */
 bool MiddlewareManager::runEndpointPostMiddleware(string endpointName, HTTPRequest *req, HTTPResponse *res)
 {
+    lock.lock();
     pair<string, vector<MiddleWareResourceManager *> *> postMiddlewares = URLService::searchRegexMapWithKey(endpointName, &endpointsPostMiddlewares);
+    lock.unlock();
     if(postMiddlewares.second == NULL) return false;
 
     return runMiddlewares(*postMiddlewares.second, req, res);
