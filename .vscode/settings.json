@@ -105,7 +105,8 @@
         "*.tpp": "cpp",
         "__memory": "cpp",
         "*.source": "cpp",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "*.ipp": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++",
     "cmake.sourceDirectory": "/Users/kmsobh/blnk/orm_c++/poco/DNSSD"

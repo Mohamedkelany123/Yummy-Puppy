@@ -7,6 +7,7 @@
 #include "SharedObjectsManager.h"
 #include "URLService.h"
 #include <ResourceManager.h>
+#include <mutex>
 
 
 
@@ -35,6 +36,7 @@ class MiddlewareManager{
         std::map <string,vector<MiddleWareResourceManager *> *> endpointsPostMiddlewares;
         SharedObjectsManager<Middleware> * sharedObjectPtr;
         Logger * logger;
+        mutex lock;
     public:
         MiddlewareManager(ConfigFile * conf, Logger* logger); // Constructor
         // Return a service whose type depends on the requested resource.

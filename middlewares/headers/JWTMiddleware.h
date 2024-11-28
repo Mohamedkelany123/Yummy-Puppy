@@ -9,9 +9,11 @@
 
 #include <PSQLConnection.h>
 #include <PSQLQuery.h>
+#include <mutex>
 
 using namespace Poco::JWT;
 
+static mutex poco_lock;
 
 class  JWTMiddleware: public Middleware
 {

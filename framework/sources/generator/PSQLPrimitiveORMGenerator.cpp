@@ -44,37 +44,52 @@ void PSQLPrimitiveORMGenerator::generateSerializer(string class_name,string tabl
     extra_methods += "\t\t}\n";
 
 }
-
-void PSQLPrimitiveORMGenerator::generateDeserializer(string class_name,string table_name,map<string, vector<string>> columns_definition)
+string PSQLPrimitiveORMGenerator::generateDefaultValueCode(AbstractDatabaseColumn* column, string orm_field_name)
 {
+    if (dynamic_cast<PSQLInt2*>(column) || dynamic_cast<PSQLInt4*>(column) || dynamic_cast<PSQLInt8*>(column) ) {
+        return ".get<int>() : 0"; 
+    } else if(dynamic_cast<PSQLNumeric*>(column) ){
+        return ".get<double>() : 0.0";
+    }else if (dynamic_cast<PSQLJson*>(column)) {
+        return ".get<nlohmann::json>() : json()";
+    } else if (dynamic_cast<PSQLText*>(column)) {
+        return ".get<string>() : \"\"";
+    } else if (dynamic_cast<PSQLBool*>(column)) {
+        return ".get<bool>() : false"; 
+    }
+    return "\"\""; 
+}
 
-    extra_methods_def += "\t\tvoid deSerialize (json orm_json,bool _read_only = false);\n";
-    extra_methods += "\t\tvoid "+class_name+"::deSerialize (json orm_json,bool _read_only){\n";
-    // extra_methods += "\t\t\tpsqlQuery->fetchNextRow();\n";
-    for (size_t   i  = 0 ; i  < columns_definition["column_name"].size(); i++) 
+void PSQLPrimitiveORMGenerator::generateDeserializer(string class_name, string table_name, map<string, vector<string>> columns_definition)
+{
+    extra_methods_def += "\t\tvoid deSerialize (json orm_json, bool _read_only = false);\n";
+    extra_methods += "\t\tvoid " + class_name + "::deSerialize (json orm_json, bool _read_only) {\n";
+
+    for (size_t i = 0; i < columns_definition["column_name"].size(); i++) 
     {
-        string orm_field_name = "orm_"+columns_definition["column_name"][i];
-        bool string_flag = false;
-        for ( int j = 0 ; PSQLText::get_native_type(j) != "" ; j ++)
-            if ( PSQLText::get_native_type(j) == columns_definition["udt_name"][i]) string_flag=true;
+        string column_name = columns_definition["column_name"][i];
+        string column_udt_name = columns_definition["udt_name"][i];
+        string orm_field_name = "orm_" + column_name;
 
-        bool json_flag = false;
-        for ( int j = 0 ; PSQLJson::get_native_type(j) != "" ; j ++)
-            if ( PSQLJson::get_native_type(j) == columns_definition["udt_name"][i]) json_flag=true;
+        if (databaseColumnFactory.find(column_udt_name) != databaseColumnFactory.end()) {
+            AbstractDatabaseColumn* abstractDatabaseColumn = databaseColumnFactory[column_udt_name]->clone(column_name);
 
-        if (databaseColumnFactory.find(columns_definition["udt_name"][i]) != databaseColumnFactory.end()) {
-            AbstractDatabaseColumn * abstractDatabaseColumn = databaseColumnFactory[columns_definition["udt_name"][i]]->clone(columns_definition["column_name"][i]);
-            extra_methods += "\t\t\torm_"+columns_definition["column_name"][i];
-                extra_methods += " = orm_json[\""+orm_field_name+"\"];\n";
-            // else extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("std::to_string(orm_json[\""+orm_field_name+"\"])")+ ";\n";
-//            else extra_methods += " = " +abstractDatabaseColumn->genFieldConversion("psqlQuery->getValue(\"" +table_name+"_"+ columns_definition["column_name"][i]+"\")")+ ";\n";
-            delete(abstractDatabaseColumn);
+            extra_methods += "\t\t\t" + orm_field_name + " = orm_json.contains(\"" + orm_field_name + "\") ? ";
+            extra_methods += "orm_json[\"" + orm_field_name + "\"]";
+            extra_methods += generateDefaultValueCode(abstractDatabaseColumn, orm_field_name) + ";\n";
+
+            delete abstractDatabaseColumn;
+        } else {
+            // If all relevant types are handled, you can remove the unsupported column type handling
+            extra_methods += "\t\t\t// Unknown or unsupported column type: " + column_udt_name + "\n";
         }
     }
-    extra_methods += "\t\t\tloaded=true;\n";
+
+    extra_methods += "\t\t\tloaded = true;\n";
     extra_methods += "\t\t\tif (!_read_only) addToCache();\n";
     extra_methods += "\t\t}\n";
 }
+
 
 void PSQLPrimitiveORMGenerator::generateEqualToOperator(string class_name,string table_name,map<string, vector<string>> columns_definition)
 {

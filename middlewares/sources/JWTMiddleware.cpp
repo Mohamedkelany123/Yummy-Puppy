@@ -80,11 +80,13 @@ pair<string *, bool> JWTMiddleware::verifyToken(string authToken)
             return {nullptr, false};
         }
 
-        string jwt(tokenString);
 
+        poco_lock.lock();
+        string jwt( tokenString);
         Signer signer(secretKey);
         Token token = signer.verify(jwt);
-
+        poco_lock.unlock();
+        
         string userID =  token.payload().get("user_id");
         string * userIDPtr = new string(userID);
         // bool isVerified = verifyUser(userID);

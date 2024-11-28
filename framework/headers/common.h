@@ -32,7 +32,7 @@
 #include <set>
 #include <iterator>
 #include <chrono>
-
+#include <TestUtils.h>
 
 using namespace std;
 using json = nlohmann::json;
@@ -92,7 +92,7 @@ using json = nlohmann::json;
 #define STARTGETENDPOINT(O) return new EndpointGETService <O>( \
             [=] (HTTPRequest * p_httpRequest,O * outputSerializer) {
 
-#define INITENDPOINT extern "C" HTTPService *create_object(PSQLControllerMaster * _psqlControllerMaster)\
+#define INITENDPOINT extern "C" HTTPService *create_object(PSQLControllerMaster * _psqlControllerMaster, json _config)\
         {\
                 psqlController.initialize(_psqlControllerMaster);\
                 psqlController.addDefault("created_at","now()",true,true);\
@@ -143,6 +143,8 @@ enum StatusCode {OK = 200,BADREQUEST = 400};
 enum BuySessionStep {STARTED, CONTRACT_SCANNED, PROMISSORY_SCANNED, OTP_INSERTED, LOAN_CREATED};
 
 enum SessionType {BUY_SESSION, REFUND_SESSION, ONBOARDING_SESSION};
+
+enum DocumentType { INQUIRY, AGREEMENT, PROMISSORY };
 // #define TIME_ZONE_OFFEST 2
 
 

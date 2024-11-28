@@ -39,19 +39,19 @@ HTTPServiceManager::HTTPServiceManager(ConfigFile *conf, Logger *logger, Middlew
             auto postMiddlewares = el.value()["middlewares"]["postMiddlewares"];
 
             vector<string> endpointPreMiddlewares;
-            for (auto &el : preMiddlewares.items())
+            for (auto &preMiddleware : preMiddlewares.items())
             {
-                cout << el.key() << ": " << el.value() << endl;
-                endpointPreMiddlewares.push_back(el.value());
+                cout << preMiddleware.key() << ": " << preMiddleware.value() << endl;
+                endpointPreMiddlewares.push_back(preMiddleware.value());
             }
 
             vector<string> endpointPostMiddlewares;
-            for (auto &el : postMiddlewares.items())
+            for (auto &postMiddleware : postMiddlewares.items())
             {
-                cout << el.key() << ": " << el.value() << endl;
-                endpointPostMiddlewares.push_back(el.value());
+                cout << postMiddleware.key() << ": " << postMiddleware.value() << endl;
+                endpointPostMiddlewares.push_back(postMiddleware.value());
             }
-            services[http_path] = sharedObjectPtr->load(so_path);
+            services[http_path] = sharedObjectPtr->load(so_path, "create_object", el.value());
             _middlewareManager->assignEndpointPreMiddlewares(http_path, endpointPreMiddlewares);
             _middlewareManager->assignEndpointPostMiddlewares(http_path, endpointPostMiddlewares);
             regexURLs.push_back(http_path);

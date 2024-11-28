@@ -75,8 +75,9 @@ bool PSQLAbstractQueryIterator::execute()
 
 long PSQLAbstractQueryIterator::getResultCount()
 {
-        if (psqlQuery ==NULL) return 0;
-        else return psqlQuery->getRowCount();
+    if(m_test_data_folder != "") return m_parsed_json_results["RESULTS"].size();
+    if (psqlQuery ==NULL) return 0;
+    else return psqlQuery->getRowCount();
 }
 
 void PSQLAbstractQueryIterator::setOrderBy(string _orderby_string)
@@ -281,9 +282,10 @@ map <string,PSQLAbstractORM *> * PSQLJoinQueryIterator::testDataJsonNext(){
     map <string,PSQLAbstractORM *> * orms  = new map <string,PSQLAbstractORM *>();
     for (auto orm_object: *orm_objects) 
     {
-            PSQLAbstractORM * orm = orm_object->clone();
+        PSQLAbstractORM * orm = orm_object->clone();
+        if(!m_parsed_json_results["RESULTS"][m_parsed_json_index][orm_object->getORMName()].empty())
             orm->deSerialize(m_parsed_json_results["RESULTS"][m_parsed_json_index][orm_object->getORMName()], true);
-            (*orms)[orm_object->getTableName()] = orm;
+        (*orms)[orm_object->getTableName()] = orm;
     }
     if (extras.size() > 0)
         {
@@ -825,7 +827,7 @@ void PSQLJoinQueryIterator::serialize_results (string file_name)
                     if(std::next(extra) != this->extras.end())
                         json_string += "\n,";
                 }
-                json_string += "}\n";                    
+                json_string += "},\n";                    
                 int count = 0;
                 string temp= "";
                 for (auto o : *orm_map)
@@ -976,6 +978,7 @@ bool PSQLJoinQueryIterator::setAggregates (map<string, pair<string, int>> _aggre
 
 long PSQLJoinQueryIterator::get_result_count ()
 {
+    if(m_test_data_folder != "") return m_parsed_json_results["RESULTS"].size();
     if (psqlQuery != NULL) return psqlQuery->getRowCount();
     else return 0;
 }
