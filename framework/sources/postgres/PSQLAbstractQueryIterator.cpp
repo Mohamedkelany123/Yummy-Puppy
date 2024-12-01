@@ -15,6 +15,7 @@ PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,st
     pre_conditions = "";
     orderby_string = "";
     sql = "";
+    limit = -1;
     psqlQuery= NULL;
     partition_number = _partition_number;
     m_test_data_folder = _test_data_folder;
@@ -66,6 +67,10 @@ bool PSQLAbstractQueryIterator::execute()
     if (orderby_string == "")
         sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions ;//+" order by loan_app_loan.id";
     else sql = "select "+ select_stmt+" from "+ table_name + pre_conditions+ conditions +" order by "+orderby_string;
+
+    if(limit != -1){
+        sql += " limit "+to_string(limit);
+    }
     
     // cout << sql << endl;
     psqlQuery = psqlConnection->executeQuery(sql);
@@ -83,6 +88,11 @@ long PSQLAbstractQueryIterator::getResultCount()
 void PSQLAbstractQueryIterator::setOrderBy(string _orderby_string)
 {
     orderby_string= _orderby_string;
+}
+
+void PSQLAbstractQueryIterator::setLimit(int _limit)
+{
+    limit = _limit;
 }
 
 void PSQLAbstractQueryIterator::setDistinctString(string _distinct_string)
