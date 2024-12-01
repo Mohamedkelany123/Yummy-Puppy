@@ -27,15 +27,17 @@ class TeamThread: public std::thread
                 return TeamThread::thread_mapping[this_thread::get_id()];
             else return NULL;
         }
-        inline static std::thread::id getTeamId()
+        inline static std::thread::id getTeamThreadId()
         {
             if (TeamThread::thread_mapping.find(this_thread::get_id()) != TeamThread::thread_mapping.end()) 
                 return TeamThread::thread_mapping[this_thread::get_id()]->getTeamId();
-            else return 0;
+            else return std::thread::id{};
 
         }
         template< class F, class... Args >
-        virtual TeamThread * createTeamMemberThread ( F&& f, Args&&... args )=0;
+        TeamThread * createTeamMemberThread ( F&& f, Args&&... args ){
+
+        }
 
         virtual THREADTYPE get_type()
         {
@@ -120,8 +122,13 @@ template< class F, class... Args >
 TeamThread * createTeamLeadIfNot (F&& f, Args&&... args)
 {
         TeamThread * current_thread = TeamThread::getMapping();
-        if (current_thread == NULL) return new TeamLead(std::forward<F>(f),std::forward<Args>(args) ...);
-        else return current_thread->createTeamMemberThread(std::forward<F>(f),std::forward<Args>(args) ...);
+        if (current_thread == NULL) return new TeamLeadThread(std::forward<F>(f),std::forward<Args>(args) ...);
+        else 
+        {
+            if (current_thread->get_type() == THREADTYPE::TEAMTHREAD)
+                return ((TeamLeadThread*) current_thread)->createTeamMemberThread(std::forward<F>(f),std::forward<Args>(args) ...);
+            else return ((TeamMemberThread*) current_thread)->createTeamMemberThread(std::forward<F>(f),std::forward<Args>(args) ...);
+        }
 }
 
 
