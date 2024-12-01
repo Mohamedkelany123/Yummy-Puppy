@@ -294,6 +294,7 @@ class PSQLAbstractQueryIterator {
         string sql;
         string from_string;
         string orderby_string;
+        int limit;
         string distinct;
         map <string,string> extras;
         int partition_number;
@@ -310,6 +311,7 @@ class PSQLAbstractQueryIterator {
         bool execute();
         long getResultCount();
         void setOrderBy(string _orderby_string);
+        void setLimit(int _limit);
         void setDistinctString(string _distinct_string);
         void addExtraFromField (string field, string field_name);
         virtual void process(int partitions_count, void * ptr) = 0;
