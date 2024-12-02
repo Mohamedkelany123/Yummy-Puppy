@@ -125,7 +125,7 @@ void HTTPTransaction::startHTTPTransaction(HTTPTransaction *me)
 {
     me->threadMainBody();
 }
-void HTTPTransaction::setThread(std::thread *p_th)
+void HTTPTransaction::setThread(TeamThread *p_th)
 {
     th = p_th;
 }

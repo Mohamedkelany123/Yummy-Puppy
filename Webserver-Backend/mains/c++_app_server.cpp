@@ -45,7 +45,7 @@ int main(int argc, char **argv)
         // Instantiate a new HTTPTransaction Object and pass the TCPSocket pointer and different factories to it
         HTTPTransaction *httpTransaction = new HTTPTransaction(tcpSocket, httpServiceManager, httpRequestManager, middlewareManager);
         // Add the HTTPTransaction just created to the garbage collector for clean up
-        std::thread *t = createTeamLeadIfNot(HTTPTransaction::startHTTPTransaction, httpTransaction); // Start the connection thread to communicate with the client
+        TeamThread *t = createTeamLeadIfNot(HTTPTransaction::startHTTPTransaction, httpTransaction); // Start the connection thread to communicate with the client
         httpTransaction->setThread(t);
         garbageCollector->addHTTPTransaction(httpTransaction);
         // Start the HTTPTransaction thread

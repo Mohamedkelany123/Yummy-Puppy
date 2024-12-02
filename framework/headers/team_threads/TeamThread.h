@@ -63,6 +63,8 @@ class TeamThread: public std::thread
             TeamThread::thread_mapping_lock.lock();
             TeamThread::thread_mapping.erase(my_id);
             TeamThread::thread_mapping_lock.unlock();
+            if (this->joinable())
+                std::terminate();
         }
 };
 
