@@ -2,7 +2,7 @@
 #define PSQLABSTARCTORMITERATOR_H
 
 #include <PSQLAbstractQueryIterator.h>
-
+#include <TeamThread.h>
 
 
 
@@ -182,16 +182,16 @@ class PSQLAbstractORMIterator:public PSQLAbstractQueryIterator {
                 cout << "Starting multi-threading execution" << endl;
 
                 vector <PSQLQueryPartition * > * p = ((PSQLQuery *)this->psqlQuery)->partitionResults(partitions_count);
-                vector <thread *> threads;
+                vector <TeamThread *> threads;
                 mutex shared_lock;
                 for (size_t   i  = 0 ; i < p->size() ; i ++)
                 {
-                    thread * t = new thread(process_internal, this,data_source_name, (*p)[i],i,&shared_lock,extra_params,f);
+                    TeamThread * t = createTeamLeadIfNot(process_internal, this,data_source_name, (*p)[i],i,&shared_lock,extra_params,f);
                     threads.push_back(t);
                 }
                 for (size_t   i  = 0 ; i < p->size() ; i ++)
                 {
-                        thread * t = threads[i];
+                        TeamThread * t = threads[i];
                         t->join();
                         delete (t);
                 }
