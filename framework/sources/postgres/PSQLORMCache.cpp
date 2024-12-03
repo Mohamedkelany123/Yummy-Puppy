@@ -154,6 +154,7 @@ bool PSQLORMCache::doesExist (string name,long _identifier)
 
 PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * psqlQuery,int partition_number)
 {
+
     PSQLAbstractORM * orm = NULL;
     string name = seeder->getORMName();
     long identifier = seeder->getIdentifier(psqlQuery);
@@ -186,6 +187,8 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
         update_thread_cache[partition_number][orm]=orm;
     
     update_cache_items_count++;
+    cout << "Adding with team thread: " << TeamThread::getTeamThreadId () <<  " for "  << orm->getTableName() << endl;
+
     return orm;
 }
 

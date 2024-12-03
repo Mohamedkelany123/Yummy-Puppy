@@ -123,6 +123,7 @@ void HTTPTransaction::threadMainBody()
 }
 void HTTPTransaction::startHTTPTransaction(HTTPTransaction *me)
 {
+    cout << "Starting transaction with Thread ID:" << thread::get_id() << endl;
     me->threadMainBody();
 }
 void HTTPTransaction::setThread(TeamThread *p_th)
