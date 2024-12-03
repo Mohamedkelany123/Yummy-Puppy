@@ -211,6 +211,10 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     }
     if (psqlAbstractORM->getIdentifier() == -1 )
     {
+        /************************ */
+
+        // insert into thread team insert cache
+        /************************ */
         insert_cache[name].push_back(psqlAbstractORM);
         for ( int i  = insert_thread_cache.size() ; i < (insert_cache_items_count%threads_count) +1 ; i++)
             insert_thread_cache.push_back(map <PSQLAbstractORM *,PSQLAbstractORM *> ());
@@ -224,6 +228,11 @@ PSQLAbstractORM * PSQLORMCache::add(string name,PSQLAbstractORM * psqlAbstractOR
     { 
         if (update_cache.find(name) != update_cache.end()) 
         {
+        /************************ */
+
+        // insert into thread team insert cache
+        /************************ */
+
             if (update_cache[name].find(psqlAbstractORM->getIdentifier()) != update_cache[name].end()) {
                 orm = update_cache[name][psqlAbstractORM->getIdentifier()];
                 update_cache[name][psqlAbstractORM->getIdentifier()]= psqlAbstractORM;

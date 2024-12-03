@@ -8,6 +8,10 @@ class PSQLORMCache
         map <string,map <long,PSQLAbstractORM *>> update_cache;
         map <string,vector <PSQLAbstractORM *>> insert_cache;
 
+
+        map <std::thread::id,vector<PSQLAbstractORM *>> team_thread_update_cache;
+        map <std::thread::id,vector<PSQLAbstractORM *>> team_thread_insert_cache;
+
         vector <map <PSQLAbstractORM *,PSQLAbstractORM *>> update_thread_cache;
         vector <map <PSQLAbstractORM *,PSQLAbstractORM *>> insert_thread_cache;
         int threads_count;
