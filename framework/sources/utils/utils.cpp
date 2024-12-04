@@ -135,6 +135,28 @@ void BDate::inc_days (int days)
     // mktime(&tm);
     (*this)();
 }
+
+void BDate::inc_year(){
+    tm.tm_year++;
+    // mktime(&tm);
+    (*this)();
+}
+void BDate::dec_year(){
+    tm.tm_year--;
+    // mktime(&tm);
+    (*this)();
+}
+void BDate::dec_years(int _years){
+    tm.tm_year-= _years ;
+    // mktime(&tm);
+    (*this)();
+}
+
+void BDate::inc_years(int _years){
+    tm.tm_year+= _years;
+    // mktime(&tm);
+    (*this)(); 
+}
 void BDate::dec_days (int days)
 {
     tm.tm_mday-= days;
@@ -144,6 +166,15 @@ void BDate::dec_days (int days)
 int BDate::get_day()
 {
     return tm.tm_mday;
+}
+
+int BDate::get_month()
+{
+    return tm.tm_mon;
+}
+int BDate::get_year()
+{
+    return tm.tm_year;
 }
 void BDate::set_day (int _day)
 {
@@ -155,8 +186,7 @@ void BDate::set_day (int _day)
                 (*this)();
         }
 }
-int BDate::diff_days(BDate bdate)
-{
+int BDate::diff_days(BDate bdate){
         return ((*this)() - bdate())/(60*60*24);
 }
 bool BDate::is_leap_year()
