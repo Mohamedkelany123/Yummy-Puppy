@@ -734,7 +734,6 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
     time_t start = time (NULL);
     mutex shared_lock;
     cout << "Executing PSQL Query on the remote server" << endl;
-
     
 
     if ( test_data_file  !="" && !serialize)
@@ -772,12 +771,23 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
         //     (*p)[i]->dump();
         // exit(1);
         vector <TeamThread *> threads;
+        TeamThread * t = NULL;
+
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
             // cout << "----------------------In for LOOP-----------------------:"<< data_source_name << (*p)[i]<< &shared_lock<< endl;
-            TeamThread * t = NULL;
             if (aggregate_flag)
+            {
+/*                if ( threads.size()>0 && i ==1)
+                {
+                    if ( t->get_type () == TEAMLEAD)
+                        ((TeamLeadThread *) t)->createTeamMemberThread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+                    else ((TeamMemberThread *) t)->createTeamMemberThread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+                }
+                else */
                 t = createTeamLeadIfNot(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+
+            }
             //else  t = new TeamThread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
             threads.push_back(t);
         }

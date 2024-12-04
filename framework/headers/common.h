@@ -95,6 +95,7 @@ using json = nlohmann::json;
 #define INITENDPOINT extern "C" HTTPService *create_object(PSQLControllerMaster * _psqlControllerMaster, json _config)\
         {\
                 psqlController.initialize(_psqlControllerMaster);\
+                psqlController.setBatchMode(false);\
                 psqlController.addDefault("created_at","now()",true,true);\
                 psqlController.addDefault("updated_at","now()",true,true);\
                 psqlController.addDefault("updated_at","now()",false,true);
