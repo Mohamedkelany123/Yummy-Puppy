@@ -16,6 +16,7 @@ class PSQLController
         bool checkInitialization();
         void createTeamThreadCache(string data_source_name);
         bool batch_mode;
+        thread::id getTeamThreadId();
 
     public:
         void setBatchMode (bool _batch_mode=true);

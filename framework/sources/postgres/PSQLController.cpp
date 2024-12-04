@@ -11,15 +11,21 @@ bool PSQLController::checkInitialization ()
     return true;
 }
 
+thread::id PSQLController::getTeamThreadId()
+{
+    if (!this->batch_mode)
+        return TeamThread::getTeamThreadId();
+    else
+        return std::thread::id{};
+}
 
 void PSQLController::createTeamThreadCache(string data_source_name)
-{
-
-    std::thread::id team_id = std::thread::id{};
-    if (!this->batch_mode) team_id=TeamThread::getTeamThreadId();
-    if ( ((*psqlORMCaches)[data_source_name])->find(team_id) ==  ((*psqlORMCaches)[data_source_name])->end())
-        (*psqlORMCaches)[data_source_name]->operator[](team_id) = new PSQLORMCache();
+{   
+    thread::id team_thread_id = getTeamThreadId();
+    if ( ((*psqlORMCaches)[data_source_name])->find(team_thread_id) ==  ((*psqlORMCaches)[data_source_name])->end())
+        (*psqlORMCaches)[data_source_name]->operator[](team_thread_id) = new PSQLORMCache();
 }
+
 
 void PSQLController::setBatchMode (bool _batch_mode)
 {
@@ -74,7 +80,7 @@ PSQLAbstractORM * PSQLController::addToORMCache(string name,PSQLAbstractORM * ps
         return nullptr;
     data_source_name = checkDefaultDatasource(data_source_name);
     createTeamThreadCache(data_source_name);
-    return (*psqlORMCaches)[data_source_name]->operator[](TeamThread::getTeamThreadId())->add(name,psqlAbstractORM);
+    return (*psqlORMCaches)[data_source_name]->operator[](getTeamThreadId())->add(name,psqlAbstractORM);
 }
 PSQLAbstractORM * PSQLController::addToORMCache(PSQLAbstractORM * seeder, AbstractDBQuery * _psqlQuery, int _partition_number, string data_source_name )
 {
@@ -82,7 +88,7 @@ PSQLAbstractORM * PSQLController::addToORMCache(PSQLAbstractORM * seeder, Abstra
         return nullptr;
     data_source_name = checkDefaultDatasource(data_source_name);
     createTeamThreadCache(data_source_name);
-    return (*psqlORMCaches)[data_source_name]->operator[](TeamThread::getTeamThreadId())->add(seeder,_psqlQuery,_partition_number);
+    return (*psqlORMCaches)[data_source_name]->operator[](getTeamThreadId())->add(seeder,_psqlQuery,_partition_number);
 }
 
 void PSQLController::ORMCommitAll(bool parallel,bool transaction,bool clean_updates)
@@ -98,8 +104,12 @@ void PSQLController::ORMCommit(bool parallel,bool transaction,bool clean_updates
     if(!checkInitialization())
         return;
     data_source_name = checkDefaultDatasource(data_source_name);
-    for (auto cache : *((*psqlORMCaches)[data_source_name]))
+    for (auto cache : *((*psqlORMCaches)[data_source_name])){
+        cout << "COMMITING DATASRC :" << data_source_name << endl;
+        cout << "COMMITING CACHE :" << cache.first << endl;
         cache.second->commit(data_source_name, parallel,transaction,clean_updates);
+
+    }
 }
 
 void PSQLController::ORMCommit_me(bool parallel,bool transaction,bool clean_updates)
@@ -119,13 +129,14 @@ void PSQLController::ORMCommit_me(bool parallel,bool transaction,bool clean_upda
 {
     if(!checkInitialization())
         return;
-    std::thread::id team_id = TeamThread::getTeamThreadId();
+    std::thread::id team_id = getTeamThreadId();
 
     data_source_name = checkDefaultDatasource(data_source_name);
    
-        if ( ((*psqlORMCaches)[data_source_name])->find(team_id) !=  ((*psqlORMCaches)[data_source_name])->end())
-             ((*psqlORMCaches)[data_source_name])->operator[](team_id)->commit(data_source_name, parallel,transaction,clean_updates);
-
+        if ( ((*psqlORMCaches)[data_source_name])->find(team_id) !=  ((*psqlORMCaches)[data_source_name])->end()){
+            ((*psqlORMCaches)[data_source_name])->operator[](team_id)->unlock_current_thread_orms();
+            ((*psqlORMCaches)[data_source_name])->operator[](team_id)->commit(data_source_name, parallel,transaction,clean_updates);
+        }
 }
 
 void PSQLController::ORMFlush()
@@ -158,7 +169,7 @@ void PSQLController::ORMFlush_me(string data_source_name)
 {
     if(!checkInitialization())
         return;
-    std::thread::id team_id = TeamThread::getTeamThreadId();
+    std::thread::id team_id = getTeamThreadId();
 
     data_source_name = checkDefaultDatasource(data_source_name);
    

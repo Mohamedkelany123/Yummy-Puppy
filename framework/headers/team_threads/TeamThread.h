@@ -36,7 +36,7 @@ class TeamThread: public std::thread
         }
         template< class F, class... Args >
         TeamThread * createTeamMemberThread ( F&& f, Args&&... args ){
-
+            return NULL;
         }
 
         virtual THREADTYPE get_type()
@@ -57,9 +57,9 @@ class TeamThread: public std::thread
             return team_id;
         }
         virtual ~TeamThread(){
-            cout << "THREAD: ~TeamThread" << endl;
-            cout << "THREAD: my_id: " << my_id << endl;
-            cout << "THREAD: team_id: " << team_id << endl;
+            // cout << "THREAD: ~TeamThread" << endl;
+            // cout << "THREAD: my_id: " << my_id << endl;
+            // cout << "THREAD: team_id: " << team_id << endl;
             TeamThread::thread_mapping_lock.lock();
             TeamThread::thread_mapping.erase(my_id);
             TeamThread::thread_mapping_lock.unlock();
@@ -82,13 +82,13 @@ class TeamMemberThread:public TeamThread
         {
             team_id = _team_id;
             type = TEAMMEMBER;
-            cout << "team_id: " << team_id << endl;
+            // cout << "team_id: " << team_id << endl;
         }
 
         template< class F, class... Args >
         TeamThread * createTeamMemberThread ( F&& f, Args&&... args ){
-            cout << "THREAD: TeamMemberThread::createTeamMemberThread" << endl;
-            cout << "THREAD: team_id: " << team_id << endl;
+            // cout << "THREAD: TeamMemberThread::createTeamMemberThread" << endl;
+            // cout << "THREAD: team_id: " << team_id << endl;
             return new TeamMemberThread(team_id,std::forward<F>(f),std::forward<Args>(args) ...);
         }
 
@@ -110,15 +110,15 @@ class TeamLeadThread:public TeamThread
         template< class F, class... Args >
         explicit TeamLeadThread( F&& f, Args&&... args ) : TeamThread(std::forward<F>(f),std::forward<Args>(args) ...)
         {
-                cout << "THREAD: TeamLeadThread" << endl;
+                // cout << "THREAD: TeamLeadThread" << endl;
                 type = TEAMLEAD;
                 team_id = this->get_id();
         }
 
         template< class F, class... Args >
         TeamThread * createTeamMemberThread ( F&& f, Args&&... args ){
-            cout << "THREAD: TeamLeadThread::createTeamMemberThread" << endl;
-            cout << "THREAD: team_id: " << team_id << endl;
+            // cout << "THREAD: TeamLeadThread::createTeamMemberThread" << endl;
+            // cout << "THREAD: team_id: " << team_id << endl;
             return new TeamMemberThread(team_id,std::forward<F>(f),std::forward<Args>(args) ...);
         }
         virtual ~TeamLeadThread(){
