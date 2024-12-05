@@ -27,8 +27,15 @@ void BDate::set_date (string date_string)
 }
 BDate::BDate()
 {
-    ConfigReader conf = ConfigReader("config.json");
-    string platform = conf.GetValue("server_config", "platform");
+    string platform = "";
+    try{
+        ConfigReader conf = ConfigReader("config.json");
+        platform = conf.GetValue("server_config", "platform");
+
+    }
+    catch (exception e){
+        cerr<<"No config found using regular time for BDate"<<endl;
+    }
     if (platform == "TEST"){
         string date_string = TestManager::getInstance().getTestDate();
         if (date_string == ""){
