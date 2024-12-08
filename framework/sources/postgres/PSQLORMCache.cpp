@@ -188,7 +188,6 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
         update_thread_cache[partition_number][orm]=orm;
     
     update_cache_items_count++;
-    cout << "Adding with team thread: " << TeamThread::getTeamThreadId () <<  " for "  << orm->getTableName() << endl;
 
     return orm;
 }
