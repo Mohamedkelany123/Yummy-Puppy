@@ -48,12 +48,18 @@ class BDate
         void inc_month ();
         void dec_month ();
         void inc_months (int months=1);
+        void inc_year();
+        void inc_years(int _years);
+        void dec_year();
+        void dec_years (int _years);
         void dec_months (int months=1);
         void dec_day ();
         void inc_day ();
         void inc_days (int days=1);
         void dec_days (int days=1);
         int get_day();
+        int get_month();
+        int get_year();
         void set_day(int _day);
         int get_max_month_date();
         int diff_days(BDate bdate);
