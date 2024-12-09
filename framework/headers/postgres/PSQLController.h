@@ -30,8 +30,8 @@ class PSQLController
         PSQLAbstractORM * addToORMCache(PSQLAbstractORM * seeder, AbstractDBQuery * _psqlQuery, int _partition_number=-1, string data_source_name = "");
         void ORMCommitAll(bool parallel=false,bool transaction=false,bool clean_updates=false);
         void ORMCommit(bool parallel,bool transaction,bool clean_updates, string data_source_name = "");
-        void ORMCommit_me(bool transaction,bool clean_updates);
-        void ORMCommit_me(bool transaction=false,bool clean_updates=true,string data_source_name="");
+        void ORMCommit_me(bool transaction=false,bool clean_updates=true);
+        void ORMCommit_me(string data_source_name, bool transaction=false,bool clean_updates=true);
         void ORMFlush();
         void ORMFlush(string data_source_name);
         void ORMFlush_me();
