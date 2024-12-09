@@ -135,13 +135,13 @@ void PSQLController::ORMCommit(bool parallel,bool transaction,bool clean_updates
         cache.second->commit(data_source_name, parallel,transaction,clean_updates);
 }
 
-void PSQLController::ORMCommit_me(bool parallel,bool transaction,bool clean_updates)
+void PSQLController::ORMCommit_me(bool transaction,bool clean_updates)
 {
     for (auto cache_group : *psqlORMCaches)
-        ORMCommit_me( parallel, transaction, clean_updates,cache_group.first);
+        ORMCommit_me(transaction, clean_updates,cache_group.first);
 }
 
-void PSQLController::ORMCommit_me(bool parallel,bool transaction,bool clean_updates,string data_source_name)
+void PSQLController::ORMCommit_me(bool transaction,bool clean_updates,string data_source_name)
 {
     if(!checkInitialization())
         return;
@@ -153,10 +153,12 @@ void PSQLController::ORMCommit_me(bool parallel,bool transaction,bool clean_upda
         
         //Unlock all orms as they are locked from PSQLORMCache::add() function.
         cache->unlock_current_thread_orms();
-        cache->commit(data_source_name, parallel,transaction,clean_updates);
+        cache->commit(data_source_name, false,transaction,clean_updates);
 
-        ((*psqlORMCaches)[data_source_name])->erase(team_id);
-        delete cache;
+        if(clean_updates){
+            ((*psqlORMCaches)[data_source_name])->erase(team_id);
+            delete cache;
+        }
     }
 }
 
