@@ -177,7 +177,7 @@ int BDate::get_day()
 
 int BDate::get_month()
 {
-    return tm.tm_mon;
+    return tm.tm_mon+1;
 }
 int BDate::get_year()
 {
@@ -186,7 +186,7 @@ int BDate::get_year()
 void BDate::set_day (int _day)
 {
         if ( _day >0 &&
-                ((_day < 32 && (tm.tm_mon == 1 || tm.tm_mon==3 || tm.tm_mon==5 || tm.tm_mon==7 || tm.tm_mon==8 || tm.tm_mon==10 || tm.tm_mon==12)) || _day< 31 ))
+                ((_day < 32 && (tm.tm_mon == 0 || tm.tm_mon==2 || tm.tm_mon==4 || tm.tm_mon==6 || tm.tm_mon==7 || tm.tm_mon==9|| tm.tm_mon==11)) || _day< 31 ))
         {
                 tm.tm_mday = _day;
                 mktime(&tm);
@@ -198,14 +198,14 @@ int BDate::diff_days(BDate bdate){
 }
 bool BDate::is_leap_year()
 {
-      return (tm.tm_year % 4 == 0 && tm.tm_year % 100 != 0) || (tm.tm_year % 400 == 0);
+      return ((tm.tm_year+1900) % 4 == 0 && (tm.tm_year+1900) % 100 != 0) || ((tm.tm_year+1900) % 400 == 0);
 }
 
 int BDate::get_month_days()
 {
-        if ( tm.tm_mon == 2 )
+        if ( tm.tm_mon == 1 )
                 if ( is_leap_year() ) return 29; else return 28;
-        else if (tm.tm_mon == 1 || tm.tm_mon==3 || tm.tm_mon==5 || tm.tm_mon==7 || tm.tm_mon==8 || tm.tm_mon==10 || tm.tm_mon==12) return 31;
+        else if (tm.tm_mon == 0 || tm.tm_mon==2 || tm.tm_mon==4 || tm.tm_mon==6 || tm.tm_mon==7 || tm.tm_mon==9|| tm.tm_mon==11) return 31;
         else return 30;
 }
 string BDate::getDateString()
@@ -242,8 +242,8 @@ string BDate::getFullDateString()
 
 void BDate::printTM()
 {
-    printf ("Year: %d\n",tm.tm_year);
-    printf ("Month: %d\n",tm.tm_mon);
+    printf ("Year: %d\n",tm.tm_year+1900);
+    printf ("Month: %d\n",tm.tm_mon+1);
     printf ("day: %d\n",tm.tm_mday);
     printf ("Hr: %d\n",tm.tm_hour);
     printf ("min: %d\n",tm.tm_min);
