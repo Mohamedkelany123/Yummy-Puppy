@@ -95,6 +95,7 @@ using json = nlohmann::json;
 #define INITENDPOINT extern "C" HTTPService *create_object(PSQLControllerMaster * _psqlControllerMaster, json _config)\
         {\
                 psqlController.initialize(_psqlControllerMaster);\
+                psqlController.setBatchMode(false);\
                 psqlController.addDefault("created_at","now()",true,true);\
                 psqlController.addDefault("updated_at","now()",true,true);\
                 psqlController.addDefault("updated_at","now()",false,true);
@@ -145,8 +146,10 @@ enum BuySessionStep {STARTED, CONTRACT_SCANNED, PROMISSORY_SCANNED, OTP_INSERTED
 enum SessionType {BUY_SESSION, REFUND_SESSION, ONBOARDING_SESSION};
 
 enum DocumentType { INQUIRY, AGREEMENT, PROMISSORY };
-// #define TIME_ZONE_OFFEST 2
 
+enum OtpState { FRAUD_LINK=1, SMS_OTP, NOTIFICATION_OTP, DOWNLOAD_LINK};
+        
+enum SmsTagType {VODAFONE = 1, TWILLIO, ORANGE, VICTORY, INFOBIP};
 
 #define force_inline 
 

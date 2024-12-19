@@ -1,6 +1,7 @@
 #include <PSQLORMCache.h>
 #include <PSQLController.h>
 #include <common.h>
+#include <TeamThread.h>
 
 bool PSQLORMCache::commit_parallel_internal (PSQLORMCache * me,int t_index,mutex * shared_lock,PSQLConnection * _psqlConnection,vector <bool> * threads_results, bool transactional, bool orm_transaction)
 {
@@ -154,6 +155,7 @@ bool PSQLORMCache::doesExist (string name,long _identifier)
 
 PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * psqlQuery,int partition_number)
 {
+
     PSQLAbstractORM * orm = NULL;
     string name = seeder->getORMName();
     long identifier = seeder->getIdentifier(psqlQuery);
@@ -186,6 +188,7 @@ PSQLAbstractORM * PSQLORMCache::add(PSQLAbstractORM * seeder,AbstractDBQuery * p
         update_thread_cache[partition_number][orm]=orm;
     
     update_cache_items_count++;
+
     return orm;
 }
 

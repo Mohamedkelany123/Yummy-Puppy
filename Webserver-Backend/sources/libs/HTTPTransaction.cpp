@@ -123,9 +123,10 @@ void HTTPTransaction::threadMainBody()
 }
 void HTTPTransaction::startHTTPTransaction(HTTPTransaction *me)
 {
+    cout << "Starting transaction with Thread ID:" << std::this_thread::get_id() << endl;
     me->threadMainBody();
 }
-void HTTPTransaction::setThread(std::thread *p_th)
+void HTTPTransaction::setThread(TeamThread *p_th)
 {
     th = p_th;
 }

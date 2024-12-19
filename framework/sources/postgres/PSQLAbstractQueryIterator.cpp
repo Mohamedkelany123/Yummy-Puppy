@@ -2,7 +2,7 @@
 #include <PSQLController.h>
 #include <FileReader.h>
 #include <FileWriter.h>
-
+#include <TeamThread.h>
 
 PSQLAbstractQueryIterator::PSQLAbstractQueryIterator(string _data_source_name,string _table_name, int _partition_number, string _test_data_folder)
 {
@@ -666,22 +666,22 @@ void PSQLJoinQueryIterator::process(int partitions_count,std::function<void(map 
             for ( int i  = 0 ; i < p->size() ; i ++)
                 (*p)[i]->dump();
 
-            vector <thread *> threads;
+            vector <TeamThread *> threads;
             mutex shared_lock;
             for ( int i  = 0 ; i < p->size() ; i ++)
             {
                 // cout << "----------------------In for LOOP-----------------------:"<< data_source_name << (*p)[i]<< &shared_lock<< endl;
-                thread * t = NULL;
+                TeamThread * t = NULL;
                 /* if (aggregate_flag)
-                    t = new thread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
-                else  */ t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+                    t = new TeamThread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+                else  */ t = createTeamLeadIfNot(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
                 threads.push_back(t);
             }
             // cout << "After Threads Creation" << endl;
 
             for ( int i  = 0 ; i < p->size() ; i ++)
             {
-                    thread * t = threads[i];
+                    TeamThread * t = threads[i];
                     t->join();
                     delete (t);
                     delete((*p)[i]);
@@ -744,7 +744,6 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
     time_t start = time (NULL);
     mutex shared_lock;
     cout << "Executing PSQL Query on the remote server" << endl;
-
     
 
     if ( test_data_file  !="" && !serialize)
@@ -781,24 +780,35 @@ void PSQLJoinQueryIterator::process_aggregate(int partitions_count,std::function
         // for ( int i  = 0 ; i < p->size() ; i ++)
         //     (*p)[i]->dump();
         // exit(1);
-        vector <thread *> threads;
+        vector <TeamThread *> threads;
+        TeamThread * t = NULL;
+
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
             // cout << "----------------------In for LOOP-----------------------:"<< data_source_name << (*p)[i]<< &shared_lock<< endl;
-            thread * t = NULL;
             if (aggregate_flag)
-                t = new thread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
-            //else  t = new thread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+            {
+/*                if ( threads.size()>0 && i ==1)
+                {
+                    if ( t->get_type () == TEAMLEAD)
+                        ((TeamLeadThread *) t)->createTeamMemberThread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+                    else ((TeamMemberThread *) t)->createTeamMemberThread(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+                }
+                else */
+                t = createTeamLeadIfNot(process_internal_aggregate,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
+
+            }
+            //else  t = new TeamThread(process_internal,data_source_name,this,(*p)[i],i,&shared_lock,extras,f);
             threads.push_back(t);
         }
         // cout << "After Threads Creation" << endl;
 
         for ( int i  = 0 ; i < p->size() ; i ++)
         {
-                thread * t = threads[i];
-                // cout << "BEFORE Joining on thread #" << i << endl;
+                TeamThread * t = threads[i];
+                // cout << "BEFORE Joining on TeamThread #" << i << endl;
                 t->join();
-                // cout << "AFTER Joining on thread #" << i << endl;
+                // cout << "AFTER Joining on TeamThread #" << i << endl;
 
                 delete (t);
                 delete((*p)[i]);

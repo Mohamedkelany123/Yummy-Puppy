@@ -19,6 +19,9 @@ set_target_properties(${FRAMEWORK_LIB_NAME} PROPERTIES
     PUBLIC_HEADER "${HEADER_FILES}"
 )
 
+target_compile_definitions(${FRAMEWORK_LIB_NAME} PRIVATE BATCH_MODE)
+
+
 #compiling as a system library and creating necessary config file to be able to find package from any external project
 install_and_create_config(${FRAMEWORK_LIB_NAME})
 

@@ -2,19 +2,24 @@
 #define PSQLCONTROLLER_H
 #include <PSQLConnectionManager.h>
 #include <PSQLORMCache.h>
+#include <TeamThread.h>
 
 
 class PSQLController
 {
     protected:
         PSQLConnectionManager * psqlConnectionManager;
-        map <string, PSQLORMCache *> * psqlORMCaches;
+        map <string, map<std::thread::id,PSQLORMCache *> *> * psqlORMCaches;
         map <string,pair<string,bool>> * insert_default_values;
         map <string,pair<string,bool>> * update_default_values;
         string checkDefaultDatasource(string data_source_name);
         bool checkInitialization();
+        void createTeamThreadCache(string data_source_name);
+        bool batch_mode;
+        thread::id getTeamThreadId();
 
     public:
+        void setBatchMode (bool _batch_mode=true);
         virtual void initialize(PSQLController * psqlControllerMaster)=0;
         PSQLController();
         bool addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password);
@@ -24,13 +29,13 @@ class PSQLController
         PSQLAbstractORM * addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM, string data_source_name = "");
         PSQLAbstractORM * addToORMCache(PSQLAbstractORM * seeder, AbstractDBQuery * _psqlQuery, int _partition_number=-1, string data_source_name = "");
         void ORMCommitAll(bool parallel=false,bool transaction=false,bool clean_updates=false);
-        void ORMCommitAll(string name);
-        void ORMCommit(string name,long id);
         void ORMCommit(bool parallel,bool transaction,bool clean_updates, string data_source_name = "");
-        void ORMCommit(string name, string data_source_name = "");
+        void ORMCommit_me(bool transaction=false,bool clean_updates=true);
+        void ORMCommit_me(string data_source_name, bool transaction=false,bool clean_updates=true);
         void ORMFlush();
-        void ORMFlush(string name);
-        void ORMFlush(string name,long id);
+        void ORMFlush(string data_source_name);
+        void ORMFlush_me();
+        void ORMFlush_me(string data_source_name);
         int getDataSourceConnectionCount(string data_source_name);
         void setAllORMCacheThreads (int _threads_count);
         void setORMCacheThreads (int _threads_count, string data_source_name = "");
@@ -41,7 +46,7 @@ class PSQLController
         map <string,pair<string,bool>> * getInsertDefaultValues();
         int getCacheCounter (string _data_source_name);
         PSQLConnectionManager * get_psqlConnectionManager();
-        map <string, PSQLORMCache *> * get_psqlORMCaches();
+        map <string, map<std::thread::id,PSQLORMCache *> *>  * get_psqlORMCaches();
         virtual ~PSQLController();
 };
 

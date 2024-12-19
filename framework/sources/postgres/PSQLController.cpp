@@ -1,5 +1,6 @@
 #include <PSQLController.h>
 
+
 bool PSQLController::checkInitialization ()
 {
     if(this->psqlConnectionManager == NULL || this->psqlORMCaches == NULL || this->insert_default_values == NULL || this->update_default_values == NULL)
@@ -10,25 +11,68 @@ bool PSQLController::checkInitialization ()
     return true;
 }
 
+/*
+    Default Behavior:
+    - The controller is initialized with batch mode = true. 
+    - In batch mode, the application uses a single cache for all requests.
+
+    When to Set Batch Mode:
+    - If you're working with endpoints and need separate caches for each thread, 
+    you will need to set the controllers batch mode to false.
+*/
+thread::id PSQLController::getTeamThreadId()
+{
+    if (!this->batch_mode)
+        return TeamThread::getTeamThreadId();
+    else
+        return std::thread::id{};
+}
+
+//Ensures that a cache is created for the current team thread if it doesn't already exist
+void PSQLController::createTeamThreadCache(string data_source_name)
+{   
+    thread::id team_thread_id = getTeamThreadId();
+    if ( ((*psqlORMCaches)[data_source_name])->find(team_thread_id) ==  ((*psqlORMCaches)[data_source_name])->end())
+        (*psqlORMCaches)[data_source_name]->operator[](team_thread_id) = new PSQLORMCache();
+}
+
+
+void PSQLController::setBatchMode (bool _batch_mode)
+{
+    batch_mode = _batch_mode;
+}
+
 PSQLController::PSQLController()
 {
     this->psqlConnectionManager=NULL;
     this->psqlORMCaches=NULL;
     this->insert_default_values=NULL;
     this->update_default_values=NULL;
+    this->batch_mode = true;
 }
+/*
+    Adds a new data source to the controller with the provided connection details.
+    Initializes a new cache for the default thread and stores it in the psqlORMCaches map.
+*/
 bool PSQLController::addDataSource(string data_source_name,string _hostname,int _port,string _database,string _username,string _password)
 {
     if(!checkInitialization())
         return false;
-    (*psqlORMCaches)[data_source_name] = new PSQLORMCache();
+    (*psqlORMCaches)[data_source_name] = new map<std::thread::id,PSQLORMCache *> ();
+    (*psqlORMCaches)[data_source_name]->operator[](std::thread::id{}) = new PSQLORMCache();
     return psqlConnectionManager->addDataSource(data_source_name,_hostname,_port,_database,_username,_password);
 }
+//Checks if the data source is initialized
 bool PSQLController::isDataSource(string data_source_name)
 {
     return psqlConnectionManager->isDataSource(data_source_name);
 }  
 
+
+/*
+    Returns the default data source if an empty string is passed.
+    If a non-empty data source name is provided, it checks whether the data source is available.
+*/
 string PSQLController::checkDefaultDatasource(string data_source_name){
     if(!checkInitialization())
         return "";
@@ -38,47 +82,48 @@ string PSQLController::checkDefaultDatasource(string data_source_name){
 
     return data_source_name;
 }
+//Returns a psqlconnection to the database from the psqlConnectionManagers connection pool.
 PSQLConnection * PSQLController::getPSQLConnection(string data_source_name)
 {
     if(!checkInitialization())
         return nullptr;
     return psqlConnectionManager->getPSQLConnection(data_source_name);
 }
+
+//Releases the psqlconnection back to the psqlConnectionManagers connection pool.
 bool PSQLController::releaseConnection (string data_source_name,PSQLConnection * psqlConnection)
 {
     if(!checkInitialization())
         return false;
     return psqlConnectionManager->releaseConnection(data_source_name,psqlConnection);
 }
+
+//Adds an entity to the ORM cache
 PSQLAbstractORM * PSQLController::addToORMCache(string name,PSQLAbstractORM * psqlAbstractORM, string data_source_name)
 {
     if(!checkInitialization())
         return nullptr;
     data_source_name = checkDefaultDatasource(data_source_name);
-    return (*psqlORMCaches)[data_source_name]->add(name,psqlAbstractORM);
+    createTeamThreadCache(data_source_name);
+    return (*psqlORMCaches)[data_source_name]->operator[](getTeamThreadId())->add(name,psqlAbstractORM);
 }
+
 PSQLAbstractORM * PSQLController::addToORMCache(PSQLAbstractORM * seeder, AbstractDBQuery * _psqlQuery, int _partition_number, string data_source_name )
 {
     if(!checkInitialization())
         return nullptr;
     data_source_name = checkDefaultDatasource(data_source_name);
-    return (*psqlORMCaches)[data_source_name]->add(seeder,_psqlQuery,_partition_number);
+    createTeamThreadCache(data_source_name);
+    return (*psqlORMCaches)[data_source_name]->operator[](getTeamThreadId())->add(seeder,_psqlQuery,_partition_number);
 }
 
+// Commits changes for all data sources and their associated sub-caches for all team threads. 
 void PSQLController::ORMCommitAll(bool parallel,bool transaction,bool clean_updates)
 {
     if(!checkInitialization())
         return;
-    for (auto cache : *psqlORMCaches){
-        ORMCommit(parallel, transaction, clean_updates, cache.first);
-    }
-}
-void PSQLController::ORMCommitAll(string name)
-{
-    if(!checkInitialization())
-        return;
-    for (auto cache : *psqlORMCaches){
-        ORMCommit(name, cache.first);
+    for (auto cache_group : *psqlORMCaches){
+        ORMCommit(parallel, transaction, clean_updates, cache_group.first);
     }
 }
 void PSQLController::ORMCommit(bool parallel,bool transaction,bool clean_updates, string data_source_name)
@@ -86,33 +131,75 @@ void PSQLController::ORMCommit(bool parallel,bool transaction,bool clean_updates
     if(!checkInitialization())
         return;
     data_source_name = checkDefaultDatasource(data_source_name);
-    (*psqlORMCaches)[data_source_name]->commit(data_source_name, parallel,transaction,clean_updates);
+    for (auto cache : *((*psqlORMCaches)[data_source_name]))
+        cache.second->commit(data_source_name, parallel,transaction,clean_updates);
 }
-void PSQLController::ORMCommit(string name, string data_source_name)
+
+void PSQLController::ORMCommit_me(bool transaction,bool clean_updates)
+{
+    for (auto cache_group : *psqlORMCaches)
+        ORMCommit_me(cache_group.first, transaction, clean_updates);
+}
+
+void PSQLController::ORMCommit_me(string data_source_name, bool transaction,bool clean_updates)
 {
     if(!checkInitialization())
         return;
-    data_source_name = checkDefaultDatasource(data_source_name);
-    (*psqlORMCaches)[data_source_name]->commit(data_source_name, name);
-}
-void PSQLController::ORMCommit(string name,long id)
-{
+    std::thread::id team_id = getTeamThreadId();
 
+    data_source_name = checkDefaultDatasource(data_source_name);
+    if ( ((*psqlORMCaches)[data_source_name])->find(team_id) !=  ((*psqlORMCaches)[data_source_name])->end()){
+        PSQLORMCache * cache = ((*psqlORMCaches)[data_source_name])->operator[](team_id);
+        
+        //Unlock all orms as they are locked from PSQLORMCache::add() function.
+        cache->unlock_current_thread_orms();
+        cache->commit(data_source_name, false,transaction,clean_updates);
+
+        if(clean_updates){
+            ((*psqlORMCaches)[data_source_name])->erase(team_id);
+            delete cache;
+        }
+    }
 }
+
+
 void PSQLController::ORMFlush()
 {
     if(!checkInitialization())
         return;
-    for (auto cache : *psqlORMCaches)
+    for (auto cache_group : *psqlORMCaches)
+        ORMFlush(cache_group.first);
+
+
+}
+void PSQLController::ORMFlush(string data_source_name)
+{
+    if(!checkInitialization())
+        return;
+    data_source_name = checkDefaultDatasource(data_source_name);
+    for (auto cache : *((*psqlORMCaches)[data_source_name]))
         cache.second->flush();
 
 }
-void PSQLController::ORMFlush(string name)
+
+void PSQLController::ORMFlush_me()
 {
+    for (auto cache_group : *psqlORMCaches)
+        ORMFlush_me(cache_group.first);
 
 }
-void PSQLController::ORMFlush(string name,long id)
+
+void PSQLController::ORMFlush_me(string data_source_name)
 {
+    if(!checkInitialization())
+        return;
+    std::thread::id team_id = getTeamThreadId();
+
+    data_source_name = checkDefaultDatasource(data_source_name);
+   
+    if ( ((*psqlORMCaches)[data_source_name])->find(team_id) !=  ((*psqlORMCaches)[data_source_name])->end())
+            ((*psqlORMCaches)[data_source_name])->operator[](team_id)->flush();
+
 }
 
 int PSQLController::getDataSourceConnectionCount(string data_source_name)
@@ -136,8 +223,10 @@ void PSQLController::setORMCacheThreads (int _threads_count, string data_source_
     if(!checkInitialization())
         return;
     data_source_name = checkDefaultDatasource(data_source_name);
-    (*psqlORMCaches)[data_source_name]->set_threads_count(_threads_count);
+    for (auto  cache : *((*psqlORMCaches)[data_source_name]))
+        cache.second->set_threads_count(_threads_count);
 }
+
 
 void PSQLController::unlock_all_current_thread_orms()
 {
@@ -151,9 +240,10 @@ void PSQLController::unlock_all_current_thread_orms()
 void PSQLController::unlock_current_thread_orms(string data_source_name)
 {
     if(!checkInitialization())
-        return;
+    return;
     data_source_name = checkDefaultDatasource(data_source_name);
-    (*psqlORMCaches)[data_source_name]->unlock_current_thread_orms();
+    for (auto  cache : *((*psqlORMCaches)[data_source_name]))
+        cache.second->unlock_current_thread_orms();
 }
 
 void PSQLController::addDefault(string name,string value, bool is_insert, bool is_func)
@@ -185,28 +275,37 @@ int PSQLController::getCacheCounter (string _data_source_name)
 {
     if(!checkInitialization())
         return -1;
-    return (*psqlORMCaches)[_data_source_name]->cache_counter;
+    _data_source_name = checkDefaultDatasource(_data_source_name);
+    int cache_counter = 0;
+    for (auto  cache : *((*psqlORMCaches)[_data_source_name]))
+        cache_counter += cache.second->cache_counter;
+    return cache_counter;
 }
 
 
 PSQLController::~PSQLController()
 {
+    if(this->psqlORMCaches != NULL)
+        for (auto cache_group : *psqlORMCaches) {
+            for ( auto cache : *(cache_group.second))
+                delete (cache.second);
+            delete (cache_group.second);
+        }
 }
 
 PSQLConnectionManager * PSQLController::get_psqlConnectionManager(){return psqlConnectionManager;}
-map <string, PSQLORMCache *> * PSQLController::get_psqlORMCaches(){return psqlORMCaches;}
+map <string, map<std::thread::id,PSQLORMCache *> *> * PSQLController::get_psqlORMCaches(){return psqlORMCaches;}
 
 
  //************************************************
 
-PSQLControllerMaster::PSQLControllerMaster()
+PSQLControllerMaster::PSQLControllerMaster():PSQLController()
 {
 
     psqlConnectionManager = new PSQLConnectionManager();
-    psqlORMCaches = new map <string, PSQLORMCache *>();
+    psqlORMCaches = new map <string, map<std::thread::id,PSQLORMCache *> *> ();
     insert_default_values = new map <string,pair<string,bool>>();
     update_default_values = new map <string,pair<string,bool>>();
-
     printf ("PSQL Controller Initialized\n");
     cout << "START MASTER CONSTRUCTOR:" << endl;
     cout << "psqlConnectionManager:" << psqlConnectionManager << endl;
@@ -223,13 +322,6 @@ PSQLControllerMaster::~PSQLControllerMaster()
 {   
     if(this->psqlConnectionManager != NULL)
         delete (psqlConnectionManager);
-
-    if(this->psqlORMCaches != NULL){
-        for (auto cache : *psqlORMCaches){
-           delete (cache.second);
-        }
-        delete (psqlORMCaches);
-    }
     
     if(this->insert_default_values != NULL)
         delete (insert_default_values);
@@ -260,7 +352,6 @@ void PSQLControllerSlave::initialize(PSQLController * psqlControllerMaster)
 }
 PSQLControllerSlave::~PSQLControllerSlave()
 {
-
 }
 
 #ifdef SHARED_LIBRARY_FLAG
