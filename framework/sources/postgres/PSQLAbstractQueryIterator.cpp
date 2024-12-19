@@ -72,7 +72,7 @@ bool PSQLAbstractQueryIterator::execute()
         sql += " limit "+to_string(limit);
     }
     
-    // cout << sql << endl;
+    cout << sql << endl;
     psqlQuery = psqlConnection->executeQuery(sql);
     if (psqlQuery != NULL) return true;
     else return false;

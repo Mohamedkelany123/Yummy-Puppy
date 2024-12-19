@@ -438,6 +438,11 @@ void PSQLORMCache::commit_sequential (string data_source_name, bool transaction,
     }
 
     long counter = 0;
+
+      cout << "Started commit squential "
+        << " || inserts = " << ( insert_cache.size()) 
+        << " || updates = " <<  (update_cache.size()) << endl;
+
     for (auto orm_cache: insert_cache)
     {
         for (auto orm_cache_item:orm_cache.second) 
@@ -446,6 +451,7 @@ void PSQLORMCache::commit_sequential (string data_source_name, bool transaction,
                 {
                     orm_cache_item->lock_me();
                     orm_cache_item->insert(psqlConnection);
+                    cout << "Inserting->" << orm_cache_item->getORMName() << ", id: " << orm_cache_item->getIdentifier() << endl;
                     orm_cache_item->unlock_me();
                 }
                 delete (orm_cache_item);
@@ -468,6 +474,7 @@ void PSQLORMCache::commit_sequential (string data_source_name, bool transaction,
                 {
                     orm_cache_item.second->lock_me();
                     orm_cache_item.second->update(psqlConnection);
+                    cout << "Updating->" << orm_cache_item.second->getORMName() << ", id: " << orm_cache_item.second->getIdentifier() << endl;
                     orm_cache_item.second->unlock_me();
                 }
 
