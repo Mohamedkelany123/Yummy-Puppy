@@ -135,16 +135,20 @@ void PSQLController::ORMCommit(bool parallel,bool transaction,bool clean_updates
         cache.second->commit(data_source_name, parallel,transaction,clean_updates);
 }
 
-void PSQLController::ORMCommit_me(bool transaction,bool clean_updates)
-{
+map<string, vector<long>> PSQLController::ORMCommit_me(bool transaction,bool clean_updates)
+{   
+    map<string, vector<long>> inserted_ids;
     for (auto cache_group : *psqlORMCaches)
-        ORMCommit_me(cache_group.first, transaction, clean_updates);
+        inserted_ids = ORMCommit_me(cache_group.first, transaction, clean_updates);
+    
+    return inserted_ids;
 }
 
-void PSQLController::ORMCommit_me(string data_source_name, bool transaction,bool clean_updates)
+map<string, vector<long>> PSQLController::ORMCommit_me(string data_source_name, bool transaction,bool clean_updates)
 {
+    map<string, vector<long>> inserted_ids;
     if(!checkInitialization())
-        return;
+        return inserted_ids;
     std::thread::id team_id = getTeamThreadId();
 
     data_source_name = checkDefaultDatasource(data_source_name);
@@ -153,13 +157,15 @@ void PSQLController::ORMCommit_me(string data_source_name, bool transaction,bool
         
         //Unlock all orms as they are locked from PSQLORMCache::add() function.
         cache->unlock_current_thread_orms();
-        cache->commit(data_source_name, false,transaction,clean_updates);
+        inserted_ids = cache->commit(data_source_name, false,transaction,clean_updates);
 
         if(clean_updates){
             ((*psqlORMCaches)[data_source_name])->erase(team_id);
             delete cache;
         }
     }
+
+    return inserted_ids;
 }
 
 
