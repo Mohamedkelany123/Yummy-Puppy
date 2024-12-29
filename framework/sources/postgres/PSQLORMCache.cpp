@@ -427,9 +427,10 @@ void PSQLORMCache::clear_cache(bool clean_updates){
 
 
 
-void PSQLORMCache::commit_sequential (string data_source_name, bool transaction, bool clean_updates)
+map<string, vector<long>> PSQLORMCache::commit_sequential (string data_source_name, bool transaction, bool clean_updates)
 {
     PSQLConnection * psqlConnection = NULL;
+    map<string, vector<long>> inserted_ids;
     if (transaction)
     {
         // cout << "Staring Postgresql Transaction" << endl;
@@ -452,16 +453,17 @@ void PSQLORMCache::commit_sequential (string data_source_name, bool transaction,
                     orm_cache_item->lock_me();
                     orm_cache_item->insert(psqlConnection);
                     cout << "Inserting->" << orm_cache_item->getORMName() << ", id: " << orm_cache_item->getIdentifier() << endl;
+                    inserted_ids[orm_cache_item->getORMName()].push_back(orm_cache_item->getIdentifier());
                     orm_cache_item->unlock_me();
                 }
-                delete (orm_cache_item);
+                // delete (orm_cache_item);
                 counter ++;
                 if (counter % 1000 == 0 )
                     cout << "Committed " << counter << " inserts" << endl;
         }
-        insert_cache[orm_cache.first].clear();
+        // insert_cache[orm_cache.first].clear();
     }
-    insert_cache.clear();
+    // insert_cache.clear();
     for ( int i = 0 ; i < insert_thread_cache.size() ; i ++)
         insert_thread_cache[i].clear();
     insert_cache_items_count=0;
@@ -490,19 +492,34 @@ void PSQLORMCache::commit_sequential (string data_source_name, bool transaction,
         update_cache.clear();
         update_cache_items_count=0;
     }
+
+    for (auto orm_cache: insert_cache)
+    {
+        for (auto orm_cache_item:orm_cache.second) 
+        {
+            delete (orm_cache_item);
+        }
+        insert_cache[orm_cache.first].clear();
+    }
+    insert_cache.clear();
+
     if (transaction)
     {
         psqlConnection->commitTransaction();
         // psqlConnection->rollbackTransaction();
         psqlController.releaseConnection(data_source_name,psqlConnection);
     }
+
+    return inserted_ids;
 }
 
-void PSQLORMCache::commit(string data_source_name, bool parallel, bool transaction, bool clean_updates) {
+map<string, vector<long>> PSQLORMCache::commit(string data_source_name, bool parallel, bool transaction, bool clean_updates) {
     auto start = chrono::steady_clock::now();
     cout << "Starting to commit " << endl;
 
     lock_guard<mutex> guard(lock);
+
+    map<string, vector<long>> inserted_ids;
 
     if (parallel) {
         if (transaction) {
@@ -513,7 +530,7 @@ void PSQLORMCache::commit(string data_source_name, bool parallel, bool transacti
         }
         clear_cache(clean_updates);
     } else {
-        commit_sequential(data_source_name, transaction);
+        inserted_ids = commit_sequential(data_source_name, transaction);
     }
 
     cout << "Exiting commit" << endl;
@@ -521,6 +538,8 @@ void PSQLORMCache::commit(string data_source_name, bool parallel, bool transacti
     auto end = chrono::steady_clock::now();
     auto duration = chrono::duration_cast<chrono::seconds>(end - start).count();
     cout << "COMMITTIME-> " << duration << " seconds" << endl;
+    
+    return inserted_ids;
 }
 void PSQLORMCache::commit(string data_source_name, string name )
 {
