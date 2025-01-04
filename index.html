@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delicieux Festin</title>
+    <title>Yuppy Puppy</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,40 +14,43 @@
             padding: 0;
         }
         .container {
-            margin-top: 100px;
+            margin-top: 50px;
         }
-        .logo {
-            width: 150px;
+        h1 {
+            font-size: 28px;
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Glow effect */
+            margin-bottom: 20px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
         }
         .button {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 80%;
-            max-width: 400px;
-            margin: 20px auto;
-            padding: 15px;
+            width: 90%;
+            max-width: 320px;
+            margin: 15px auto;
+            padding: 12px 15px;
             text-decoration: none;
             color: white;
             font-weight: bold;
-            border-radius: 12px;
-            font-size: 18px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);  /* Depth effect */
+            border-radius: 10px;
+            font-size: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             transition: transform 0.2s, box-shadow 0.2s;
-            border: none;
         }
         .button img {
-            margin-right: 12px;
+            margin-right: 10px;
             width: 24px;
             height: 24px;
             object-fit: contain;
         }
         .button:hover {
-            transform: translateY(-4px);  /* Lifts the button on hover */
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
         .whatsapp {
-            background: linear-gradient(145deg, #25d366, #128C7E);  /* Gradient for 3D effect */
+            background: linear-gradient(145deg, #25d366, #128C7E);
         }
         .facebook {
             background: linear-gradient(145deg, #1877f2, #0a58ca);
@@ -56,60 +59,49 @@
             background: linear-gradient(145deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
         }
         .tiktok {
-            background: linear-gradient(145deg, #69c9d0, #0095f6); /* TikTok gradient */
+            background: linear-gradient(145deg, #69c9d0, #0095f6);
         }
 
-        /* Media Queries for Mobile Devices */
+        /* Mobile-specific adjustments */
         @media (max-width: 600px) {
-            .container {
-                margin-top: 50px;  /* Reduce top margin on smaller screens */
+            h1 {
+                font-size: 24px;
+                margin-bottom: 15px;
             }
-
-            .logo {
-                width: 120px;  /* Smaller logo for small screens */
-            }
-
             .button {
-                width: 90%;  /* Make buttons wider on small screens */
-                padding: 12px;  /* Slightly smaller padding */
+                padding: 10px;
+                font-size: 14px;
             }
-
             .button img {
-                width: 20px;   /* Smaller icon size */
+                width: 20px;
                 height: 20px;
             }
-
-            h1 {
-                font-size: 22px; /* Larger heading on mobile */
-            }
         }
-
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- <img src="logo.png" alt="Delicieux Festin" class="logo"> -->
         <h1>Yuppy Puppy</h1>
         
         <a href="https://wa.me/01068027202" class="button whatsapp">
             <img src="whatsapp.png" alt="WhatsApp">
-            <!-- My WhatsApp -->
+            WhatsApp
         </a>
         
         <a href="https://www.facebook.com/profile.php?id=61571103885848&mibextid=wwXIfr&rdid=9xOE34lBGhtrfkHv&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F15uqyrkUQB%2F%3Fmibextid%3DwwXIfr#" class="button facebook">
             <img src="facebook.png" alt="Facebook">
-            <!-- Yu Ppy -->
+            Facebook
         </a>
         
         <a href="https://www.instagram.com/yuppypuppy123?igsh=bnR1cW80cDdxYmxp&utm_source=qr" class="button instagram">
             <img src="instagram.png" alt="Instagram">
-            <!-- yuppypuppy123 -->
+            Instagram
         </a>        
 
-        <a href="https://www.tiktok.com/@your-username" class="button tiktok">
+        <a href="https://www.tiktok.com/@yuppy.puppy3" class="button tiktok">
             <img src="tiktok.png" alt="TikTok">
-            <!-- My TikTok -->
+            TikTok
         </a>
 
     </div>
