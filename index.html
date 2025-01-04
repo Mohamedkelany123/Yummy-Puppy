@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delicieux Festin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: url('background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin-top: 100px;
+        }
+        .logo {
+            width: 150px;
+        }
+        .button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 15px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 12px;
+            font-size: 18px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);  /* Depth effect */
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+        }
+        .button img {
+            margin-right: 12px;
+            width: 24px;
+        }
+        .button:hover {
+            transform: translateY(-4px);  /* Lifts the button on hover */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        .whatsapp {
+            background: linear-gradient(145deg, #25d366, #128C7E);  /* Gradient for 3D effect */
+        }
+        .facebook {
+            background: linear-gradient(145deg, #1877f2, #0a58ca);
+        }
+        .instagram {
+            background: linear-gradient(145deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="logo.png" alt="Delicieux Festin" class="logo">
+        <h1>Delicieux Festin</h1>
+        
+        <a href="https://wa.me/your-number" class="button whatsapp">
+            <img src="whatsapp.png" alt="WhatsApp">
+            My WhatsApp
+        </a>
+        
+        <a href="https://facebook.com/your-page" class="button facebook">
+            <img src="facebook.png" alt="Facebook">
+            My Facebook
+        </a>
+        
+        <a href="https://instagram.com/your-page" class="button instagram">
+            <img src="instagram.png" alt="Instagram">
+            My Instagram
+        </a>        
+    </div>
+
+</body>
+</html>
