@@ -39,6 +39,8 @@
         .button img {
             margin-right: 12px;
             width: 24px;
+            height: 24px;
+            object-fit: contain;
         }
         .button:hover {
             transform: translateY(-4px);  /* Lifts the button on hover */
@@ -53,28 +55,63 @@
         .instagram {
             background: linear-gradient(145deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
         }
+        .tiktok {
+            background: linear-gradient(145deg, #69c9d0, #0095f6); /* TikTok gradient */
+        }
+
+        /* Media Queries for Mobile Devices */
+        @media (max-width: 600px) {
+            .container {
+                margin-top: 50px;  /* Reduce top margin on smaller screens */
+            }
+
+            .logo {
+                width: 120px;  /* Smaller logo for small screens */
+            }
+
+            .button {
+                width: 90%;  /* Make buttons wider on small screens */
+                padding: 12px;  /* Slightly smaller padding */
+            }
+
+            .button img {
+                width: 20px;   /* Smaller icon size */
+                height: 20px;
+            }
+
+            h1 {
+                font-size: 22px; /* Larger heading on mobile */
+            }
+        }
+
     </style>
 </head>
 <body>
 
     <div class="container">
-        <img src="logo.png" alt="Delicieux Festin" class="logo">
-        <h1>Delicieux Festin</h1>
+        <!-- <img src="logo.png" alt="Delicieux Festin" class="logo"> -->
+        <h1>Yuppy Puppy</h1>
         
-        <a href="https://wa.me/your-number" class="button whatsapp">
+        <a href="https://wa.me/01068027202" class="button whatsapp">
             <img src="whatsapp.png" alt="WhatsApp">
-            My WhatsApp
+            <!-- My WhatsApp -->
         </a>
         
-        <a href="https://facebook.com/your-page" class="button facebook">
+        <a href="https://www.facebook.com/profile.php?id=61571103885848&mibextid=wwXIfr&rdid=9xOE34lBGhtrfkHv&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F15uqyrkUQB%2F%3Fmibextid%3DwwXIfr#" class="button facebook">
             <img src="facebook.png" alt="Facebook">
-            My Facebook
+            <!-- Yu Ppy -->
         </a>
         
-        <a href="https://instagram.com/your-page" class="button instagram">
+        <a href="https://www.instagram.com/yuppypuppy123?igsh=bnR1cW80cDdxYmxp&utm_source=qr" class="button instagram">
             <img src="instagram.png" alt="Instagram">
-            My Instagram
+            <!-- yuppypuppy123 -->
         </a>        
+
+        <a href="https://www.tiktok.com/@your-username" class="button tiktok">
+            <img src="tiktok.png" alt="TikTok">
+            <!-- My TikTok -->
+        </a>
+
     </div>
 
 </body>
