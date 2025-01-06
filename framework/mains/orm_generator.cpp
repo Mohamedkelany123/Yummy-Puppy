@@ -30,7 +30,8 @@ int main (int argc, char ** argv)
     }
 
     string command = argv[1];
-    ConfigReader conf = ConfigReader(argv[2]);
+    ConfigReader::initialize(argv[2]);
+    ConfigReader& conf = ConfigReader::getInstance();
 
 
     if (command == "generate") {

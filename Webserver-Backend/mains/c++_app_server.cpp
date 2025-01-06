@@ -3,6 +3,7 @@
 #include "GarbageCollector.h"
 #include "HTTPRequestManager.h"
 #include "ConfigFile.h"
+#include <reader.h>
 #include "Logger.h"
 #include "MiddlewareManager.h"
 #include "TeamThread.h"
@@ -10,6 +11,10 @@
 using namespace std;
 int main(int argc, char **argv)
 {
+    string configFile = argv[1];
+    // Initialize ConfigReader singleton with the config file path
+    ConfigReader::initialize(configFile);
+
     ConfigFile *conf = new ConfigFile(argc, argv);
     conf->setConfInstance(conf);
     Logger::getInstanceInitial(conf);

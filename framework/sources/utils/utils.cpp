@@ -29,7 +29,7 @@ BDate::BDate()
 {
     string platform = "";
     try{
-        ConfigReader conf = ConfigReader("config.json");
+        ConfigReader& conf = ConfigReader::getInstance();
         platform = conf.GetValue("app_config", "platform");
 
     }
